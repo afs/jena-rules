@@ -73,11 +73,23 @@ public class ShaclRulesWriter {
     // ---------------------
 
     private static void internalPrint(IndentedWriter out, RuleSet ruleSet, Style style) {
-        Prologue prologue = ruleSet.getPrologue().copy();
-        prologue.setBaseURI(null);
-        String baseURI =  prologue.getBaseURI();
-        IRIx baseIRI = prologue.getBase();
-        PrefixMap prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
+        Prologue prologue;
+        String baseURI;
+        IRIx baseIRI;
+        PrefixMap prefixMap;
+        if ( ruleSet.hasPrologue() ) {
+            prologue = ruleSet.getPrologue().copy();
+            prologue.setBaseURI(null);
+            baseURI =  prologue.getBaseURI();
+            baseIRI = prologue.getBase();
+            prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
+        } else {
+            prologue = new Prologue();
+            prefixMap = PrefixMapFactory.create();
+            baseURI = null;
+            baseIRI = null;
+        }
+
         RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, prologue, style);
         srw.writeRuleSet(ruleSet);
     }
@@ -132,7 +144,7 @@ public class ShaclRulesWriter {
 
         private void writeData(RuleSet ruleSet) {
             List<Triple> data = ruleSet.getDataTriples();
-            if ( data.isEmpty() )
+            if ( data == null || data.isEmpty() )
                 return;
 
             out.print("DATA {");

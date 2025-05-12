@@ -26,6 +26,7 @@ import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.graph.*;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.syntax.*;
@@ -35,31 +36,6 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 
 public class RuleSetToTriples {
-
-    static Node NIL = RDF.Nodes.nil;
-    static Node CAR = RDF.Nodes.first;
-    static Node CDR = RDF.Nodes.rest;
-    static Node TYPE = RDF.Nodes.type;
-
-    static class V {
-        static final String SH = "http://www.w3.org/ns/shacl#";
-        private static Node uri(String localName) { return NodeFactory.createURI(SH+localName); }
-
-        static final Node subject = uri("subject");
-        static final Node predicate = uri("predicate");
-        static final Node object = uri("object");
-
-        static final Node ruleClass = uri("Rule");
-        static final Node head = uri("head");
-        static final Node body = uri("body");
-
-        static final Node rule = uri("rule");
-
-        static final Node sparqlExpr = uri("sparqlExpr");
-
-        // Temp
-        static final Node sparqlBody = uri("sparqlBody");
-    }
 
     /*
 sh:rule
@@ -98,7 +74,7 @@ sh:rule
             ruleNumber++;
             Node ruleNode = NodeFactory.createURI("http://example/rule"+ruleNumber);
             if ( true ) {
-                graph.add(ruleNode, TYPE, V.ruleClass);
+                graph.add(ruleNode, V.TYPE, V.ruleClass);
             } else {
                 Node x = NodeFactory.createBlankNode();
                 graph.add(ruleNode, V.rule, x);
@@ -192,9 +168,13 @@ sh:rule
         List<Node> elements = new ArrayList<>();
         bgp.forEach(triple->{
             Node tripleNode = NodeFactory.createBlankNode();
-            Triple sTriple = Triple.create(tripleNode, V.subject, triple.getSubject());
-            Triple pTriple = Triple.create(tripleNode, V.predicate, triple.getPredicate());
-            Triple oTriple = Triple.create(tripleNode, V.object, triple.getObject());
+            Node sNode = convertVar(graph, triple.getSubject());
+            Node pNode = convertVar(graph, triple.getPredicate());
+            Node oNode = convertVar(graph, triple.getObject());
+
+            Triple sTriple = Triple.create(tripleNode, V.subject, sNode);
+            Triple pTriple = Triple.create(tripleNode, V.predicate, pNode);
+            Triple oTriple = Triple.create(tripleNode, V.object, oNode);
             graph.add(sTriple);
             graph.add(pTriple);
             graph.add(oTriple);
@@ -203,16 +183,31 @@ sh:rule
         return elements;
     }
 
+    private static Node convertVar(Graph graph, Node node) {
+        // Triple terms
+        if ( node.isTripleTerm() )
+            throw new ShaclException("Not implementned: triple terms; "+node);
+        if ( node.isConcrete() )
+            return node;
+        if ( Var.isVar(node) ) {
+            Node varNode = NodeFactory.createBlankNode();
+            Node varName = NodeFactory.createLiteralString(Var.alloc(node).getVarName());
+            graph.add(varNode, V.var, varName);
+            return varNode;
+        }
+        throw new ShaclException("Node type not recognized:; "+node);
+    }
+
     private static Node list(Graph graph, List<Node> elements) {
 
         ListIterator<Node> iter = elements.listIterator(elements.size());
-        Node x = NIL;
+        Node x = V.NIL;
 
         while(iter.hasPrevious()) {
             Node cell = NodeFactory.createBlankNode();
             Node elt = iter.previous();
-            graph.add(cell, CAR, elt);
-            graph.add(cell, CDR, x);
+            graph.add(cell, V.CAR, elt);
+            graph.add(cell, V.CDR, x);
             x = cell;
         }
         return x;

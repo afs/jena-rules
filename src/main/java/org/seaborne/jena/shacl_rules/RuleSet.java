@@ -52,7 +52,7 @@ public class RuleSet {
     public boolean hasPrologue() {
         if ( prologue == null )
             return false;
-        return prologue.getBase() != null ||  prologue.getPrefixMapping().hasNoMappings();
+        return prologue.getBase() != null || !prologue.getPrefixMapping().hasNoMappings();
     }
 
     public List<Rule> getRules() {
