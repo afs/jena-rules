@@ -85,17 +85,9 @@ void ByteOrderMark() : {}
 void Rule() : {  TripleCollector acc = new TripleCollectorBGP() ; ElementGroup body = null ; }
 {
    Rule1() | Rule2() | Rule3()
-//    <RULE>
-//    { startRule(); }
-//    <LBRACE>
-//    TriplesTemplate(acc)
-//    <RBRACE>
-//    <WHERE>
-//    body = BodyPattern()
-//    { finishRule(acc, body); }
 }
 
-void Rule1() : { TripleCollector acc = new TripleCollectorBGP() ; ElementGroup body = null ;  Token t; }
+void Rule1() : { TripleCollector acc = null; ElementGroup body = null ;  Token t; }
 {
    { startRule(); }
    t = <RULE>
@@ -105,7 +97,7 @@ void Rule1() : { TripleCollector acc = new TripleCollectorBGP() ; ElementGroup b
    { finishRule(acc, body, t.beginLine, t.beginColumn); }
 }
 
-void Rule2() : { TripleCollector acc = new TripleCollectorBGP() ; ElementGroup body = null ; Token t; }
+void Rule2() : { TripleCollector acc = null ;ElementGroup body = null ; Token t; }
 {
    { startRule(); }
    t = <IF>
@@ -136,7 +128,7 @@ void Data() : { TripleCollectorBGP acc = new TripleCollectorBGP(); Token t; }
 TripleCollectorBGP TriplesTemplateBlock() : { TripleCollectorBGP acc = new TripleCollectorBGP(); }
 {
    <LBRACE>
-   TriplesTemplate(acc)
+   ( TriplesTemplate(acc) )?
    <RBRACE>
    { return acc; }
 }
@@ -210,7 +202,7 @@ ElementGroup BodyPattern() : { Token t ; Element el = null; }
   t = <LBRACE>
   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   { ElementGroup elg = new ElementGroup() ; }
-  BodyPattern1(elg)
+  ( BodyPattern1(elg) )?
   // And finally ...
   ( el = Assignment() { elg.addElement(el); } ) *
   <RBRACE>

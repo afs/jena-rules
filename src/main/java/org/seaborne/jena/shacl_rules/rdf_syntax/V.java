@@ -40,6 +40,8 @@ class V {
     static final Node body = uri("body");
 
     static final Node rule = uri("rule");
+    static final Node ruleSet = uri("ruleSet");
+
     static final Node var = uri("var");
 
     static final Node sparqlExpr = uri("sparqlExpr");

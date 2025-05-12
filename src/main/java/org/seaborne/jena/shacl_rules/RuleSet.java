@@ -20,6 +20,7 @@ package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
 
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
@@ -32,6 +33,16 @@ public class RuleSet {
     private final Prologue prologue;
     private final List<Triple> dataTriples;
     private final Graph data;
+
+    public static boolean equalRuleSets(RuleSet ruleSet1, RuleSet ruleSet2) {
+//        ruleSet1.getDataTriples();
+//        ruleSet1.getPrologue();
+
+        // Only the rules.
+        List<Rule> r1 = ruleSet1.getRules();
+        List<Rule> r2 = ruleSet2.getRules();
+        return ListUtils.equalsUnordered(r1, r2);
+    }
 
     public RuleSet(Prologue prologue, List<Rule> rules, List<Triple> dataTriples) {
         this.prologue = prologue;

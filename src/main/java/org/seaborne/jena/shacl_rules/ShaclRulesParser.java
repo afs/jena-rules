@@ -103,6 +103,4 @@ public class ShaclRulesParser {
             throw new ShaclParseException(th.getMessage(), th, line, col);
         }
     }
-
-
 }

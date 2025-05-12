@@ -19,6 +19,7 @@
 package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
@@ -36,7 +37,6 @@ public class Rule {
         this.body = body;
         this.bodyAsQuery = asQuery(body);   // Compute once.
     }
-
     public BasicPattern getHead() {
         return head;
     }
@@ -56,6 +56,29 @@ public class Rule {
         query.setQueryResultStar(true);
         query.setQueryPattern(eltGroup);
         return query;
+    }
+
+    // Ignore bodyAsQuery which is calculated from the body.
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(body, head);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if ( this == obj )
+            return true;
+        if ( !(obj instanceof Rule) )
+            return false;
+        Rule other = (Rule)obj;
+
+        // Treat bnodes as concrete terms.
+        if ( ! head.getList().equals(other.getHead().getList()) )
+            return false;
+        if ( ! body.equals(other.getBody()) )
+            return false;
+        return true;
     }
 
     @Override

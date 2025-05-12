@@ -31,7 +31,6 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.syntax.*;
 import org.apache.jena.sparql.util.ExprUtils;
-import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 
@@ -57,22 +56,24 @@ sh:rule
   .
 */
 
-    static int ruleNumber = 0;
-
     public static Graph write(RuleSet ruleSet) {
         Graph graph = GraphFactory.createDefaultGraph();
-        graph.getPrefixMapping().setNsPrefix("sh", V.SH);
-        graph.getPrefixMapping().setNsPrefix("rdf", RDF.getURI());
-        graph.getPrefixMapping().setNsPrefix("ex", "http://example/");
+        if ( ruleSet.hasPrologue() )
+            graph.getPrefixMapping().setNsPrefixes(ruleSet.getPrologue().getPrefixMapping());
+        writeToGraph(graph, ruleSet);
+        return graph;
+    }
+
+    public static void writeToGraph(Graph graph, RuleSet ruleSet) {
         if ( ruleSet.hasData() ) {
             GraphUtil.add(graph, ruleSet.getDataTriples());
+            // XXX Add as triple terms.  :data :triples ( <<(:s ;p :o)>> <<(:x :y :z)>> ...
         }
 
         List<Node> rules = new ArrayList<>();
 
         ruleSet.getRules().forEach(rule->{
-            ruleNumber++;
-            Node ruleNode = NodeFactory.createURI("http://example/rule"+ruleNumber);
+            Node ruleNode = NodeFactory.createBlankNode();
             if ( true ) {
                 graph.add(ruleNode, V.TYPE, V.ruleClass);
             } else {
@@ -85,7 +86,11 @@ sh:rule
             Node nBody = writeBody(graph, ruleNode, rule);
             rules.add(ruleNode);
         });
-        return graph;
+
+        Node top = NodeFactory.createURI("http://example/ruleSet-1");
+
+        Node rulesList = list(graph, rules);
+        graph.add(top, V.ruleSet, rulesList);
     }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
@@ -119,7 +124,7 @@ sh:rule
             }
         }
 
-        if ( true ) {
+        if ( false ) {
             // Put in the SPARQL form.
             String qs = rule.getBody().toString();
             Node nSparqlForm = NodeFactory.createBlankNode();
@@ -145,15 +150,6 @@ sh:rule
         ExprUtils.fmtSPARQL(out, expr);
         //WriterSSE.out(out, expr, null);
         return out.asString();
-    }
-
-    private static Node writeBody0(Graph graph, Node ruleNode, Rule rule) {
-        String qs = rule.getBody().toString();
-        Node bodyNode = NodeFactory.createBlankNode();
-        Node nQueryString = NodeFactory.createLiteralString(qs);
-        graph.add(bodyNode, V.sparqlBody, nQueryString);
-        graph.add(ruleNode, V.body, bodyNode);
-        return bodyNode;
     }
 
     private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {

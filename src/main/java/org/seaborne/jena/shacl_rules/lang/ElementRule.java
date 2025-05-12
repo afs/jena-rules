@@ -18,10 +18,12 @@
 
 package org.seaborne.jena.shacl_rules.lang;
 
+import java.util.List;
+
+import org.apache.jena.graph.Triple;
+import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.syntax.ElementGroup;
-import org.apache.jena.sparql.syntax.TripleCollector;
-import org.apache.jena.sparql.syntax.TripleCollectorBGP;
+import org.apache.jena.sparql.syntax.*;
 
 /**
  * Parser structure.
@@ -35,7 +37,38 @@ public class ElementRule {
     public ElementRule(TripleCollector head, ElementGroup body) {
         TripleCollectorBGP tcBGP = (TripleCollectorBGP)head;
         this.head = tcBGP.getBGP();
-        this.body = body;
+        this.body = fixup(body);
+    }
+
+    // Convert ElementPathBlocks to ElementTripleBlocks.
+    // XXX This should go away.
+    private static ElementGroup fixup(ElementGroup eltGroup) {
+        ElementGroup newEltGroup = new ElementGroup();
+        List<Element> elts = eltGroup.getElements();
+        for ( int i = 0 ; i < elts.size() ; i++ ) {
+            Element elt = elts.get(i);
+            if ( elt instanceof ElementPathBlock epb ) {
+                ElementTriplesBlock etb = new ElementTriplesBlock();
+                epb.getPattern().getList().forEach(triplePath->{
+                    Triple t = triplePath.asTriple();
+                    if ( t == null )
+                        throw new ShaclException("Path: "+triplePath);
+                    etb.addTriple(t);
+                });
+                newEltGroup.addElement(etb);
+                continue;
+            }
+            switch(elt) {
+                case ElementFilter x -> {}
+                case ElementBind x -> {}
+                case ElementAssign x -> {}
+                default -> {
+                    throw new ShaclException("Unexpected element: "+elt.getClass().getSimpleName());
+                }
+            }
+            newEltGroup.addElement(elt);
+        }
+        return newEltGroup;
     }
 
     public BasicPattern getHead() {
