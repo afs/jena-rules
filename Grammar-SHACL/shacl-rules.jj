@@ -220,11 +220,13 @@ ElementGroup BodyPattern() : { Token t ; Element el = null; }
 void BodyPattern1(ElementGroup elg) : { Element el = null ; }
 {
   // XXX Needs work
+  // List of BGP and filters directly.
   // Currently : BGP FILTER*
   (
      el = BodyPatternSub()
      { elg.addElement(el);}
-     ( el = Filter() { elg.addElement(el); }
+     // XXX Improve.
+     (  (el = Filter() { elg.addElement(el); })+
        // After a filter, more of the same.
        (BodyPattern1(elg))?
      )?

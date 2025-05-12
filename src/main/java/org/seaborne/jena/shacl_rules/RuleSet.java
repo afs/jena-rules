@@ -29,16 +29,16 @@ import org.apache.jena.sparql.graph.GraphFactory;
 public class RuleSet {
 
     private final List<Rule> rules;
-    private final Prologue proglogue;
+    private final Prologue prologue;
     private final List<Triple> dataTriples;
     private final Graph data;
 
     public RuleSet(Prologue prologue, List<Rule> rules, List<Triple> dataTriples) {
-        this.proglogue = prologue;
+        this.prologue = prologue;
         this.rules = rules;
         this.dataTriples = dataTriples;
         Graph graph = null;
-        if ( dataTriples != null ) {
+        if ( dataTriples != null && ! dataTriples.isEmpty() ) {
             graph = GraphFactory.createDefaultGraph();
             GraphUtil.add(graph, dataTriples);
         }
@@ -46,7 +46,13 @@ public class RuleSet {
     }
 
     public Prologue getPrologue() {
-        return proglogue;
+        return prologue;
+    }
+
+    public boolean hasPrologue() {
+        if ( prologue == null )
+            return false;
+        return prologue.getBase() != null ||  prologue.getPrefixMapping().hasNoMappings();
     }
 
     public List<Rule> getRules() {
@@ -59,6 +65,12 @@ public class RuleSet {
 
     public List<Triple> getDataTriples() {
         return dataTriples;
+    }
+
+    public boolean hasData() {
+        if ( dataTriples == null )
+            return false;
+        return ! dataTriples.isEmpty();
     }
 
     @Override

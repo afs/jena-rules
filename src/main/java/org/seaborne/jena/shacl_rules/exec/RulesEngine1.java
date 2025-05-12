@@ -36,6 +36,7 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.*;
+import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 
 public class RulesEngine1 implements RulesEngine {
     public static boolean verbose = false;
@@ -89,11 +90,18 @@ public class RulesEngine1 implements RulesEngine {
 
     public Evaluation eval(Graph baseGraph, boolean verbose) {
 
-        boolean updateBaseGraph = false;
+        boolean updateBsseGraph = false;
 
         // Needs improvement : Copy baseGraph, and update copy.
         // The graph for the algorithm. Updated.
-        Graph dataGraph = updateBaseGraph ? baseGraph : R.cloneGraph(baseGraph);
+        Graph dataGraph = R.cloneGraph(baseGraph);
+
+        Graph data = ruleSet.getData() ;
+        // Recalculate the basegraph and make it look like data was added.
+        if ( ruleSet.hasData() ) {
+            dataGraph = new AppendGraph(dataGraph);
+            GraphUtil.addInto(dataGraph, data);
+        }
 
         int round = 0;
 
@@ -108,16 +116,15 @@ public class RulesEngine1 implements RulesEngine {
         // False - accumulate new triples.
         boolean flushAfterEachRound = true;
 
-        // == Data.
-        Graph data = ruleSet.getData() ;
-        if ( data != null ) {
-            GraphUtil.addInto(graph1, data);
-            GraphUtil.addInto(graph1, data);
-            if ( flushAfterEachRound ) {
-                GraphUtil.addInto(accGraph, graph1.getAdded());
-                graph1.flush();
-            }
-        }
+        // Long term ...
+//        // == Data.
+//        if (ruleSet.hasData() ) {
+//            GraphUtil.addInto(graph1, data);
+//            if ( flushAfterEachRound ) {
+//                GraphUtil.addInto(accGraph, graph1.getAdded());
+//                graph1.flush();
+//            }
+//        }
 
         // == Rules
         while(true) {

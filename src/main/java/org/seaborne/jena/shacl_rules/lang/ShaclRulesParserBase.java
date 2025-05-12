@@ -23,12 +23,12 @@ import java.util.List;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.lang.SPARQLParserBase;
+import org.apache.jena.sparql.lang.QueryParserBase;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.TripleCollector;
 import org.apache.jena.sparql.syntax.TripleCollectorBGP;
 
-public class ShaclRulesParserBase extends SPARQLParserBase {
+public class ShaclRulesParserBase extends QueryParserBase {
 
     private List<ElementRule> rules = new ArrayList<>();
     private List<Triple> data = new ArrayList<>();

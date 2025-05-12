@@ -41,6 +41,8 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 
 public class ShaclRulesWriter {
 
+    enum Style { Flat, MultiLine }
+
     public static void printBasic(RuleSet ruleSet) {
         ruleSet.getRules().forEach(r -> {
             System.out.println(r);
@@ -71,159 +73,159 @@ public class ShaclRulesWriter {
     // ---------------------
 
     private static void internalPrint(IndentedWriter out, RuleSet ruleSet, Style style) {
-
         Prologue prologue = ruleSet.getPrologue().copy();
         prologue.setBaseURI(null);
-
         String baseURI =  prologue.getBaseURI();
         IRIx baseIRI = prologue.getBase();
         PrefixMap prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
-        ShaclRulesWriter w = new ShaclRulesWriter(out, prefixMap, baseIRI, prologue, style);
-        w.writeRuleSet(ruleSet);
+        RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, prologue, style);
+        srw.writeRuleSet(ruleSet);
     }
 
-    private final IndentedWriter out;
-    private final PrefixMap prefixMap;
-    private final IRIx base;
-    private final NodeFormatter nodeFormatter;
-    private final SerializationContext sCxt;
+    static class RuleSetWriter {
 
-    enum Style { Flat, MultiLine }
+        private final IndentedWriter out;
+        private final PrefixMap prefixMap;
+        private final IRIx base;
+        private final NodeFormatter nodeFormatter;
+        private final SerializationContext sCxt;
 
-    private final Style style;
+        private final Style style;
 
-    private ShaclRulesWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Prologue prologue, Style style) {
-       this.out = Objects.requireNonNull(output);
-       this.prefixMap = prefixMap;
-       this.base = baseIRI;
-       String baseStr = (baseIRI == null) ?null : baseIRI.str();
+        // There is little value in using thevsitor pattern due to detailed control of space beteeen items.
+        private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Prologue prologue, Style style) {
+            this.out = Objects.requireNonNull(output);
+            this.prefixMap = prefixMap;
+            this.base = baseIRI;
+            String baseStr = (baseIRI == null) ?null : baseIRI.str();
 
-       this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
-       this.sCxt = new SerializationContext(prologue);
-       this.style = Objects.requireNonNull(style);
-    }
-
-    private void writeRuleSet(RuleSet ruleSet) {
-        Objects.requireNonNull(ruleSet);
-        if ( base != null )
-            RiotLib.writeBase(out, base.str(), DirectiveStyle.KEYWORD);
-        if ( prefixMap != null )
-            RiotLib.writePrefixes(out, prefixMap, DirectiveStyle.KEYWORD);
-        if ( ( base != null || !prefixMap.isEmpty() ) && !ruleSet.isEmpty() )
-            out.println();
-
-        writeData(ruleSet);
-
-        List<Rule> rules = ruleSet.getRules();
-        boolean first = true;
-
-        for ( Rule rule : rules ) {
-            if ( ! first ) {
-                if ( style == Style.MultiLine )
-                    out.println();
-            }
-
-            first = false;
-
-            writeRule(rule);
+            this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
+            this.sCxt = new SerializationContext(prologue);
+            this.style = Objects.requireNonNull(style);
         }
-    }
 
-    private void writeData(RuleSet ruleSet) {
-        List<Triple> data = ruleSet.getDataTriples();
-        if ( data.isEmpty() )
-            return;
+        private void writeRuleSet(RuleSet ruleSet) {
+            Objects.requireNonNull(ruleSet);
+            if ( base != null )
+                RiotLib.writeBase(out, base.str(), DirectiveStyle.KEYWORD);
+            if ( prefixMap != null )
+                RiotLib.writePrefixes(out, prefixMap, DirectiveStyle.KEYWORD);
+            if ( ( base != null || !prefixMap.isEmpty() ) && !ruleSet.isEmpty() )
+                out.println();
 
-        out.print("DATA {");
-        if ( style == Style.Flat || data.size() == 1 ) {
+            writeData(ruleSet);
+
+            List<Rule> rules = ruleSet.getRules();
+            boolean first = true;
+
+            for ( Rule rule : rules ) {
+                if ( ! first ) {
+                    if ( style == Style.MultiLine )
+                        out.println();
+                }
+
+                first = false;
+
+                writeRule(rule);
+            }
+        }
+
+        private void writeData(RuleSet ruleSet) {
+            List<Triple> data = ruleSet.getDataTriples();
+            if ( data.isEmpty() )
+                return;
+
+            out.print("DATA {");
+            if ( style == Style.Flat || data.size() == 1 ) {
+                data.forEach(triple->{
+                    out.print(" ");
+                    writeTriple(triple);
+                });
+                out.println(" }");
+                return;
+            }
+            out.println();
+            out.incIndent();
             data.forEach(triple->{
+                writeTriple(triple);
+                out.println();
+            });
+            out.decIndent();
+            out.println("}");
+            out.println();
+        }
+
+        private void writeRule(Rule rule) {
+            out.print("RULE ");
+            writeHead(rule);
+            if ( style == Style.MultiLine )
+                out.println();
+            else
+                out.print(" ");
+            out.print("WHERE ");
+            writeBody(rule);
+        }
+
+        private void writeHead(Rule rule) {
+            BasicPattern head = rule.getHead();
+            out.print("{");
+            head.forEach(triple -> {
                 out.print(" ");
                 writeTriple(triple);
             });
-            out.println(" }");
-            return;
+            out.print(" }");
         }
-        out.println();
-        out.incIndent();
-        data.forEach(triple->{
-            writeTriple(triple);
-            out.println();
-        });
-        out.decIndent();
-        out.println("}");
-        out.println();
-    }
 
-    private void writeRule(Rule rule) {
-        out.print("RULE ");
-        writeHead(rule);
-        if ( style == Style.MultiLine )
-            out.println();
-        else
+        // Space then triple.
+        private void writeTriple(Triple triple) {
+            nodeFormatter.format(out, triple.getSubject());
             out.print(" ");
-        out.print("WHERE ");
-        writeBody(rule);
-    }
-
-    private void writeHead(Rule rule) {
-        BasicPattern head = rule.getHead();
-        out.print("{");
-        head.forEach(triple -> {
+            nodeFormatter.format(out, triple.getPredicate());
             out.print(" ");
-            writeTriple(triple);
-        });
-        out.print(" }");
-    }
-
-    // Space then triple.
-    private void writeTriple(Triple triple) {
-        nodeFormatter.format(out, triple.getSubject());
-        out.print(" ");
-        nodeFormatter.format(out, triple.getPredicate());
-        out.print(" ");
-        nodeFormatter.format(out, triple.getObject());
-        out.print(" .");
-    }
-
-    private void writeBody(Rule rule) {
-        // The element block in indented. Later ...
-        int indent = 0 ;
-
-        switch(style) {
-            case Flat -> {
-                out.setFlatMode(true);
-                out.print("{");
-            }
-            case MultiLine -> {
-                out.print("{");
-                out.println();
-                //out.incIndent(indent);
-            }
-        }
-        // Without braces.
-        IndentedLineBuffer outx = new IndentedLineBuffer();
-        FormatterElement.format(outx, sCxt, rule.getBody());
-        String x = outx.asString();
-        // Remove outer {}s. Put back leading space.
-        x = " "+x.substring(1, x.length()-1);
-        if ( style == Style.Flat ) {
-            //x = x.replace("\n", " ");
-            x = x.replaceAll("  +", " ");
+            nodeFormatter.format(out, triple.getObject());
+            out.print(" .");
         }
 
-        out.print(x);
+        private void writeBody(Rule rule) {
+            // The element block in indented. Later ...
+            int indent = 0 ;
 
-        switch(style) {
-            case Flat -> {
-                out.print(" }");
-                out.setFlatMode(false);
+            switch(style) {
+                case Flat -> {
+                    out.setFlatMode(true);
+                    out.print("{");
+                }
+                case MultiLine -> {
+                    out.print("{");
+                    out.println();
+                    //out.incIndent(indent);
+                }
             }
-            case MultiLine ->{
-                out.decIndent(indent);
-                out.println("}");
+            // Without braces.
+            IndentedLineBuffer outx = new IndentedLineBuffer();
+            FormatterElement.format(outx, sCxt, rule.getBody());
+            String x = outx.asString();
+            // Remove outer {}s. Put back leading space.
+            x = " "+x.substring(1, x.length()-1);
+            if ( style == Style.Flat ) {
+                //x = x.replace("\n", " ");
+                x = x.replaceAll("  +", " ");
             }
+
+            out.print(x);
+
+            switch(style) {
+                case Flat -> {
+                    out.print(" }");
+                    out.setFlatMode(false);
+                }
+                case MultiLine ->{
+                    out.decIndent(indent);
+                    out.println("}");
+                }
+            }
+            //Blank line
+            out.println();
         }
-        //Blank line
-        out.println();
     }
 }
