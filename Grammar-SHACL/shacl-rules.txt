@@ -1,0 +1,757 @@
+
+DOCUMENT START
+TOKENS
+// ------------------------------------------
+// Tokens
+
+// Comments and whitespace
+<DEFAULT> SKIP : {
+" "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+<DEFAULT> SPECIAL : {
+<SINGLE_LINE_COMMENT: "#" (~["\n","\r"])* ("\n" | "\r" | "\r\n")?>
+}
+
+<DEFAULT> TOKEN : {
+<#WS: " " | "\t" | "\n" | "\r" | "\f">
+| <#WSC: <WS> | <SINGLE_LINE_COMMENT>>
+| <BOM: "\ufeff">
+}
+
+<DEFAULT> TOKEN : {
+<IRIref: "<" (~[">","<","\"","{","}","^","\\","|","`","\u0000"-" "] | <UCHAR>)* ">">
+| <PNAME_NS: (<PN_PREFIX>)? ":">
+| <PNAME_LN: <PNAME_NS> <PN_LOCAL>>
+| <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS> | ".")* <PN_CHARS>)?>
+| <VAR1: "?" <VARNAME>>
+| <VAR2: "$" <VARNAME>>
+| <LANG_DIR: <AT> (<A2Z>)+ ("-" (<A2ZN>)+)* ("--" (<A2Z>)*)?>
+| <#A2Z: ["a"-"z","A"-"Z"]>
+| <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
+}
+
+// -------------------------------------------------
+// Keyworks : includes operators that are words and should be
+// before general things like IDENTIFIER which swallow almost
+// anything
+<DEFAULT> TOKEN : {
+<KW_A: "a">
+}
+
+// SHACL
+<DEFAULT> TOKEN [IGNORE_CASE] : {
+<RULE: "rule">
+| <THEN: "then">
+| <RULE_INFER: ":-">
+| <DATA: "data">
+| <INFER: "infer">
+}
+
+<DEFAULT> TOKEN [IGNORE_CASE] : {
+<BASE: "base">
+| <PREFIX: "prefix">
+| <VERSION: "version">
+| <WHERE: "where">
+| <BIND: "bind">
+| <AS: "as">
+| <LET: "let">
+| <ASSIGN: ":=">
+| <TRIPLE: "TRIPLE">
+| <IS_TRIPLE: "isTRIPLE">
+| <SUBJECT: "SUBJECT">
+| <PREDICATE: "PREDICATE">
+| <OBJECT: "OBJECT">
+| <NOT: "not">
+| <FILTER: "filter">
+| <BOUND: "bound">
+| <COALESCE: "coalesce">
+| <IN: "in">
+| <IF: "if">
+| <BNODE: "bnode">
+| <IRI: "iri">
+| <URI: "uri">
+| <STR: "str">
+| <STRLANG: "strlang">
+| <STRLANGDIR: "strlangdir">
+| <STRDT: "strdt">
+| <DTYPE: "datatype">
+| <LANG: "lang">
+| <LANGMATCHES: "langmatches">
+| <LANGDIR: "langdir">
+| <IS_URI: "isURI">
+| <IS_IRI: "isIRI">
+| <IS_BLANK: "isBlank">
+| <IS_LITERAL: "isLiteral">
+| <IS_NUMERIC: "isNumeric">
+| <HAS_LANG: "hasLang">
+| <HAS_LANGDIR: "hasLangDir">
+| <REGEX: "regex">
+| <SAME_TERM: "sameTerm">
+| <SAME_VALUE: "sameValue">
+| <RAND: "RAND">
+| <ABS: "ABS">
+| <CEIL: "CEIL">
+| <FLOOR: "FLOOR">
+| <ROUND: "ROUND">
+| <CONCAT: "CONCAT">
+| <SUBSTR: "SUBSTR">
+| <STRLEN: "STRLEN">
+| <REPLACE: "REPLACE">
+| <UCASE: "UCASE">
+| <LCASE: "LCASE">
+| <ENCODE_FOR_URI: "ENCODE_FOR_URI">
+| <CONTAINS: "CONTAINS">
+| <STRSTARTS: "STRSTARTS">
+| <STRENDS: "STRENDS">
+| <STRBEFORE: "STRBEFORE">
+| <STRAFTER: "STRAFTER">
+| <YEAR: "YEAR">
+| <MONTH: "MONTH">
+| <DAY: "DAY">
+| <HOURS: "HOURS">
+| <MINUTES: "MINUTES">
+| <SECONDS: "SECONDS">
+| <TIMEZONE: "TIMEZONE">
+| <TZ: "TZ">
+| <NOW: "NOW">
+| <UUID: "UUID">
+| <STRUUID: "STRUUID">
+| <MD5: "MD5">
+| <SHA1: "SHA1">
+| <SHA224: "SHA224">
+| <SHA256: "SHA256">
+| <SHA384: "SHA384">
+| <SHA512: "SHA512">
+| <TRUE: "true">
+| <FALSE: "false">
+}
+
+// -------------------------------------------------
+<DEFAULT> TOKEN : {
+<#DIGITS: (["0"-"9"])+>
+| <INTEGER: <DIGITS>>
+| <DECIMAL: (<DIGITS>)? "." <DIGITS>>
+| <DOUBLE: (["0"-"9"])+ "." (["0"-"9"])* <EXPONENT> | "." (["0"-"9"])+ <EXPONENT> | (["0"-"9"])+ <EXPONENT>>
+| <INTEGER_POSITIVE: <PLUS> <INTEGER>>
+| <DECIMAL_POSITIVE: <PLUS> <DECIMAL>>
+| <DOUBLE_POSITIVE: <PLUS> <DOUBLE>>
+| <INTEGER_NEGATIVE: <MINUS> <INTEGER>>
+| <DECIMAL_NEGATIVE: <MINUS> <DECIMAL>>
+| <DOUBLE_NEGATIVE: <MINUS> <DOUBLE>>
+| <#EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+>
+| <#QUOTE_3D: "\"\"\"">
+| <#QUOTE_3S: "\'\'\'">
+| <ECHAR: "\\" ("t" | "b" | "n" | "r" | "f" | "\\" | "\"" | "\'")>
+| <#UCHAR: <UCHAR4> | <UCHAR8>>
+| <#UCHAR4: "\\" "u" <HEX> <HEX> <HEX> <HEX>>
+| <#UCHAR8: "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX>>
+| <STRING_LITERAL1: "\'" (~["\'","\\","\n","\r"] | <ECHAR> | <UCHAR>)* "\'">
+| <STRING_LITERAL2: "\"" (~["\"","\\","\n","\r"] | <ECHAR> | <UCHAR>)* "\"">
+| <STRING_LITERAL_LONG1: <QUOTE_3S> (("\'" | "\'\'")? (~["\'","\\"] | <ECHAR> | <UCHAR>))* <QUOTE_3S>>
+| <STRING_LITERAL_LONG2: <QUOTE_3D> (("\"" | "\"\"")? (~["\"","\\"] | <ECHAR> | <UCHAR>))* <QUOTE_3D>>
+}
+
+<DEFAULT> TOKEN : {
+<LPAREN: "(">
+| <RPAREN: ")">
+| <NIL: <LPAREN> (<WSC>)* <RPAREN>>
+| <LBRACE: "{">
+| <RBRACE: "}">
+| <LBRACKET: "[">
+| <RBRACKET: "]">
+| <ANON: <LBRACKET> (<WSC>)* <RBRACKET>>
+| <SEMICOLON: ";">
+| <COMMA: ",">
+| <DOT: ".">
+| <EQ: "=">
+| <NE: "!=">
+| <GT: ">">
+| <LT: "<">
+| <LE: "<=">
+| <GE: ">=">
+| <L_TRIPLE: "<<(">
+| <R_TRIPLE: ")>>">
+| <LT2: "<<">
+| <GT2: ">>">
+| <L_ANN: "{|">
+| <R_ANN: "|}">
+| <TILDE: "~">
+| <BANG: "!">
+| <COLON: ":">
+| <SC_OR: "||">
+| <SC_AND: "&&">
+| <PLUS: "+">
+| <MINUS: "-">
+| <STAR: "*">
+| <SLASH: "/">
+| <DATATYPE: "^^">
+| <AT: "@">
+| <VBAR: "|">
+| <CARAT: "^">
+| <FPATH: "->">
+| <RPATH: "<-">
+| <QMARK: "?">
+}
+
+// See XML chars.txt for notes
+<DEFAULT> TOKEN : {
+<#PN_CHARS_BASE: ["A"-"Z"] | ["a"-"z"] | ["\u00c0"-"\u00d6"] | ["\u00d8"-"\u00f6"] | ["\u00f8"-"\u02ff"] | ["\u0370"-"\u037d"] | ["\u037f"-"\u1fff"] | ["\u200c"-"\u200d"] | ["\u2070"-"\u218f"] | ["\u2c00"-"\u2fef"] | ["\u3001"-"\ud7ff"] | ["\uf900"-"\ufffd"]>
+| <#PN_CHARS_U: <PN_CHARS_BASE> | "_">
+| <#PN_CHARS: <PN_CHARS_U> | "-" | ["0"-"9"] | "\u00b7" | ["\u0300"-"\u036f"] | ["\u203f"-"\u2040"]>
+| <#PN_PREFIX: <PN_CHARS_BASE> ((<PN_CHARS> | ".")* <PN_CHARS>)?>
+| <#PN_LOCAL: (<PN_CHARS_U> | ":" | ["0"-"9"] | <PLX>) ((<PN_CHARS> | "." | ":" | <PLX>)* (<PN_CHARS> | ":" | <PLX>))?>
+| <#VARNAME: (<PN_CHARS_U> | ["0"-"9"]) (<PN_CHARS_U> | ["0"-"9"] | "\u00b7" | ["\u0300"-"\u036f"] | ["\u203f"-"\u2040"])*>
+| <#PN_LOCAL_ESC: "\\" ("_" | "~" | "." | "-" | "!" | "$" | "&" | "\'" | "(" | ")" | "*" | "+" | "," | ";" | "=" | "/" | "?" | "#" | "@" | "%")>
+| <#PLX: <PERCENT> | <PN_LOCAL_ESC>>
+| <#HEX: ["0"-"9"] | ["A"-"F"] | ["a"-"f"]>
+| <#PERCENT: "%" <HEX> <HEX>>
+}
+
+// Catch-all tokens.  Must be last.  
+// Any non-whitespace.  Causes a parser exception, rather than a
+// token manager error (which hides the line numbers).
+<DEFAULT> TOKEN : {
+<#UNKNOWN: (~[" ","\t","\n","\r","\f"])+>
+}
+
+NON-TERMINALS
+	RulesUnit	:=	ByteOrderMark ( Prologue ( Rule | Data ) )* <EOF>
+	ByteOrderMark	:=	( <BOM> )?
+	Rule	:=	Rule1
+		|	Rule2
+		|	Rule3
+	Rule1	:=	<RULE> HeadTemplate <WHERE> BodyPattern
+	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
+	Rule3	:=	HeadTemplate <RULE_INFER> BodyPattern
+	Data	:=	<DATA> TriplesTemplateBlock
+// ---- Rule head
+	HeadTemplate	:=	TriplesTemplateBlock
+// ---- Rule body
+	BodyPattern	:=	<LBRACE> ( BodyPattern1 )? ( Assignment )* <RBRACE>
+	BodyPattern1	:=	( BodyPatternSub ( ( Filter )+ ( BodyPattern1 )? )? )
+	BodyPatternSub	:=	TriplesBlock
+// ----
+	Prologue	:=	( BaseDecl | PrefixDecl | VersionDecl )*
+	BaseDecl	:=	<BASE> IRIREF
+	PrefixDecl	:=	<PREFIX> <PNAME_NS> IRIREF
+	VersionDecl	:=	<VERSION> VersionSpecifier
+	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
+// void WhereClause() : { Element el ; }
+// {
+//    (<WHERE>)? 
+//    { startWherePattern() ; }
+//    el = GroupGraphPattern() { getQuery().setQueryPattern(el) ; }
+//    { finishWherePattern() ; }
+// }
+	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
+	TriplesTemplate	:=	TriplesSameSubject ( <DOT> ( TriplesTemplate )? )?
+	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
+	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
+	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
+	Assignment	:=	Let
+	Bind	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
+	Let	:=	<LET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
+// // -----
+// 
+// Element GraphPatternNotTriples() : { Element el = null ; }
+// {
+//  (
+//    el = GroupOrUnionGraphPattern()
+//  |
+//    el = OptionalGraphPattern()
+// #ifdef ARQ
+//  |
+//    el = LateralGraphPattern()
+//  |
+//    el = SemiJoinGraphPattern()
+//  |
+//    el = AntiJoinGraphPattern()
+// #endif
+//  |
+//    el = MinusGraphPattern()
+//  |
+//    el = GraphGraphPattern()
+//  |
+//    el = ServiceGraphPattern()
+//  |
+//    el = Filter()
+//  |
+//    el = Bind()
+//  |
+//    el = InlineData()
+// #ifdef ARQ
+//  |
+//    el = Assignment()
+//  |
+//    el = ExistsElt()
+//  |
+//    el = NotExistsElt()
+//  |
+//    el = Unfold()
+// #endif
+//  )
+//  { return el ; }
+// }
+// 
+// // ---- Definitions of each pattern element
+// 
+// Element OptionalGraphPattern() : { Element el ; }
+// { <OPTIONAL> el = GroupGraphPattern()
+//     { return new ElementOptional(el) ; }
+// }
+// 
+// #ifdef ARQ
+// Element LateralGraphPattern() : { Element el ; }
+// { <LATERAL> el = GroupGraphPattern()
+//     { return new ElementLateral(el) ; }
+// }
+// 
+// Element SemiJoinGraphPattern() : { Element el ; }
+// { <SEMIJOIN> el = GroupGraphPattern()
+//     { return new ElementSemiJoin(el) ; }
+// }
+// 
+// Element AntiJoinGraphPattern() : { Element el ; }
+// { <ANTIJOIN> el = GroupGraphPattern()
+//     { return new ElementAntiJoin(el) ; }
+// }
+// #endif
+// 
+// Element GraphGraphPattern() : { Element el ; Node n ;}
+// {
+//   <GRAPH> n = VarOrIri() el = GroupGraphPattern()
+//     { return new ElementNamedGraph(n, el) ; }
+// }
+// 
+// Element ServiceGraphPattern() : { Element el ; Node n ; boolean silent = false ; }
+// {
+//   <SERVICE> 
+//   (<SILENT>
+//    { silent=true; }
+//   )?
+//   n = VarOrIri()
+//   el = GroupGraphPattern()
+//     { return new ElementService(n, el, silent) ; }
+// }
+// 
+// Element Bind() : {  Var v ; Expr expr ; }
+// {
+//   <BIND>
+//   <LPAREN>
+//   expr = Expression()
+//   <AS>
+//   v = Var()
+//   <RPAREN>
+//   { return new ElementBind(v, expr) ; }
+// }
+// 
+// Element InlineData() : { ElementData el ; Token t ; }
+// {
+//   t = <VALUES>
+//   { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
+//   { el = new ElementData() ;
+//     startInlineData(el.getVars(), el.getRows(), beginLine, beginColumn) ; }
+//   DataBlock()
+//   { finishInlineData(beginLine, beginColumn) ;
+//     return el ; }
+// }
+// 
+// void DataBlock() : { }
+// {
+//   ( InlineDataOneVar() |  InlineDataFull() )
+// }
+// 
+// void InlineDataOneVar() : { Var v ; Node n ; Token t ; ; int beginLine; int beginColumn; }
+// {
+//   v = Var()
+//   { emitDataBlockVariable(v) ; }
+//   t = <LBRACE>
+//   { beginLine = t.beginLine; beginColumn = t.beginColumn; t = null; }
+//   ( 
+//     n = DataBlockValue()
+//     { startDataBlockValueRow(beginLine, beginColumn) ;
+//       emitDataBlockValue(n, beginLine, beginColumn) ;
+//       finishDataBlockValueRow(beginLine, beginColumn) ;
+//     }
+//   )*
+//   t = <RBRACE>
+// }  
+//   
+// void InlineDataFull() : { Var v ; Node n ; Token t ; int beginLine; int beginColumn; }
+// {
+//   (
+//      <NIL>
+//   |
+//     <LPAREN>
+//     (v = Var() { emitDataBlockVariable(v) ; })*
+//     <RPAREN>
+//   )
+//   <LBRACE>
+//   (
+//     t = <LPAREN>
+//     { beginLine = t.beginLine; beginColumn = t.beginColumn; t = null; }
+//     { startDataBlockValueRow(beginLine, beginColumn) ; }
+//     (n = DataBlockValue() 
+//         { emitDataBlockValue(n, beginLine, beginColumn) ; }
+//     ) *
+//     t = <RPAREN>
+//     { beginLine = t.beginLine; beginColumn = t.beginColumn; t = null; }
+//       { finishDataBlockValueRow(beginLine, beginColumn) ; }
+//   |
+//     t = <NIL>
+//     { beginLine = t.beginLine; beginColumn = t.beginColumn; t = null; }
+//       { startDataBlockValueRow(beginLine, beginColumn) ; }
+//       { finishDataBlockValueRow(beginLine, beginColumn) ; }
+//    )*
+//   <RBRACE>
+// }  
+// 
+// Node DataBlockValue() : { Node n ; String iri ; }
+// {
+//   iri = iri()           { return createNode(iri) ; }
+// | n = RDFLiteral()      { return n ; }
+// | n = NumericLiteral()  { return n ; }
+// | n = BooleanLiteral()  { return n ; }
+// | <UNDEF>               { return null ; }
+// | n = TripleTermData()  { return n ; }
+// 
+// }
+
+// ---- Reifier, various cases.
+// May return null.
+	Reifier	:=	<TILDE> ( VarOrReifierId )?
+	VarOrReifierId	:=	( Var | iri | BlankNode )
+// Element MinusGraphPattern() : { Element el ; }
+// {
+//     <MINUS_P>
+//     el = GroupGraphPattern()
+//     { return new ElementMinus(el) ; }
+// }
+
+// Element UnionGraphPattern() : { Element el ; }
+// {
+//     <UNION>
+//     el = GroupGraphPattern()
+//     { return new ElementUnion(el) ; }
+// }
+
+
+// // G (union G)* can be a single group pattern
+// // or a group pattern as part of an union.
+// Element GroupOrUnionGraphPattern() :
+//     { Element el = null ; ElementUnion el2 = null ; }
+// {
+//   el = GroupGraphPattern()
+//   ( <UNION>
+//     { if ( el2 == null )
+//       {
+//         el2 = new ElementUnion() ;
+//         el2.addElement(el) ;
+//       }
+//     }
+//   el = GroupGraphPattern()
+//     { el2.addElement(el) ; } 
+//   )*
+//     { return (el2==null)? el : el2 ; }
+// }
+	Filter	:=	<FILTER> Constraint
+	Constraint	:=	( BrackettedExpression | BuiltInCall | FunctionCall )
+	FunctionCall	:=	iri ArgList
+	ArgList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
+	ExpressionList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
+// -------- Construct patterns
+// #ifdef ARQ
+// Template ConstructTemplate() : { QuadAcc acc = new QuadAcc() ;
+//                                  Template t = new Template (acc);}
+// {
+//     { setInConstructTemplate(true) ; }
+//   <LBRACE> 
+//     ConstructQuads(acc)
+//   <RBRACE>
+//     { setInConstructTemplate(false) ;
+//       return t ; }
+// }
+// #else
+// 
+// Template ConstructTemplate() : { TripleCollectorBGP acc = new TripleCollectorBGP(); 
+//                                  Template t = new Template(acc.getBGP()) ; }
+// {
+//     { setInConstructTemplate(true) ; }
+//   <LBRACE> 
+//     (ConstructTriples(acc))?
+//   <RBRACE>
+//     { setInConstructTemplate(false) ;
+//       return t ; }
+// }
+// #endif
+
+// void ConstructTriples(TripleCollector acc) : { }
+// {    // Same as TriplesTemplate, but retain for 1.0 legacy
+// #ifdef SPARQL_12
+// // SPARQL - recursion - does not scale for SPARQL/Update
+//     TriplesSameSubject(acc)
+//     (<DOT> (ConstructTriples(acc))? )?
+// #endif
+// #ifdef ARQ
+//     // Rewrite for no recursion - grammar is not LL(1)
+//     TriplesSameSubject(acc)
+//     (LOOKAHEAD(2) (<DOT>) TriplesSameSubject(acc))*
+//     (<DOT>)?
+// #endif
+// }
+
+// -------- Triple lists with property and object lists
+// -------- Without paths: entry: TriplesSameSubject
+	TriplesSameSubject	:=	VarOrTerm PropertyListNotEmpty
+		|	TriplesNode PropertyList
+		|	ReifiedTripleBlock
+	PropertyList	:=	( PropertyListNotEmpty )?
+	PropertyListNotEmpty	:=	Verb ObjectList ( <SEMICOLON> ( Verb ObjectList )? )*
+	Verb	:=	( VarOrIri | <KW_A> )
+	ObjectList	:=	Object ( <COMMA> Object )*
+	Object	:=	GraphNode Annotation
+// -------- BGPs with paths.
+// -------- Entry point: TriplesSameSubjectPath
+	TriplesSameSubjectPath	:=	VarOrTerm PropertyListPathNotEmpty
+		|	TriplesNodePath PropertyListPath
+		|	ReifiedTripleBlockPath
+	PropertyListPath	:=	( PropertyListPathNotEmpty )?
+	PropertyListPathNotEmpty	:=	( VerbPath | VerbSimple ) ObjectListPath ( <SEMICOLON> ( ( VerbPath | VerbSimple ) ObjectListPath )? )*
+	VerbPath	:=	Path
+	VerbSimple	:=	Var
+	ObjectListPath	:=	ObjectPath ( <COMMA> ObjectPath )*
+	ObjectPath	:=	GraphNodePath AnnotationPath
+// End paths stuff.
+
+// -------- Paths
+
+// #ifdef ARQ
+// Path PathUnit() : { Path p ; }
+// {
+//   ByteOrderMark()
+//   p = Path()
+//   <EOF>
+//   { return p ; }
+// }
+// #endif
+
+// Weakest outermost
+	Path	:=	PathAlternative
+	PathAlternative	:=	PathSequence ( <VBAR> PathSequence )*
+	PathSequence	:=	PathEltOrInverse ( <SLASH> PathEltOrInverse )*
+// Path unit element, no inverse
+	PathElt	:=	PathPrimary ( PathMod )?
+// Path unit element, including inverse.
+	PathEltOrInverse	:=	( PathElt | <CARAT> PathElt )
+	PathMod	:=	( <QMARK> | <STAR> | <PLUS> )
+// #ifdef ARQ
+// long Integer() : {Token t ;}
+// {
+//     t = <INTEGER> 
+//     { return integerValue(t.image) ; }
+// }
+// #endif
+	PathPrimary	:=	( iri | <KW_A> | <BANG> PathNegatedPropertySet | <LPAREN> Path <RPAREN> )
+	PathNegatedPropertySet	:=	( PathOneInPropertySet | <LPAREN> ( PathOneInPropertySet ( <VBAR> PathOneInPropertySet )* )? <RPAREN> )
+	PathOneInPropertySet	:=	( iri | <KW_A> | <CARAT> ( iri | <KW_A> ) )
+// -------- Triple expansions
+
+// Anything that can stand in a node slot and which is
+// a number of triples
+	TriplesNode	:=	Collection
+		|	BlankNodePropertyList
+	BlankNodePropertyList	:=	<LBRACKET> PropertyListNotEmpty <RBRACKET>
+	TriplesNodePath	:=	CollectionPath
+		|	BlankNodePropertyListPath
+	BlankNodePropertyListPath	:=	<LBRACKET> PropertyListPathNotEmpty <RBRACKET>
+// ------- RDF collections
+	Collection	:=	<LPAREN> ( GraphNode )+ <RPAREN>
+	CollectionPath	:=	<LPAREN> ( GraphNodePath )+ <RPAREN>
+// ---- RDF-star Annotation Syntax
+// Allow paths. Query graph patterns.
+	AnnotationPath	:=	( Reifier | AnnotationBlockPath )*
+	AnnotationBlockPath	:=	<L_ANN> PropertyListPathNotEmpty <R_ANN>
+// ---- RDF-star Annotation Syntax
+// No paths. Construct templates.
+	Annotation	:=	( Reifier | AnnotationBlock )*
+	AnnotationBlock	:=	<L_ANN> PropertyListNotEmpty <R_ANN>
+// -------- Nodes in a graph pattern or template
+
+// Object position RDF term, element of a list
+// No paths in TriplesNode
+	GraphNode	:=	VarOrTerm
+		|	TriplesNode
+		|	ReifiedTriple
+// Object position RDF term. NEW-SYNTAX Rename?
+	GraphNodePath	:=	VarOrTerm
+		|	TriplesNodePath
+		|	ReifiedTriple
+	VarOrTerm	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | <NIL> | TripleTerm )
+	ReifiedTriple	:=	<LT2> ReifiedTripleSubject Verb ReifiedTripleObject ( Reifier )? <GT2>
+	ReifiedTripleSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple )
+	ReifiedTripleObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
+	TripleTerm	:=	<L_TRIPLE> TripleTermSubject Verb TripleTermObject <R_TRIPLE>
+	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode )
+	TripleTermObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
+	TripleTermData	:=	<L_TRIPLE> TripleTermDataSubject ( iri | <KW_A> ) TripleTermDataObject <R_TRIPLE>
+	TripleTermDataSubject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral )
+	TripleTermDataObject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | TripleTermData )
+// // VarOrTerm except no var, no bnodes
+// // @@ Rename?
+// Node DataValueTerm() : {  Node n = null ; String iri ; Node s , p , o ; }
+// {
+//   iri = iri()            { return createNode(iri) ; }
+// | n = RDFLiteral()       { return n ; }
+// | n = NumericLiteral()   { return n ; }
+// | n = BooleanLiteral()   { return n ; }
+// | n = TripleTermData()   { return n; }
+// }
+
+// e.g. Property (if no bNodes) + DESCRIBE
+	VarOrIri	:=	( Var | iri )
+// // e.g. INSERT DATA { GRAPH ... }
+// #ifdef ARQ
+// Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
+// {
+//   ( n = Var() | n = BlankNode() | iri = iri() { n = createNode(iri) ; } )
+//   { return n ; }
+// }
+// #endif
+	Var	:=	( <VAR1> | <VAR2> )
+// -------- Constraint syntax
+	Expression	:=	ConditionalOrExpression
+	ConditionalOrExpression	:=	ConditionalAndExpression ( <SC_OR> ConditionalAndExpression )*
+	ConditionalAndExpression	:=	ValueLogical ( <SC_AND> ValueLogical )*
+	ValueLogical	:=	RelationalExpression
+	RelationalExpression	:=	NumericExpression ( <EQ> NumericExpression | <NE> NumericExpression | <LT> NumericExpression | <GT> NumericExpression | <LE> NumericExpression | <GE> NumericExpression | <IN> ExpressionList | <NOT> <IN> ExpressionList )?
+	NumericExpression	:=	AdditiveExpression
+	AdditiveExpression	:=	MultiplicativeExpression ( <PLUS> MultiplicativeExpression | <MINUS> MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( <STAR> UnaryExpression ) | ( <SLASH> UnaryExpression ) )* )*
+	MultiplicativeExpression	:=	UnaryExpression ( <STAR> UnaryExpression | <SLASH> UnaryExpression )*
+	UnaryExpression	:=	<BANG> PrimaryExpression
+		|	<PLUS> PrimaryExpression
+		|	<MINUS> PrimaryExpression
+		|	PrimaryExpression
+	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
+// Node ExprVarOrTerm() : { Node n; String s;}
+// {
+//   ( s = iri() { n = createNode(s); }
+//   | n = RDFLiteral()
+//   | n = NumericLiteral()
+//   | n = BooleanLiteral()
+//   | n = Var()
+//   | n = ExprTripleTerm()
+//   )
+//   { return n; }
+// }
+	ExprTripleTerm	:=	<L_TRIPLE> ExprTripleTermSubject Verb ExprTripleTermObject <R_TRIPLE>
+	ExprTripleTermSubject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var )
+	ExprTripleTermObject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
+	BrackettedExpression	:=	<LPAREN> Expression <RPAREN>
+	BuiltInCall	:=	<STR> <LPAREN> Expression <RPAREN>
+		|	<LANG> <LPAREN> Expression <RPAREN>
+		|	<LANGMATCHES> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<LANGDIR> <LPAREN> Expression <RPAREN>
+		|	<DTYPE> <LPAREN> Expression <RPAREN>
+		|	<BOUND> <LPAREN> Var <RPAREN>
+		|	<IRI> <LPAREN> Expression <RPAREN>
+		|	<URI> <LPAREN> Expression <RPAREN>
+		|	<BNODE> ( <LPAREN> Expression <RPAREN> | <NIL> )
+		|	<RAND> <NIL>
+		|	<ABS> <LPAREN> Expression <RPAREN>
+		|	<CEIL> <LPAREN> Expression <RPAREN>
+		|	<FLOOR> <LPAREN> Expression <RPAREN>
+		|	<ROUND> <LPAREN> Expression <RPAREN>
+		|	<CONCAT> ExpressionList
+		|	SubstringExpression
+		|	<STRLEN> <LPAREN> Expression <RPAREN>
+		|	StrReplaceExpression
+		|	<UCASE> <LPAREN> Expression <RPAREN>
+		|	<LCASE> <LPAREN> Expression <RPAREN>
+		|	<ENCODE_FOR_URI> <LPAREN> Expression <RPAREN>
+		|	<CONTAINS> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<STRSTARTS> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<STRENDS> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<STRBEFORE> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<STRAFTER> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<YEAR> <LPAREN> Expression <RPAREN>
+		|	<MONTH> <LPAREN> Expression <RPAREN>
+		|	<DAY> <LPAREN> Expression <RPAREN>
+		|	<HOURS> <LPAREN> Expression <RPAREN>
+		|	<MINUTES> <LPAREN> Expression <RPAREN>
+		|	<SECONDS> <LPAREN> Expression <RPAREN>
+		|	<TIMEZONE> <LPAREN> Expression <RPAREN>
+		|	<TZ> <LPAREN> Expression <RPAREN>
+		|	<NOW> <NIL>
+		|	<UUID> <NIL>
+		|	<STRUUID> <NIL>
+		|	<MD5> <LPAREN> Expression <RPAREN>
+		|	<SHA1> <LPAREN> Expression <RPAREN>
+		|	<SHA256> <LPAREN> Expression <RPAREN>
+		|	<SHA384> <LPAREN> Expression <RPAREN>
+		|	<SHA512> <LPAREN> Expression <RPAREN>
+		|	<COALESCE> ExpressionList
+		|	<IF> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>
+		|	<STRLANG> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<STRLANGDIR> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>
+		|	<STRDT> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<SAME_TERM> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<IS_IRI> <LPAREN> Expression <RPAREN>
+		|	<IS_URI> <LPAREN> Expression <RPAREN>
+		|	<IS_BLANK> <LPAREN> Expression <RPAREN>
+		|	<IS_LITERAL> <LPAREN> Expression <RPAREN>
+		|	<IS_NUMERIC> <LPAREN> Expression <RPAREN>
+		|	<HAS_LANG> <LPAREN> Expression <RPAREN>
+		|	<HAS_LANGDIR> <LPAREN> Expression <RPAREN>
+		|	RegexExpression
+		|	<IS_TRIPLE> <LPAREN> Expression <RPAREN>
+		|	<TRIPLE> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>
+		|	<SUBJECT> <LPAREN> Expression <RPAREN>
+		|	<PREDICATE> <LPAREN> Expression <RPAREN>
+		|	<OBJECT> <LPAREN> Expression <RPAREN>
+	RegexExpression	:=	<REGEX> <LPAREN> Expression <COMMA> Expression ( <COMMA> Expression )? <RPAREN>
+	SubstringExpression	:=	<SUBSTR> <LPAREN> Expression <COMMA> Expression ( <COMMA> Expression )? <RPAREN>
+	StrReplaceExpression	:=	<REPLACE> <LPAREN> Expression <COMMA> Expression <COMMA> Expression ( <COMMA> Expression )? <RPAREN>
+// See also FunctionCall.
+// The case of "q:name()" or "q:agg()" or just "q:name"
+// by expanding out FunctionCall()
+	iriOrFunction	:=	iri ( ArgList )?
+// #ifdef ARQ_CALL
+// // Needs checking.
+// // The case of "?var()" or just "?var"
+// Expr VarOrFunction() : { Var v ; ExprList a = null ; }
+// {
+//   v = Var()
+//   { Expr ev = new ExprVar(v) ; }
+//   ( a = ExpressionList() )?
+//   { if ( a == null ) return ev ;
+//     return new E_FunctionDynamic(ev, a) ;
+//   }
+// }
+// #endif
+	RDFLiteral	:=	String ( <LANG_DIR> | <DATATYPE> iri )?
+	NumericLiteral	:=	( NumericLiteralUnsigned | NumericLiteralPositive | NumericLiteralNegative )
+	NumericLiteralUnsigned	:=	<INTEGER>
+		|	<DECIMAL>
+		|	<DOUBLE>
+	NumericLiteralPositive	:=	<INTEGER_POSITIVE>
+		|	<DECIMAL_POSITIVE>
+		|	<DOUBLE_POSITIVE>
+	NumericLiteralNegative	:=	<INTEGER_NEGATIVE>
+		|	<DECIMAL_NEGATIVE>
+		|	<DOUBLE_NEGATIVE>
+	BooleanLiteral	:=	<TRUE>
+		|	<FALSE>
+	String	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> | <STRING_LITERAL_LONG1> | <STRING_LITERAL_LONG2> )
+	iri	:=	IRIREF
+		|	PrefixedName
+	PrefixedName	:=	( <PNAME_LN> | <PNAME_NS> )
+	BlankNode	:=	<BLANK_NODE_LABEL>
+		|	<ANON>
+	IRIREF	:=	<IRIref>
+
+DOCUMENT END

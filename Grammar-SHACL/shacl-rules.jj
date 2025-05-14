@@ -91,7 +91,7 @@ void Rule1() : { TripleCollector acc = null; ElementGroup body = null ;  Token t
 {
    { startRule(); }
    t = <RULE>
-   acc = TriplesTemplateBlock()
+   acc = HeadTemplate()
    <WHERE>
    body = BodyPattern()
    { finishRule(acc, body, t.beginLine, t.beginColumn); }
@@ -103,14 +103,14 @@ void Rule2() : { TripleCollector acc = null ;ElementGroup body = null ; Token t;
    t = <IF>
    body = BodyPattern()
    <THEN>
-   acc = TriplesTemplateBlock()
+   acc = HeadTemplate()
    { finishRule(acc, body, t.beginLine, t.beginColumn); }
 }
 
 void Rule3() : { TripleCollector acc = new TripleCollectorBGP() ; ElementGroup body = null ; Token t; }
 {
    { startRule(); }
-   acc = TriplesTemplateBlock()
+   acc = HeadTemplate()
    t = <RULE_INFER>
    body = BodyPattern()
    { finishRule(acc, body, t.beginLine, t.beginColumn); }
@@ -125,13 +125,53 @@ void Data() : { TripleCollectorBGP acc = new TripleCollectorBGP(); Token t; }
     { finishData(acc, t.beginLine, t.beginColumn); }
 }
 
-TripleCollectorBGP TriplesTemplateBlock() : { TripleCollectorBGP acc = new TripleCollectorBGP(); }
+// ---- Rule head
+
+TripleCollectorBGP HeadTemplate() : {  TripleCollectorBGP acc = null; }
 {
-   <LBRACE>
-   ( TriplesTemplate(acc) )?
-   <RBRACE>
-   { return acc; }
+    acc = TriplesTemplateBlock()
+    { return acc; }
 }
+
+// ---- Rule body
+
+ElementGroup BodyPattern() : { Token t ; Element el = null; }
+{
+  t = <LBRACE>
+  { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
+  { ElementGroup elg = new ElementGroup() ; }
+  ( BodyPattern1(elg) )?
+  // And finally ...
+  ( el = Assignment() { elg.addElement(el); } ) *
+  <RBRACE>
+  { return elg; }
+}
+
+void BodyPattern1(ElementGroup elg) : { Element el = null ; }
+{
+  // XXX Needs work
+  // List of BGP and filters directly.
+  // Currently : BGP FILTER*
+  (
+     el = BodyPatternSub()
+     { elg.addElement(el);}
+     // XXX Improve.
+     (  (el = Filter() { elg.addElement(el); })+
+       // After a filter, more of the same.
+       (BodyPattern1(elg))?
+     )?
+  )
+}
+
+Element BodyPatternSub() : { Element el = null ; }
+{
+   { startTriplesBlock() ; }
+   el = TriplesBlock(null)
+   { endTriplesBlock() ; }
+   { return el; }
+}
+
+// ----
 
 void Prologue() : {}
 {
@@ -176,6 +216,14 @@ String VersionSpecifier() : { Token t ; String version ; }
 //    { finishWherePattern() ; }
 // }
 
+TripleCollectorBGP TriplesTemplateBlock() : { TripleCollectorBGP acc = new TripleCollectorBGP(); }
+{
+   <LBRACE>
+   ( TriplesTemplate(acc) )?
+   <RBRACE>
+   { return acc; }
+}
+
 void TriplesTemplate(TripleCollector acc) : { }
 {
      // Version for the spec.
@@ -193,44 +241,6 @@ void TriplesTemplate(TripleCollector acc) : { }
 //     (LOOKAHEAD(2) (<DOT>) TriplesSameSubject(acc))*
 //     (<DOT>)?
 // #endif
-}
-
-// ---- Rule body.
-
-ElementGroup BodyPattern() : { Token t ; Element el = null; }
-{
-  t = <LBRACE>
-  { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
-  { ElementGroup elg = new ElementGroup() ; }
-  ( BodyPattern1(elg) )?
-  // And finally ...
-  ( el = Assignment() { elg.addElement(el); } ) *
-  <RBRACE>
-  { return elg; }
-}
-
-void BodyPattern1(ElementGroup elg) : { Element el = null ; }
-{
-  // XXX Needs work
-  // List of BGP and filters directly.
-  // Currently : BGP FILTER*
-  (
-     el = BodyPatternSub()
-     { elg.addElement(el);}
-     // XXX Improve.
-     (  (el = Filter() { elg.addElement(el); })+
-       // After a filter, more of the same.
-       (BodyPattern1(elg))?
-     )?
-  )
-}
-
-Element BodyPatternSub() : { Element el = null ; }
-{
-   { startTriplesBlock() ; }
-   el = TriplesBlock(null)
-   { endTriplesBlock() ; }
-   { return el; }
 }
 
 Element TriplesBlock(ElementPathBlock acc) : { }
@@ -1864,6 +1874,7 @@ TOKEN [IGNORE_CASE] :
 |  < THEN:         "then" >
 |  < RULE_INFER:   ":-" >
 |  < DATA:         "data" >
+|  < INFER:        "infer" >
 }
 
 TOKEN [IGNORE_CASE] :

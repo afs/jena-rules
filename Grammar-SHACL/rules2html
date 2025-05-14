@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+OUT='rules-grammar.html'
+
+echo "Grammar output in $OUT"
+
+(
+    echo "        <!-- GRAMMAR -->"
+    jj2html 'shacl-rules.txt' 'tokens.txt'
+    echo "        <!-- GRAMMAR -->"
+) > $OUT

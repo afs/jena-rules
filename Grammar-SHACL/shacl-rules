@@ -28,7 +28,13 @@ javacc -OUTPUT_DIRECTORY=$DIR -JDK_VERSION=1.8 "$FILE"
 RC=$?
 [ "$RC" = 0 ] || exit $RC
 
-## Any fixups needed
+##     echo "---- Create HTML"
+##     jjdoc -OUTPUT_FILE=${FILE%%.jj}.html "${FILE}"
+    
+echo "---- Create text form"
+jjdoc -TEXT=true -OUTPUT_FILE=${FILE%%.jj}.txt "${FILE}"
+
+    ## Any fixups needed
 
 ## # Fix unnecessary imports
 ## echo "---- Fixing Java warnings in ${CLASS}TokenManager ..."
