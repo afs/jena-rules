@@ -38,19 +38,24 @@ import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 
+/**
+ * A simple rules engine that can be easily understood.
+ * <p>
+ * This is used for testing by running an engine under test and this
+ * engine then comparing the results.
+ */
 public class RulesEngine1 implements RulesEngine {
     public static boolean verbose = false;
 
-    interface Factory { RulesEngine1 build(/*RelStore data, */RuleSet ruleSet); }
-
-    public static RulesEngine build(RuleSet ruleSet) {
-        return new RulesEngine1(ruleSet);
+    public static RulesEngine1 build(Graph graph, RuleSet ruleSet) {
+        return new RulesEngine1(graph, ruleSet);
     }
 
     private final RuleSet ruleSet;
+    private final Graph baseGraph;
 
-
-    private RulesEngine1(RuleSet ruleSet) {
+    private RulesEngine1(Graph baseGraph, RuleSet ruleSet) {
+        this.baseGraph = baseGraph;
         this.ruleSet = ruleSet;
     }
 
@@ -60,13 +65,23 @@ public class RulesEngine1 implements RulesEngine {
         return EngineType.FWD_NAIVE;
     }
 
+
+    @Override
+    public Graph graph() {
+        return baseGraph;
+    }
+    @Override
+    public RuleSet ruleSet() {
+        return ruleSet;
+    }
+
     // This function calculates by all methods (accumulator graph (new triples), updates base graph (maybe copy-isolated), retain buffering graph)
     // Specialise later.
 
     @Override
-    public Stream<Triple> find(Graph baseGraph, Node s, Node p, Node o) {
+    public Stream<Triple> find(Node s, Node p, Node o) {
         // The heavy-handed way!
-        Evaluation e = eval(baseGraph, false);
+        Evaluation e = eval(false);
         Graph g = e.outputGraph();
         Stream<Triple> stream = g.find(s, p, o)
             .toList()   // Materialize
@@ -75,8 +90,8 @@ public class RulesEngine1 implements RulesEngine {
     }
 
     @Override
-    public Graph infer(Graph baseGraph) {
-        Evaluation e = eval(baseGraph, false);
+    public Graph infer() {
+        Evaluation e = eval(false);
         return e.inferredTriples;
     }
 
@@ -84,11 +99,11 @@ public class RulesEngine1 implements RulesEngine {
 
     // Algorithm for development - captures more than is needed.
 
-    public Evaluation eval(Graph baseGraph) {
-        return eval(baseGraph, false);
+    public Evaluation eval() {
+        return eval(false);
     }
 
-    public Evaluation eval(Graph baseGraph, boolean verbose) {
+    public Evaluation eval(boolean verbose) {
 
         boolean updateBsseGraph = false;
 
@@ -97,9 +112,9 @@ public class RulesEngine1 implements RulesEngine {
         Graph dataGraph = R.cloneGraph(baseGraph);
 
         Graph data = ruleSet.getData() ;
-        // Recalculate the basegraph and make it look like data was added.
+        // Recalculate the baseGraph and make it look like data was added.
         if ( ruleSet.hasData() ) {
-            dataGraph = new AppendGraph(dataGraph);
+            dataGraph = AppendGraph.create(dataGraph);
             GraphUtil.addInto(dataGraph, data);
         }
 

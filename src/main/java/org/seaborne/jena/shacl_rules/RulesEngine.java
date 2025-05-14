@@ -24,72 +24,56 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.seaborne.jena.shacl_rules.exec.RulesEngine1;
 
+/**
+ * A {@code RulesEngine} is an execution engine for a given {@link RuleSet} and given
+ * {@link Graph}.
+ * <p>
+ * Unless otherwise noted, a {@code RulesEngine} can execute multiple request and
+ * supports concurrent use.
+ */
 public interface RulesEngine {
-    interface Factory { RulesEngine build(/*RelStore data, */RuleSet ruleSet); }
+
+    public static RulesEngine build(Graph baseGraph, RuleSet ruleSet) {
+        return RulesEngine1.build(baseGraph, ruleSet);
+    };
 
     public EngineType engineType();
 
+    public Graph graph();
+
+    public RuleSet ruleSet();
+
     /**
-     * Query (in the sense of datalog)
+     * Query (in the sense of datalog).
+     * <p>Return all the triples that match the s/p/o
+     * that occur in the data graph or can be inferred by the rules engine.
      */
-    public Stream<Triple> find(Graph graph, Node s, Node p, Node o);
+    public Stream<Triple> find(Node s, Node p, Node o);
 
     /**
      * Query (in the sense of datalog)
+     * <p>Return all the triples that match the s/p/o
+     * that occur in the data graph or can be inferred by the rules engine.
      */
-    public default Stream<Triple> find(Graph graph, Triple triple) {
-        return find(graph, triple.getSubject(), triple.getPredicate(), triple.getObject());
+    public default Stream<Triple> find(Triple triple) {
+        return find(triple.getSubject(), triple.getPredicate(), triple.getObject());
     }
 
     /**
      * Execute the ruleset and enrich the base graph
-     * The base graph is modified.
-     * This is "enrich".
+     * The base graph may be modified.
      */
-    public default void execute(Graph graph) {
+    public default void execute() {
         // Implementation note: may become a separate algorithm.
-        // e.g. no need to test whether triples already exist.
-        Graph inferredGraph = infer(graph);
-        GraphUtil.addInto(graph, inferredGraph);
+        Graph inferredGraph = infer();
+        GraphUtil.addInto(graph(), inferredGraph);
     }
 
     /**
-     * Execute the ruleset, and return a graph of inferred triples that do not occur
+     * Execute, and return a graph of inferred triples that do not occur
      * in the base graph. The base graph is not modified.
      */
-    public Graph infer(Graph baseGraph);
-
-    // Datalog query.
-
-//    interface Factory { RulesEngine build(RelStore data, RuleSet ruleSet); }
-//
-//    public EngineType engineType();
-//
-//    /**
-//     * Return all bindings that satisfy the query atom, given the data and {@link RuleSet}.
-//     */
-//    public Stream<Binding> solve(Rel query);
-//
-//    /**
-//     * Return a {@link Stream} of all derived relationships. It does not include
-//     * the data unless a data term is also derived by the rules. This may contain
-//     * duplicates because an atom may be inferred by multiple routes. The
-//     * multiplicity of duplicates is not significant and it should not be taken as a
-//     * indication of how many ways there are of generation the atom because the engine
-//     * is entitled to optimize execution.
-//     */
-//    public Stream<Rel> stream();
-//
-//    /**
-//     * Return a {@link RelStore} that contains the data and all relationship derived
-//     * from the rules
-//     */
-//    public RelStore materialize();
-//
-//    /**
-//     * Note an update to the data has happened
-//     * (Optional operation).
-//     */
-//    public default void update() {}
+    public Graph infer();
 }

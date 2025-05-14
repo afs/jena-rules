@@ -76,15 +76,18 @@ public class rules extends CmdGeneral {
                 throw new CmdException("Usage: rules RulesFile [DataFile]");
         }
 
+        RuleSet ruleSet = ShaclRulesParser.parseFile(rulesFile);
+
         Graph data = GraphMemFactory.createDefaultGraph();
         if ( dataFile != null ) {
             RDFParser.source(dataFile).parse(data);
+        } else {
+            if ( ruleSet.getPrologue() != null )
+                data.getPrefixMapping().setNsPrefixes(ruleSet.getPrologue().getPrefixMapping());
         }
 
-        RuleSet ruleSet = ShaclRulesParser.parseFile(rulesFile);
-
         boolean verboseExecution = false;
-        RulesEngine1.Evaluation e = ((RulesEngine1)RulesEngine1.build(ruleSet)).eval(data, verboseExecution);
+        RulesEngine1.Evaluation e = RulesEngine1.build(data, ruleSet).eval(verboseExecution);
 
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();

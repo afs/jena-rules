@@ -52,6 +52,9 @@ public class RuleSet {
         if ( dataTriples != null && ! dataTriples.isEmpty() ) {
             graph = GraphFactory.createDefaultGraph();
             GraphUtil.add(graph, dataTriples);
+            if ( prologue != null ) {
+                graph.getPrefixMapping().setNsPrefixes(prologue.getPrefixMapping());
+            }
         }
         this.data = graph;
     }
