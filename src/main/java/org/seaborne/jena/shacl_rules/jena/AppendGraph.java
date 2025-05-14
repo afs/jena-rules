@@ -18,47 +18,149 @@
 
 package org.seaborne.jena.shacl_rules.jena;
 
+import static org.apache.jena.system.G.containsBySameTerm;
+import static org.apache.jena.system.G.execTxn;
+
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.system.buffering.BufferingGraph;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.shared.impl.PrefixMappingImpl;
+import org.apache.jena.system.buffering.BufferingCtl;
 
 /*
  * An {@link AppendGraph} is a special case of a {@link BufferingGraph}.
+ * It only supports adds adding triples, not delete.
  * <p>
- * It does not allow delete nor does it allow flushing changes back to the wrapped graph.
+ * It can be used, then the accumulated changes flushed to the base graph or
+ * uses for temporary workspace and the change thrown away.
  */
-public class AppendGraph extends BufferingGraph {
+//public class AppendGraph extends GraphWrapper implements BufferingCtl {
 
-    // Long term, this could be the superclass of BufferingGraph
+public class AppendGraph extends Graph2 implements BufferingCtl {
 
-    public AppendGraph(Graph graph) {
-        super(graph);
+    // "Sometime" this could be made the super class of BufferingGraph.
+
+    // Controls whether to check the underlying graph to check
+    // whether to record a change or not.
+    //
+    // If true, the added graph does not contain triples in the base graph.
+    // The AppendGraph acts as a diff of the changes and the base graph
+    //
+    // If false, the added graph may contain duplicates of the base graph.
+    // The AppendGraph acts as a record of all additions.
+    // It takes more memory but means the underlying graph is not touched for add().
+
+    private final boolean checkOnUpdate;
+
+    // Controls whether flushing to the underlying graph is allowed.
+    // If not allowed, this class guarantee it will not update the base graph.
+    // Combined with checkOnUpdate=false, the base graph is not touched at all on
+    // update, only for read use.
+
+    private final boolean allowFlush;
+    private final AppendPrefixMapping appendPrefixMapping;
+
+    private final Graph addedGraph;
+
+    public static AppendGraph create(Graph graph) {
+        if ( graph instanceof AppendGraph )
+            Log.warn(Graph2.class, "Creating a AppendGraph over an AppendGraph");
+        return new AppendGraph(graph, true, false);
+    }
+
+    // Better : getPrefixMapping
+
+    private AppendGraph(Graph graph, boolean checkOnUpdate, boolean allowFlush) {
+        super(addedTriplesGraph(), graph);
+        this.checkOnUpdate = checkOnUpdate;
+        this.allowFlush = allowFlush;
+        PrefixMapping basePrefixes = graph.getPrefixMapping();
+        if ( allowFlush )
+            // Copy to isolate.
+            basePrefixes = new PrefixMappingImpl().setNsPrefixes(basePrefixes);
+        appendPrefixMapping = new AppendPrefixMapping(basePrefixes);
+        addedGraph = super.additionalGraph();
+    }
+
+    private static PrefixMapping setupPrefixMappingAppendGraphFlushable(PrefixMapping baseGraphPrefixes) {
+        return new AppendPrefixMapping(baseGraphPrefixes);
+    }
+
+    private static PrefixMapping setupPrefixMappingAppendGraphNoFlush(PrefixMapping baseGraphPrefixes) {
+        // Copy to isolate.
+        // FIXME
+        PrefixMapping basePrefixes = new PrefixMappingImpl().setNsPrefixes(baseGraphPrefixes);
+        PrefixMapping prefixMapping = new AppendPrefixMapping(basePrefixes);
+        return prefixMapping;
+    }
+
+    private static Graph addedTriplesGraph() {
+        return GraphMemFactory.createDefaultGraph();
+    }
+
+    @Override
+    public PrefixMapping getPrefixMapping() {
+        return appendPrefixMapping;
+    }
+
+    /** Flush the changes to the base graph, using a Graph transaction if possible. */
+    @Override
+    public void flush() {
+        if ( allowFlush )
+            throw new UnsupportedOperationException(this.getClass().getSimpleName()+".flush");
+        Graph base = get();
+        execTxn(base, ()-> flushDirect(base));
+    }
+
+    /** Flush the changes directly to the base graph. */
+    public void flushDirect() {
+        if ( allowFlush )
+            throw new UnsupportedOperationException(this.getClass().getSimpleName()+".flushDirect");
+        // So that get() is called exactly once per call.
+        Graph base = get();
+        flushDirect(base);
+    }
+
+    private void flushDirect(Graph base) {
+        if ( allowFlush )
+            throw new UnsupportedOperationException(this.getClass().getSimpleName()+".flush");
+        addedGraph.find().forEachRemaining(base::add);
+        addedGraph.clear();
+        appendPrefixMapping.flush();
+    }
+
+//    private void updateOperation() {}
+//
+//    private void readOperation() {}
+
+    @Override
+    public void add(Triple t) {
+        execAdd(t);
     }
 
     @Override
     public void delete(Triple t) {
-        throw new UnsupportedOperationException("AppendGraph.delete(Triple) not supported");
+        execDelete(t);
     }
 
-    @Override
-    public void remove( Node s, Node p, Node o ) {
-        throw new UnsupportedOperationException("AppendGraph.remove(Node, Node, Node) not supported");
+    private void execAdd(Triple triple) {
+        //updateOperation();
+        Graph base = get();
+        if (containsBySameTerm(addedGraph, triple) )
+            return ;
+        if ( checkOnUpdate && containsBySameTerm(base, triple) )
+            // Already in base graph
+            return;
+        addedGraph.add(triple);
     }
 
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("AppendGraph.clear() not supported");
+    private void execDelete(Triple triple) {
+        throw new UnsupportedOperationException(this.getClass().getSimpleName()+".delete");
     }
 
-    @Override
-    public void flush() {
-        throw new UnsupportedOperationException("AppendGraph.flus() not supported");
+    public Graph getAdded() {
+        return addedGraph;
     }
-
-    @Override
-    public void flushDirect() {
-        throw new UnsupportedOperationException("AppendGraph.flushDirect() not supported");
-    }
-
 }
