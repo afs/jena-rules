@@ -26,7 +26,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.exec.RowSet;
@@ -153,7 +152,7 @@ public class RulesEngine1 implements RulesEngine {
                 if ( verbose )
                     System.out.println("Rule: "+rule);
                 // graph1 vs graph
-                RowSetRewindable rowset = evalRule(graph1, ruleSet.getPrologue(), rule).rewindable();
+                RowSetRewindable rowset = evalRule(graph1, rule).rewindable();
 
                 if ( verbose ) {
                     RowSetOps.out(rowset);
@@ -198,7 +197,7 @@ public class RulesEngine1 implements RulesEngine {
         return new Evaluation(baseGraph, accGraph, dataGraph, round);
     }
 
-    private static RowSet evalRule(Graph graph, Prologue prologue, Rule rule) {
+    private static RowSet evalRule(Graph graph, Rule rule) {
         ElementGroup eltGroup = rule.getBody();
         Query query = rule.bodyAsQuery();
         BasicPattern bgp = rule.getHead();

@@ -25,9 +25,8 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.impl.Util;
+import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shacl.ShaclException;
-import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.syntax.Element;
@@ -61,8 +60,6 @@ public class TriplesToRuleSet {
     private static List<RuleSet> _parse(Graph graph) {
         // XXX Need identified data. <<()>>
 
-        Prologue prologue = new Prologue(graph.getPrefixMapping());
-
         List<RuleSet> ruleSets = new ArrayList<>();
         List<Node> ruleSetNodes = Iter.toList(G.iterObjectsOfPredicate(graph, V.ruleSet));
 
@@ -78,7 +75,7 @@ public class TriplesToRuleSet {
                     rules.add(r);
             });
 
-            RuleSet ruleSet = new RuleSet(prologue, rules, null);
+            RuleSet ruleSet = new RuleSet(null, PrefixMapFactory.create(graph.getPrefixMapping()), rules, null);
             ruleSets.add(ruleSet);
         });
 
@@ -140,7 +137,7 @@ public class TriplesToRuleSet {
             // BNode and sparqlBody
             if ( G.hasProperty(graph, node, V.sparqlExpr) ) {
                 Node e = G.getOneSP(graph, node, V.sparqlExpr);
-                if ( ! Util.isSimpleString(e) )
+                if ( ! G.isString(e) )
                     throw new ShaclException("Not a simple string: "+e);
                 String exprString = G.asString(e);
                 Expr expr = ExprUtils.parse(exprString);
@@ -176,7 +173,7 @@ public class TriplesToRuleSet {
         Node x = G.getZeroOrOneSP(graph, node, V.var);
         if ( x == null )
             throw new ShaclException("Blank node in pattern or malformed [ sh:var ]");
-        return Var.alloc(x.getLiteralLexicalForm());
+        return Var.alloc(G.asString(x));
     }
 
 }

@@ -30,8 +30,11 @@ import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIs;
+import org.apache.jena.irix.IRIx;
 import org.apache.jena.irix.IRIxResolver;
 import org.apache.jena.query.QueryException;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.impl.PrefixMappingImpl;
 import org.apache.jena.sparql.core.Prologue;
@@ -80,7 +83,11 @@ public class ShaclRulesParser {
             // Translate to the abstract rule structure.
             List<Rule> rules = rulesParser.stream().map(elt->new Rule(elt.getHead().getList(), elt.getBody())).toList();
             List<Triple> triples = parser.getData();
-            RuleSet ruleSet = new RuleSet(prologue, rules, triples);
+            PrefixMap prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
+            String declaredBaseURI =
+                    prologue.explicitlySetBaseURI() ? prologue.getBaseURI() : null;
+            IRIx baseIRI = declaredBaseURI != null ? IRIx.create(declaredBaseURI) : null;
+            RuleSet ruleSet = new RuleSet(baseIRI, prefixMap, rules, triples);
             return ruleSet;
         } catch (org.seaborne.jena.shacl_rules.lang.parser.ParseException ex) {
             throw new ShaclParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);

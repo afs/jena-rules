@@ -22,29 +22,34 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
 
+public
 class V {
-    static Node NIL = RDF.Nodes.nil;
-    static Node CAR = RDF.Nodes.first;
-    static Node CDR = RDF.Nodes.rest;
-    static Node TYPE = RDF.Nodes.type;
+    public static Node NIL = RDF.Nodes.nil;
+    public static Node CAR = RDF.Nodes.first;
+    public static Node CDR = RDF.Nodes.rest;
+    public static Node TYPE = RDF.Nodes.type;
 
     static final String SH = "http://www.w3.org/ns/shacl#";
+
     private static Node uri(String localName) { return NodeFactory.createURI(SH+localName); }
 
-    static final Node subject = uri("subject");
-    static final Node predicate = uri("predicate");
-    static final Node object = uri("object");
+    public static final Node subject = uri("subject");
+    public static final Node predicate = uri("predicate");
+    public static final Node object = uri("object");
 
-    static final Node ruleClass = uri("Rule");
-    static final Node head = uri("head");
-    static final Node body = uri("body");
+    public static final Node ruleClass = uri("Rule");
+    public static final Node head = uri("head");
+    public static final Node body = uri("body");
 
-    static final Node rule = uri("rule");
-    static final Node ruleSet = uri("ruleSet");
+    public static final Node rule = uri("rule");
+    public static final Node ruleSet = uri("ruleSet");
 
-    static final Node var = uri("var");
+    public static final Node var = uri("var");
 
-    static final Node sparqlExpr = uri("sparqlExpr");
+    public static final Node sparqlExpr = uri("sparqlExpr");
+    public static final Node expr = uri("expr");
+
+    public static final Node sparqlExprClass = uri("SPARQLExpr");
 
     // Temp
     static final Node sparqlBody = uri("sparqlBody");

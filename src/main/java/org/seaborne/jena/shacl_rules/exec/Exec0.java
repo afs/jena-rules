@@ -24,7 +24,6 @@ import org.apache.jena.query.Query;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.exec.RowSet;
@@ -67,7 +66,7 @@ public class Exec0 {
                 if ( verbose )
                     System.out.println("Rule: "+rule);
                 // graph1 vs graph
-                RowSetRewindable rowset = evalRule(graph1, rules.getPrologue(), rule).rewindable();
+                RowSetRewindable rowset = evalRule(graph1, rule).rewindable();
 
                 if ( verbose ) {
                     RowSetOps.out(rowset);
@@ -134,7 +133,7 @@ public class Exec0 {
         System.out.println("------------------");
     }
 
-    private static RowSet evalRule(Graph graph, Prologue prologue, Rule rule) {
+    private static RowSet evalRule(Graph graph, Rule rule) {
         ElementGroup eltGroup = rule.getBody();
         Query query = rule.bodyAsQuery();
         BasicPattern bgp = rule.getHead();

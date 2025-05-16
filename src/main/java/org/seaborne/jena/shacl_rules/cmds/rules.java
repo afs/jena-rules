@@ -82,8 +82,8 @@ public class rules extends CmdGeneral {
         if ( dataFile != null ) {
             RDFParser.source(dataFile).parse(data);
         } else {
-            if ( ruleSet.getPrologue() != null )
-                data.getPrefixMapping().setNsPrefixes(ruleSet.getPrologue().getPrefixMapping());
+            if ( ruleSet.hasPrefixMap() )
+                data.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
         }
 
         boolean verboseExecution = false;

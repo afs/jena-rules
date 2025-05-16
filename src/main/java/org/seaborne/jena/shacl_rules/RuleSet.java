@@ -19,18 +19,22 @@
 package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.core.Prologue;
+import org.apache.jena.irix.IRIx;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.sparql.graph.GraphFactory;
 
 public class RuleSet {
 
+    private final IRIx base;
+    private final PrefixMap prefixMap;
     private final List<Rule> rules;
-    private final Prologue prologue;
     private final List<Triple> dataTriples;
     private final Graph data;
 
@@ -44,29 +48,39 @@ public class RuleSet {
         return ListUtils.equalsUnordered(r1, r2);
     }
 
-    public RuleSet(Prologue prologue, List<Rule> rules, List<Triple> dataTriples) {
-        this.prologue = prologue;
-        this.rules = rules;
+    public RuleSet(IRIx base, PrefixMap prefixMap, List<Rule> rules, List<Triple> dataTriples) {
+        this.base = base;
+        this.prefixMap = Objects.requireNonNull(prefixMap);
+        this.rules = Objects.requireNonNull(rules);
         this.dataTriples = dataTriples;
+
         Graph graph = null;
         if ( dataTriples != null && ! dataTriples.isEmpty() ) {
             graph = GraphFactory.createDefaultGraph();
             GraphUtil.add(graph, dataTriples);
-            if ( prologue != null ) {
-                graph.getPrefixMapping().setNsPrefixes(prologue.getPrefixMapping());
+            if ( prefixMap != null ) {
+                graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(prefixMap));
             }
         }
         this.data = graph;
     }
 
-    public Prologue getPrologue() {
-        return prologue;
+    public PrefixMap getPrefixMap() {
+        return prefixMap;
     }
 
-    public boolean hasPrologue() {
-        if ( prologue == null )
+    public boolean hasPrefixMap() {
+        if ( prefixMap == null )
             return false;
-        return prologue.getBase() != null || !prologue.getPrefixMapping().hasNoMappings();
+        return prefixMap.isEmpty();
+    }
+
+    /**
+     * Return the base URI explicitly declared during parsing, if any.
+     * This may be null.
+     */
+    public IRIx getBase() {
+        return base;
     }
 
     public List<Rule> getRules() {

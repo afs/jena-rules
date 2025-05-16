@@ -30,10 +30,10 @@ import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterTTL_MultiLine;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
+import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.riot.writer.DirectiveStyle;
 import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.serializer.FormatterElement;
 import org.apache.jena.sparql.serializer.SerializationContext;
 import org.seaborne.jena.shacl_rules.Rule;
@@ -73,24 +73,12 @@ public class ShaclRulesWriter {
     // ---------------------
 
     private static void internalPrint(IndentedWriter out, RuleSet ruleSet, Style style) {
-        Prologue prologue;
-        String baseURI;
-        IRIx baseIRI;
-        PrefixMap prefixMap;
-        if ( ruleSet.hasPrologue() ) {
-            prologue = ruleSet.getPrologue().copy();
-            prologue.setBaseURI(null);
-            baseURI =  prologue.getBaseURI();
-            baseIRI = prologue.getBase();
-            prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
-        } else {
-            prologue = new Prologue();
+        IRIx baseIRI = ruleSet.getBase();
+        PrefixMap prefixMap = ruleSet.getPrefixMap();
+        if ( prefixMap == null )
             prefixMap = PrefixMapFactory.create();
-            baseURI = null;
-            baseIRI = null;
-        }
 
-        RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, prologue, style);
+        RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, style);
         srw.writeRuleSet(ruleSet);
     }
 
@@ -105,14 +93,15 @@ public class ShaclRulesWriter {
         private final Style style;
 
         // There is little value in using thevsitor pattern due to detailed control of space beteeen items.
-        private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Prologue prologue, Style style) {
+        private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Style style) {
             this.out = Objects.requireNonNull(output);
             this.prefixMap = prefixMap;
             this.base = baseIRI;
             String baseStr = (baseIRI == null) ?null : baseIRI.str();
 
             this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
-            this.sCxt = new SerializationContext(prologue);
+            // XXX Replace me.
+            this.sCxt = new SerializationContext(Prefixes.adapt(prefixMap));
             this.style = Objects.requireNonNull(style);
         }
 

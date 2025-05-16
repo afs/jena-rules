@@ -24,6 +24,7 @@ import java.util.ListIterator;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.graph.*;
+import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
@@ -58,8 +59,8 @@ sh:rule
 
     public static Graph write(RuleSet ruleSet) {
         Graph graph = GraphFactory.createDefaultGraph();
-        if ( ruleSet.hasPrologue() )
-            graph.getPrefixMapping().setNsPrefixes(ruleSet.getPrologue().getPrefixMapping());
+        if ( ruleSet.hasPrefixMap() )
+            graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
         writeToGraph(graph, ruleSet);
         return graph;
     }
@@ -194,8 +195,8 @@ sh:rule
         throw new ShaclException("Node type not recognized:; "+node);
     }
 
+    // Why is this not in GraphList?
     private static Node list(Graph graph, List<Node> elements) {
-
         ListIterator<Node> iter = elements.listIterator(elements.size());
         Node x = V.NIL;
 
