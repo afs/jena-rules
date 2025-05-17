@@ -18,15 +18,15 @@
 
 package org.seaborne.jena.shacl_rules.jena;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Objects;
+import java.util.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.irix.IRIs;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.util.graph.GNode;
 import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.vocabulary.RDF;
@@ -71,5 +71,27 @@ public class JLib {
         return x;
     }
 
-
+    /**
+     * Add prefixes written as pairs of strings.
+     * <p>
+     * The number of strings must be even. The first of a pair is the prefix, the second is the URI.
+     */
+    public static void addPrefixes(Graph graph, String... str) {
+        if ( (str.length & 1) != 0 )
+            throw new JenaException("Must be an even number or string arguments");
+        Map<String, String> x = new HashMap<>();
+        for (int i = 0 ; i < str.length ; i += 2 ) {
+            String prefix = str[i];
+            if ( prefix == null )
+                throw new JenaException("Null string for prefix at index "+i);
+            if ( prefix.endsWith(":") )
+                prefix = StringUtils.chop(prefix);
+            String uri = str[i+1];
+            if ( uri == null )
+                throw new JenaException("Null string for uri at index "+(i+1));
+            IRIs.checkEx(uri);
+            x.put(prefix, uri);
+        }
+        graph.getPrefixMapping().setNsPrefixes(x);
+    }
 }

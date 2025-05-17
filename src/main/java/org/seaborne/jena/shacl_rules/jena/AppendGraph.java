@@ -62,8 +62,6 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
     private final boolean allowFlush;
     private final AppendPrefixMapping appendPrefixMapping;
 
-    private final Graph addedGraph;
-
     public static AppendGraph create(Graph graph) {
         if ( graph instanceof AppendGraph )
             Log.warn(Graph2.class, "Creating a AppendGraph over an AppendGraph");
@@ -81,19 +79,11 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
             // Copy to isolate.
             basePrefixes = new PrefixMappingImpl().setNsPrefixes(basePrefixes);
         appendPrefixMapping = new AppendPrefixMapping(basePrefixes);
-        addedGraph = super.additionalGraph();
     }
 
-    private static PrefixMapping setupPrefixMappingAppendGraphFlushable(PrefixMapping baseGraphPrefixes) {
-        return new AppendPrefixMapping(baseGraphPrefixes);
-    }
-
-    private static PrefixMapping setupPrefixMappingAppendGraphNoFlush(PrefixMapping baseGraphPrefixes) {
-        // Copy to isolate.
-        // FIXME
-        PrefixMapping basePrefixes = new PrefixMappingImpl().setNsPrefixes(baseGraphPrefixes);
-        PrefixMapping prefixMapping = new AppendPrefixMapping(basePrefixes);
-        return prefixMapping;
+    // Rename the graph used for added triples.
+    private Graph addedGraph() {
+        return super.additionalGraph();
     }
 
     private static Graph addedTriplesGraph() {
@@ -126,8 +116,8 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
     private void flushDirect(Graph base) {
         if ( allowFlush )
             throw new UnsupportedOperationException(this.getClass().getSimpleName()+".flush");
-        addedGraph.find().forEachRemaining(base::add);
-        addedGraph.clear();
+        addedGraph().find().forEachRemaining(base::add);
+        addedGraph().clear();
         appendPrefixMapping.flush();
     }
 
@@ -148,12 +138,12 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
     private void execAdd(Triple triple) {
         //updateOperation();
         Graph base = get();
-        if (containsBySameTerm(addedGraph, triple) )
+        if (containsBySameTerm(addedGraph(), triple) )
             return ;
         if ( checkOnUpdate && containsBySameTerm(base, triple) )
             // Already in base graph
             return;
-        addedGraph.add(triple);
+        addedGraph().add(triple);
     }
 
     private void execDelete(Triple triple) {
@@ -161,6 +151,6 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
     }
 
     public Graph getAdded() {
-        return addedGraph;
+        return addedGraph();
     }
 }

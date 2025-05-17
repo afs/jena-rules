@@ -70,7 +70,6 @@ public class ShaclRulesParser {
 
     // Parser to RuleSet
     private static RuleSet parse(ShaclRulesJavacc parser, String baseURI) {
-        // XXX Change to prefix map.
         IRIxResolver resolver =
                 (baseURI == null) ? IRIs.stdResolver().clone() : IRIs.resolver(baseURI);
         Prologue prologue = new Prologue(new PrefixMappingImpl(),resolver);
@@ -84,8 +83,7 @@ public class ShaclRulesParser {
             List<Rule> rules = rulesParser.stream().map(elt->new Rule(elt.getHead().getList(), elt.getBody())).toList();
             List<Triple> triples = parser.getData();
             PrefixMap prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
-            String declaredBaseURI =
-                    prologue.explicitlySetBaseURI() ? prologue.getBaseURI() : null;
+            String declaredBaseURI = prologue.explicitlySetBaseURI() ? prologue.getBaseURI() : null;
             IRIx baseIRI = declaredBaseURI != null ? IRIx.create(declaredBaseURI) : null;
             RuleSet ruleSet = new RuleSet(baseIRI, prefixMap, rules, triples);
             return ruleSet;

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-DIR="/home/afs/ASF/jena-rules"
+DIR="/home/afs/ASF/Rules/jena-rules"
 JCP="$(jena CP)"
 RCP="$DIR/target/classes"
 CP="$RCP:$JCP"
 
-##echo $CP
+#echo $RCP
 
 exec java -cp "$CP" org.seaborne.jena.shacl_rules.cmds.rules "$@"
