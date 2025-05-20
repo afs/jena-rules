@@ -18,43 +18,119 @@
 
 package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.expr.*;
-import org.apache.jena.sparql.expr.urifunctions.SPARQLFuncOp;
 import org.apache.jena.sparql.util.ExprUtils;
+import org.apache.jena.sparql.util.graph.GNode;
+import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.rdf_syntax.V;
+import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Build;
 
 /**
- * Encode/decode SPAQRl expressions as RDF triples.
+ * Encode/decode SPAQRL expressions as RDF triples.
  */
 public class SparqlNodeExpression {
+
+    // ---- RDF to Expr
+
+    /**
+     *
+     */
+    public static Expr rdfToSparqlExpr(Graph graph, Node topExpression) {
+        try {
+            // [] sh:expr ...
+            //   or
+            // [] sh:sparqlExpr ...
+
+            // Look for sh;expr
+            Node expression1 = G.getZeroOrOneSP(graph, topExpression, V.expr);
+            if ( expression1 != null )
+                return buildExpr(graph, expression1);
+
+            // Look for sh:sparqlExpr
+            Node expression2 = G.getZeroOrOneSP(graph, topExpression, V.expr);
+            if ( expression2 == null)
+                return buildSparqlExpr(graph, topExpression);
+            // Neither
+            throw new ShaclException("sh:expr not found (nor sh:sparqlExpr)");
+        } catch (Exception ex) {
+            System.out.println("** failed to rebuild expr: "+ex.getMessage());
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    private static Expr buildExpr(Graph graph, Node x) {
+        if ( ! x.isBlank() )
+            return NodeValue.makeNode(x);
+
+        //private static Node extractVar(Graph graph, Node node) {
+        Node vx = G.getZeroOrOneSP(graph, x, V.var);
+        if ( vx != null ) {
+            //Var v = Var.alloc(G.asString(vx));
+            return new ExprVar(G.asString(vx));
+        }
+        //}
+
+        Triple t = G.find(graph, x, null, null)
+                // Ignores type,
+                //.filterDrop(tt->tt.getPredicate().equals(RDF.Nodes.type))
+                .next();
+
+        Node pFunction = t.getPredicate();
+        Node o = t.getObject();
+
+        GNode gn = new GNode(graph, o);
+        List<Node> list = GraphList.members(gn);
+
+        // Replaces:
+        List<Expr> args = list.stream().map(n->buildExpr(graph, n)).toList();
+
+        String functionURI = pFunction.getURI();
+        Build build = FunctionEverything.getBuild(pFunction.getURI());
+        if ( build == null )
+            throw new RuntimeException("Build: "+functionURI);
+
+        // ???
+        Expr[] array = args.toArray(Expr[]::new);
+        Expr expr = build.build(functionURI, array);
+        return expr;
+    }
+
+    private static Expr buildSparqlExpr(Graph graph, Node root) {
+        Node exprSparqlNode = G.getZeroOrOneSP(graph, root, V.sparqlExpr);
+        if ( exprSparqlNode == null )
+            return null;
+        if ( ! G.isString(exprSparqlNode) )
+            throw new ShaclException("Not a simple string: "+exprSparqlNode);
+        String exprString = G.asString(exprSparqlNode);
+        return ExprUtils.parse(exprString);
+    }
+
+    // ---- Expr to RDF
 
     /**
      * Encode an {@link Expr} into triples.
      * Return the node for the top of the expression.
      */
+
     public static Node sparqlExprToRDF(Graph graph, Expr expr) {
         Node exprNode = exprAsRDF(graph, expr);
         Node x = NodeFactory.createBlankNode();
-        // sh:expr
+        // [] sh:expr
         graph.add(x, V.expr, exprNode);
-        // Also sh:exprSparql
+        // [] sh:exprSparql
         graph.add(x, V.sparqlExpr, exprAsString(expr));
         graph.add(x, RDF.Nodes.type, V.sparqlExprClass);
         return x;
@@ -65,53 +141,6 @@ public class SparqlNodeExpression {
         ExprUtils.fmtSPARQL(out, expr);
         //WriterSSE.out(out, expr, null);
         return NodeFactory.createLiteralString(out.asString());
-    }
-
-    public static Expr rdfToSparqlExpr(Graph graph, Node node) {
-        if ( ! node.isBlank() )
-            // Constant.
-            return NodeValue.makeNode(node);
-
-        List<Triple> z = G.find(graph, node, null, null).toList();    // Predicate is the function name.
-        if ( z.isEmpty() )
-            throw new ShaclException("Failed to find an expression");
-        if ( z.size() > 1 )
-            throw new ShaclException("Expression node has more than one triple");
-        Triple t = z.getFirst();
-        Node fn = t.getPredicate();
-
-        if ( fn.equals(V.var) ) {
-            Node vn = t.getObject();
-            if ( ! G.isString(vn) )
-                throw new ShaclException("Variable name is not a simple string: "+vn);
-            String varName = G.asString(vn);
-            return new ExprVar(varName);
-        }
-
-        List<Node> argNodes = JLib.asList(graph, t.getObject());
-        // Recursive step.
-        List<Expr> args = argNodes.stream().map(n-> rdfToSparqlExpr(graph, n)).toList();
-        ExprList argsExprList = new ExprList(args);
-
-        // TODO Generate as a <uri>() function call.
-        // **** Do better!
-        Expr expr = new E_Function(fn.getURI(), argsExprList);
-        return expr;
-    }
-
-    /**
-     * Find all the SPARQL expressions encoded in RDF in the graph.
-     * This is done by looking to object of {@code sh:expr}.
-     */
-    public static List<Expr> rdfToSparqlExpr(Graph graph) {
-        List<Node> expressionNodes = Iter.toList(G.iterObjectsOfPredicate(graph, V.expr));
-        List<Expr> expressions = new ArrayList<>();
-        expressionNodes.forEach(expressionNode->{
-            Node n = expressionNode; //G.getOneSP(graph, expressionNode, V.expr);
-            Expr expr = rdfToSparqlExpr(graph, n);
-            expressions.add(expr);
-        });
-        return expressions;
     }
 
     /**
@@ -159,42 +188,11 @@ public class SparqlNodeExpression {
         }
     }
 
-    // XXX Replace me!
+    /** For a given SPARQL function or functional form, encode in RDF. */
     private static Node exprFunctionURI(ExprFunction exf, int arity) {
-        String uri = FunctionEverything.uriForExpr(exf);
+        String uri = FunctionEverything.getUriForExpr(exf);
         if ( uri == null )
             throw new ShaclException("Can't determine the URI for '"+exf.getFunctionPrintName(null)+"["+exf.getClass().getSimpleName()+"]' arity "+arity);
         return NodeFactory.createURI(uri);
-
-//        Class<?> cls = exf.getClass();
-//        return classToURI.get(cls);
-    }
-
-    // ---- Development
-
-    // 1 - add arity to SPARQL Dispatch table
-    // 2 - dispatch/builder pattern [and not 1?]
-
-    // A few for development.
-    static String NS = SPARQLFuncOp.NS;
-    static Map<Class<?>, Node> classToURI = buildClassToURI();
-    static Map<Class<?>, Node> buildClassToURI() {
-        Map<Class<?>, Node> map = new HashMap<>();
-        register(map, E_Add.class, "plus");
-        register(map, E_Subtract.class, "subtract");
-        register(map, E_Multiply.class, "multiply");
-        register(map, E_GreaterThan.class, "greaterThan");
-        register(map, E_LessThan.class, "lessThan");
-        register(map, E_GreaterThanOrEqual.class, "greaterThanOrEqual");
-        register(map, E_LessThanOrEqual.class, "greaterThanOrEqual");
-        return Map.copyOf(map);
-    }
-
-    private static void register(Map<Class<?>, Node> map, Class<?> klass, String localName) {
-        if ( localName.contains(":") )
-            // Internal check.
-            throw new JenaException("Not a local name");
-        Node uri = NodeFactory.createURI(NS+localName);
-        map.put(klass, uri);
     }
 }

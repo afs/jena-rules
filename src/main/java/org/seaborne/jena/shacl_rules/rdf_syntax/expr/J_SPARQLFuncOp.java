@@ -20,10 +20,13 @@ package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import org.apache.jena.atlas.lib.*;
+import org.apache.jena.atlas.lib.Cache;
+import org.apache.jena.atlas.lib.CacheFactory;
+import org.apache.jena.atlas.lib.DateTimeUtils;
+import org.apache.jena.atlas.lib.RandomLib;
 import org.apache.jena.query.ARQ;
-import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.expr.nodevalue.NodeFunctions;
 import org.apache.jena.sparql.expr.nodevalue.NodeValueDigest;
@@ -33,7 +36,7 @@ import org.apache.jena.sparql.function.FunctionBase;
 import org.apache.jena.sparql.function.FunctionFactory;
 import org.apache.jena.sparql.function.FunctionRegistry;
 import org.apache.jena.sparql.function.library.triple.TripleTermOps;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.J_SPARQLDispatch.Call;
+import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Call;
 
 /**
  * SPARQL Functions and Operators, including extensions.
@@ -46,49 +49,61 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.expr.J_SPARQLDispatch.Call;
  */
 public class J_SPARQLFuncOp {
 
-    public static final String NS = ARQConstants.sparqlPrefix;
-
     // ---- Integration into ARQ function execution
 
-    static boolean initialized = false;
-    public static void init() {
-        if ( ! initialized ) {
-            initialized = true;
-            loadFunctionRegistry(FunctionRegistry.get());
-        }
-    }
-
-    /** Load the SPARQL functions into a {@link FunctionRegistry}. */
-    public static void loadFunctionRegistry(FunctionRegistry reg) {
-        Map<String, Call> map = J_SPARQLDispatch.getDispatchMap();
-        // Add to the system FunctionRegistry once.
-        addToFunctionRegistry(FunctionRegistry.get(), map);
-    }
-
-    private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, Call> map) {
-        FunctionFactory ff = createFunctionFactory();
-        map.forEach((uri,call) -> FunctionRegistry.get().put(uri, ff));
-    }
-
-    private static FunctionFactory createFunctionFactory() {
-        return uri -> new FunctionBase() {
-            @Override
-            public NodeValue exec(List<NodeValue> args) {
-                return J_SPARQLFuncOp.exec(uri, args);
+    static class INIT {
+        static boolean initialized = false;
+        static void init() {
+            if ( ! initialized ) {
+                initialized = true;
+                loadFunctionRegistry(FunctionRegistry.get());
             }
-            @Override public void checkBuild(String uri, ExprList args) {}
-        };
+        }
+
+        // ---- Registration with ARQ
+
+        /** Load the SPARQL functions into a {@link FunctionRegistry}. */
+        public static void loadFunctionRegistry(FunctionRegistry reg) {
+            Map<String, FunctionEverything.Call> map = FunctionEverything.mapDispatch();
+            // Add to the system FunctionRegistry once.
+            addToFunctionRegistry(FunctionRegistry.get(), map);
+        }
+
+        private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, Call> map) {
+            FunctionFactory ff = createFunctionFactory();
+            map.forEach((uri,call) -> FunctionRegistry.get().put(uri, ff));
+        }
+
+        private static FunctionFactory createFunctionFactory() {
+            return uri -> new FunctionBase() {
+                @Override
+                public NodeValue exec(List<NodeValue> args) {
+                    return J_SPARQLFuncOp.exec(uri, args);
+                }
+                @Override public void checkBuild(String uri, ExprList args) {}
+            };
+        }
+
     }
 
     // ---- Execution
 
     public static NodeValue exec(String uri, List<NodeValue>args) {
-        return J_SPARQLDispatch.exec(uri, args);
+        Objects.requireNonNull(uri);
+        Objects.requireNonNull(args);
+        NodeValue[] a = args.toArray(NodeValue[]::new);
+        return exec(uri,a);
     }
 
     public static NodeValue exec(String uri, NodeValue...args) {
-        return J_SPARQLDispatch.exec(uri, args);
+        INIT.init();
+        Call call = FunctionEverything.getCall(uri);
+        if ( call == null )
+            throw new SPARQLEvalException("No such function: "+uri);
+        return call.exec(args);
     }
+
+    // ----
 
     private static boolean strict() {
         return  ARQ.isStrictMode();
