@@ -46,6 +46,7 @@ class V {
 
     public static final Node var = uri("var");
 
+    // Bad name? Use type instead?
     public static final Node sparqlExpr = uri("sparqlExpr");
     public static final Node expr = uri("expr");
 
