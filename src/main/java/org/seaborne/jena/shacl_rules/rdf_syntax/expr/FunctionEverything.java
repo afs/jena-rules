@@ -182,10 +182,11 @@ class FunctionEverything {
         // Operators
         entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, SPARQLFuncOp::sparql_plus);
         entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:subtract", E_Subtract.class, "-", E_Subtract::new, SPARQLFuncOp::sparql_subtract);
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:multiply", E_Divide.class, "*", E_Divide::new, SPARQLFuncOp::sparql_multiply);
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:divide", E_Divide.class, "/", E_Divide::new, SPARQLFuncOp::sparql_divide);
 
-        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, SPARQLFuncOp::sparql_plus);
-        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, SPARQLFuncOp::sparql_plus);
-        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, SPARQLFuncOp::sparql_plus);
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:equals", E_Equals.class, "=", E_Equals::new, SPARQLFuncOp::sparql_equals);
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:equals", E_NotEquals.class, "!=", E_Equals::new, SPARQLFuncOp::sparql_not_equals);
 
 //        // ARQ
 //        entry(mapDispatch, mapBuild, mapFunctionURI, "arq:idiv", E_OpNumericIntegerDivide.class, "IDIV", E_OpNumericIntegerDivide::new, SPARQLFuncOp::arq_idiv);
@@ -200,10 +201,10 @@ class FunctionEverything {
         entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:lessThan", E_LessThan.class, ">", E_LessThan::new, SPARQLFuncOp::sparql_lessThan);
         entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:lessThanOrEqual", E_LessThanOrEqual.class, ">=", E_LessThanOrEqual::new, SPARQLFuncOp::sparql_lessThanOrEqual );
 
-        // Missing
-//        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, SPARQLFuncOp::logical_and );
-//        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, SPARQLFuncOp::logical_not );
-//        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::logical_or );
+        // Specials as functions
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, SPARQLFuncOp::sparql_function_and);
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, SPARQLFuncOp::sparql_function_not);
+        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::sparql_function_or);
 
 //        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:in", E_OneOf.class, "IN", E_OneOf::new, SPARQLFuncOp::sparql_in );
 //        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:not-in", E_NotOneOf.class, "NOT IN", E_NotOneOf::new, SPARQLFuncOp::not_in );

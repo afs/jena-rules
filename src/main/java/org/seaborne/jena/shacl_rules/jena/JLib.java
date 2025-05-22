@@ -21,6 +21,7 @@ package org.seaborne.jena.shacl_rules.jena;
 import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -29,6 +30,7 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.util.graph.GNode;
 import org.apache.jena.sparql.util.graph.GraphList;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 
 public class JLib {
@@ -93,5 +95,29 @@ public class JLib {
             x.put(prefix, uri);
         }
         graph.getPrefixMapping().setNsPrefixes(x);
+    }
+
+    // XXX----G
+
+    /**
+     * Return all the subjects of a predicate in a graph (no duplicates)
+     * <p>
+     * Use {@code iterPO(predicate, null)} for "with duplicates."
+     */
+    public static Set<Node> subjectsOfPredicateAsSet(Graph graph, Node predicate) {
+        Objects.requireNonNull(graph, "graph");
+        ExtendedIterator<Triple> iter = graph.find(Node.ANY, predicate, Node.ANY);
+        return Iter.iter(iter).map(Triple::getSubject).toSet();
+    }
+
+    /**
+     * Return all the the objects in a graph (no duplicates)
+     * <p>
+     * Use {@code iterSP(null, predicate)} for "with duplicates."
+     */
+    public static Set<Node> objectsOfPredicateAsSet(Graph graph, Node predicate) {
+        Objects.requireNonNull(graph, "graph");
+        ExtendedIterator<Triple> iter = graph.find(Node.ANY, predicate, Node.ANY);
+        return Iter.iter(iter).map(Triple::getObject).toSet();
     }
 }

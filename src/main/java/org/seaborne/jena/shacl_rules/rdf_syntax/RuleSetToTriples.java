@@ -34,6 +34,7 @@ import org.apache.jena.sparql.syntax.*;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
 public class RuleSetToTriples {
 
@@ -139,10 +140,13 @@ sh:rule
     }
 
     private static Node expression(Graph graph, Expr expr) {
-      Node x = NodeFactory.createBlankNode();
-      String exprStr = exprAsString(expr);
-      Node obj = NodeFactory.createLiteralString(exprStr);
-      graph.add(x, V.sparqlExpr, obj);
+        Node x = SparqlNodeExpression.exprToRDF(graph, expr);
+
+        // Direct as sh:sparqlExpr
+//      Node x = NodeFactory.createBlankNode();
+//      String exprStr = exprAsString(expr);
+//      Node obj = NodeFactory.createLiteralString(exprStr);
+//      graph.add(x, V.sparqlExpr, obj);
       return x;
     }
 

@@ -50,8 +50,12 @@ class V {
     public static final Node sparqlExpr = uri("sparqlExpr");
     public static final Node expr = uri("expr");
 
-    public static final Node sparqlExprClass = uri("SPARQLExpr");
-
     // Temp
     static final Node sparqlBody = uri("sparqlBody");
+
+//    /** Class for list argument node expressions */
+//    public static final Node exprClass = uri("Expression");
+
+    /** Class for node expressions that are SPARQL expressions. */
+    public static final Node sparqlExprClass = uri("SPARQLExpr");
 }
