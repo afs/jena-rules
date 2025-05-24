@@ -29,6 +29,7 @@ import org.apache.jena.irix.IRIx;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.IsoMatcher;
 
 public class RuleSet {
 
@@ -42,10 +43,16 @@ public class RuleSet {
 //        ruleSet1.getDataTriples();
 //        ruleSet1.getPrologue();
 
-        // Only the rules.
         List<Rule> r1 = ruleSet1.getRules();
         List<Rule> r2 = ruleSet2.getRules();
-        return ListUtils.equalsUnordered(r1, r2);
+        if ( ! ListUtils.equalsUnordered(r1, r2) )
+            return false;
+
+        Graph d1 = ruleSet1.getData();
+        Graph d2 = ruleSet2.getData();
+        if ( IsoMatcher.isomorphic(d1, d2) )
+            return false;
+        return true;
     }
 
     public RuleSet(IRIx base, PrefixMap prefixMap, List<Rule> rules, List<Triple> dataTriples) {
@@ -72,7 +79,7 @@ public class RuleSet {
     public boolean hasPrefixMap() {
         if ( prefixMap == null )
             return false;
-        return prefixMap.isEmpty();
+        return ! prefixMap.isEmpty();
     }
 
     /**

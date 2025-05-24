@@ -19,6 +19,8 @@
 package org.seaborne.jena.shacl_rules.jena;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.serializer.SerializationContext;
@@ -32,4 +34,13 @@ public class Fmt {
         ExprUtils.fmtSPARQL(buff, expr, sCxt);
         return buff.asString();
     }
+
+    public static String fmtSPARQL(Expr expr, PrefixMap prefixMap) {
+        /// XXX
+        SerializationContext sCxt  = new SerializationContext(Prefixes.adapt(prefixMap));
+        IndentedLineBuffer buff = new IndentedLineBuffer();
+        ExprUtils.fmtSPARQL(buff, expr, sCxt);
+        return buff.asString();
+    }
+
 }

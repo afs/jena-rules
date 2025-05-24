@@ -28,10 +28,7 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.RandomLib;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.expr.*;
-import org.apache.jena.sparql.expr.nodevalue.NodeFunctions;
-import org.apache.jena.sparql.expr.nodevalue.NodeValueDigest;
-import org.apache.jena.sparql.expr.nodevalue.NodeValueOps;
-import org.apache.jena.sparql.expr.nodevalue.XSDFuncOp;
+import org.apache.jena.sparql.expr.nodevalue.*;
 import org.apache.jena.sparql.function.FunctionBase;
 import org.apache.jena.sparql.function.FunctionFactory;
 import org.apache.jena.sparql.function.FunctionRegistry;
@@ -76,14 +73,10 @@ public class J_SPARQLFuncOp {
 
         private static FunctionFactory createFunctionFactory() {
             return uri -> new FunctionBase() {
-                @Override
-                public NodeValue exec(List<NodeValue> args) {
-                    return J_SPARQLFuncOp.exec(uri, args);
-                }
+                @Override public NodeValue exec(List<NodeValue> args) { return J_SPARQLFuncOp.exec(uri, args); }
                 @Override public void checkBuild(String uri, ExprList args) {}
             };
         }
-
     }
 
     // ---- Execution
@@ -175,24 +168,48 @@ public class J_SPARQLFuncOp {
 
     // and,or,not as functions (arguments have been evaluated)
 
-    public static NodeValue sparql_function_and(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue arq_function_and(NodeValue nv1, NodeValue nv2) {
         boolean arg1 = XSDFuncOp.booleanEffectiveValue(nv1);
         boolean arg2 = XSDFuncOp.booleanEffectiveValue(nv2);
         return NodeValue.booleanReturn(arg1 && arg2);
     }
 
-    public static NodeValue sparql_function_or(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue arq_function_or(NodeValue nv1, NodeValue nv2) {
         boolean arg1 = XSDFuncOp.booleanEffectiveValue(nv1);
         boolean arg2 = XSDFuncOp.booleanEffectiveValue(nv2);
         return NodeValue.booleanReturn(arg1 || arg2);
     }
 
-  public static NodeValue sparql_function_not(NodeValue nv) {
+  public static NodeValue arq_function_not(NodeValue nv) {
       boolean arg = XSDFuncOp.booleanEffectiveValue(nv);
       return NodeValue.booleanReturn(!arg);
   }
 
-    // These are not functions.
+  public static NodeValue arq_version() { return ARQFuncOp.version(); }
+
+  // Functional forms (not functions)
+
+//entry(mapDispatch, mapBuild, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, SPARQLFuncOp::logical_and );
+//entry(mapDispatch, mapBuild, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, SPARQLFuncOp::logical_not );
+//entry(mapDispatch, mapBuild, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::logical_or );
+
+//entry(mapDispatch, mapBuild, "sparql:in", E_OneOf.class, "IN", E_OneOf::new, SPARQLFuncOp::sparql_in );
+//entry(mapDispatch, mapBuild, "sparql:not-in", E_NotOneOf.class, "NOT IN", E_NotOneOf::new, SPARQLFuncOp::not_in );
+
+// URI function call.
+//entry(mapDispatch, mapBuild, "sparql:function", E_Function.class, "", E_Function::new, SPARQLFuncOp::function );
+
+
+//entry(mapDispatch, mapBuild, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, SPARQLFuncOp::bound );
+//entry(mapDispatch, mapBuild, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, SPARQLFuncOp::coalesce );
+//entry(mapDispatch, mapBuild, "sparql:if", E_Conditional.class, "IF", E_Conditional::new, SPARQLFuncOp::if );
+
+// EXISTS, NOT EXISTS
+//entry(mapDispatch, mapBuild, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, SPARQLFuncOp::filter-exists );
+//entry(mapDispatch, mapBuild, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, SPARQLFuncOp::filter-not-exists );
+
+  // Functional forms (not functions)
+
 //    public static NodeValue sparql_operator_and() { return null; }
 //    public static NodeValue sparql_operator_or() { return null; }
 //    public static NodeValue sparql_operator_not() { return null; }
@@ -204,14 +221,16 @@ public class J_SPARQLFuncOp {
 //    public static NodeValue sparql_filter_exists() { return null; }
 //    public static NodeValue sparql_filter_not_exists() { return null; }
 
+//    public static NodeValue sparql_logical_not() { return null; }
 //    public static NodeValue sparql_logical_or() { return null; }
 //    public static NodeValue sparql_logical_and() { return null; }
 
 //    public static NodeValue sparql_in(NodeValue... nv) { return null; }
 //    public static NodeValue sparql_not_in(NodeValue... nv) { return null; }
 
-    public static NodeValue sparql_sameTerm(NodeValue nv1, NodeValue nv2) { return NodeFunctions.sameTerm(nv1, nv2); }
 
+
+    public static NodeValue sparql_sameTerm(NodeValue nv1, NodeValue nv2) { return NodeFunctions.sameTerm(nv1, nv2); }
     public static NodeValue sparql_sameValue(NodeValue nv1, NodeValue nv2) {
         // Need to deal with NaN.
         if ( ( nv1.isDouble()||nv1.isFloat() ) && ( nv2.isDouble()||nv2.isFloat() ) ) {
@@ -243,7 +262,7 @@ public class J_SPARQLFuncOp {
     public static NodeValue sparql_iri(NodeValue nv) { return NodeFunctions.iri(nv, null); }
     public static NodeValue sparql_uri(NodeValue nv) { return sparql_iri(nv); }
 
-    // Extension
+    // Extension. Two argument form of IRI() and URI()
     public static NodeValue arq_iri(NodeValue nv, NodeValue nvBase) { return NodeFunctions.iri(nv, nvBase.getString()); }
     public static NodeValue arq_uri(NodeValue nv, NodeValue nvBase) { return NodeFunctions.iri(nv, nvBase.getString()); }
 
@@ -286,6 +305,8 @@ public class J_SPARQLFuncOp {
         return regexEngineCache.get(cacheKey, (key)->E_Regex.makeRegexEngine(key.pattern, key.flags));
     }
 
+    // Arity 2/3
+    public static NodeValue sparql_regex(NodeValue string, NodeValue pattern) { return sparql_regex(string, pattern, null); }
     public static NodeValue sparql_regex(NodeValue string, NodeValue pattern, NodeValue flags) {
         // Cache - this means regexes are compiled once.
         String patternStr = pattern.getString();
@@ -296,8 +317,12 @@ public class J_SPARQLFuncOp {
         return NodeValue.booleanReturn(b);
     }
 
+    // Arity 3/4
     public static NodeValue sparql_replace(NodeValue nvStr, NodeValue nvPattern, NodeValue nvReplacement)
     { return XSDFuncOp.strReplace(nvStr, nvPattern, nvReplacement); }
+
+    public static NodeValue sparql_replace(NodeValue nvStr, NodeValue nvPattern, NodeValue nvReplacement, NodeValue envFlags)
+    { return XSDFuncOp.strReplace(nvStr, nvPattern, nvReplacement, envFlags); }
 
     public static NodeValue sparql_encode(NodeValue nv) { return XSDFuncOp.strEncodeForURI(nv); }
     public static NodeValue sparql_abs(NodeValue nv)    { return XSDFuncOp.abs(nv); }
@@ -323,6 +348,11 @@ public class J_SPARQLFuncOp {
     public static NodeValue sparql_timezone(NodeValue nv)   { return XSDFuncOp.dtGetTimezone(nv); }
     // Returns string
     public static NodeValue sparql_tz(NodeValue nv)         { return XSDFuncOp.dtGetTZ(nv); }
+
+    // ARQ ADJUST is all purpose - i.e. xsd:dateTime/xsd:date/xsd:time
+    public static NodeValue arq_adjust(NodeValue nv)        { return XSDFuncOp.adjustToTimezone(nv, null); }
+    public static NodeValue arq_adjust(NodeValue nv1, NodeValue nv2)        { return XSDFuncOp.adjustToTimezone(nv1, nv2); }
+
 
     public static NodeValue sparql_triple(NodeValue s, NodeValue p, NodeValue o)    { return TripleTermOps.fnTriple(s, p, o); }
     public static NodeValue sparql_subject(NodeValue tripleTerm)                    { return TripleTermOps.tripleSubject(tripleTerm); }

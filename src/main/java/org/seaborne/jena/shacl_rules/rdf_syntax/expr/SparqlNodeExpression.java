@@ -62,8 +62,8 @@ public class SparqlNodeExpression {
                 return buildExpr(graph, expression1);
 
             // Look for sh:sparqlExpr
-            Node expression2 = G.getZeroOrOneSP(graph, topNode, V.expr);
-            if ( expression2 == null)
+            Node expression2 = G.getZeroOrOneSP(graph, topNode, V.sparqlExpr);
+            if ( expression2 != null)
                 return buildSparqlExpr(graph, topNode);
             // Neither
             throw new ShaclException("sh:expr not found (nor sh:sparqlExpr)");
@@ -75,13 +75,34 @@ public class SparqlNodeExpression {
     }
 
     /**
+     * Build an {@link Expr} from a node with a property {@code sh:expr}. The object
+     * is a blank node structure of a SHACL Node Expression.
+     * <p>
+     * Prefer using {@link rdfToExpr} which switches between node expressions and
+     * SPARQL expression strings.
+     */
+    public static Expr fromExpr(Graph graph, Node root) {
+        return buildExpr(graph, root);
+    }
+
+    /**
+     * Build an {@link Expr} from a node with a property {@code sh:sparqExpr}
+     * whose value is a simple string in SPARQL expression syntax.
+     * <p>
+     * Prefer using {@link rdfToExpr} which switches between node expressions and
+     * SPARQL expression strings.
+s     */
+    public static Expr fromSparqlExpr(Graph graph, Node root) {
+        return buildSparqlExpr(graph, root);
+    }
+
+    /**
      * Encode an {@link Expr} into triples.
      * Return the node for the top of the expression.
      * The result node has a property {@code sh:expr}
      *
      *  or {@code sh:sparqlExpr}.
      * If it has both, the {@code sh:expr} is used to build the expression.
-     *
      */
 
     public static Node exprToRDF(Graph graph, Expr expr) {
@@ -112,19 +133,19 @@ public class SparqlNodeExpression {
         return x;
     }
 
-    private static Expr buildExpr(Graph graph, Node x) {
-        if ( ! x.isBlank() )
-            return NodeValue.makeNode(x);
+    private static Expr buildExpr(Graph graph, Node root) {
+        if ( ! root.isBlank() )
+            return NodeValue.makeNode(root);
 
         //private static Node extractVar(Graph graph, Node node) {
-        Node vx = G.getZeroOrOneSP(graph, x, V.var);
+        Node vx = G.getZeroOrOneSP(graph, root, V.var);
         if ( vx != null ) {
             //Var v = Var.alloc(G.asString(vx));
             return new ExprVar(G.asString(vx));
         }
         //}
 
-        Triple t = G.find(graph, x, null, null)
+        Triple t = G.find(graph, root, null, null)
                 // Ignores type,
                 //.filterDrop(tt->tt.getPredicate().equals(RDF.Nodes.type))
                 .next();

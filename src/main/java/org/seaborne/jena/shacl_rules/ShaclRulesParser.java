@@ -27,19 +27,16 @@ import java.util.List;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.lib.IRILib;
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.irix.IRIxResolver;
-import org.apache.jena.query.QueryException;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.PrefixMapFactory;
-import org.apache.jena.shared.JenaException;
+import org.apache.jena.riot.RiotParseException;
+import org.apache.jena.riot.lang.extra.javacc.TokenMgrError;
+import org.apache.jena.riot.system.*;
 import org.apache.jena.shared.impl.PrefixMappingImpl;
 import org.apache.jena.sparql.core.Prologue;
 import org.seaborne.jena.shacl_rules.lang.ElementRule;
-import org.seaborne.jena.shacl_rules.lang.ShaclParseException;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesJavacc;
 
 public class ShaclRulesParser {
@@ -72,40 +69,64 @@ public class ShaclRulesParser {
     private static RuleSet parse(ShaclRulesJavacc parser, String baseURI) {
         IRIxResolver resolver =
                 (baseURI == null) ? IRIs.stdResolver().clone() : IRIs.resolver(baseURI);
-        Prologue prologue = new Prologue(new PrefixMappingImpl(),resolver);
 
-        parser.setPrologue(prologue);
+        // The Rules parse catches the triple by context.
+        // Prefixmap is managed by the ParserProfile and the sent to the StreamRDF.
+        StreamRDF output = StreamRDFLib.sinkNull();
+        ParserProfile parserProfile = RiotLib.dftProfile();
+        parser.setDest(output);
+        parser.setProfile(parserProfile);
+
+        // XXX Junk
+        Prologue prologue = new Prologue(new PrefixMappingImpl(),resolver);
+        //parser.setPrologue(prologue);
 
         try {
+            output.start();
             parser.RulesUnit();
+            output.finish();
+
             List<ElementRule> rulesParser = parser.getRules();
             // Translate to the abstract rule structure.
             List<Rule> rules = rulesParser.stream().map(elt->new Rule(elt.getHead().getList(), elt.getBody())).toList();
             List<Triple> triples = parser.getData();
-            PrefixMap prefixMap = PrefixMapFactory.create(prologue.getPrefixMapping());
+
             String declaredBaseURI = prologue.explicitlySetBaseURI() ? prologue.getBaseURI() : null;
             IRIx baseIRI = declaredBaseURI != null ? IRIx.create(declaredBaseURI) : null;
-            RuleSet ruleSet = new RuleSet(baseIRI, prefixMap, rules, triples);
+
+            RuleSet ruleSet = new RuleSet(baseIRI, parserProfile.getPrefixMap(), rules, triples);
             return ruleSet;
-        } catch (org.seaborne.jena.shacl_rules.lang.parser.ParseException ex) {
-            throw new ShaclParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
-        } catch (org.seaborne.jena.shacl_rules.lang.parser.TokenMgrError tErr) {
-            // Last valid token : not the same as token error message - but this should not happen
-            int col = parser.token.endColumn;
-            int line = parser.token.endLine;
-            throw new ShaclParseException(tErr.getMessage(), line, col);
-        } catch (QueryException ex) {
-            throw ex;
-        } catch (JenaException ex) {
-            throw new ShaclParseException(ex.getMessage(), ex, -1, -1);
-        } catch (Error err) {
-            // The token stream can throw errors.
-            throw new ShaclParseException(err.getMessage(), err, -1, -1);
-        } catch (Throwable th) {
-            Log.warn(ShaclRulesParser.class, "Unexpected throwable: ", th);
-            int col = parser.token.endColumn;
-            int line = parser.token.endLine;
-            throw new ShaclParseException(th.getMessage(), th, line, col);
         }
+            catch (org.seaborne.jena.shacl_rules.lang.parser.ParseException ex) {
+                parserProfile.getErrorHandler().error(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
+                throw new RiotParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
+            }
+            catch (TokenMgrError ex) {
+                parserProfile.getErrorHandler().error(ex.getMessage(), -1, -1);
+                throw new RiotParseException(ex.getMessage(), -1 , -1);
+            }
+
+        // Query style.
+
+//        } catch (org.seaborne.jena.shacl_rules.lang.parser.ParseException ex) {
+//            throw new ShaclRulesParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
+//        } catch (org.seaborne.jena.shacl_rules.lang.parser.TokenMgrError tErr) {
+//            // Last valid token : not the same as token error message - but this should not happen
+//            int col = parser.token.endColumn;
+//            int line = parser.token.endLine;
+//            throw new ShaclRulesParseException(tErr.getMessage(), line, col);
+//        } catch (QueryException ex) {
+//            throw ex;
+//        } catch (JenaException ex) {
+//            throw new ShaclRulesParseException(ex.getMessage(), ex, -1, -1);
+//        } catch (Error err) {
+//            // The token stream can throw errors.
+//            throw new ShaclRulesParseException(err.getMessage(), err, -1, -1);
+//        } catch (Throwable th) {
+//            Log.warn(ShaclRulesParser.class, "Unexpected throwable: ", th);
+//            int col = parser.token.endColumn;
+//            int line = parser.token.endLine;
+//            throw new ShaclRulesParseException(th.getMessage(), th, line, col);
+//        }
     }
 }

@@ -49,9 +49,9 @@ public class Graph2 extends GraphWrapper {
 
     public static Graph create(Graph extraGraph, Graph baseGraph) {
         if ( extraGraph instanceof Graph2)
-            Log.warn(Graph2.class, "Adding a Graph2 to a Graph2.");
+            Log.warn(Graph2.class, "Combing a Graph2 with aGraph2.");
         if ( baseGraph instanceof Graph2)
-            Log.warn(Graph2.class, "Creating a Graph2 ovr a Graph2 base graph.");
+            Log.warn(Graph2.class, "Creating a Graph2 over a Graph2 base graph.");
         return new Graph2(extraGraph, baseGraph);
     }
 

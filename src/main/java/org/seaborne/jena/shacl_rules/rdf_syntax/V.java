@@ -37,12 +37,15 @@ class V {
     public static final Node predicate = uri("predicate");
     public static final Node object = uri("object");
 
-    public static final Node ruleClass = uri("Rule");
+    public static final Node classRule = uri("Rule");
     public static final Node head = uri("head");
     public static final Node body = uri("body");
 
     public static final Node rule = uri("rule");
+
+    public static final Node classRuleSet = uri("RuleSet");
     public static final Node ruleSet = uri("ruleSet");
+    public static final Node data = uri("data");
 
     public static final Node var = uri("var");
 
@@ -57,5 +60,5 @@ class V {
 //    public static final Node exprClass = uri("Expression");
 
     /** Class for node expressions that are SPARQL expressions. */
-    public static final Node sparqlExprClass = uri("SPARQLExpr");
+    public static final Node classSparqlExpr = uri("SPARQLExpr");
 }
