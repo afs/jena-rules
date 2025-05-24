@@ -329,37 +329,29 @@ public interface ShaclRulesJavaccConstants {
   /** RegularExpression Id. */
   int AT = 155;
   /** RegularExpression Id. */
-  int VBAR = 156;
+  int CARAT = 156;
   /** RegularExpression Id. */
-  int CARAT = 157;
+  int PN_CHARS_BASE = 157;
   /** RegularExpression Id. */
-  int FPATH = 158;
+  int PN_CHARS_U = 158;
   /** RegularExpression Id. */
-  int RPATH = 159;
+  int PN_CHARS = 159;
   /** RegularExpression Id. */
-  int QMARK = 160;
+  int PN_PREFIX = 160;
   /** RegularExpression Id. */
-  int PN_CHARS_BASE = 161;
+  int PN_LOCAL = 161;
   /** RegularExpression Id. */
-  int PN_CHARS_U = 162;
+  int VARNAME = 162;
   /** RegularExpression Id. */
-  int PN_CHARS = 163;
+  int PN_LOCAL_ESC = 163;
   /** RegularExpression Id. */
-  int PN_PREFIX = 164;
+  int PLX = 164;
   /** RegularExpression Id. */
-  int PN_LOCAL = 165;
+  int HEX = 165;
   /** RegularExpression Id. */
-  int VARNAME = 166;
+  int PERCENT = 166;
   /** RegularExpression Id. */
-  int PN_LOCAL_ESC = 167;
-  /** RegularExpression Id. */
-  int PLX = 168;
-  /** RegularExpression Id. */
-  int HEX = 169;
-  /** RegularExpression Id. */
-  int PERCENT = 170;
-  /** RegularExpression Id. */
-  int UNKNOWN = 171;
+  int UNKNOWN = 167;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -522,11 +514,7 @@ public interface ShaclRulesJavaccConstants {
     "\"/\"",
     "\"^^\"",
     "\"@\"",
-    "\"|\"",
     "\"^\"",
-    "\"->\"",
-    "\"<-\"",
-    "\"?\"",
     "<PN_CHARS_BASE>",
     "<PN_CHARS_U>",
     "<PN_CHARS>",

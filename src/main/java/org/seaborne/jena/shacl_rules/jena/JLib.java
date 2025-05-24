@@ -22,12 +22,10 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.shared.JenaException;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.graph.GNode;
 import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -119,5 +117,15 @@ public class JLib {
         Objects.requireNonNull(graph, "graph");
         ExtendedIterator<Triple> iter = graph.find(Node.ANY, predicate, Node.ANY);
         return Iter.iter(iter).map(Triple::getObject).toSet();
+    }
+
+    /**
+     * Clone a graph - includes the prefixes.
+     */
+    public static Graph cloneGraph(Graph graph) {
+        Graph copyGraph = GraphFactory.createGraphMem();
+        GraphUtil.addInto(copyGraph, graph);
+        copyGraph.getPrefixMapping().setNsPrefixes(graph.getPrefixMapping());
+        return copyGraph;
     }
 }

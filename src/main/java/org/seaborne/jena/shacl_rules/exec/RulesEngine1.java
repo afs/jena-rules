@@ -34,8 +34,12 @@ import org.apache.jena.sparql.exec.RowSetRewindable;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.system.buffering.BufferingGraph;
-import org.seaborne.jena.shacl_rules.*;
+import org.seaborne.jena.shacl_rules.EngineType;
+import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
+import org.seaborne.jena.shacl_rules.jena.JLib;
 
 /**
  * A simple rules engine that can be easily understood.
@@ -108,7 +112,7 @@ public class RulesEngine1 implements RulesEngine {
 
         // Needs improvement : Copy baseGraph, and update copy.
         // The graph for the algorithm. Updated.
-        Graph dataGraph = R.cloneGraph(baseGraph);
+        Graph dataGraph = JLib.cloneGraph(baseGraph);
 
         Graph data = ruleSet.getData() ;
         // Recalculate the baseGraph and make it look like data was added.

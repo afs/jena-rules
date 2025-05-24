@@ -23,7 +23,11 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
-import org.apache.jena.graph.*;
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.BasicPattern;
@@ -34,6 +38,7 @@ import org.apache.jena.sparql.syntax.*;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
 public class RuleSetToTriples {
@@ -58,7 +63,7 @@ sh:rule
   .
 */
 
-    public static Graph write(RuleSet ruleSet) {
+    public static Graph asGraph(RuleSet ruleSet) {
         Graph graph = GraphFactory.createDefaultGraph();
         if ( ruleSet.hasPrefixMap() )
             graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
@@ -67,17 +72,15 @@ sh:rule
     }
 
     public static void writeToGraph(Graph graph, RuleSet ruleSet) {
-        if ( ruleSet.hasData() ) {
-            GraphUtil.add(graph, ruleSet.getDataTriples());
-            // XXX Add as triple terms.  :data :triples ( <<(:s ;p :o)>> <<(:x :y :z)>> ...
-        }
+        Node ruleSetNode = NodeFactory.createURI("http://example/ruleSet-1");
+        graph.add(ruleSetNode, V.TYPE, V.classRuleSet);
 
+        // For each rule, write, add the blank node to a list.
         List<Node> rules = new ArrayList<>();
-
         ruleSet.getRules().forEach(rule->{
             Node ruleNode = NodeFactory.createBlankNode();
             if ( true ) {
-                graph.add(ruleNode, V.TYPE, V.ruleClass);
+                graph.add(ruleNode, V.TYPE, V.classRule);
             } else {
                 Node x = NodeFactory.createBlankNode();
                 graph.add(ruleNode, V.rule, x);
@@ -88,11 +91,28 @@ sh:rule
             Node nBody = writeBody(graph, ruleNode, rule);
             rules.add(ruleNode);
         });
-
-        Node top = NodeFactory.createURI("http://example/ruleSet-1");
-
         Node rulesList = list(graph, rules);
-        graph.add(top, V.ruleSet, rulesList);
+        graph.add(ruleSetNode, V.ruleSet, rulesList);
+
+        writeData(graph, ruleSet, ruleSetNode);
+    }
+
+    // Write data ("Axiomatic triple")
+    private static void writeData(Graph graph, RuleSet ruleSet, Node ruleSetNode) {
+        if ( ! ruleSet.hasData() )
+                return;
+        List<Triple> triples = ruleSet.getDataTriples();
+        List<Node> tripleTerms = Iter.iter(triples).map(triple->NodeFactory.createTripleTerm(triple)).toList();
+        Node x = JLib.addList(graph, tripleTerms);
+        graph.add(ruleSetNode, V.data, x);
+    }
+
+    private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {
+        BasicPattern head = rule.getHead();
+        List<Node> x = basicGraphPatternAsList(graph, head);
+        Node bgpNode = list(graph, x);
+        graph.add(ruleNode, V.head, bgpNode);
+        return bgpNode;
     }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
@@ -155,14 +175,6 @@ sh:rule
         ExprUtils.fmtSPARQL(out, expr);
         //WriterSSE.out(out, expr, null);
         return out.asString();
-    }
-
-    private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {
-        BasicPattern head = rule.getHead();
-        List<Node> x = basicGraphPatternAsList(graph, head);
-        Node bgpNode = list(graph, x);
-        graph.add(ruleNode, V.head, bgpNode);
-        return bgpNode;
     }
 
     private static List<Node> basicGraphPatternAsList(Graph graph, BasicPattern bgp) {

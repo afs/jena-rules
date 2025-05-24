@@ -34,9 +34,8 @@ public class ElementRule {
     private final BasicPattern head;
     private final ElementGroup body;
 
-    public ElementRule(TripleCollector head, ElementGroup body) {
-        TripleCollectorBGP tcBGP = (TripleCollectorBGP)head;
-        this.head = tcBGP.getBGP();
+    public ElementRule(BasicPattern bgp, ElementGroup body) {
+        this.head = bgp;
         this.body = fixup(body);
     }
 
@@ -47,18 +46,21 @@ public class ElementRule {
         List<Element> elts = eltGroup.getElements();
         for ( int i = 0 ; i < elts.size() ; i++ ) {
             Element elt = elts.get(i);
-            if ( elt instanceof ElementPathBlock epb ) {
-                ElementTriplesBlock etb = new ElementTriplesBlock();
-                epb.getPattern().getList().forEach(triplePath->{
-                    Triple t = triplePath.asTriple();
-                    if ( t == null )
-                        throw new ShaclException("Path: "+triplePath);
-                    etb.addTriple(t);
-                });
-                newEltGroup.addElement(etb);
-                continue;
-            }
+
             switch(elt) {
+                case ElementPathBlock epb -> {
+                    ElementTriplesBlock etb = new ElementTriplesBlock();
+                    epb.getPattern().getList().forEach(triplePath->{
+                        Triple t = triplePath.asTriple();
+                        if ( t == null )
+                            throw new ShaclException("Path: "+triplePath);
+                        etb.addTriple(t);
+                    });
+                    newEltGroup.addElement(etb);
+                    continue;
+                }
+                // Pass through.
+                case ElementTriplesBlock x -> {}
                 case ElementFilter x -> {}
                 case ElementBind x -> {}
                 case ElementAssign x -> {}

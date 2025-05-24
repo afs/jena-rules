@@ -21,7 +21,6 @@ package org.seaborne.jena.shacl_rules.rdf_syntax;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -32,12 +31,12 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementFilter;
 import org.apache.jena.sparql.syntax.ElementGroup;
-import org.apache.jena.sparql.util.ExprUtils;
 import org.apache.jena.sparql.util.graph.GNode;
 import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
 public class TriplesToRuleSet {
 
@@ -58,37 +57,45 @@ public class TriplesToRuleSet {
     }
 
     private static List<RuleSet> _parse(Graph graph) {
-        // XXX Need identified data. <<()>>
-
         List<RuleSet> ruleSets = new ArrayList<>();
-        List<Node> ruleSetNodes = Iter.toList(G.iterObjectsOfPredicate(graph, V.ruleSet));
 
-        ruleSetNodes.forEach(ruleSetListNode -> {
-            // list of rules
+        // Shape:
+        // X rdf:Type sh:RuleSet ;
+        //   sh:ruleSet ( ... rules ... )
+        //   sh:data ( <<(...)>> ....)
 
-            List<Rule> rules = new ArrayList<>();
-            GNode gNode = GNode.create(graph, ruleSetListNode);
-            List<Node> ruleNodes = GraphList.members(gNode);
-            ruleNodes.forEach(n->{
-                Rule r = parseRule(graph, n);
-                if ( r != null )
-                    rules.add(r);
-            });
+//        // Find by type.
+//        List<Node> ruleSetNodes = G.listPO(graph, V.TYPE, V.classRuleSet);
+//        ruleSetNodes.forEach(ruleSetNode->{
+//            Node listOfRules = G.getOneSP(graph, ruleSetNode, V.ruleSet);
+//            RuleSet ruleSet = parseRuleSet(graph, ruleSetNode, listOfRules);
+//            ruleSets.add(ruleSet);
+//        });
 
-            RuleSet ruleSet = new RuleSet(null, PrefixMapFactory.create(graph.getPrefixMapping()), rules, null);
+        // Find by property sh:ruleSet.
+        List<Triple> ruleSetTriples = G.find(graph, null, V.ruleSet, null).toList();
+        ruleSetTriples.forEach(t->{
+            Node ruleSetNode = t.getSubject();
+            Node listOfRules = t.getObject();
+            RuleSet ruleSet = parseRuleSet(graph, ruleSetNode, listOfRules);
             ruleSets.add(ruleSet);
         });
 
-//        // Find by type RuleClass
-//        List<Rule> rules = new ArrayList<>();
-//        List<Node> ruleNodes = G.listPO(graph, V.TYPE, V.ruleClass);
-//        ruleNodes.forEach(n->{
-//            Rule r = parseRule(graph, n);
-//            if ( r != null )
-//                rules.add(r);
-//        });
-
         return ruleSets;
+    }
+
+    private static RuleSet parseRuleSet(Graph graph, Node ruleSetNode, Node listOfRules) {
+        GNode gNode = GNode.create(graph, listOfRules);
+        List<Node> ruleNodes = GraphList.members(gNode);
+        List<Rule> rules = new ArrayList<>();
+        ruleNodes.forEach(n->{
+            Rule r = parseRule(graph, n);
+            if ( r != null )
+                rules.add(r);
+        });
+        List<Triple> data = parseData(graph, ruleSetNode);
+        RuleSet ruleSet = new RuleSet(null, PrefixMapFactory.create(graph.getPrefixMapping()), rules, data);
+        return ruleSet;
     }
 
     private static Rule parseRule(Graph graph, Node n) {
@@ -130,31 +137,45 @@ public class TriplesToRuleSet {
         List<Node> x = GraphList.members(gNode);
         // Mutated
         List<Triple> currentTriples = new ArrayList<>();
-
-        x.forEach(node->{
-            // Bnode and S/P/O
-            // Bnode and sparqlExpr
-            // BNode and sparqlBody
-            if ( G.hasProperty(graph, node, V.sparqlExpr) ) {
-                Node e = G.getOneSP(graph, node, V.sparqlExpr);
-                if ( ! G.isString(e) )
-                    throw new ShaclException("Not a simple string: "+e);
-                String exprString = G.asString(e);
-                Expr expr = ExprUtils.parse(exprString);
+        for ( Node node : x ) {
+            // Two forms:
+            if ( G.hasProperty(graph, node, V.expr) || G.hasProperty(graph, node, V.sparqlExpr) ) {
+                Expr expr = SparqlNodeExpression.rdfToExpr(graph, node);
                 Element elt = new ElementFilter(expr);
                 elg.addElement(elt);
-            } else if ( G.hasProperty(graph, node, V.subject) ) {
+                continue;
+            }
+
+            if ( G.hasProperty(graph, node, V.subject) ) {
+                // Single triple rule.
                 Triple triple = parseTriple(graph, node);
                 elg.addTriplePattern(triple);
-            } else if ( G.hasProperty(graph, node, V.sparqlBody) ) {
-                // Ignore
-            } else {
-                // Where?
-                throw new ShaclException("Didn't recognized RDF for rule body");
+                continue;
             }
-        });
-
+            if ( G.hasProperty(graph, node, V.sparqlBody) ) {
+                // Ignore
+                continue;
+            }
+            throw new ShaclException("Didn't recognized RDF for rule body");
+        }
         return elg;
+    }
+
+    private static List<Triple> parseData(Graph graph, Node ruleSetNode) {
+        // [] sh:data ( <<( )>> .... )
+        // or
+        // [] sh:data <<( )>>; sh:data <<( )>>; ... .
+        // Or named graph
+
+        if ( ! G.hasProperty(graph, ruleSetNode, V.data) )
+            return null;
+        Node list = G.getOneSP(graph, ruleSetNode, V.data);
+
+        GNode gnode = GNode.create(graph, list);
+        List<Node> tripleTerms = GraphList.members(gnode);
+        List<Triple> triples = new ArrayList<>();
+        tripleTerms.forEach(tt-> triples.add(tt.getTriple()));
+        return triples;
     }
 
 //    private static void flushBGP(ElementGroup elg, List<Triple> triples) {

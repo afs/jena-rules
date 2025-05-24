@@ -63,7 +63,7 @@ public class rules_parse extends CmdGeneral {
 
             System.out.println("- - - -");
 
-            Graph graph = RuleSetToTriples.write(ruleSet);
+            Graph graph = RuleSetToTriples.asGraph(ruleSet);
             addPrefixes(graph);
 
             RDFWriter.source(graph).format(RDFFormat.TURTLE_LONG).output(System.out);

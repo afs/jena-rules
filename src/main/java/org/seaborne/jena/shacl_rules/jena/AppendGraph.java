@@ -36,8 +36,6 @@ import org.apache.jena.system.buffering.BufferingCtl;
  * It can be used, then the accumulated changes flushed to the base graph or
  * uses for temporary workspace and the change thrown away.
  */
-//public class AppendGraph extends GraphWrapper implements BufferingCtl {
-
 public class AppendGraph extends Graph2 implements BufferingCtl {
 
     // "Sometime" this could be made the super class of BufferingGraph.
@@ -63,9 +61,13 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
     private final AppendPrefixMapping appendPrefixMapping;
 
     public static AppendGraph create(Graph graph) {
+        return create(graph, true);
+    }
+
+    public static AppendGraph create(Graph graph,boolean checkOnUpdate) {
         if ( graph instanceof AppendGraph )
             Log.warn(Graph2.class, "Creating a AppendGraph over an AppendGraph");
-        return new AppendGraph(graph, true, false);
+        return new AppendGraph(graph, checkOnUpdate, false);
     }
 
     // Better : getPrefixMapping
@@ -104,7 +106,13 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
         execTxn(base, ()-> flushDirect(base));
     }
 
-    /** Flush the changes directly to the base graph. */
+    @Override
+    public void reset() {}
+
+    /**
+     * Flush the changes directly to the base graph.
+     * This operation assumes it is called from within a write transaction.
+     */
     public void flushDirect() {
         if ( allowFlush )
             throw new UnsupportedOperationException(this.getClass().getSimpleName()+".flushDirect");

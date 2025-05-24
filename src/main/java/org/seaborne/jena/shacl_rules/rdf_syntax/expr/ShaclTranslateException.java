@@ -20,6 +20,9 @@ package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
 import org.apache.jena.shared.JenaException;
 
-public class ShaclTranslateException extends JenaException {
-    ShaclTranslateException(String msg) { super(msg); }
+public class ShaclTranslateException extends JenaException
+{
+    public ShaclTranslateException(String msg) {
+        super(msg);
+    }
 }
