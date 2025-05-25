@@ -60,6 +60,7 @@
 // The print value is the whitespace trimmed value after ::=
 
 [<KW_A>]       ::= 'a'
+[<BOM>]        ::= '\uFEFF'
 
 [<BASE>]       ::= 'BASE'
 [<PREFIX>]     ::= 'PREFIX'
