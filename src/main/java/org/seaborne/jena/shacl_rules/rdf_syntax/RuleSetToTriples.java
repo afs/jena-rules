@@ -87,7 +87,7 @@ sh:rule
                 ruleNode = x;
             }
             Node nHead = writeHead(graph, ruleNode, rule);
-            ElementGroup body = rule.getBody();
+            ElementGroup body = rule.getBody().asElement();
             Node nBody = writeBody(graph, ruleNode, rule);
             rules.add(ruleNode);
         });
@@ -108,15 +108,15 @@ sh:rule
     }
 
     private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {
-        BasicPattern head = rule.getHead();
-        List<Node> x = basicGraphPatternAsList(graph, head);
+        List<Triple> head = rule.getHead().asBGP().getList();
+        List<Node> x = triplesAsList(graph, head);
         Node bgpNode = list(graph, x);
         graph.add(ruleNode, V.head, bgpNode);
         return bgpNode;
     }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
-        ElementGroup elg = rule.getBody();
+        ElementGroup elg = rule.getBody().asElement();
         List<Node> items = new ArrayList<>();
         for ( Element e : elg.getElements() ) {
             switch(e) {
@@ -177,9 +177,13 @@ sh:rule
         return out.asString();
     }
 
-    private static List<Node> basicGraphPatternAsList(Graph graph, BasicPattern bgp) {
+    private static List<Node> basicGraphPatternAsList(Graph graph, BasicPattern basicPattern) {
+        return triplesAsList(graph, basicPattern.getList());
+    }
+
+    private static List<Node> triplesAsList(Graph graph, List<Triple> triples) {
         List<Node> elements = new ArrayList<>();
-        bgp.forEach(triple->{
+        triples.forEach(triple->{
             Node tripleNode = NodeFactory.createBlankNode();
             Node sNode = convertVar(graph, triple.getSubject());
             Node pNode = convertVar(graph, triple.getPredicate());

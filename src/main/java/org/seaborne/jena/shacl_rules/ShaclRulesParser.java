@@ -88,7 +88,7 @@ public class ShaclRulesParser {
 
             List<ElementRule> rulesParser = parser.getRules();
             // Translate to the abstract rule structure.
-            List<Rule> rules = rulesParser.stream().map(elt->new Rule(elt.getHead().getList(), elt.getBody())).toList();
+            List<Rule> rules = rulesParser.stream().map(elt->Rule.create(elt.getHead().getList(), elt.getBody())).toList();
             List<Triple> triples = parser.getData();
 
             String declaredBaseURI = prologue.explicitlySetBaseURI() ? prologue.getBaseURI() : null;

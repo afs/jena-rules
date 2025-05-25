@@ -18,65 +18,49 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import java.util.List;
 import java.util.Objects;
 
-import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.syntax.ElementGroup;
 
-public class Rule {
+public class RuleBody {
 
-    private final RuleHead head;
-    private final RuleBody body;
+    private final ElementGroup bodyGroup;
+    private final Query bodyAsQuery;
 
-    public static Rule create(List<Triple> triples, ElementGroup body) {
-        // Used by the parser
-        return new Rule(triples, body);
+    public RuleBody(ElementGroup eltGroup) {
+        this.bodyGroup = eltGroup;
+        this.bodyAsQuery = elementToQuery(eltGroup);
     }
 
-    private Rule(List<Triple> triples, ElementGroup body) {
-        this.head = new RuleHead(triples);
-        this.body = new RuleBody(body);
+    public Query asQuery() {
+        return bodyAsQuery;
     }
 
-    public RuleHead getHead() {
-        return head;
+    public ElementGroup asElement() {
+        return bodyGroup;
     }
 
-    // Currently, the parser structure.
-    public RuleBody getBody() {
-        return body;
-    }
-
-    public Query bodyAsQuery() {
-        return body.asQuery();
+    private static Query elementToQuery(ElementGroup eltGroup) {
+        Query query = new Query();
+        query.setQuerySelectType();
+        query.setQueryResultStar(true);
+        query.setQueryPattern(eltGroup);
+        return query;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(body, head);
+        return Objects.hash(bodyAsQuery, bodyGroup);
     }
 
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )
             return true;
-        if ( !(obj instanceof Rule other) )
+        if ( !(obj instanceof RuleBody) )
             return false;
-        if ( ! head.equals(other.head) )
-            return false;
-        if ( ! body.equals(other.body) )
-            return false;
-        return true;
+        RuleBody other = (RuleBody)obj;
+        return Objects.equals(bodyAsQuery, other.bodyAsQuery) && Objects.equals(bodyGroup, other.bodyGroup);
     }
-
-    @Override
-    public String toString() {
-        String x = body.toString();
-        x = x.replace("\n", " ");
-        x = x.replaceAll("  +", " ");
-        return head.toString() + " :- " + x;
-    }
-
 }

@@ -32,7 +32,6 @@ import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.exec.RowSetOps;
 import org.apache.jena.sparql.exec.RowSetRewindable;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.EngineType;
 import org.seaborne.jena.shacl_rules.Rule;
@@ -163,7 +162,7 @@ public class RulesEngine1 implements RulesEngine {
                     rowset.reset();
                 }
 
-                BasicPattern bgp = rule.getHead();
+                BasicPattern bgp = rule.getHead().asBGP();
                 rowset.forEach(row->{
                     BasicPattern bgp2 = Substitute.substitute(bgp, row);
                     bgp2.forEach(t->graph1.add(t));
@@ -202,11 +201,8 @@ public class RulesEngine1 implements RulesEngine {
     }
 
     private static RowSet evalRule(Graph graph, Rule rule) {
-        ElementGroup eltGroup = rule.getBody();
         Query query = rule.bodyAsQuery();
-        BasicPattern bgp = rule.getHead();
         RowSet rowset = QueryExec.graph(graph).query(query).select();
         return rowset;
     }
-
 }

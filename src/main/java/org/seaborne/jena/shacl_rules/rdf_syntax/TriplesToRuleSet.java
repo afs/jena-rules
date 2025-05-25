@@ -105,7 +105,7 @@ public class TriplesToRuleSet {
 
         List<Triple> headTemplate = parseRuleHead(graph, headNode);
         ElementGroup body = parseRuleBody(graph, bodyNode);
-        Rule rule = new Rule(headTemplate, body);
+        Rule rule = Rule.create(headTemplate, body);
         return rule;
     }
 

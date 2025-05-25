@@ -87,13 +87,13 @@ class FunctionEverything {
 
     // ----
 
-    // The table used prefixes names for URIs for readability.
+    // The table usess prefixes names for URIs for readability.
     private static PrefixMap prefixMap = PrefixMapFactory.create();
     static {
         prefixMap.add("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
         prefixMap.add("sh", "http://www.w3.org/ns/shacl#");
         prefixMap.add("sparql:", "http://www.w3.org/ns/sparql#");
-        prefixMap.add("arq:", "http://jenba.apache.org/ARQ/function#") ; // XXX WHERE?
+        prefixMap.add("arq", "http://jena.apache.org/ARQ/function#");
     }
 
     private static String expandName(String x) {
@@ -349,9 +349,9 @@ class FunctionEverything {
 
         // Specials as functions
         // E_ not right
-        entry1(mapDispatch, mapBuild, mapFunctionURI, "arq:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFuncOp::arq_function_not);
+        entry1(mapDispatch, mapBuild, mapFunctionURI, "arq:function-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFuncOp::arq_function_not);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "arq:function-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFuncOp::arq_function_and);
-        entry2(mapDispatch, mapBuild, mapFunctionURI, "arq::logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
+        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:function-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
 
         entry0(mapDispatch, mapBuild, mapFunctionURI, "sparql:now", E_Now.class, "NOW", E_Now::new, J_SPARQLFuncOp::sparql_now );
 

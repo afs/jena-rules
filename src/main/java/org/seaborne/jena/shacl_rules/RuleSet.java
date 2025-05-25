@@ -50,7 +50,7 @@ public class RuleSet {
 
         Graph d1 = ruleSet1.getData();
         Graph d2 = ruleSet2.getData();
-        if ( IsoMatcher.isomorphic(d1, d2) )
+        if ( ! IsoMatcher.isomorphic(d1, d2) )
             return false;
         return true;
     }

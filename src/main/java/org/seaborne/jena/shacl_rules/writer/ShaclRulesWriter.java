@@ -33,10 +33,10 @@ import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.riot.writer.DirectiveStyle;
-import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.serializer.FormatterElement;
 import org.apache.jena.sparql.serializer.SerializationContext;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.RuleHead;
 import org.seaborne.jena.shacl_rules.RuleSet;
 
 public class ShaclRulesWriter {
@@ -168,7 +168,7 @@ public class ShaclRulesWriter {
         }
 
         private void writeHead(Rule rule) {
-            BasicPattern head = rule.getHead();
+            RuleHead head = rule.getHead();
             out.print("{");
             head.forEach(triple -> {
                 out.print(" ");
@@ -188,6 +188,7 @@ public class ShaclRulesWriter {
         }
 
         private void writeBody(Rule rule) {
+
             // The element block in indented. Later ...
             int indent = 0 ;
 
@@ -204,7 +205,7 @@ public class ShaclRulesWriter {
             }
             // Without braces.
             IndentedLineBuffer outx = new IndentedLineBuffer();
-            FormatterElement.format(outx, sCxt, rule.getBody());
+            FormatterElement.format(outx, sCxt, rule.getBody().asElement());
             String x = outx.asString();
             // Remove outer {}s. Put back leading space.
             x = " "+x.substring(1, x.length()-1);

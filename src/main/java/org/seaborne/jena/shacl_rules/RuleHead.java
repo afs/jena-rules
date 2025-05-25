@@ -20,63 +20,39 @@ package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.Query;
-import org.apache.jena.sparql.syntax.ElementGroup;
+import org.apache.jena.sparql.core.BasicPattern;
 
-public class Rule {
+public class RuleHead {
 
-    private final RuleHead head;
-    private final RuleBody body;
+    private final List<Triple> triples;
 
-    public static Rule create(List<Triple> triples, ElementGroup body) {
-        // Used by the parser
-        return new Rule(triples, body);
+    public RuleHead(List<Triple> triples) {
+        this.triples = triples;
     }
 
-    private Rule(List<Triple> triples, ElementGroup body) {
-        this.head = new RuleHead(triples);
-        this.body = new RuleBody(body);
+    public BasicPattern asBGP() {
+        return new BasicPattern(triples);
     }
 
-    public RuleHead getHead() {
-        return head;
-    }
-
-    // Currently, the parser structure.
-    public RuleBody getBody() {
-        return body;
-    }
-
-    public Query bodyAsQuery() {
-        return body.asQuery();
+    public void forEach(Consumer<Triple> action) {
+        triples.forEach(action);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(body, head);
+        return Objects.hash(triples);
     }
 
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )
             return true;
-        if ( !(obj instanceof Rule other) )
+        if ( !(obj instanceof RuleHead) )
             return false;
-        if ( ! head.equals(other.head) )
-            return false;
-        if ( ! body.equals(other.body) )
-            return false;
-        return true;
+        RuleHead other = (RuleHead)obj;
+        return Objects.equals(triples, other.triples);
     }
-
-    @Override
-    public String toString() {
-        String x = body.toString();
-        x = x.replace("\n", " ");
-        x = x.replaceAll("  +", " ");
-        return head.toString() + " :- " + x;
-    }
-
 }
