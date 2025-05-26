@@ -49,6 +49,10 @@ class V {
 
     public static final Node var = uri("var");
 
+    public static final Node ifCond = uri("if");
+    public static final Node ifThen = uri("then");
+    public static final Node ifElse = uri("else");
+
     // Bad name? Use type instead?
     public static final Node sparqlExpr = uri("sparqlExpr");
     public static final Node expr = uri("expr");

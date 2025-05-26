@@ -18,8 +18,6 @@
 
 package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
-import org.apache.jena.shared.JenaException;
-
-class SPARQLEvalException extends JenaException {
+class SPARQLEvalException extends NodeExprEvalException {
     SPARQLEvalException(String msg) { super(msg); }
 }

@@ -37,6 +37,10 @@ public class RuleHead {
         return new BasicPattern(triples);
     }
 
+    public List<Triple> getTriples() {
+        return triples;
+    }
+
     public void forEach(Consumer<Triple> action) {
         triples.forEach(action);
     }

@@ -43,26 +43,6 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
 public class RuleSetToTriples {
 
-    /*
-sh:rule
-  sh:head ( [ sh:subject [ sh:var "x" ] ] ;
-              sh:predicate rdf:type ;
-              sh:object ex:Square ;
-            ] );
-  sh:body (
-    [ sh:subject [ sh:var "x" ] ;
-      sh:predicate ex:width ;
-      sh:object [ sh:var "w" ]
-    ]
-    [ sh:subject [ sh:var "x" ] ;
-      sh:predicate ex:height ;
-      sh:object [ sh:var "h" ]
-    ]
-    [ sh:filter [ sparql:equals ( [ sh:var "w" ] [ sh:var "h" ] ) ] ]
-  ) ;
-  .
-*/
-
     public static Graph asGraph(RuleSet ruleSet) {
         Graph graph = GraphFactory.createDefaultGraph();
         if ( ruleSet.hasPrefixMap() )

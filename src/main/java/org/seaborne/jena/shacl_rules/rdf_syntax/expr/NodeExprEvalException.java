@@ -18,11 +18,8 @@
 
 package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
-import org.apache.jena.shacl.ShaclException;
+import org.apache.jena.shared.JenaException;
 
-public class ShaclTranslateException extends ShaclException
-{
-    public ShaclTranslateException(String msg) {
-        super(msg);
-    }
+class NodeExprEvalException extends JenaException {
+    NodeExprEvalException(String msg) { super(msg); }
 }

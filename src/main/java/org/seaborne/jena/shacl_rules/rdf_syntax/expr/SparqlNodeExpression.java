@@ -50,21 +50,21 @@ public class SparqlNodeExpression {
      * @param graph
      * @param topNode Start of the expression.
      */
-    public static Expr rdfToExpr(Graph graph, Node topNode) {
+    public static Expr rdfToExpr(Graph graph, Node root) {
         try {
             // [] sh:expr ...
             //   or
             // [] sh:sparqlExpr ...
 
-            // Look for sh;expr
-            Node expression1 = G.getZeroOrOneSP(graph, topNode, V.expr);
+            // Look for sh:expr, return object
+            Node expression1 = NodeExpressions.getNodeExpression(graph, root);
             if ( expression1 != null )
                 return buildExpr(graph, expression1);
 
-            // Look for sh:sparqlExpr
-            Node expression2 = G.getZeroOrOneSP(graph, topNode, V.sparqlExpr);
+            // Look for sh:sparqlExpr, return object (which is a string).
+            Node expression2 = NodeExpressions.getSparqlExpression(graph, root);
             if ( expression2 != null)
-                return buildSparqlExpr(graph, topNode);
+                return buildSparqlExpr(graph, root);
             // Neither
             throw new ShaclException("sh:expr not found (nor sh:sparqlExpr)");
         } catch (Exception ex) {
@@ -100,13 +100,20 @@ s     */
      * Encode an {@link Expr} into triples.
      * Return the node for the top of the expression.
      * The result node has a property {@code sh:expr}
-     *
-     *  or {@code sh:sparqlExpr}.
-     * If it has both, the {@code sh:expr} is used to build the expression.
+     * or {@code sh:sparqlExpr} if the translation fails.
      */
 
     public static Node exprToRDF(Graph graph, Expr expr) {
+        return exprToRDF(graph, expr, false);
+    }
 
+    /**
+     * Encode an {@link Expr} into triples.
+     * Return the node for the top of the expression.
+     * The result node has a property {@code sh:expr}
+     * and also always has {@code sh:sparqlExpr}.
+     */
+    public static Node exprToRDF(Graph graph, Expr expr, boolean includeSparqlExpr) {
         // XXX Remove later.
         BufferingGraph graphx = new BufferingGraph(graph);
         Node x = NodeFactory.createBlankNode();
@@ -114,28 +121,44 @@ s     */
         try {
             // [ sh:expr [ sparql:function (...) ] ]
             encodeAsExpr(graphx, x, expr);
-
         } catch (ShaclTranslateException ex) {
             graphx.reset();
             // Fallback.
-            // XXX Remove later.
+            // XXX Remove later?
             encodeAsSparqlExpr(graphx, x, expr);
             graphx.flush();
             return x;
         }
 
-        if ( IncludeSparqlExpr ) {
+        if ( includeSparqlExpr ) {
             // [ sh:exprSparql "..." ]
             encodeAsSparqlExpr(graphx, x, expr);
         }
-
         graphx.flush();
         return x;
     }
 
-    private static Expr buildExpr(Graph graph, Node root) {
+//    // Include sh:sparqlExpr as a possibility as a function.
+//
+//    static Expr buildExpr(Graph graph, Node root) {
+//
+//    }
+
+    /*package*/static Expr buildExpr(Graph graph, Node root) {
+
+        // In common with NodeExpressions.execInternal
+
         if ( ! root.isBlank() )
             return NodeValue.makeNode(root);
+
+        // Probe for sh:sparqlExpr as an expression.
+        Expr sparqLExpr = buildSparqlExpr(graph, root);
+        if ( sparqLExpr != null)
+            return sparqLExpr;
+
+        if ( G.contains(graph, root, V.sparqlExpr, null) ) {
+            return buildSparqlExpr(graph, root);
+        }
 
         //private static Node extractVar(Graph graph, Node node) {
         Node vx = G.getZeroOrOneSP(graph, root, V.var);
@@ -143,7 +166,7 @@ s     */
             //Var v = Var.alloc(G.asString(vx));
             return new ExprVar(G.asString(vx));
         }
-        //}
+        // ----
 
         Triple t = G.find(graph, root, null, null)
                 // Ignores type,
@@ -170,19 +193,15 @@ s     */
         return expr;
     }
 
-    private static Expr buildSparqlExpr(Graph graph, Node root) {
-        Node exprSparqlNode = G.getZeroOrOneSP(graph, root, V.sparqlExpr);
+    /*package*/ static Expr buildSparqlExpr(Graph graph, Node root) {
+        Node exprSparqlNode = NodeExpressions.getSparqlExpression(graph, root);
         if ( exprSparqlNode == null )
             return null;
-        if ( ! G.isString(exprSparqlNode) )
-            throw new ShaclException("Not a simple string: "+exprSparqlNode);
         String exprString = G.asString(exprSparqlNode);
         return ExprUtils.parse(exprString);
     }
 
     // ---- Expr to RDF
-
-    private static boolean IncludeSparqlExpr = false;
 
     /**
      * Add {@code sh:expr node expression} (RDF syntax node expression)

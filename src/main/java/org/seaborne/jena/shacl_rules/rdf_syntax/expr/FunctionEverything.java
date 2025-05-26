@@ -22,12 +22,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shacl.ShaclException;
+import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.function.FunctionEnv;
 
 class FunctionEverything {
+
     // Replace SPARQLDispatch
 
     // ---------------------- Table building
@@ -49,6 +54,20 @@ class FunctionEverything {
     }
 
     /**
+     * Look up an URI to get a callable functional form object.
+     */
+    static CallFF getCallFF(String uri) {
+        return mapDispatchFF().get(uri);
+    }
+
+
+//    /**
+//     * Look up an URI to get a functional form.
+//     */
+//    static FunctionalFormCall getFunctionalForm(String uri) {
+//        return mapDispatchFF().get(uri);
+//    }
+    /**
      * Look up an URI to get a function that will build an {@Expr}.
      */
     static Build getBuild(String uri) {
@@ -69,19 +88,23 @@ class FunctionEverything {
         // Used to load the ARQ function registry
         private static Map<String, Call> mapDispatch = new HashMap<>();
 
+        // Function URI to callable for functional forms.
+        private static Map<String, CallFF> mapDispatchFF = new HashMap<>();
+
         // Function URI to build function ; Node expression to Expr
-        private static Map<String, Build> mapBuild = new HashMap<>();
+        static Map<String, Build> mapBuild = new HashMap<>();
 
         // Class to URI,
-        private static Map<Class<?>, String> mapFunctionURI = new HashMap<>();
+        static Map<Class<?>, String> mapFunctionURI = new HashMap<>();
 
         // Lazy initialization
         static {
-            FunctionEverything.initTables(mapDispatch, mapBuild, mapFunctionURI);
+            FunctionEverything.initTables(mapDispatch, mapDispatchFF, mapBuild, mapFunctionURI);
         }
     }
 
     static Map<String, Call> mapDispatch() { return LazyInit.mapDispatch; }
+    static Map<String, CallFF> mapDispatchFF() { return LazyInit.mapDispatchFF; }
     static Map<String, Build> mapBuild() { return LazyInit.mapBuild; }
     static Map<Class<?>, String> mapFunctionURI() { return LazyInit.mapFunctionURI; }
 
@@ -113,6 +136,11 @@ class FunctionEverything {
                 throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
             return (Expr)maker.create();
         };
+        Call call = args->{
+            if ( args.length != 1 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+            return function.exec();
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
@@ -127,6 +155,11 @@ class FunctionEverything {
                 throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
             return (Expr)maker.create(exprs[0]);
         };
+        Call call = args->{
+            if ( args.length != 1 ) throw exception("%s: Expected one arguments. Got %d", uri, args.length);
+            return function.exec(args[0]);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
@@ -144,6 +177,14 @@ class FunctionEverything {
                 return (Expr)maker2.create(exprs[0], exprs[1]);
             throw new ShaclException("Wrong number of argum ents expressions: expected 1 or 2, got "+exprs.length);
         };
+        Call call = args->{
+            if ( args.length == 1 )
+                return function1.exec(args[0]);
+            if ( args.length == 2 )
+                return function2.exec(args[0], args[1]);
+            throw exception("%s: Expected one or two arguments. Got %d", uri, args.length);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
@@ -158,8 +199,18 @@ class FunctionEverything {
                 throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
             return (Expr)maker.create(exprs[0], exprs[1]);
         };
+        Call call = args->{
+            if ( args.length != 2 ) throw exception("%s: Expected two arguments. Got %d", uri, args.length);
+            return function.exec(args[0], args[1]);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
+    }
+
+    private static RuntimeException exception(String format, Object...args) {
+        String msg = String.format(format, args);
+        return new SPARQLEvalException(msg);
     }
 
     // Arity 2 or 3 - switch by arity
@@ -175,27 +226,17 @@ class FunctionEverything {
                 return (Expr)maker3.create(exprs[0], exprs[1], exprs[2]);
             throw new ShaclException("Wrong number of arguments expressions: expected 2 or 3, got "+exprs.length);
         };
+        Call call = args->{
+            if ( args.length == 2 )
+                return function2.exec(args[0], args[1]);
+            if ( args.length == 3 )
+                return function3.exec(args[0], args[1], args[2]);
+            throw exception("%s: Expected two or three arguments. Got %d", uri, args.length);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
-
-//    // Arity 2 or 3, extends 2 to 3 by a null argument
-//    private static <X> void entry23(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
-//                                    String uriName, Class<? extends Expr> implClass,
-//                                    String sparqlName,
-//                                    Create3<? extends Expr> maker3, Function3 function3) {
-//        String uri = expandName(uriName);
-//        Build build = (u, exprs) ->{
-//            if ( exprs.length == 2)
-//                return (Expr)maker3.create(exprs[0], exprs[1], null);
-//            if ( exprs.length == 3 )
-//                return (Expr)maker3.create(exprs[0], exprs[1], exprs[2]);
-//            throw new ShaclException("Wrong number of arguments expressions: expected 2 or 3, got "+exprs.length);
-//        };
-//        mapBuild.put(uri, build);
-//        mapFunctionURI.put(implClass, uri);
-//    }
-
 
     // Arity 3
     private static <X> void entry3(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
@@ -207,33 +248,19 @@ class FunctionEverything {
                 throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
             return (Expr)maker.create(exprs[0], exprs[1], exprs[2]);
         };
+        Call call = args->{
+            if ( args.length != 1 ) throw exception("%s: Expected three arguments. Got %d", uri, args.length);
+            return function.exec(args[0], args[1], args[2]);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
 
-//    // Arity 3 or 4 - switch by arity
-//    private static <X> void entry(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
-//                                  String uriName, Class<? extends Expr> implClass,
-//                                  String sparqlName,
-//                                  Create3<? extends Expr> maker3, Function3 function2,
-//                                  Create4<? extends Expr> maker4, Function4 function3) {
-//
-//        String uri = expandName(uriName);
-//        Build build = (u, exprs) ->{
-//            if ( exprs.length == 3)
-//                return (Expr)maker3.create(exprs[0], exprs[1], exprs[2]);
-//            if ( exprs.length == 4 )
-//                return (Expr)maker4.create(exprs[0], exprs[1], exprs[3], exprs[4]);
-//            throw new ShaclException("Wrong number of arguments expressions: expected 3 or 4, got "+exprs.length);
-//        };
-//        mapBuild.put(uri, build);
-//        mapFunctionURI.put(implClass, uri);
-//    }
-
     // Arity 3 or 4, extends 3 to 4 by a null argument
     private static <X> void entry34(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                     String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                    Create3<? extends Expr> maker3, Function4 function3,
+                                    Create3<? extends Expr> maker3, Function3 function3,
                                     Create4<? extends Expr> maker4, Function4 function4) {
         String uri = expandName(uriName);
         Build build = (u, exprs) ->{
@@ -243,6 +270,14 @@ class FunctionEverything {
                 return (Expr)maker4.create(exprs[0], exprs[1], exprs[3], exprs[4]);
             throw new ShaclException("Wrong number of arguments expressions: expected 3 or 4, got "+exprs.length);
         };
+        Call call = args->{
+            if ( args.length == 3 )
+                return function3.exec(args[0], args[1], args[2]);
+            if ( args.length == 4 )
+                return function4.exec(args[0], args[1], args[2], args[3]);
+            throw exception("%s: Expected two or three arguments. Got %d", uri, args.length);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
@@ -256,14 +291,93 @@ class FunctionEverything {
                 throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             return (Expr)maker.create(exprs[0], exprs[1], exprs[2], exprs[3]);
         };
+        Call call = args->{
+            if ( args.length != 1 ) throw exception("%s: Expected four arguments. Got %d", uri, args.length);
+            return function.exec(args[0], args[1], args[2], args[3]);
+        };
+        mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
+        mapFunctionURI.put(implClass, uri);
     }
+
     // N-ary
     private static <X> void entry(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                   String uriName, Class<? extends Expr> implClass,
                                   String sparqlName, CreateN<? extends Expr> maker, FunctionN function) {
         throw new NotImplemented();
     }
+
+    // Does not have to be a SPARQL FunctionForm - can be RDF only.
+
+    static <X extends Expr> void entryFunctionForm1(Map<String, CallFF> mapDispatchFF,
+                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                    Create1<X> maker, FunctionalForm1 functionForm1) {
+        String uri = expandName(uriName);
+        if ( maker != null ) {
+            Build build = (u, exprs) ->{
+                if ( exprs.length != 2 )
+                    throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
+                return (Expr)maker.create(exprs[0]);
+            };
+            mapBuild.put(uri, build);
+        }
+        CallFF call = (graph, node, env, row, args) -> {
+            if ( args.length == 1 )
+                return functionForm1.exec(graph, node, env, row, args[0]);
+            throw exception("%s: Expected one argument. Got %d", uri, args.length);
+        };
+        mapDispatchFF.put(uri, call);
+        if ( implClass != null )
+            mapFunctionURI.put(implClass, uri);
+    }
+
+    static <X extends Expr> void entryFunctionForm2(Map<String, CallFF> mapDispatchFF,
+                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                    Create2<X> maker, FunctionalForm2 functionForm2) {
+        String uri = expandName(uriName);
+        if ( maker != null ) {
+            Build build = (u, exprs) ->{
+                if ( exprs.length != 2 )
+                    throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
+                return (Expr)maker.create(exprs[0], exprs[1]);
+            };
+            mapBuild.put(uri, build);
+        }
+        CallFF call = (graph, node, env, row, args) -> {
+            if ( args.length == 2 )
+                return functionForm2.exec(graph, node, env, row, args[0], args[1]);
+            throw exception("%s: Expected two arguments. Got %d", uri, args.length);
+        };
+        mapDispatchFF.put(uri, call);
+        if ( implClass != null )
+            mapFunctionURI.put(implClass, uri);
+    }
+
+    static <X extends Expr> void entryFunctionForm3(Map<String, CallFF> mapDispatchFF,
+                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                    Create3<X> maker, FunctionalForm3 functionForm3) {
+        String uri = expandName(uriName);
+        if ( maker != null ) {
+            Build build = (u, exprs) ->{
+                if ( exprs.length != 3 )
+                    throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
+                return (Expr)maker.create(exprs[0], exprs[1], exprs[2]);
+            };
+            mapBuild.put(uri, build);
+        }
+        CallFF call = (graph, node, env, row, args) -> {
+            if ( args.length == 3 )
+                return functionForm3.exec(graph, node, env, row, args[0], args[1], args[2]);
+            throw exception("%s: Expected three arguments. Got %d", uri, args.length);
+        };
+        mapDispatchFF.put(uri, call);
+        if ( implClass != null )
+            mapFunctionURI.put(implClass, uri);
+    }
+
 
     // Build
     interface Build { Expr build(String uri, Expr... expr); }
@@ -274,7 +388,16 @@ class FunctionEverything {
     interface Create4<X> { X create(Expr expr1, Expr expr2, Expr expr3, Expr expr4); }
     interface CreateN<X> { X create(Expr... expr); }
 
-    // Dispatch
+    // Dispatch functional form
+    interface CallFF { NodeValue execFF(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
+    interface FunctionalForm0 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row); }
+    interface FunctionalForm1 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1); }
+    interface FunctionalForm2 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2); }
+    interface FunctionalForm3 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3); }
+    interface FunctionalForm4 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3, Node arg4); }
+    interface FunctionalFormN { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
+
+    // Dispatch function
     interface Call { NodeValue exec(NodeValue... nv); }
     interface Function0 { NodeValue exec(); }
     interface Function1 { NodeValue exec(NodeValue nv); }
@@ -283,7 +406,22 @@ class FunctionEverything {
     interface Function4 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3, NodeValue nv4); }
     interface FunctionN { NodeValue exec(NodeValue... nv); }
 
-    private static void initTables(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI) {
+    private static void initTables(Map<String, Call> mapDispatch, Map<String, CallFF> mapDispatchFF,
+                                   Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI) {
+
+        entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_FunctionalForms::sparql_logical_and);
+        entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_FunctionalForms::sparql_logical_and);
+        entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_FunctionalForms::sparql_logical_not);
+
+        // ***entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sh:if", null, "sh:if", null, J_FunctionalForms::shacl_if);
+        entryFunctionForm3(mapDispatchFF, mapBuild, mapFunctionURI, "sh:if", null, "sh:if", null, J_FunctionalForms::shacl_if);
+
+
+//        // E_ not right
+//        entry1(mapDispatch, mapBuild, mapFunctionURI, "arq:function-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFuncOp::arq_function_not);
+//        entry2(mapDispatch, mapBuild, mapFunctionURI, "arq:function-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFuncOp::arq_function_and);
+//        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:function-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
+
 
         // Functional forms (not functions)
 
@@ -293,6 +431,7 @@ class FunctionEverything {
 
       //entry(mapDispatch, mapBuild, "sparql:in", E_OneOf.class, "IN", E_OneOf::new, SPARQLFuncOp::sparql_in );
       //entry(mapDispatch, mapBuild, "sparql:not-in", E_NotOneOf.class, "NOT IN", E_NotOneOf::new, SPARQLFuncOp::not_in );
+
 
       // URI function call.
       //entry(mapDispatch, mapBuild, "sparql:function", E_Function.class, "", E_Function::new, SPARQLFuncOp::function );
@@ -312,16 +451,6 @@ class FunctionEverything {
 
       // URI function call.
 //      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:function", E_Function.class, "", E_Function::new, J_SPARQLFuncOp::function );
-
-      // Functional forms (not functions)
-
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, J_SPARQLFuncOp::bound );
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, J_SPARQLFuncOp::coalesce );
-////**        entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:if", E_Conditional.class, "IF", E_Conditional::new, J_SPARQLFuncOp::if );
-
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, J_SPARQLFuncOp::filter-exists );
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, J_SPARQLFuncOp::filter-not-exists );
-
 
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:iri", E_IRI.class, "IRI", E_IRI::new, J_SPARQLFuncOp::sparql_iri);
 
@@ -348,10 +477,10 @@ class FunctionEverything {
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:lessThanOrEqual", E_LessThanOrEqual.class, ">=", E_LessThanOrEqual::new, J_SPARQLFuncOp::sparql_lessThanOrEqual );
 
         // Specials as functions
-        // E_ not right
-        entry1(mapDispatch, mapBuild, mapFunctionURI, "arq:function-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFuncOp::arq_function_not);
-        entry2(mapDispatch, mapBuild, mapFunctionURI, "arq:function-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFuncOp::arq_function_and);
-        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:function-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
+//        // E_ not right
+//        entry1(mapDispatch, mapBuild, mapFunctionURI, "arq:function-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFuncOp::arq_function_not);
+//        entry2(mapDispatch, mapBuild, mapFunctionURI, "arq:function-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFuncOp::arq_function_and);
+//        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:function-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
 
         entry0(mapDispatch, mapBuild, mapFunctionURI, "sparql:now", E_Now.class, "NOW", E_Now::new, J_SPARQLFuncOp::sparql_now );
 

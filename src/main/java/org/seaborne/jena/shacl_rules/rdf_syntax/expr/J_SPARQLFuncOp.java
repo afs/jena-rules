@@ -19,21 +19,18 @@
 package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.RandomLib;
 import org.apache.jena.query.ARQ;
-import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.expr.E_Regex;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.expr.RegexEngine;
 import org.apache.jena.sparql.expr.nodevalue.*;
-import org.apache.jena.sparql.function.FunctionBase;
-import org.apache.jena.sparql.function.FunctionFactory;
-import org.apache.jena.sparql.function.FunctionRegistry;
 import org.apache.jena.sparql.function.library.triple.TripleTermOps;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Call;
 
 /**
  * SPARQL Functions and Operators, including extensions.
@@ -45,56 +42,6 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Call;
  * e.g. {@code BNODE(string)}, {@code NOW()}.
  */
 public class J_SPARQLFuncOp {
-
-    // ---- Integration into ARQ function execution
-
-    static class INIT {
-        static boolean initialized = false;
-        static void init() {
-            if ( ! initialized ) {
-                initialized = true;
-                loadFunctionRegistry(FunctionRegistry.get());
-            }
-        }
-
-        // ---- Registration with ARQ
-
-        /** Load the SPARQL functions into a {@link FunctionRegistry}. */
-        public static void loadFunctionRegistry(FunctionRegistry reg) {
-            Map<String, FunctionEverything.Call> map = FunctionEverything.mapDispatch();
-            // Add to the system FunctionRegistry once.
-            addToFunctionRegistry(FunctionRegistry.get(), map);
-        }
-
-        private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, Call> map) {
-            FunctionFactory ff = createFunctionFactory();
-            map.forEach((uri,call) -> FunctionRegistry.get().put(uri, ff));
-        }
-
-        private static FunctionFactory createFunctionFactory() {
-            return uri -> new FunctionBase() {
-                @Override public NodeValue exec(List<NodeValue> args) { return J_SPARQLFuncOp.exec(uri, args); }
-                @Override public void checkBuild(String uri, ExprList args) {}
-            };
-        }
-    }
-
-    // ---- Execution
-
-    public static NodeValue exec(String uri, List<NodeValue>args) {
-        Objects.requireNonNull(uri);
-        Objects.requireNonNull(args);
-        NodeValue[] a = args.toArray(NodeValue[]::new);
-        return exec(uri,a);
-    }
-
-    public static NodeValue exec(String uri, NodeValue...args) {
-        INIT.init();
-        Call call = FunctionEverything.getCall(uri);
-        if ( call == null )
-            throw new SPARQLEvalException("No such function: "+uri);
-        return call.exec(args);
-    }
 
     // ----
 
@@ -169,19 +116,19 @@ public class J_SPARQLFuncOp {
     // and,or,not as functions (arguments have been evaluated)
 
     public static NodeValue arq_function_and(NodeValue nv1, NodeValue nv2) {
-        boolean arg1 = XSDFuncOp.booleanEffectiveValue(nv1);
-        boolean arg2 = XSDFuncOp.booleanEffectiveValue(nv2);
+        boolean arg1 = XSDFuncOp.effectiveBooleanValue(nv1);
+        boolean arg2 = XSDFuncOp.effectiveBooleanValue(nv2);
         return NodeValue.booleanReturn(arg1 && arg2);
     }
 
     public static NodeValue arq_function_or(NodeValue nv1, NodeValue nv2) {
-        boolean arg1 = XSDFuncOp.booleanEffectiveValue(nv1);
-        boolean arg2 = XSDFuncOp.booleanEffectiveValue(nv2);
+        boolean arg1 = XSDFuncOp.effectiveBooleanValue(nv1);
+        boolean arg2 = XSDFuncOp.effectiveBooleanValue(nv2);
         return NodeValue.booleanReturn(arg1 || arg2);
     }
 
   public static NodeValue arq_function_not(NodeValue nv) {
-      boolean arg = XSDFuncOp.booleanEffectiveValue(nv);
+      boolean arg = XSDFuncOp.effectiveBooleanValue(nv);
       return NodeValue.booleanReturn(!arg);
   }
 
@@ -367,3 +314,4 @@ public class J_SPARQLFuncOp {
     public static NodeValue sparql_sha384(NodeValue nv) { return NodeValueDigest.calculateDigest(nv, "SHA-384"); }
     public static NodeValue sparql_sha512(NodeValue nv) { return NodeValueDigest.calculateDigest(nv, "SHA-512"); }
 }
+

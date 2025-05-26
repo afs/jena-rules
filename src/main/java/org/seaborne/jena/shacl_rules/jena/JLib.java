@@ -51,6 +51,15 @@ public class JLib {
         return x;
     }
 
+    public static Node[] asArray(Graph graph, Node headNode) {
+        Objects.requireNonNull(graph);
+        Objects.requireNonNull(headNode);
+        List<Triple> triples = new ArrayList<>();
+        GNode gNode = GNode.create(graph, headNode);
+        List<Node> x = GraphList.members(gNode);
+        return x.toArray(Node[]::new);
+    }
+
     /**
      * Build an RDF Collection (RDF list) in a graph based on the java list of nodes.
      * Return the head of the list.
