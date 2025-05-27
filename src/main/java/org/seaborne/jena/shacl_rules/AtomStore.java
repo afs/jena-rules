@@ -29,8 +29,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 
 /**
- * A tuple store can hold triples and named tuples.
- *
+ * A tuple store can hold named tuples.
+ * <p>
+ * There is one special kind of tuple - the triple.
  */
 public interface AtomStore {
 

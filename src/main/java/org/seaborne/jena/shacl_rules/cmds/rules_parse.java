@@ -27,7 +27,7 @@ import org.apache.jena.sys.JenaSystem;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.jena.JLib;
-import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToTriples;
+import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToGraph;
 import org.seaborne.jena.shacl_rules.writer.ShaclRulesWriter;
 
 public class rules_parse extends CmdGeneral {
@@ -63,7 +63,7 @@ public class rules_parse extends CmdGeneral {
 
             System.out.println("- - - -");
 
-            Graph graph = RuleSetToTriples.asGraph(ruleSet);
+            Graph graph = RuleSetToGraph.asGraph(ruleSet);
             addPrefixes(graph);
 
             RDFWriter.source(graph).format(RDFFormat.TURTLE_LONG).output(System.out);

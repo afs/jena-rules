@@ -40,9 +40,6 @@ public class RuleSet {
     private final Graph data;
 
     public static boolean equalRuleSets(RuleSet ruleSet1, RuleSet ruleSet2) {
-//        ruleSet1.getDataTriples();
-//        ruleSet1.getPrologue();
-
         List<Rule> r1 = ruleSet1.getRules();
         List<Rule> r2 = ruleSet2.getRules();
         if ( ! ListUtils.equalsUnordered(r1, r2) )
@@ -50,6 +47,10 @@ public class RuleSet {
 
         Graph d1 = ruleSet1.getData();
         Graph d2 = ruleSet2.getData();
+        if ( d1 == null && d2 == null )
+            return true;
+        if ( d1 == null || d2 == null )
+            return false;
         if ( ! IsoMatcher.isomorphic(d1, d2) )
             return false;
         return true;

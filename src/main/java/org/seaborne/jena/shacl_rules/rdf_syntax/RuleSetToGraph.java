@@ -41,7 +41,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
-public class RuleSetToTriples {
+public class RuleSetToGraph {
 
     public static Graph asGraph(RuleSet ruleSet) {
         Graph graph = GraphFactory.createDefaultGraph();

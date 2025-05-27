@@ -30,8 +30,10 @@ public class Rule {
     private final RuleHead head;
     private final RuleBody body;
 
+    /**
+     * Used by the parser and {@link GraphToRuleSet}
+     */
     public static Rule create(List<Triple> triples, ElementGroup body) {
-        // Used by the parser
         return new Rule(triples, body);
     }
 

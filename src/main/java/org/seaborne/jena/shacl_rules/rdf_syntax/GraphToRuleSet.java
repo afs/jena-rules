@@ -38,7 +38,7 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
-public class TriplesToRuleSet {
+public class GraphToRuleSet {
 
     public static RuleSet parse(Graph graph) {
         List<RuleSet> ruleSets = _parse(graph);
@@ -99,7 +99,6 @@ public class TriplesToRuleSet {
     }
 
     private static Rule parseRule(Graph graph, Node n) {
-
         Node headNode = G.getOneSP(graph, n, V.head);
         Node bodyNode = G.getOneSP(graph, n, V.body);
 
