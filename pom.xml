@@ -70,10 +70,23 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-arq</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-arq</artifactId>
+      <classifier>tests</classifier>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
+      <version>${ver.jena}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-cmds</artifactId>
+      <classifier>tests</classifier>
+      <version>${ver.jena}</version>
     </dependency>
 
     <dependency>
@@ -81,6 +94,16 @@
       <artifactId>jena-base</artifactId>
       <classifier>tests</classifier>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-shacl</artifactId>
+      <classifier>tests</classifier>
+      <version>${ver.jena}</version>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- -->
 
     <dependency>
       <groupId>org.junit.vintage</groupId>
@@ -130,7 +153,6 @@
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-cmds</artifactId>
-        <version>${ver.jena}</version>
       </dependency>
     
       <dependency>
