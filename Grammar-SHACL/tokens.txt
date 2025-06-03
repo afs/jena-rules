@@ -4,8 +4,12 @@
 [<RULE>]        ::= 'RULE'
 [<THEN>]        ::= 'THEN'
 [<RULE_INFER>]  ::= ':-'
-[<DATA>]        ::= 'data'
-[<INFER>]       ::= 'infer'
+[<DATA>]        ::= 'DATA'
+[<INFER>]       ::= 'INFER'
+[<TRANSITIVE>]  ::= 'TRANSITIVE'
+[<SYMMETRIC>]   ::= 'SYMMETRIC'
+[<INVERSE>]     ::= 'INVERSE'
+[<IMPORTS>]     ::= 'IMPORTS'
 
 // Tokens in BNF
 // [] means will be inlined.

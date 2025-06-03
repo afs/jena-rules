@@ -50,6 +50,10 @@ TOKENS
 | <RULE_INFER: ":-">
 | <DATA: "data">
 | <INFER: "infer">
+| <TRANSITIVE: "transitive">
+| <SYMMETRIC: "symmetric">
+| <INVERSE: "inverse">
+| <IMPORTS: "imports">
 }
 
 <DEFAULT> TOKEN [IGNORE_CASE] : {
@@ -221,9 +225,11 @@ NON-TERMINALS
 	Rule	:=	Rule1
 		|	Rule2
 		|	Rule3
+		|	Declaration
 	Rule1	:=	<RULE> HeadTemplate <WHERE> BodyPattern
 	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
 	Rule3	:=	HeadTemplate <RULE_INFER> BodyPattern
+	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 	Data	:=	<DATA> TriplesTemplateBlock
 // ---- Rule head
 	HeadTemplate	:=	TriplesTemplateBlock
@@ -232,11 +238,12 @@ NON-TERMINALS
 	BodyPattern1	:=	( Filter | BodyPatternSub ( Filter ( BodyPatternSub )? )* )
 	BodyPatternSub	:=	TriplesBlock
 // ---- Prologue
-	Prologue	:=	( BaseDecl | PrefixDecl | VersionDecl )*
+	Prologue	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )*
 	BaseDecl	:=	<BASE> IRIREF
 	PrefixDecl	:=	<PREFIX> <PNAME_NS> IRIREF
 	VersionDecl	:=	<VERSION> VersionSpecifier
 	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
+	ImportsDecl	:=	<IMPORTS> iri
 // ---- Triples
 	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
 	TriplesTemplate	:=	TriplesSameSubject ( <DOT> ( TriplesTemplate )? )?

@@ -85,7 +85,7 @@ void ByteOrderMark() : {}
 
 void Rule() : {  }
 {
-   Rule1() | Rule2() | Rule3()
+   Rule1() | Rule2() | Rule3() | Declaration()
 }
 
 void Rule1() : { Token t; }
@@ -116,6 +116,24 @@ void Rule3() : { Token t; }
    <RULE_INFER>
    BodyPattern()
    { finishRule(t.beginLine, t.beginColumn); }
+}
+
+void Declaration() : { Token t; String iriStr ; }
+{
+  (
+    t = <TRANSITIVE>
+    <LPAREN> iriStr = iri() <RPAREN>
+    { transitiveProperty(iriStr); }
+  |
+    t = <SYMMETRIC>
+    <LPAREN> iriStr = iri() <RPAREN>
+    { symmetricProperty(iriStr); }
+  |
+    t = <INVERSE>
+    { String iriStr1 ; String iriStr2 ; }
+    <LPAREN> iriStr1 = iri() <COMMA> iriStr2 = iri() <RPAREN>
+    { inverseProperties(iriStr1, iriStr2); }
+  )
 }
 
 void Data() : { Token t; }
@@ -168,7 +186,7 @@ void BodyPatternSub() : { }
 
 void Prologue() : {}
 {
-   ( BaseDecl() | PrefixDecl() | VersionDecl() ) *
+   ( BaseDecl() | PrefixDecl() | VersionDecl() | ImportsDecl() ) *
 }
 
 void BaseDecl() : { Token t ; String iri ; }
@@ -199,6 +217,12 @@ String VersionSpecifier() : { Token t ; String version ; }
       version = unescapeStr(version,  t.beginLine, t.beginColumn) ;
       return version;
     }
+}
+
+void ImportsDecl() : { String iri ; }
+{
+  <IMPORTS> iri = iri()
+  { declareImport(iri); }
 }
 
 // ---- Triples
@@ -1462,6 +1486,10 @@ TOKEN [IGNORE_CASE] :
 |  < RULE_INFER:   ":-" >
 |  < DATA:         "data" >
 |  < INFER:        "infer" >
+|  < TRANSITIVE:   "transitive" >
+|  < SYMMETRIC:    "symmetric" >
+|  < INVERSE:      "inverse" >
+|  < IMPORTS:      "imports" >
 }
 
 TOKEN [IGNORE_CASE] :

@@ -21,6 +21,7 @@ package org.seaborne.jena.shacl_rules.lang;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
@@ -144,6 +145,22 @@ public class ShaclRulesParserBase extends LangParserBase {
     protected void finishData(int line, int column) {
         debug("startTriplesTemplate", line, column);
         state = BuildState.OUTER;
+    }
+
+    protected void transitiveProperty(String iriStr) {
+        throw new NotImplemented("TRANSITIVE");
+    }
+
+    protected void symmetricProperty(String iriStr) {
+        throw new NotImplemented("SYMMETRIC");
+    }
+
+    protected void inverseProperties(String iriStr1, String iriStr2) {
+        throw new NotImplemented("INVERSE");
+    }
+
+    protected void declareImport(String iri) {
+        throw new NotImplemented("IMPORTS");
     }
 
     // -- Rule building state
