@@ -18,6 +18,7 @@
 
 package org.seaborne.jena.shacl_rules.writer;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
@@ -70,6 +71,37 @@ public class ShaclRulesWriter {
         }
     }
 
+    /** Write a rule (no prologue). */
+    public static void print(Rule rule) {
+        print(System.out, rule, true);
+    }
+
+    /** Write a rule (no prologue). */
+    public static void print(OutputStream outStream, Rule rule, boolean flatMode) {
+        Style style = flatMode ? Style.Flat : Style.MultiLine;
+        IndentedWriter output = new IndentedWriter(outStream);
+        try {
+            internalPrint(output, rule, style);
+        } finally {
+            output.flush();
+            try {
+                outStream.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /** Write a rule (no prologue). */
+    public static void print(IndentedWriter output, Rule rule, boolean flatMode) {
+        Style style = flatMode ? Style.Flat : Style.MultiLine;
+        try {
+            internalPrint(output, rule, style);
+        } finally {
+            output.flush();
+        }
+    }
+
     // ---------------------
 
     private static void internalPrint(IndentedWriter out, RuleSet ruleSet, Style style) {
@@ -82,6 +114,19 @@ public class ShaclRulesWriter {
         srw.writeRuleSet(ruleSet);
     }
 
+    private static void internalPrint(IndentedWriter out, Rule rule, Style style) {
+//        IRIx baseIRI = ruleSet.getBase();
+//        PrefixMap prefixMap = ruleSet.getPrefixMap();
+//        if ( prefixMap == null )
+//            prefixMap = PrefixMapFactory.create();
+        PrefixMap prefixMap = PrefixMapFactory.create();
+
+        RuleSetWriter srw = new RuleSetWriter(out, prefixMap, null, style);
+        srw.writeRule(rule);
+    }
+
+
+
     static class RuleSetWriter {
 
         private final IndentedWriter out;
@@ -92,7 +137,7 @@ public class ShaclRulesWriter {
 
         private final Style style;
 
-        // There is little value in using thevsitor pattern due to detailed control of space beteeen items.
+        // There is little value in using the visitor pattern due to detailed control of space beteeen items.
         private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Style style) {
             this.out = Objects.requireNonNull(output);
             this.prefixMap = prefixMap;
@@ -165,6 +210,7 @@ public class ShaclRulesWriter {
                 out.print(" ");
             out.print("WHERE ");
             writeBody(rule);
+            out.println();
         }
 
         private void writeHead(Rule rule) {
@@ -188,7 +234,6 @@ public class ShaclRulesWriter {
         }
 
         private void writeBody(Rule rule) {
-
             // The element block in indented. Later ...
             int indent = 0 ;
 
@@ -226,8 +271,7 @@ public class ShaclRulesWriter {
                     out.println("}");
                 }
             }
-            //Blank line
-            out.println();
+            out.flush();
         }
     }
 }

@@ -50,25 +50,27 @@ public interface RulesEngine {
      * <p>Return all the triples that match the s/p/o
      * that occur in the data graph or can be inferred by the rules engine.
      */
-    public Stream<Triple> find(Node s, Node p, Node o);
+    public Stream<Triple> solve(Node s, Node p, Node o);
 
     /**
      * Query (in the sense of datalog)
      * <p>Return all the triples that match the s/p/o
      * that occur in the data graph or can be inferred by the rules engine.
      */
-    public default Stream<Triple> find(Triple triple) {
-        return find(triple.getSubject(), triple.getPredicate(), triple.getObject());
+    public default Stream<Triple> solve(Triple triple) {
+        return solve(triple.getSubject(), triple.getPredicate(), triple.getObject());
     }
 
     /**
-     * Execute the ruleset and enrich the base graph
-     * The base graph may be modified.
+     * Execute the rule set and enrich the base graph.
+     * The base graph is modified.
      */
     public default void execute() {
         // Implementation note: may become a separate algorithm.
         Graph inferredGraph = infer();
-        GraphUtil.addInto(graph(), inferredGraph);
+        graph()
+            .getTransactionHandler()
+            .executeAlways( ()->GraphUtil.addInto(graph(), inferredGraph) );
     }
 
     /**

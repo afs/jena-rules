@@ -16,16 +16,33 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules;
+package org.seaborne.jena.shacl_rules.exec;
 
-public class Rules {
-    /**
-     * Rule equivalence is defined as two rules being the same for execution and serialization purposes
-     * but they may be different by object identity. In java terms, {@code rule1 != rule2}.
-     * That is, parser round trip.
-     * This means they have the "same head" and "same body", and also having the same order of elements.
-     */
-    public static boolean sameAs(Rule rule1, Rule rule2) {
-        return rule1.equivalent(rule2);
+import org.apache.jena.atlas.io.IndentedWriter;
+
+public class RuleExecCxt {
+    public static RuleExecCxt global = new RuleExecCxt();
+
+    private IndentedWriter out = IndentedWriter.clone(IndentedWriter.stdout).setFlushOnNewline(true);
+
+    public void start() {}
+
+    public void finish() {
+        out.flush();
     }
+
+    public boolean DEBUG = false;
+    /** Development : debug details */
+    public boolean debug() { return DEBUG; }
+
+    /** Trace rules evaluated. */
+    public boolean TRACE = false;
+
+    public RuleExecCxt() {}
+
+    /** Application; trace rule execution */
+    public boolean trace() { return TRACE; }
+
+    public IndentedWriter out() { return out; }
 }
+

@@ -67,7 +67,6 @@ public class RulesEngine1 implements RulesEngine {
         return EngineType.FWD_NAIVE;
     }
 
-
     @Override
     public Graph graph() {
         return baseGraph;
@@ -81,7 +80,7 @@ public class RulesEngine1 implements RulesEngine {
     // Specialise later.
 
     @Override
-    public Stream<Triple> find(Node s, Node p, Node o) {
+    public Stream<Triple> solve(Node s, Node p, Node o) {
         // The heavy-handed way!
         Evaluation e = eval(false);
         Graph g = e.outputGraph();

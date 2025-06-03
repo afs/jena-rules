@@ -95,6 +95,11 @@ public class RuleSet {
         return rules;
     }
 
+//    @Override
+//    public Iterator<Rule> iterator() {
+//        return rules.iterator();
+//    }
+
     public Graph getData() {
         return data;
     }
@@ -109,11 +114,17 @@ public class RuleSet {
         return ! dataTriples.isEmpty();
     }
 
+    public int numRules() {
+        return rules.size();
+    }
+
+
     @Override
     public String toString() {
         return rules.toString();
     }
 
+    /** Any rules? */
     public boolean isEmpty() {
         return rules.isEmpty();
     }

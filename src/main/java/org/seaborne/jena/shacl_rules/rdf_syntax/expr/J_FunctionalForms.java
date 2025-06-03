@@ -21,7 +21,6 @@ package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 import java.util.List;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -82,26 +81,60 @@ public class J_FunctionalForms {
     }
 
     // Arity N
+    // [ sparql:coalesce ( arg1 arg2 ...) ]
     static NodeValue sparql_coalesce(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
         for ( Node arg : args ) {
             try {
                 NodeValue nv = NodeExpressions.execNodeExpression(graph, arg, row);
-                if ( nv == null ) {
+                if ( nv == null )
                     throw new InternalErrorException("Node expressiom return null");
-                }
                 return nv;
             } catch (ExprEvalException | NodeExprEvalException ex) { }
         }
         throw new NodeExprEvalException("COALESCE: no value") ;
     }
 
-
+    // [ sparql:in ( valueExpr arg1 arg2 ...) ]
     static NodeValue sparql_in(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
-        throw new NotImplemented();
+        boolean b = sparql_oneof(graph, callNode, functionEnv, row, args);
+        return NodeValue.booleanReturn(b);
     }
 
     static NodeValue sparql_not_in(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
-        throw new NotImplemented();
+        boolean b = sparql_oneof(graph, callNode, functionEnv, row, args);
+        return NodeValue.booleanReturn(!b);
+    }
+
+    // Worker function.
+    private static boolean sparql_oneof(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
+        if ( args.isEmpty() )
+            throw new NodeExprEvalException("argument list is empty");
+
+        // Alt - build the Expr and make a E_OneOf to eval.
+
+        Node valueNode = args.getFirst();
+        NodeValue value = NodeExpressions.execNodeExpression(graph, valueNode, row);
+        for ( int i = 1 ; i < args.size(); i++ ) {
+            Node arg = args.get(i);
+            NodeValue nv = NodeExpressions.execNodeExpression(graph, arg, row);
+            if ( nv == null )
+                throw new InternalErrorException("Node expression return null");
+            if ( NodeValue.sameValueAs(value, nv) )
+                return true;
+        }
+        return false;
+    }
+
+    static NodeValue sparql_bound(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
+        Expr expr1 =  SparqlNodeExpression.fromExpr(graph, arg1);
+        if ( ! expr1.isVariable() )
+            throw new NodeExprEvalException("Argument to sh:bound is not a variable");
+        // Just do it!
+        boolean b =  row.contains(expr1.getExprVar().asVar());
+        return NodeValue.booleanReturn(b);
+        // Purist - except E_Bound accepts constants (Jena5: currently)
+//        Expr x = new E_Bound(expr1);
+//        return x.eval(row, functionEnv);
     }
 
     // EXISTS, NOT EXISTS

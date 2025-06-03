@@ -135,46 +135,21 @@ public class J_SPARQLFuncOp {
   public static NodeValue arq_version() { return ARQFuncOp.version(); }
 
   // Functional forms (not functions)
+  // See J_FunctionalForm
 
-//entry(mapDispatch, mapBuild, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, SPARQLFuncOp::logical_and );
-//entry(mapDispatch, mapBuild, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, SPARQLFuncOp::logical_not );
-//entry(mapDispatch, mapBuild, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::logical_or );
+//    sparql_operator_and
+//    sparql_operator_or
+//    sparql_operator_not -- strictly a function but convenient to group with other logical_*
 
-//entry(mapDispatch, mapBuild, "sparql:in", E_OneOf.class, "IN", E_OneOf::new, SPARQLFuncOp::sparql_in );
-//entry(mapDispatch, mapBuild, "sparql:not-in", E_NotOneOf.class, "NOT IN", E_NotOneOf::new, SPARQLFuncOp::not_in );
+//    sparql_bound
+//    sparql_if
+//    sparql_coalesce
 
-// URI function call.
-//entry(mapDispatch, mapBuild, "sparql:function", E_Function.class, "", E_Function::new, SPARQLFuncOp::function );
+//    sparql_filter_exists
+//    sparql_filter_not_exists
 
-
-//entry(mapDispatch, mapBuild, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, SPARQLFuncOp::bound );
-//entry(mapDispatch, mapBuild, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, SPARQLFuncOp::coalesce );
-//entry(mapDispatch, mapBuild, "sparql:if", E_Conditional.class, "IF", E_Conditional::new, SPARQLFuncOp::if );
-
-// EXISTS, NOT EXISTS
-//entry(mapDispatch, mapBuild, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, SPARQLFuncOp::filter-exists );
-//entry(mapDispatch, mapBuild, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, SPARQLFuncOp::filter-not-exists );
-
-  // Functional forms (not functions)
-
-//    public static NodeValue sparql_operator_and() { return null; }
-//    public static NodeValue sparql_operator_or() { return null; }
-//    public static NodeValue sparql_operator_not() { return null; }
-
-//    public static NodeValue sparql_bound() { return null; }
-//    public static NodeValue sparql_if() { return null; }
-//    public static NodeValue sparql_coalesce() { return null; }
-
-//    public static NodeValue sparql_filter_exists() { return null; }
-//    public static NodeValue sparql_filter_not_exists() { return null; }
-
-//    public static NodeValue sparql_logical_not() { return null; }
-//    public static NodeValue sparql_logical_or() { return null; }
-//    public static NodeValue sparql_logical_and() { return null; }
-
-//    public static NodeValue sparql_in(NodeValue... nv) { return null; }
-//    public static NodeValue sparql_not_in(NodeValue... nv) { return null; }
-
+//    sparql_in
+//    sparql_not_in
 
 
     public static NodeValue sparql_sameTerm(NodeValue nv1, NodeValue nv2) { return NodeFunctions.sameTerm(nv1, nv2); }
@@ -190,7 +165,7 @@ public class J_SPARQLFuncOp {
         return NodeValue.booleanReturn(b);
     }
 
-// Old name:: public static NodeValue sparql_RDFterm_equal(NodeValue nv1, NodeValue nv2) { return null; }
+    // Old name:: public static NodeValue sparql_RDFterm_equal(NodeValue nv1, NodeValue nv2) { return null; }
     public static NodeValue sparql_isIRI(NodeValue nv)      { return NodeFunctions.isIRI(nv); }
     public static NodeValue sparql_isURI(NodeValue nv)      { return NodeFunctions.isURI(nv); }
     public static NodeValue sparql_isBlank(NodeValue nv)    { return NodeFunctions.isBlank(nv); }

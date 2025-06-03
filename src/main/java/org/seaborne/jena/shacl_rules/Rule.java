@@ -19,11 +19,11 @@
 package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.syntax.ElementGroup;
+import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 
 public class Rule {
 
@@ -55,17 +55,32 @@ public class Rule {
         return body.asQuery();
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(body, head);
-    }
+    // Stick with object identity for now.
 
-    @Override
-    public boolean equals(Object obj) {
-        if ( this == obj )
-            return true;
-        if ( !(obj instanceof Rule other) )
-            return false;
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(body, head);
+//    }
+//
+//    @Override
+//    public boolean equals(Object obj) {
+//        if ( this == obj )
+//            return true;
+//        if ( !(obj instanceof Rule other) )
+//            return false;
+//        return this.equivalent(other);
+//    }
+
+    /**
+     * Rule equivalence is defined as two rules being the same for execution and serialization purposes
+     * but they may be different by object identity. In java terms, {@code rule1 != rule2}.
+     * That is, parser round trip.
+     * <p>
+     * This means they have the "same head" and "same body", and also having the same order of elements.
+     * <p>
+     * Use {@link Rules#sameAs}
+     */
+    /*package*/ boolean equivalent(Rule other) {
         if ( ! head.equals(other.head) )
             return false;
         if ( ! body.equals(other.body) )

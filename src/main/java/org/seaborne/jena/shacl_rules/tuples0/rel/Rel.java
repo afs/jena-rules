@@ -94,7 +94,6 @@ public class Rel  {
         return true;
     }
 
-
     public int len() {
         return tuple.len();
     }

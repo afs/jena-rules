@@ -19,6 +19,7 @@
 package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.jena.atlas.lib.NotImplemented;
@@ -33,7 +34,10 @@ import org.apache.jena.sparql.function.FunctionEnv;
 
 class FunctionEverything {
 
-    // Replace SPARQLDispatch
+    // FunctionEverything, J_FunctionalForm, J_SPARQLFuncOp replace SPARQLDispatch, SPARQLFuncOp
+    // Execution: NodeExpressions
+
+    // This replaces SPARQLDispatch
 
     // ---------------------- Table building
     // Include class for checking? And build the table anyway.
@@ -60,13 +64,6 @@ class FunctionEverything {
         return mapDispatchFF().get(uri);
     }
 
-
-//    /**
-//     * Look up an URI to get a functional form.
-//     */
-//    static FunctionalFormCall getFunctionalForm(String uri) {
-//        return mapDispatchFF().get(uri);
-//    }
     /**
      * Look up an URI to get a function that will build an {@Expr}.
      */
@@ -378,6 +375,26 @@ class FunctionEverything {
             mapFunctionURI.put(implClass, uri);
     }
 
+    static <X extends Expr> void entryFunctionFormN(Map<String, CallFF> mapDispatchFF,
+                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                    CreateN<X> maker, FunctionalFormN functionFormN) {
+        String uri = expandName(uriName);
+        if ( maker != null ) {
+            Build build = (u, exprs) ->{
+                ExprList exprList = ExprList.create(exprs);
+                return maker.create(exprList);
+            };
+            mapBuild.put(uri, build);
+        }
+        CallFF call = (graph, node, env, row, args) -> {
+            List<Node> listArgs = List.of(args);
+            return functionFormN.exec(graph, node, env, row, listArgs);
+        };
+        mapDispatchFF.put(uri, call);
+        if ( implClass != null )
+            mapFunctionURI.put(implClass, uri);
+    }
 
     // Build
     interface Build { Expr build(String uri, Expr... expr); }
@@ -386,7 +403,8 @@ class FunctionEverything {
     interface Create2<X> { X create(Expr expr1, Expr expr2); }
     interface Create3<X> { X create(Expr expr1, Expr expr2, Expr expr3); }
     interface Create4<X> { X create(Expr expr1, Expr expr2, Expr expr3, Expr expr4); }
-    interface CreateN<X> { X create(Expr... expr); }
+    //interface CreateN<X> { X create(Expr...exprs); }
+    interface CreateN<X> { X create(ExprList exprs); }
 
     // Dispatch functional form
     interface CallFF { NodeValue execFF(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
@@ -395,7 +413,7 @@ class FunctionEverything {
     interface FunctionalForm2 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2); }
     interface FunctionalForm3 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3); }
     interface FunctionalForm4 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3, Node arg4); }
-    interface FunctionalFormN { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
+    interface FunctionalFormN { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, List<Node> args); }
 
     // Dispatch function
     interface Call { NodeValue exec(NodeValue... nv); }
@@ -406,51 +424,65 @@ class FunctionEverything {
     interface Function4 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3, NodeValue nv4); }
     interface FunctionN { NodeValue exec(NodeValue... nv); }
 
+
+    /** Create an ExprList from a number of Expr or an array start from an index. */
+    public static ExprList create(int start,  Expr...exprs) {
+        if ( ( start < 0 ) || ( start >= exprs.length ) )
+            throw new IllegalArgumentException("start = "+start+"; array length = "+exprs.length);
+        ExprList exprList = new ExprList() ;
+        for ( int i = start ; i < exprs.length ; i++ ) {
+            Expr item = exprs[i];
+            exprList.add(item);
+        }
+        return exprList ;
+    }
+
     private static void initTables(Map<String, Call> mapDispatch, Map<String, CallFF> mapDispatchFF,
                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI) {
+
+        // Functional forms (not functions)
 
         entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_FunctionalForms::sparql_logical_and);
         entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_FunctionalForms::sparql_logical_and);
         entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_FunctionalForms::sparql_logical_not);
 
-        // ***entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sh:if", null, "sh:if", null, J_FunctionalForms::shacl_if);
+        // As functions (extension)
+
+        //entry(mapDispatch, mapBuild, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, SPARQLFuncOp::logical_and );
+        //entry(mapDispatch, mapBuild, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, SPARQLFuncOp::logical_not );
+        //entry(mapDispatch, mapBuild, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::logical_or );
+
+        // SHACL sh:if node expressions name argument format.
         entryFunctionForm3(mapDispatchFF, mapBuild, mapFunctionURI, "sh:if", null, "sh:if", null, J_FunctionalForms::shacl_if);
 
+        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, J_FunctionalForms::sparql_coalesce);
 
-//        // E_ not right
-//        entry1(mapDispatch, mapBuild, mapFunctionURI, "arq:function-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFuncOp::arq_function_not);
-//        entry2(mapDispatch, mapBuild, mapFunctionURI, "arq:function-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFuncOp::arq_function_and);
-//        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:function-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
+        // Adjust for the constructor which is E_OneOf(Expr, ExporList) and same of E_NotOneOf
+        CreateN<Expr> makeOneOf = exprList -> {
+            if ( exprList.size() < 1) {}
+            Expr expr = exprList.get(0);
+            ExprList exprList2 = exprList.tail(1);
+            return new E_OneOf(expr, exprList2);
+        };
+        CreateN<Expr> makeNotOneOf = exprList -> {
+            if ( exprList.size() < 1) {}
+            Expr expr = exprList.get(0);
+            ExprList exprList2 = exprList.tail(1);
+            return new E_NotOneOf(expr, exprList2);
+        };
 
+        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:in", E_OneOf.class, "IN", makeOneOf, J_FunctionalForms::sparql_in);
+        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:not_in", E_NotOneOf.class, "NOT IN", makeNotOneOf, J_FunctionalForms::sparql_not_in);
+        entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, J_FunctionalForms::sparql_bound);
 
-        // Functional forms (not functions)
+        // URI function call.
+        //entry(mapDispatch, mapBuild, mapFunctionURI, "arq:function", E_Function.class, "FUNCTION", E_Function::new, J_SPARQLFuncOp::function );
 
-      //entry(mapDispatch, mapBuild, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, SPARQLFuncOp::logical_and );
-      //entry(mapDispatch, mapBuild, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, SPARQLFuncOp::logical_not );
-      //entry(mapDispatch, mapBuild, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::logical_or );
+        // EXISTS, NOT EXISTS
+        //entryFunctionFormOp(mapDispatchFF, mapDispatch, mapBuild, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, J_FunctionalForms::filter_exists );
+        //entryFunctionFormOp(mapDispatchFF, mapDispatch, mapBuild, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, J_FunctionalForms::filter_not_exists );
 
-      //entry(mapDispatch, mapBuild, "sparql:in", E_OneOf.class, "IN", E_OneOf::new, SPARQLFuncOp::sparql_in );
-      //entry(mapDispatch, mapBuild, "sparql:not-in", E_NotOneOf.class, "NOT IN", E_NotOneOf::new, SPARQLFuncOp::not_in );
-
-
-      // URI function call.
-      //entry(mapDispatch, mapBuild, "sparql:function", E_Function.class, "", E_Function::new, SPARQLFuncOp::function );
-
-
-      //entry(mapDispatch, mapBuild, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, SPARQLFuncOp::bound );
-      //entry(mapDispatch, mapBuild, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, SPARQLFuncOp::coalesce );
-      //entry(mapDispatch, mapBuild, "sparql:if", E_Conditional.class, "IF", E_Conditional::new, SPARQLFuncOp::if );
-
-      // EXISTS, NOT EXISTS
-      //entry(mapDispatch, mapBuild, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, SPARQLFuncOp::filter-exists );
-      //entry(mapDispatch, mapBuild, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, SPARQLFuncOp::filter-not-exists );
-
-// --
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:in", E_OneOf.class, "IN", E_OneOf::new, J_SPARQLFuncOp::sparql_in );
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:not-in", E_NotOneOf.class, "NOT IN", E_NotOneOf::new, J_SPARQLFuncOp::not_in );
-
-      // URI function call.
-//      entry(mapDispatch, mapBuild, mapFunctionURI, "sparql:function", E_Function.class, "", E_Function::new, J_SPARQLFuncOp::function );
+        // ---- Functions.
 
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:iri", E_IRI.class, "IRI", E_IRI::new, J_SPARQLFuncOp::sparql_iri);
 

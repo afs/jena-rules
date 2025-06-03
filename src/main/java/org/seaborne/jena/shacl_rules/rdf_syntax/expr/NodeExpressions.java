@@ -111,7 +111,7 @@ public class NodeExpressions {
         if ( callFF != null ) {
             /* Functional forms look like functions - a URI and a list of arguments)
              * but aren't. Examples include {@code sh:if}, {@code sparql:coalesce},
-             * {@code spatql:logical-and} which control the evaluation of their arguments,
+             * {@code sparql:logical-and} which control the evaluation of their arguments,
              * and {@code sparql:bound} which tests a variables.
              */
             // sh:if is different. looks like a named function.

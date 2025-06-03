@@ -18,6 +18,7 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -30,7 +31,7 @@ public class RuleHead {
     private final List<Triple> triples;
 
     public RuleHead(List<Triple> triples) {
-        this.triples = triples;
+        this.triples = Collections.unmodifiableList(triples);
     }
 
     public BasicPattern asBGP() {
