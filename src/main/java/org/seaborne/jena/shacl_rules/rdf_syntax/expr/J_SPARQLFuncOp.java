@@ -93,22 +93,22 @@ public class J_SPARQLFuncOp {
         return NodeValue.booleanReturn(b);
     }
 
-    public static NodeValue sparql_greaterThan(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue sparql_greater_than(NodeValue nv1, NodeValue nv2) {
         int r = NodeValue.compare(nv1, nv2);
         return NodeValue.booleanReturn(r == Expr.CMP_GREATER);
     }
 
-    public static NodeValue sparql_lessThan(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue sparql_less_than(NodeValue nv1, NodeValue nv2) {
         int r = NodeValue.compare(nv1, nv2);
         return NodeValue.booleanReturn(r == Expr.CMP_LESS);
     }
 
-    public static NodeValue sparql_greaterThanOrEqual(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue sparql_greater_than_or_equal(NodeValue nv1, NodeValue nv2) {
         int r = NodeValue.compare(nv1, nv2);
         return NodeValue.booleanReturn(r == Expr.CMP_GREATER || r == Expr.CMP_EQUAL);
     }
 
-    public static NodeValue sparql_lessThanOrEqual(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue sparql_less_than_or_equal(NodeValue nv1, NodeValue nv2) {
         int r = NodeValue.compare(nv1, nv2);
         return NodeValue.booleanReturn(r == Expr.CMP_LESS || r == Expr.CMP_EQUAL);
     }
@@ -127,12 +127,12 @@ public class J_SPARQLFuncOp {
         return NodeValue.booleanReturn(arg1 || arg2);
     }
 
-  public static NodeValue arq_function_not(NodeValue nv) {
-      boolean arg = XSDFuncOp.effectiveBooleanValue(nv);
-      return NodeValue.booleanReturn(!arg);
-  }
+    public static NodeValue arq_function_not(NodeValue nv) {
+        boolean arg = XSDFuncOp.effectiveBooleanValue(nv);
+        return NodeValue.booleanReturn(!arg);
+    }
 
-  public static NodeValue arq_version() { return ARQFuncOp.version(); }
+    public static NodeValue arq_version() { return ARQFuncOp.version(); }
 
   // Functional forms (not functions)
   // See J_FunctionalForm
@@ -175,8 +175,8 @@ public class J_SPARQLFuncOp {
 
     public static NodeValue sparql_lang(NodeValue nv)       { return NodeFunctions.str(nv); }
     public static NodeValue sparql_langdir(NodeValue nv)    { return NodeFunctions.langdir(nv); }
-    public static NodeValue sparql_haslang(NodeValue nv)    { return NodeFunctions.hasLang(nv); }
-    public static NodeValue sparql_haslangdir(NodeValue nv) { return NodeFunctions.hasLangDir(nv); }
+    public static NodeValue sparql_hasLang(NodeValue nv)    { return NodeFunctions.hasLang(nv); }
+    public static NodeValue sparql_hasLangdir(NodeValue nv) { return NodeFunctions.hasLangDir(nv); }
     public static NodeValue sparql_datatype(NodeValue nv)   { return NodeFunctions.datatype(nv); }
 
     // Term functions : NodeFunctions
@@ -215,7 +215,11 @@ public class J_SPARQLFuncOp {
     public static NodeValue sparql_strafter(NodeValue nv1, NodeValue nv2) { return XSDFuncOp.strAfter(nv1, nv2); }
 
     public static NodeValue sparql_concat(NodeValue...args) {
-        return XSDFuncOp.strConcat(List.of(args));
+        return sparql_concat(List.of(args));
+    }
+
+    public static NodeValue sparql_concat(List<NodeValue> args) {
+        return XSDFuncOp.strConcat(args);
     }
 
     public static NodeValue sparql_langMatches(NodeValue nv1, NodeValue nv2) { return NodeFunctions.langMatches(nv1, nv2); }
@@ -246,7 +250,7 @@ public class J_SPARQLFuncOp {
     public static NodeValue sparql_replace(NodeValue nvStr, NodeValue nvPattern, NodeValue nvReplacement, NodeValue envFlags)
     { return XSDFuncOp.strReplace(nvStr, nvPattern, nvReplacement, envFlags); }
 
-    public static NodeValue sparql_encode(NodeValue nv) { return XSDFuncOp.strEncodeForURI(nv); }
+    public static NodeValue sparql_encode_for_uri(NodeValue nv) { return XSDFuncOp.strEncodeForURI(nv); }
     public static NodeValue sparql_abs(NodeValue nv)    { return XSDFuncOp.abs(nv); }
     public static NodeValue sparql_round(NodeValue nv)  { return XSDFuncOp.round(nv); }
     public static NodeValue sparql_ceil(NodeValue nv)   { return XSDFuncOp.ceiling(nv); }
