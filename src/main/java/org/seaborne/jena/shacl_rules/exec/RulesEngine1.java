@@ -24,11 +24,8 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Substitute;
-import org.apache.jena.sparql.exec.QueryExec;
-import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.exec.RowSetOps;
 import org.apache.jena.sparql.exec.RowSetRewindable;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -47,7 +44,13 @@ import org.seaborne.jena.shacl_rules.jena.JLib;
  * engine then comparing the results.
  */
 public class RulesEngine1 implements RulesEngine {
-    public static boolean verbose = false;
+
+    private boolean TRACE = true;
+    @Override
+    public RulesEngine1 setTrace(boolean traceSetting) {
+        TRACE = traceSetting;
+        return this;
+    }
 
     public static RulesEngine1 build(Graph graph, RuleSet ruleSet) {
         return new RulesEngine1(graph, ruleSet);
@@ -60,7 +63,6 @@ public class RulesEngine1 implements RulesEngine {
         this.baseGraph = baseGraph;
         this.ruleSet = ruleSet;
     }
-
 
     @Override
     public EngineType engineType() {
@@ -82,7 +84,7 @@ public class RulesEngine1 implements RulesEngine {
     @Override
     public Stream<Triple> solve(Node s, Node p, Node o) {
         // The heavy-handed way!
-        Evaluation e = eval(false);
+        Evaluation e = eval();
         Graph g = e.outputGraph();
         Stream<Triple> stream = g.find(s, p, o)
             .toList()   // Materialize
@@ -92,7 +94,7 @@ public class RulesEngine1 implements RulesEngine {
 
     @Override
     public Graph infer() {
-        Evaluation e = eval(false);
+        Evaluation e = eval();
         return e.inferredTriples;
     }
 
@@ -101,10 +103,6 @@ public class RulesEngine1 implements RulesEngine {
     // Algorithm for development - captures more than is needed.
 
     public Evaluation eval() {
-        return eval(false);
-    }
-
-    public Evaluation eval(boolean verbose) {
 
         boolean updateBsseGraph = false;
 
@@ -147,16 +145,16 @@ public class RulesEngine1 implements RulesEngine {
             round++;
             int sizeAtRoundStart =  graph1.getAdded().size();
 
-            if ( verbose )
+            if ( TRACE )
                 System.out.println("Round: "+round);
 
             for (Rule rule : ruleSet.getRules() ) {
-                if ( verbose )
+                if ( TRACE )
                     System.out.println("Rule: "+rule);
                 // graph1 vs graph
-                RowSetRewindable rowset = evalRule(graph1, rule).rewindable();
+                RowSetRewindable rowset = RuleExec.evalRule(graph1, rule).rewindable();
 
-                if ( verbose ) {
+                if ( TRACE ) {
                     RowSetOps.out(rowset);
                     rowset.reset();
                 }
@@ -166,7 +164,7 @@ public class RulesEngine1 implements RulesEngine {
                     BasicPattern bgp2 = Substitute.substitute(bgp, row);
                     bgp2.forEach(t->graph1.add(t));
                 });
-                if ( verbose )
+                if ( TRACE )
                     System.out.println("Accumulator: "+graph1.getAdded().size());
             }
 
@@ -186,7 +184,7 @@ public class RulesEngine1 implements RulesEngine {
                 graph1.flush();
             }
 
-            if ( verbose )
+            if ( TRACE )
                 System.out.println();
             // Whether to write base graph and clear while running.
         }
@@ -197,11 +195,5 @@ public class RulesEngine1 implements RulesEngine {
         }
 
         return new Evaluation(baseGraph, accGraph, dataGraph, round);
-    }
-
-    private static RowSet evalRule(Graph graph, Rule rule) {
-        Query query = rule.bodyAsQuery();
-        RowSet rowset = QueryExec.graph(graph).query(query).select();
-        return rowset;
     }
 }

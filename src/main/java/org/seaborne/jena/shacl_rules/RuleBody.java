@@ -88,6 +88,15 @@ public class RuleBody {
         return Collections.unmodifiableList(triples);
     }
 
+    /**
+     * Equivalent - same effect, not necessarily {@code .equals}.
+     */
+
+    public boolean equivalent(RuleBody other) {
+        // XXX Revisit
+        return Objects.equals(bodyGroup, other.bodyGroup);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(bodyAsQuery, bodyGroup);
@@ -101,5 +110,10 @@ public class RuleBody {
             return false;
         RuleBody other = (RuleBody)obj;
         return Objects.equals(bodyAsQuery, other.bodyAsQuery) && Objects.equals(bodyGroup, other.bodyGroup);
+    }
+
+    @Override
+    public String toString() {
+        return bodyTriples.toString();
     }
 }

@@ -78,4 +78,11 @@ public interface RulesEngine {
      * in the base graph. The base graph is not modified.
      */
     public Graph infer();
+
+    /**
+     * For development: enable trace mode for the engine.
+     * Returns "this".
+     *
+     */
+    public RulesEngine setTrace(boolean traceSetting);
 }

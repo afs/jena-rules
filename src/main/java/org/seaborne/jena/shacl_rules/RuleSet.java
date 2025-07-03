@@ -18,10 +18,11 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.jena.atlas.lib.ListUtils;
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
@@ -39,12 +40,45 @@ public class RuleSet {
     private final List<Triple> dataTriples;
     private final Graph data;
 
-    public static boolean equalRuleSets(RuleSet ruleSet1, RuleSet ruleSet2) {
+    /**
+     * Are two rule sets1 equivalent for execution purposes?
+     */
+    static boolean equivalentRuleSets(RuleSet ruleSet1, RuleSet ruleSet2) {
+        Objects.requireNonNull(ruleSet1);
+        Objects.requireNonNull(ruleSet2);
+        if ( ruleSet1 == ruleSet2 )
+            return true;
+
         List<Rule> r1 = ruleSet1.getRules();
         List<Rule> r2 = ruleSet2.getRules();
-        if ( ! ListUtils.equalsUnordered(r1, r2) )
-            return false;
 
+        if ( r1.size() != r2.size () )
+            return false;
+        int N = r1.size();
+
+        // Copy.
+        List<Rule> checked = new ArrayList<>(r2);
+
+        for ( Rule rule1 : r1 ) {
+            boolean matched = false;
+            for ( Rule rule2 : checked ) {
+                if ( rule1.equivalent(rule2) ) {
+                    // Match for rule2.
+                    // Remove so it does not get matched again.
+                    checked.remove(rule2);
+                    matched = true;
+                    break;
+                }
+            }
+            // Did not match rule1 => false
+            if ( ! matched )
+                return false;
+        }
+        // matched checked should be empty.
+        if ( !checked.isEmpty() )
+            throw new InternalErrorException("Expected 'checked' to be empty");
+
+        // Now check data.
         Graph d1 = ruleSet1.getData();
         Graph d2 = ruleSet2.getData();
         if ( d1 == null && d2 == null )
@@ -117,7 +151,6 @@ public class RuleSet {
     public int numRules() {
         return rules.size();
     }
-
 
     @Override
     public String toString() {

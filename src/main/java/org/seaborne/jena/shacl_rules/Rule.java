@@ -72,15 +72,28 @@ public class Rule {
 //    }
 
     /**
-     * Rule equivalence is defined as two rules being the same for execution and serialization purposes
+     * Rule equivalence is defined as two rules being the same for execution.
      * but they may be different by object identity. In java terms, {@code rule1 != rule2}.
      * That is, parser round trip.
      * <p>
-     * This means they have the "same head" and "same body", and also having the same order of elements.
+     * This means they have the "equivalent head" and "equivalent body", not necessarily the same order of elements.
      * <p>
-     * Use {@link Rules#sameAs}
+     * Use via public {@link Rules#sameAs}.
      */
     /*package*/ boolean equivalent(Rule other) {
+        if ( ! head.equivalent(other.head) )
+            return false;
+        if ( ! body.equivalent(other.body) )
+            return false;
+        return true;
+    }
+
+    /**
+     * Rule equivalence for serialization (and hence execution).
+     * That is, parser round trip.
+     * This means they have the "same head" and "same body", and also having the same order of elements.
+     */
+    /*package*/ boolean equivalentSerialization(Rule other) {
         if ( ! head.equals(other.head) )
             return false;
         if ( ! body.equals(other.body) )
@@ -95,5 +108,4 @@ public class Rule {
         x = x.replaceAll("  +", " ");
         return head.toString() + " :- " + x;
     }
-
 }

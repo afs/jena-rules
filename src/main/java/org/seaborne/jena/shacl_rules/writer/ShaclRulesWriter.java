@@ -29,10 +29,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterTTL_MultiLine;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.PrefixMapFactory;
-import org.apache.jena.riot.system.Prefixes;
-import org.apache.jena.riot.system.RiotLib;
+import org.apache.jena.riot.system.*;
 import org.apache.jena.riot.writer.DirectiveStyle;
 import org.apache.jena.sparql.serializer.FormatterElement;
 import org.apache.jena.sparql.serializer.SerializationContext;
@@ -58,7 +55,6 @@ public class ShaclRulesWriter {
         print(System.out, ruleSet, flatMode);
     }
 
-
     public static void print(OutputStream outStream, RuleSet ruleSet, boolean flatMode) {
 
         Style style = flatMode ? Style.Flat : Style.MultiLine;
@@ -71,32 +67,40 @@ public class ShaclRulesWriter {
         }
     }
 
-    /** Write a rule (no prologue). */
+    /** Write a rule */
     public static void print(Rule rule) {
-        print(System.out, rule, true);
+        print(System.out, rule, null, true);
+    }
+
+    /** Write a rule using a prefix map (not printed). */
+    public static void print(Rule rule, PrefixMap prefixMap) {
+        print(System.out, rule, prefixMap, true);
     }
 
     /** Write a rule (no prologue). */
-    public static void print(OutputStream outStream, Rule rule, boolean flatMode) {
-        Style style = flatMode ? Style.Flat : Style.MultiLine;
+    public static void print(OutputStream outStream, Rule rule, PrefixMap prefixMap, boolean flatMode) {
         IndentedWriter output = new IndentedWriter(outStream);
         try {
-            internalPrint(output, rule, style);
-        } finally {
-            output.flush();
-            try {
-                outStream.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            print(output, rule, prefixMap, flatMode);
+            outStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    /** Write a rule (no prologue). */
+    public static void print(IndentedWriter output, Rule rule, PrefixMap prefixMap, boolean flatMode) {
+        Style style = flatMode ? Style.Flat : Style.MultiLine;
+        try {
+            internalPrint(output, rule, style, prefixMap);
+        } finally {
+            output.flush();
+        }
+    }
+
     public static void print(IndentedWriter output, Rule rule, boolean flatMode) {
         Style style = flatMode ? Style.Flat : Style.MultiLine;
         try {
-            internalPrint(output, rule, style);
+            internalPrint(output, rule, style, null);
         } finally {
             output.flush();
         }
@@ -105,21 +109,26 @@ public class ShaclRulesWriter {
     // ---------------------
 
     private static void internalPrint(IndentedWriter out, RuleSet ruleSet, Style style) {
-        IRIx baseIRI = ruleSet.getBase();
-        PrefixMap prefixMap = ruleSet.getPrefixMap();
+        IRIx baseIRI = null;
+        PrefixMap prefixMap = null;
+        if ( ruleSet != null ) {
+            baseIRI = ruleSet.getBase();
+            prefixMap = ruleSet.getPrefixMap();
+        }
         if ( prefixMap == null )
+            // Helps switching to/from PrefixMappings.
             prefixMap = PrefixMapFactory.create();
 
         RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, style);
         srw.writeRuleSet(ruleSet);
     }
 
-    private static void internalPrint(IndentedWriter out, Rule rule, Style style) {
+    private static void internalPrint(IndentedWriter out, Rule rule, Style style, PrefixMap prefixMap) {
 //        IRIx baseIRI = ruleSet.getBase();
 //        PrefixMap prefixMap = ruleSet.getPrefixMap();
 //        if ( prefixMap == null )
 //            prefixMap = PrefixMapFactory.create();
-        PrefixMap prefixMap = PrefixMapFactory.create();
+        //PrefixMap prefixMap = PrefixMapFactory.create();
 
         RuleSetWriter srw = new RuleSetWriter(out, prefixMap, null, style);
         srw.writeRule(rule);
@@ -137,8 +146,11 @@ public class ShaclRulesWriter {
 
         private final Style style;
 
-        // There is little value in using the visitor pattern due to detailed control of space beteeen items.
+        // There is little value in using the visitor pattern due to detailed control of space between items.
         private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Style style) {
+            if  (prefixMap == null )
+                prefixMap = PrefixMapZero.empty; // Prefixes.empty()
+
             this.out = Objects.requireNonNull(output);
             this.prefixMap = prefixMap;
             this.base = baseIRI;

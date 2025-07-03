@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.BasicPattern;
 
@@ -46,6 +47,14 @@ public class RuleHead {
         triples.forEach(action);
     }
 
+    /**
+     * Equivalent - same effect, not necessarily {@code .equals}.
+     * Same triples, any order.
+     */
+    public boolean equivalent(RuleHead other) {
+        return ListUtils.equalsUnordered(this.triples,other.triples);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(triples);
@@ -59,5 +68,10 @@ public class RuleHead {
             return false;
         RuleHead other = (RuleHead)obj;
         return Objects.equals(triples, other.triples);
+    }
+
+    @Override
+    public String toString() {
+        return triples.toString();
     }
 }

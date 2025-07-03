@@ -16,30 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules;
+package org.seaborne.jena.shacl_rules.cmds;
 
+public class RuleExecCxt {
 
-// Algorithm: Jacobi
-//   Do each pass with respect to the previous round.
-// Algorithm: Gauss-Seidel
-//   Do each pass with growing inferred graph
-public enum EngineType {
-    // Default naive (used for tests).
-    FWD_NAIVE("Naive")
-    , FWD_NAIVE_JACOBI("Naive (Jacobi)")
-    , FWD_NAIVE_GUASS_SEIDEL("Naive (GUASS_SEIDEL)")
-    , FWD_SEMINAIVE("Seminaive")
-    , BKD_NON_RECURSIVE_SLD("SLD (Non-recursive)")
-    , BKD_QSQR("QSQR")
-    , BKD_QSQI("QSQI")
-//  , MAGIC("MagicSet")
-    ;
-
-    private final String displayName;
-
-    private EngineType(String string) { this.displayName = string; }
-
-    public String displayName() {
-        return displayName;
-    }
 }

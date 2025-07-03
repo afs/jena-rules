@@ -56,6 +56,7 @@ public class SparqlNodeExpression {
             //   or
             // [] sh:sparqlExpr ...
 
+            // Duplicate sh:expr?
             // Look for sh:expr, return object
             Node expression1 = NodeExpressions.getNodeExpression(graph, root);
             if ( expression1 != null )

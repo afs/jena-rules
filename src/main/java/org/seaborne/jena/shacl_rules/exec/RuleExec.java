@@ -16,30 +16,22 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules;
+package org.seaborne.jena.shacl_rules.exec;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.query.Query;
+import org.apache.jena.sparql.exec.QueryExec;
+import org.apache.jena.sparql.exec.RowSet;
+import org.seaborne.jena.shacl_rules.Rule;
 
-// Algorithm: Jacobi
-//   Do each pass with respect to the previous round.
-// Algorithm: Gauss-Seidel
-//   Do each pass with growing inferred graph
-public enum EngineType {
-    // Default naive (used for tests).
-    FWD_NAIVE("Naive")
-    , FWD_NAIVE_JACOBI("Naive (Jacobi)")
-    , FWD_NAIVE_GUASS_SEIDEL("Naive (GUASS_SEIDEL)")
-    , FWD_SEMINAIVE("Seminaive")
-    , BKD_NON_RECURSIVE_SLD("SLD (Non-recursive)")
-    , BKD_QSQR("QSQR")
-    , BKD_QSQI("QSQI")
-//  , MAGIC("MagicSet")
-    ;
+public class RuleExec {
 
-    private final String displayName;
-
-    private EngineType(String string) { this.displayName = string; }
-
-    public String displayName() {
-        return displayName;
+    /**
+     * Execute a rule once on a graph.
+     */
+    public static RowSet evalRule(Graph graph, Rule rule) {
+        Query query = rule.bodyAsQuery();
+        RowSet rowset = QueryExec.graph(graph).query(query).select();
+        return rowset;
     }
 }

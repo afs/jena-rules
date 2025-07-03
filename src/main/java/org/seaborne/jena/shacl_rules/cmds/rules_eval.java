@@ -86,8 +86,8 @@ public class rules_eval extends CmdGeneral {
                 data.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
         }
 
-        boolean verboseExecution = false;
-        RulesEngine1.Evaluation e = RulesEngine1.build(data, ruleSet).eval(verboseExecution);
+        boolean verbose = super.isVerbose();
+        RulesEngine1.Evaluation e = RulesEngine1.build(data, ruleSet).setTrace(verbose).eval();
 
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();

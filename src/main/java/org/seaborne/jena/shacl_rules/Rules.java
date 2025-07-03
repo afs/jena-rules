@@ -20,12 +20,20 @@ package org.seaborne.jena.shacl_rules;
 
 public class Rules {
     /**
-     * Rule equivalence is defined as two rules being the same for execution and serialization purposes
-     * but they may be different by object identity. In java terms, {@code rule1 != rule2}.
-     * That is, parser round trip.
-     * This means they have the "same head" and "same body", and also having the same order of elements.
+     * Rule equivalence is defined as two rules being the same for execution.
+     * but they may be different by object identity and serialization (speciifcally, order in the head and body).
+     * In java terms, {@code rule1 != rule2}.
      */
     public static boolean sameAs(Rule rule1, Rule rule2) {
         return rule1.equivalent(rule2);
+    }
+
+    /**
+     * Test whether two ruleset are equivalent for the purposes of execution.
+     * This is weaker that ".equals" which means same order of tuples in the head,
+     * same order of tuples, filters, and assignments in the body.
+     */
+    public static boolean equivalentRuleSets(RuleSet ruleSet1, RuleSet ruleSet2) {
+        return RuleSet.equivalentRuleSets(ruleSet1, ruleSet2);
     }
 }
