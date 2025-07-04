@@ -29,18 +29,20 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Substitute;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.syntax.ElementGroup;
-import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.EngineType;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.cmds.Access;
+import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 
 /*
@@ -78,12 +80,19 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     }
 
     @Override
-    public Graph graph() {
-        Graph graph = GraphFactory.createDefaultGraph();
-        GraphUtil.addInto(graph, baseGraph);
-        Graph g2 = infer();
-        GraphUtil.addInto(graph, g2);
-        return graph;
+    public Graph baseGraph() {
+        return baseGraph;
+    }
+
+    @Override
+    public Graph materializedGraph() {
+        Evaluation e = solveTop(queryTripleAll);
+        return e.outputGraph;
+//        Graph graph = GraphFactory.createDefaultGraph();
+//        GraphUtil.addInto(graph, baseGraph);
+//        Graph g2 = infer();
+//        GraphUtil.addInto(graph, g2);
+//        return graph;
     }
 
     @Override
@@ -109,42 +118,50 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         // Do better! Query subClass of Rule.
         Rule query = Rule.create(List.of(queryTriple), new ElementGroup());
 
-        // Match data.
-        BufferingGraph workingGraph = BufferingGraph.create(baseGraph);
-        //ruleSet.getDataTriples().forEach(workingGraph::add);
-
-        Stream<Triple> x = solve(queryTriple, workingGraph);
+        // Collects all inferred triples from rules touched during the evaluation.
+        // Filter inferred triples to find the ones we want.
+        Evaluation e = solveTop(queryTriple);
+        Stream<Triple> x = e.outputGraph.stream(queryTriple.getSubject(), queryTriple.getPredicate(), queryTriple.getObject());
         if ( TRACE ) {
             LOG.printf(">> query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
             x = trace(LOG, x);
         }
-
-        // Does not fill working graph?
-        //return workingGraph.getAdded().stream();
         return x;
     }
 
+    private static Var varS = Var.alloc("s");
+    private static Var varP = Var.alloc("p");
+    private static Var varO = Var.alloc("o");
+    private static Triple queryTripleAll = Triple.create(varS, varP, varO);
+
     @Override
     public Graph infer() {
-        Stream<Triple> all = solve(null, null, null);
-        Graph graph = GraphFactory.createDefaultGraph();
-        all.forEach(graph::add);
+        Evaluation e = solveTop(queryTripleAll);
+
+        Graph graph = e.inferredTriples;
+        graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
+        graph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
         return graph;
     }
 
     /**
      * Solver. Non-recursive rules.
-     * Nested evaluation.
+     * Top of evaluation.
      */
-    private Stream<Triple> solve(Triple queryTriple, BufferingGraph workingGraph) {
+    Evaluation solveTop(Triple queryTriple) {
         if ( TRACE ) {
             LOG.printf("solve(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
             LOG.incIndent();
         }
+
+        AppendGraph workingGraph = AppendGraph.create(baseGraph);
+        if ( ruleSet.hasData() )
+            ruleSet.getDataTriples().forEach(workingGraph::add);
+
         PrefixMap pmap = ruleSet.getPrefixMap();
 
+
         // Detect cycles.
-        Set<Rule> visited = new HashSet<>();
         //Set<Triple> visited = new HashSet<>();
 
         // Look in workingGraph
@@ -157,37 +174,53 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
         List<Rule> dependsOn = dependsOn(queryTriple);
 
+        // Is working graph used at all?
+        // XXX Is there two loops?
+        // solveRule has the same pattern -  dependsOn->solveRule
+
         for ( Rule rule : dependsOn ) {
+            Set<Rule> visited = new HashSet<>();
             Stream<Triple> x = solveRule(rule, workingGraph, visited);
             // No variables in triples :
 
             if ( x == null )
                 continue;
 
-            // CHECK
-            if ( true ) {
-                List<Triple> triples = x.toList();
-                List<Triple> unexpected = triples.stream().filter(triple->!triple.isConcrete()).toList();
-                if ( ! unexpected.isEmpty() ) {
-                    System.err.println("Unexpected: "+unexpected);
-                }
-                x = triples.stream();
-            }
-            // /CHECK
+//            // CHECK
+//            if ( true ) {
+//                List<Triple> triples = x.toList();
+//                List<Triple> unexpected = triples.stream().filter(triple->!triple.isConcrete()).toList();
+//                if ( ! unexpected.isEmpty() ) {
+//                    System.err.println("Unexpected: "+unexpected);
+//                }
+//                x = triples.stream();
+//            }
+//            // /CHECK
 
             // New graph?
             GraphUtil.add(workingGraph, x.iterator());
         }
 
-        List<Triple> solution = new ArrayList<>();
-        workingGraph.find(queryTriple).forEach(triple->{
-            solution.add(triple);
-        });
-
-        Stream<Triple> results = solution.stream();
         LOG.decIndent();
-        return (results == null) ? Stream.empty() : results;
+//        List<Triple> solution = new ArrayList<>();
+//
+//        workingGraph.find(queryTriple).forEach(triple->{
+//            solution.add(triple);
+//        });
+
+        Graph inferred = workingGraph.getAdded();
+        Graph output = GraphFactory.createGraphMem();
+
+        GraphUtil.addInto(output, baseGraph);
+        GraphUtil.addInto(output, inferred);
+        if ( ruleSet.hasData() )
+            GraphUtil.addInto(output, ruleSet.getData());
+
+        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, output, -1);
+        return e;
     }
+
+    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph, int rounds) {}
 
     // XXX DependencyGraph
     private List<Rule> dependsOn(Triple queryTriple)  {
@@ -199,6 +232,75 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             }
         }
         return dependsOn;
+    }
+
+    private Stream<Triple> solveRule(Rule rule, AppendGraph workingGraph, Set<Rule> visited) {
+       //  trigger by solve(?,?,?)
+        if ( visited.contains(rule) )
+            throw new RuleEvalException("Recursion (or DAG): "+rule);
+        visited.add(rule);
+
+        if ( TRACE ) {
+            LOG.printf("solveRule(%s)\n", rule.toString());
+        }
+
+        List<Triple> body = rule.getBody().getTriples();
+        Stream<Triple> results = null;
+
+        // Start
+        Binding binding = BindingFactory.binding();
+        Iterator<Binding> chain = Iter.singletonIterator(binding);
+
+        if ( TRACE )
+            LOG.incIndent();
+        for ( Triple pattern : body ) {
+            List<Rule> subRules = dependsOn(pattern);
+            if ( TRACE ) {
+                LOG.printf("DependsOn: %s\n", subRules.toString());
+            }
+
+            // solve these and then
+            // Binding + rename to avoid triples.
+            // Later.
+
+            for ( Rule subRule : subRules ) {
+                // Stream<Triple> solveRule(Rule rule, AppendGraph workingGraph, Set<Rule> visited) {
+                Stream<Triple> sub = solveRule(subRule, workingGraph, visited);
+                sub.forEach(workingGraph::add);
+            }
+
+            chain = Access.accessGraph(chain, workingGraph, pattern);
+
+            if ( TRACE ) {
+                LOG.print("chain: ");
+                chain = trace(LOG, chain);
+            }
+        }
+
+        // Change to skip "instantiate" - needs a renamer.
+        if ( TRACE )
+            LOG.decIndent();
+
+        // Instantiate the head and store in working graph. (new graph? XXX)
+        List<Triple> head = rule.getHead().getTriples();
+        BasicPattern bgp = BasicPattern.wrap(head);
+        List<Triple> result = new ArrayList<>();
+        while(chain.hasNext()) {
+            Binding row = chain.next();
+            BasicPattern outcome = Substitute.substitute(bgp, row);
+            result.addAll(outcome.getList());
+        }
+
+        if ( TRACE ) {
+            trace(LOG, result);
+        }
+
+        return result.stream();
+    }
+
+    private static class RuleEvalException extends RuntimeException {
+        RuleEvalException(String msg) { super(msg); }
+        RuleEvalException(String msg, Throwable th) { super(msg, th); }
     }
 
     /** Print immediate, noting empty streams */
@@ -246,156 +348,6 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             }
         } finally { out.decIndent(); }
     }
-
-
-    private static class RuleEvalException extends RuntimeException {
-        RuleEvalException(String msg) { super(msg); }
-        RuleEvalException(String msg, Throwable th) { super(msg, th); }
-    }
-
-    private Stream<Triple> solveRule(Rule rule, BufferingGraph workingGraph, Set<Rule> visited) {
-        if ( visited.contains(rule) )
-            throw new RuleEvalException("Recursion (or DAG): "+rule);
-
-        if ( TRACE ) {
-            LOG.printf("solveRule(%s)\n", rule.toString());
-        }
-
-        List<Triple> body = rule.getBody().getTriples();
-        Stream<Triple> results = null;
-
-        // Start
-        Binding binding = BindingFactory.binding();
-        Iterator<Binding> chain = Iter.singletonIterator(binding);
-
-        if ( TRACE )
-            LOG.incIndent();
-        for ( Triple pattern : body ) {
-            List<Rule> subRules = dependsOn(pattern);
-            if ( TRACE ) {
-                LOG.printf("DependsOn: %s\n", subRules.toString());
-            }
-
-            // solve these and then
-            // Binding + rename to avoid triples.
-            // Later.
-
-            for ( Rule subRule : subRules ) {
-                // Stream<Triple> solveRule(Rule rule, BufferingGraph workingGraph, Set<Rule> visited) {
-                Stream<Triple> sub = solveRule(subRule, workingGraph, visited);
-                sub.forEach(workingGraph::add);
-            }
-
-            chain = Access.accessGraph(chain, workingGraph, pattern);
-
-            if ( TRACE ) {
-                LOG.print("chain: ");
-                chain = trace(LOG, chain);
-            }
-        }
-
-        // Change to skip "instantiate" - needs a renamer.
-        if ( TRACE )
-            LOG.decIndent();
-
-        // Instantiate the head and store in working graph. (new graph? XXX)
-        List<Triple> head = rule.getHead().getTriples();
-        BasicPattern bgp = BasicPattern.wrap(head);
-        List<Triple> result = new ArrayList<>();
-        while(chain.hasNext()) {
-            Binding row = chain.next();
-            BasicPattern outcome = Substitute.substitute(bgp, row);
-            result.addAll(outcome.getList());
-        }
-
-        if ( TRACE ) {
-            trace(LOG, result);
-        }
-
-        return result.stream();
-    }
-//
-//    private Stream<Triple> solveRule0(Rule rule, BufferingGraph workingGraph, Set<Rule> visited) {
-//        if ( visited.contains(rule) )
-//            throw new RuleEvalException("Recursion (or DAG): "+rule);
-//
-//        if ( TRACE ) {
-//            LOG.printf("solveRule(%s)\n", rule.toString());
-//        }
-//
-//        List<Triple> body = rule.getBody().getTriples();
-//        Stream<Triple> results = null;
-//
-//        // Start
-//        Binding binding = BindingFactory.binding();
-//        Iterator<Binding> chain = Iter.singletonIterator(binding);
-//        ExecutionContext execCxt = ExecutionContext.createForGraph(workingGraph);
-//
-//        if ( TRACE )
-//            LOG.incIndent();
-//        for ( Triple pattern : body ) {
-//            // Step 1
-//            // Look for rules that are needed. Evaluate.
-//            // This is a non-recusive engine so that is moving towards the base graph.
-//            // Depth-first
-//            // Evaluation will fill the workingGraph graph.
-//
-//            //for all sub rules.
-//
-//
-//            // **** FIND SUB RULES
-//            List<Rule> subRules = dependsOn(pattern);
-//            if ( TRACE ) {
-//                LOG.printf("DependsOn: %s\n", subRules.toString());
-//            }
-//
-//            // solve these and then
-//            // Binding + rename to avoid triples.
-//            // Later.
-//
-//            for ( Rule subRule : subRules ) {
-//                // Stream<Triple> solveRule(Rule rule, BufferingGraph workingGraph, Set<Rule> visited) {
-//                Stream<Triple> sub = solveRule(subRule, workingGraph, visited);
-//                sub.forEach(workingGraph::add);
-//            }
-//
-//
-//            // NEED TO consider "find" on the workingGraph
-//
-//            // XXX REWRITE for RULES
-//            // FlatMap it!
-//
-//            chain = StageMatchTriple.accessTriple(chain, workingGraph, pattern, null/*filter*/, execCxt);
-//
-//            if ( TRACE ) {
-//                LOG.print("chain: ");
-//                chain = trace(LOG, chain);
-//            }
-//        }
-//        if ( TRACE )
-//            LOG.decIndent();
-//
-//        // Instantiate the head and store in working graph. (new graph? XXX)
-//        List<Triple> head = rule.getHead().getTriples();
-//        BasicPattern bgp = BasicPattern.wrap(head);
-//        List<Triple> result = new ArrayList<>();
-//        while(chain.hasNext()) {
-//            Binding row = chain.next();
-//            BasicPattern outcome = Substitute.substitute(bgp, row);
-//            result.addAll(outcome.getList());
-//        }
-//
-//        if ( TRACE ) {
-//            trace(LOG, result);
-//        }
-//
-//        return result.stream();
-//    }
-//
-//    private Stream<Triple> eval(Iterator<Binding> input, Triple triplePattern, Graph workingGraph) {
-//        PatternMatchData.execute(graph, pattern, input, filter, execCxt);
-//
-//    }
 
     private static String str(Rule rule, PrefixMap prefixMap) {
         return str(rule.getHead().getTriples(), prefixMap) + " :- " +         str(rule.getBody().getTriples(), prefixMap);

@@ -21,7 +21,6 @@ package org.seaborne.jena.shacl_rules.jena;
 import static org.apache.jena.system.G.containsBySameTerm;
 import static org.apache.jena.system.G.execTxn;
 
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.Triple;
@@ -65,8 +64,8 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
     }
 
     public static AppendGraph create(Graph graph,boolean checkOnUpdate) {
-        if ( graph instanceof AppendGraph )
-            Log.warn(Graph2.class, "Creating a AppendGraph over an AppendGraph");
+//        if ( graph instanceof AppendGraph )
+//            Log.warn(AppendGraph.class, "Creating a AppendGraph over an AppendGraph");
         return new AppendGraph(graph, checkOnUpdate, false);
     }
 

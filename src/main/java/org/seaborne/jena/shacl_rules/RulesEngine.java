@@ -24,24 +24,27 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.seaborne.jena.shacl_rules.exec.RulesEngine1;
 
 /**
  * A {@code RulesEngine} is an execution engine for a given {@link RuleSet} and given
  * {@link Graph}.
  * <p>
- * Unless otherwise noted, a {@code RulesEngine} can execute multiple request and
+ * Unless otherwise noted, a {@code RulesEngine} can execute multiple requests and
  * supports concurrent use.
  */
 public interface RulesEngine {
 
-    public static RulesEngine build(Graph baseGraph, RuleSet ruleSet) {
-        return RulesEngine1.build(baseGraph, ruleSet);
-    };
+//    public static RulesEngine build(Graph baseGraph, RuleSet ruleSet) {
+//        return RulesEngineFwdSimple.build(baseGraph, ruleSet);
+//    };
 
     public EngineType engineType();
 
-    public Graph graph();
+    /** Graph over which the rules engine executes. */
+    public Graph baseGraph();
+
+    /** All triples - from rules (including DATA) and from the base graph. */
+    public Graph materializedGraph();
 
     public RuleSet ruleSet();
 
@@ -68,9 +71,9 @@ public interface RulesEngine {
     public default void execute() {
         // Implementation note: may become a separate algorithm.
         Graph inferredGraph = infer();
-        graph()
+        materializedGraph()
             .getTransactionHandler()
-            .executeAlways( ()->GraphUtil.addInto(graph(), inferredGraph) );
+            .executeAlways( ()->GraphUtil.addInto(materializedGraph(), inferredGraph) );
     }
 
     /**

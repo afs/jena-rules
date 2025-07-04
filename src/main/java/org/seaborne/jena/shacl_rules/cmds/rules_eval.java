@@ -43,7 +43,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.exec.RulesEngine1;
+import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 
 public class rules_eval extends CmdGeneral {
 
@@ -87,7 +87,7 @@ public class rules_eval extends CmdGeneral {
         }
 
         boolean verbose = super.isVerbose();
-        RulesEngine1.Evaluation e = RulesEngine1.build(data, ruleSet).setTrace(verbose).eval();
+        RulesEngineFwdSimple.Evaluation e = RulesEngineFwdSimple.build(data, ruleSet).setTrace(verbose).eval();
 
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();

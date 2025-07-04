@@ -39,7 +39,7 @@ import org.apache.jena.util.iterator.WrappedIterator;
  * A read-only graph that adds access to a second graph
  * that is accessed in addition to the main graph.
  * <p>
- * The expected use is that the left graph is additional triple being added to a base graph.
+ * The expected use is that the left graph is additional triples being added to a base graph.
  */
 public class Graph2 extends GraphWrapper {
 
@@ -49,7 +49,7 @@ public class Graph2 extends GraphWrapper {
 
     public static Graph create(Graph extraGraph, Graph baseGraph) {
         if ( extraGraph instanceof Graph2)
-            Log.warn(Graph2.class, "Combing a Graph2 with aGraph2.");
+            Log.warn(Graph2.class, "Combining a Graph2 with a Graph2.");
         if ( baseGraph instanceof Graph2)
             Log.warn(Graph2.class, "Creating a Graph2 over a Graph2 base graph.");
         return new Graph2(extraGraph, baseGraph);
@@ -74,9 +74,10 @@ public class Graph2 extends GraphWrapper {
     }
 
     public Graph base() { return get(); }
+
     protected Graph additionalGraph() { return additionalGraph; }
 
-    // ---- Update operations not provided
+    // ---- Graph2 is read-only: Update operations not provided
 
     @Override
     public void add(Triple t) {
