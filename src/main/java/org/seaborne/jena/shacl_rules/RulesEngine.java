@@ -24,6 +24,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.engine.main.solver.SolverRX3;
 
 /**
  * A {@code RulesEngine} is an execution engine for a given {@link RuleSet} and given
@@ -34,19 +37,22 @@ import org.apache.jena.graph.Triple;
  */
 public interface RulesEngine {
 
-//    public static RulesEngine build(Graph baseGraph, RuleSet ruleSet) {
-//        return RulesEngineFwdSimple.build(baseGraph, ruleSet);
-//    };
-
     public EngineType engineType();
 
     /** Graph over which the rules engine executes. */
     public Graph baseGraph();
 
+    /** The {@link RuleSet} of this RuleEngine instance. */
+    public RuleSet ruleSet();
+
     /** All triples - from rules (including DATA) and from the base graph. */
     public Graph materializedGraph();
 
-    public RuleSet ruleSet();
+    /**
+     * Execute, and return a graph of inferred triples that do not occur
+     * in the base graph. The base graph is not modified.
+     */
+    public Graph infer();
 
     /**
      * Query (in the sense of datalog).
@@ -65,6 +71,17 @@ public interface RulesEngine {
     }
 
     /**
+     * Calculate all the bindings that satisfy a triple pattern (i.e. with variables)
+     * that occur in the data graph or can be inferred by the rules engine.
+     */
+    public default Stream<Binding> match(Triple triplePattern) {
+        // Revisit - invert with "solve" and change RuleEngines
+        Binding root = BindingFactory.noParent;
+        Stream<Triple> stream = solve(triplePattern);
+        return stream.map(dataTriple -> SolverRX3.matchTriple(root, dataTriple, triplePattern));
+    }
+
+    /**
      * Execute the rule set and enrich the base graph.
      * The base graph is modified.
      */
@@ -75,12 +92,6 @@ public interface RulesEngine {
             .getTransactionHandler()
             .executeAlways( ()->GraphUtil.addInto(materializedGraph(), inferredGraph) );
     }
-
-    /**
-     * Execute, and return a graph of inferred triples that do not occur
-     * in the base graph. The base graph is not modified.
-     */
-    public Graph infer();
 
     /**
      * For development: enable trace mode for the engine.

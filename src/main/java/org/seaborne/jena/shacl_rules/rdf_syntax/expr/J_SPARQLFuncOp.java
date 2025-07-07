@@ -46,7 +46,7 @@ public class J_SPARQLFuncOp {
     // ----
 
     private static boolean strict() {
-        return  ARQ.isStrictMode();
+        return ARQ.isStrictMode();
     }
 
     // ---- All the implementations

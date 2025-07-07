@@ -21,7 +21,6 @@ package org.seaborne.jena.shacl_rules;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Triple;
@@ -41,10 +40,6 @@ public class RuleHead {
 
     public List<Triple> getTriples() {
         return triples;
-    }
-
-    public void forEach(Consumer<Triple> action) {
-        triples.forEach(action);
     }
 
     /**

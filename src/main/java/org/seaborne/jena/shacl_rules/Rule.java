@@ -21,8 +21,7 @@ package org.seaborne.jena.shacl_rules;
 import java.util.List;
 
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.Query;
-import org.apache.jena.sparql.syntax.ElementGroup;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 
 public class Rule {
@@ -33,11 +32,11 @@ public class Rule {
     /**
      * Used by the parser and {@link GraphToRuleSet}
      */
-    public static Rule create(List<Triple> triples, ElementGroup body) {
+    public static Rule create(List<Triple> triples, List<RuleElement> body) {
         return new Rule(triples, body);
     }
 
-    private Rule(List<Triple> triples, ElementGroup body) {
+    private Rule(List<Triple> triples, List<RuleElement> body) {
         this.head = new RuleHead(triples);
         this.body = new RuleBody(body);
     }
@@ -51,25 +50,7 @@ public class Rule {
         return body;
     }
 
-    public Query bodyAsQuery() {
-        return body.asQuery();
-    }
-
-    // Stick with object identity for now.
-
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(body, head);
-//    }
-//
-//    @Override
-//    public boolean equals(Object obj) {
-//        if ( this == obj )
-//            return true;
-//        if ( !(obj instanceof Rule other) )
-//            return false;
-//        return this.equivalent(other);
-//    }
+    // equal is object identity.
 
     /**
      * Rule equivalence is defined as two rules being the same for execution.

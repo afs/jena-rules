@@ -18,6 +18,8 @@
 
 package org.seaborne.jena.shacl_rules.lang;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,47 +33,19 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryParseException;
 import org.apache.jena.riot.lang.extra.LangParserBase;
 import org.apache.jena.sparql.ARQInternalErrorException;
-import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
-import org.apache.jena.sparql.syntax.ElementFilter;
-import org.apache.jena.sparql.syntax.ElementGroup;
-import org.apache.jena.sparql.syntax.ElementTriplesBlock;
+import org.seaborne.jena.shacl_rules.Rule;
 
 public class ShaclRulesParserBase extends LangParserBase {
 
-    private List<ElementRule> rules = new ArrayList<>();
+    private List<Rule> rules = new ArrayList<>();
     private List<Triple> data = new ArrayList<>();
 
-    public List<ElementRule> getRules() { return rules; }
+    public List<Rule> getRules() { return rules; }
     public List<Triple> getData() { return data; }
-
-    // The finish "start, end" are position of the start of the syntax element
-
-    protected void startRules() { state = BuildState.OUTER; }
-    protected void finishRules() {
-        if ( state != BuildState.OUTER )
-            throwInternalStateException("finishRuleSet: Unfinished rule?");
-        state = BuildState.NONE;
-    }
-
-    protected void startRule(int line, int column) {
-        state = BuildState.RULE;
-    }
-
-    protected void finishRule(int line, int column) {
-        if ( head == null )
-            throwInternalStateException("Null head");
-        if ( body == null )
-            throwInternalStateException("Null body");
-        ElementRule rule = new ElementRule(head, body);
-        rules.add(rule);
-        head = null;
-        body = null;
-        // Not data.
-        state = BuildState.OUTER;
-    }
 
     private static final boolean DEBUG = false;
 
@@ -83,26 +57,70 @@ public class ShaclRulesParserBase extends LangParserBase {
             System.out.println(msg);
         }
     }
+    // The finish "start, end" are position of the start of the syntax element
 
-    private BasicPattern head = null;
-    private ElementGroup body = null;
+    // ---- Parser state.
+
+    enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY };
+    protected BuildState state = BuildState.OUTER;
+
+    // Used while parsing the head.
+    private List<Triple> headAcc = null;
+    // Used while parsing the head.
+    private List<RuleElement> bodyAcc = null;
+
+    // ----
+
+    protected void startRules() {
+        state = BuildState.OUTER;
+    }
+
+    protected void finishRules() {
+        if ( state != BuildState.OUTER )
+            throwInternalStateException("finishRuleSet: Unfinished rule?");
+        state = BuildState.NONE;
+    }
+
+    protected void startRule(int line, int column) {
+        if ( bodyAcc != null )
+            throwInternalStateException("startHead: Already in a rule");
+        if ( headAcc != null )
+            throwInternalStateException("startHead: Already in a rule");
+
+        headAcc = new ArrayList<>();
+        bodyAcc = new ArrayList<>();
+        state = BuildState.RULE;
+    }
+
+    protected void finishRule(int line, int column) {
+        if ( headAcc == null )
+            throwInternalStateException("Null head");
+        if ( bodyAcc == null )
+            throwInternalStateException("Null body");
+
+        Rule rule = Rule.create(headAcc, bodyAcc);
+
+        headAcc = null;
+        bodyAcc = null;
+        rules.add(rule);
+        // Data is accumulative through the parser run.
+        state = BuildState.OUTER;
+    }
 
     protected void startHead(int line, int column) {
         debug("startHead", line, column);
-        if ( head != null )
-            throwInternalStateException("startHead: Already have a rule head");
-        head = new BasicPattern();
         state = BuildState.HEAD;
     }
 
     protected void finishHead(int line, int column) {
         debug("finishHead", line, column);
+        state = BuildState.NONE;
     }
 
     protected void startBody(int line, int column) {
         debug("startBody", line, column);
         state = BuildState.BODY;
-        body = new ElementGroup();
+        bodyAcc = new ArrayList<>();
     }
 
     protected void finishBody(int line, int column) {
@@ -110,20 +128,13 @@ public class ShaclRulesParserBase extends LangParserBase {
         state = BuildState.RULE;
     }
 
-    // Allows paths and variables (unless paths expanded in the parser)
+    // Allows variables. Paths expand by the parser (??)
     protected void startTriplesBlock(int line, int column) {
         debug("startTriplesBlock", line, column);
-        if ( elTriples != null )
-            throwInternalStateException("Already gathering triples");
-        // Start gather.
-        elTriples = new ElementTriplesBlock();
     }
 
     protected void finishTriplesBlock(int line, int column) {
         debug("finishTriplesBlock", line, column);
-        if ( elTriples.isEmpty() ) {}
-        body.addElement(elTriples);
-        elTriples = null;
     }
 
     // Allows variables. Used for head.
@@ -147,6 +158,58 @@ public class ShaclRulesParserBase extends LangParserBase {
         state = BuildState.OUTER;
     }
 
+    private void addToHead(Triple tripleTemplate) {
+        requireNonNull(tripleTemplate);
+        headAcc.add(tripleTemplate);
+    }
+
+    private void addToBody(RuleElement ruleElt)   { bodyAcc.add(ruleElt); }
+
+    private void addRuleElement(Triple triplePattern) {
+        requireNonNull(triplePattern);
+        addToBody(new RuleElement.EltTriplePattern(triplePattern));
+    }
+
+    private void addRuleElement(Expr expression) {
+        requireNonNull(expression);
+        addToBody(new RuleElement.EltCondition(expression));
+    }
+
+    private void addRuleElement(Var var, Expr expression) {
+        requireNonNull(var);
+        requireNonNull(expression);
+        addToBody(new RuleElement.EltAssignment(var, expression));
+    }
+
+    protected void emitTriple(Node s, Node p, Path path, Node o, int line, int column) {
+        debug("emitTriple", line, column);
+        if ( path != null ) {
+            if ( path instanceof P_Link pLink ) {
+                p = pLink.getNode();
+            } else {
+                profile.getErrorHandler().error("Path - ignored", line, column);
+                return;
+            }
+        }
+        accTriple(s, p, o, line, column);
+    }
+
+    protected void emitTriple(Node s, Node p, Node o, int line, int column) {
+        debug("emitTriple", line, column);
+        accTriple(s, p, o, line, column);
+    }
+
+    protected void emitExpr(Expr expr, int line, int column) {
+        debug("emitExpr", line, column);
+        // System.out.println(Fmt.fmtSPARQL(expr, profile.getPrefixMap()));
+        accExpr(expr);
+        addRuleElement(expr);
+    }
+
+    protected Node emitTripleReifier(Node reifierId, Node s, Node p, Node o, int line, int column) {
+        return super.emitTripleReifier(line, column, reifierId, s, p, o);
+    }
+
     protected void transitiveProperty(String iriStr) {
         throw new NotImplemented("TRANSITIVE");
     }
@@ -163,27 +226,7 @@ public class ShaclRulesParserBase extends LangParserBase {
         throw new NotImplemented("IMPORTS");
     }
 
-    // -- Rule building state
-    enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY };
-
-    BuildState state = BuildState.OUTER;
-
-    private ElementTriplesBlock elTriples = null;
-
-    // -- Accumulators
-
-    protected void emitTriple(Node s, Node p, Path path, Node o, int line, int column) {
-        debug("emitTriple", line, column);
-        if ( path != null ) {
-            if ( path instanceof P_Link pLink ) {
-                p = pLink.getNode();
-            } else {
-                profile.getErrorHandler().error("Path - ignored", line, column);
-                return;
-            }
-        }
-        accTriple(s, p, o, line, column);
-    }
+    // --
 
     protected void throwParseException(String msg, int line, int column) {
         throw new ShaclRulesParseException(msg, line, column);
@@ -193,24 +236,12 @@ public class ShaclRulesParserBase extends LangParserBase {
         throw new IllegalStateException(msg);
     }
 
-    protected void emitTriple(Node s, Node p, Node o, int line, int column) {
-        debug("emitTriple", line, column);
-        //super.emitTriple(line, column, s, p, o);
-        accTriple(s, p, o, line, column);
-    }
-
-    protected void emitExpr(Expr expr, int line, int column) {
-        debug("emitExpr", line, column);
-        //System.out.println(Fmt.fmtSPARQL(expr, profile.getPrefixMap()));
-        accExpr(expr);
-    }
-
     private void accTriple(Node s, Node p , Node o, int line, int column) {
         Triple triple = Triple.create(s, p, o);
 
         switch(state) {
-            case HEAD -> { head.add(triple); }
-            case BODY -> { elTriples.addTriple(triple); }
+            case HEAD -> { addToHead(triple); }
+            case BODY -> { addRuleElement(Triple.create(s,p,o)); }
             case DATA -> {
                 if ( ! triple.isConcrete() )
                     throwParseException("Triple must be concrete (no variables): "+triple, line, column);
@@ -227,8 +258,7 @@ public class ShaclRulesParserBase extends LangParserBase {
     }
 
     private void accExpr(Expr expr) {
-        ElementFilter filter = new ElementFilter(expr);
-        body.addElement(filter);
+        addRuleElement(expr);
     }
 
     // To LangParseBase?
@@ -262,10 +292,6 @@ public class ShaclRulesParserBase extends LangParserBase {
             return ((P_Link)path).getNode();
         throwParseException("Only simple paths allowed with reifier syntax", line, column);
         return null;
-    }
-
-    protected Node emitTripleReifier(Node reifierId, Node s, Node p, Node o, int line, int column) {
-        return super.emitTripleReifier(line, column, reifierId, s, p, o);
     }
 
     // ---- IRIs with resolving
@@ -302,7 +328,7 @@ public class ShaclRulesParserBase extends LangParserBase {
     }
 
     // ---- Literals
-    // Strings, lang strings, dirlang strings and datatyped literals.
+    // Strings, lang strings, dirlang strings, and datatyped literals.
 
     protected Node createLiteralString(String lexicalForm, int line, int column) {
         return NodeFactory.createLiteralString(lexicalForm);
@@ -358,6 +384,4 @@ public class ShaclRulesParserBase extends LangParserBase {
         // langTag != null, textDirStr == null.
         return NodeFactory.createLiteralLang(lexicalForm, langTag2);
     }
-
-
 }

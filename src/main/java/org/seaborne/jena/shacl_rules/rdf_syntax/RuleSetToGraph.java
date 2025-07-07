@@ -24,22 +24,25 @@ import java.util.ListIterator;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.shacl.ShaclException;
-import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.sparql.syntax.*;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
+import org.seaborne.jena.shacl_rules.sys.RuleLib;
 
 public class RuleSetToGraph {
 
@@ -67,7 +70,6 @@ public class RuleSetToGraph {
                 ruleNode = x;
             }
             Node nHead = writeHead(graph, ruleNode, rule);
-            ElementGroup body = rule.getBody().asElement();
             Node nBody = writeBody(graph, ruleNode, rule);
             rules.add(ruleNode);
         });
@@ -96,39 +98,28 @@ public class RuleSetToGraph {
     }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
-        ElementGroup elg = rule.getBody().asElement();
+        var bodyElts = rule.getBody().getBodyElements();
         List<Node> items = new ArrayList<>();
-        for ( Element e : elg.getElements() ) {
-            switch(e) {
-                case ElementTriplesBlock tBlk -> {
-                    List<Node> x = basicGraphPatternAsList(graph, tBlk.getPattern());
-                    items.addAll(x);
+        bodyElts.forEach(elt->{
+            switch(elt) {
+                case EltTriplePattern(var triplePattern) -> {
+                   items.add(encodeTriple(graph, triplePattern));
                 }
-                case ElementPathBlock pBlk -> {
-                    BasicPattern bodyTriplePattern = new BasicPattern();
-                    pBlk.getPattern().forEach(triplePath->{
-                        // Better - sort out seq and alt.
-                        Triple t = triplePath.asTriple();
-                        if ( t == null )
-                            throw new ShaclException("Path expression triples: "+triplePath);
-                        bodyTriplePattern.add(t);
-                    });
-                    List<Node> x = basicGraphPatternAsList(graph, bodyTriplePattern);
-                    items.addAll(x);
-                }
-                case ElementFilter fBlk -> {
-                    Node nExpr = expression(graph, fBlk.getExpr());
+                case EltCondition(var condition) -> {
+                    Node nExpr = expression(graph, condition);
                     items.add(nExpr);
                 }
-                default -> {
-                    throw new ShaclException("Not supported for RDF output: "+e.getClass().getSimpleName());
+                case EltAssignment(Var var, Expr expression) -> {
+                    throw new NotImplemented();
                 }
-            }
-        }
+                case null -> {}
+                default -> {}
+                }
+        });
 
         if ( false ) {
             // Put in the SPARQL form.
-            String qs = rule.getBody().toString();
+            String qs = RuleLib.ruleEltsToElementGroup(bodyElts).toString();
             Node nSparqlForm = NodeFactory.createBlankNode();
             Node nQueryString = NodeFactory.createLiteralString(qs);
             graph.add(nSparqlForm, V.sparqlBody, nQueryString);
@@ -157,27 +148,28 @@ public class RuleSetToGraph {
         return out.asString();
     }
 
-    private static List<Node> basicGraphPatternAsList(Graph graph, BasicPattern basicPattern) {
-        return triplesAsList(graph, basicPattern.getList());
-    }
-
     private static List<Node> triplesAsList(Graph graph, List<Triple> triples) {
         List<Node> elements = new ArrayList<>();
         triples.forEach(triple->{
-            Node tripleNode = NodeFactory.createBlankNode();
-            Node sNode = convertVar(graph, triple.getSubject());
-            Node pNode = convertVar(graph, triple.getPredicate());
-            Node oNode = convertVar(graph, triple.getObject());
-
-            Triple sTriple = Triple.create(tripleNode, V.subject, sNode);
-            Triple pTriple = Triple.create(tripleNode, V.predicate, pNode);
-            Triple oTriple = Triple.create(tripleNode, V.object, oNode);
-            graph.add(sTriple);
-            graph.add(pTriple);
-            graph.add(oTriple);
+            var tripleNode = encodeTriple(graph, triple);
             elements.add(tripleNode);
         });
         return elements;
+    }
+
+    private static Node encodeTriple(Graph graph, Triple triple) {
+        Node tripleNode = NodeFactory.createBlankNode();
+        Node sNode = convertVar(graph, triple.getSubject());
+        Node pNode = convertVar(graph, triple.getPredicate());
+        Node oNode = convertVar(graph, triple.getObject());
+
+        Triple sTriple = Triple.create(tripleNode, V.subject, sNode);
+        Triple pTriple = Triple.create(tripleNode, V.predicate, pNode);
+        Triple oTriple = Triple.create(tripleNode, V.object, oNode);
+        graph.add(sTriple);
+        graph.add(pTriple);
+        graph.add(oTriple);
+        return tripleNode;
     }
 
     private static Node convertVar(Graph graph, Node node) {

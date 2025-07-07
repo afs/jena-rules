@@ -28,7 +28,6 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.exec.RuleOps;
 import org.seaborne.jena.shacl_rules.writer.ShaclRulesWriter;
 
 /**
@@ -82,7 +81,7 @@ public class DependencyGraph {
    private boolean DEBUG_BUILD = false;
 
    private void put(Rule rule) {
-       Collection<Rule> c = RuleOps.dependencies(rule, ruleSet);
+       Collection<Rule> c = RuleDependencies.dependencies(rule, ruleSet);
        if ( DEBUG_BUILD )
            System.out.println(c.size()+" :: put:"+rule);
        if ( c.isEmpty() ) {
@@ -91,10 +90,10 @@ public class DependencyGraph {
            direct.putAll(rule, c);
        }
 
-       rule.getBody().getTriples().forEach(triple->{
+       rule.getBody().getDependentTriples().forEach(triple->{
            // Look for rules with this triple (or a generalization) in the head
            ruleSet.getRules().forEach(r->{
-               if ( RuleOps.dependsOn(triple,  rule) ) {
+               if ( RuleDependencies.dependsOn(triple,  rule) ) {
                    providers.put(triple,rule);
                }
            });

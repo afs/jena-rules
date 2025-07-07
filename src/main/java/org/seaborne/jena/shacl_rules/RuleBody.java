@@ -18,88 +18,59 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.Query;
-import org.apache.jena.shacl.ShaclException;
-import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.syntax.*;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
 public class RuleBody {
 
-    private final ElementGroup bodyGroup;
-    private final Query bodyAsQuery;
+    private final List<RuleElement> body;
     private final List<Triple> bodyTriples;
 
-    public RuleBody(ElementGroup eltGroup) {
-        this.bodyGroup = eltGroup;
-        this.bodyAsQuery = elementToQuery(eltGroup);
-        this.bodyTriples = elementToTriples(eltGroup);
-    }
-    public Query asQuery() {
-        return bodyAsQuery;
+    public RuleBody(List<RuleElement> ruleElts) {
+        this.body = ruleElts;
+        this.bodyTriples = ruleGetTriples(ruleElts);
     }
 
-    public ElementGroup asElement() {
-        return bodyGroup;
+    // The triples used in pattern matching.
+    private static List<Triple> ruleGetTriples(List<RuleElement> ruleElts) {
+        List<Triple> x = ruleElts.stream()
+                .map(RuleBody::patternTripleOrNull)
+                .filter(Objects::nonNull).toList();
+        return x;
     }
 
-    public List<Triple> getTriples() {
+    private static Triple patternTripleOrNull(RuleElement elt) {
+        return switch(elt) {
+            case RuleElement.EltTriplePattern el -> el.triplePattern();
+            default -> null;
+        };
+    }
+
+    public List<RuleElement> getBodyElements() {
+        return body;
+    }
+
+    /**
+     * The triples used in pattern matching.
+     */
+    public List<Triple> getDependentTriples() {
         return bodyTriples;
-    }
-
-    private static Query elementToQuery(ElementGroup eltGroup) {
-        Query query = new Query();
-        query.setQuerySelectType();
-        query.setQueryResultStar(true);
-        query.setQueryPattern(eltGroup);
-        return query;
-    }
-
-    // Extract the triples from the body's Element Group.
-    private static List<Triple> elementToTriples(ElementGroup eltGroup) {
-        List<Triple> triples = new ArrayList<>();
-
-        for ( Element e : eltGroup.getElements() ) {
-            switch(e) {
-                case ElementTriplesBlock tBlk -> {
-                    triples.addAll(tBlk.getPattern().getList());
-                }
-                case ElementPathBlock pBlk -> {
-                    BasicPattern bodyTriplePattern = new BasicPattern();
-                    pBlk.getPattern().forEach(triplePath->{
-                        // Better - sort out seq and alt.
-                        Triple t = triplePath.asTriple();
-                        if ( t == null )
-                            throw new ShaclException("Path expression triples: "+triplePath);
-                        triples.add(t);
-                    });
-                }
-                case ElementFilter fBlk -> {/*ignore*/}
-                default -> {
-                    throw new ShaclException("Not supported for RDF output: "+e.getClass().getSimpleName());
-                }
-            }
-        }
-        return Collections.unmodifiableList(triples);
     }
 
     /**
      * Equivalent - same effect, not necessarily {@code .equals}.
      */
-
     public boolean equivalent(RuleBody other) {
-        // XXX Revisit
-        return Objects.equals(bodyGroup, other.bodyGroup);
+        // Order does matter evaluation - well-formedness
+        return Objects.equals(body, other.body);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bodyAsQuery, bodyGroup);
+        return Objects.hash(body);
     }
 
     @Override
@@ -109,11 +80,17 @@ public class RuleBody {
         if ( !(obj instanceof RuleBody) )
             return false;
         RuleBody other = (RuleBody)obj;
-        return Objects.equals(bodyAsQuery, other.bodyAsQuery) && Objects.equals(bodyGroup, other.bodyGroup);
+        return Objects.equals(body, other.body);
     }
 
     @Override
     public String toString() {
-        return bodyTriples.toString();
+        List<Triple> x = body.stream()
+                .map(elt-> switch(elt) {
+                    case RuleElement.EltTriplePattern el -> el.triplePattern();
+                    default -> null;
+                })
+                .filter(Objects::nonNull).toList();
+        return x.toString();
     }
 }

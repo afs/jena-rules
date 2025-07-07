@@ -18,16 +18,13 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.core.Substitute;
-import org.apache.jena.sparql.exec.RowSetOps;
-import org.apache.jena.sparql.exec.RowSetRewindable;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.seaborne.jena.shacl_rules.EngineType;
 import org.seaborne.jena.shacl_rules.Rule;
@@ -43,7 +40,7 @@ import org.seaborne.jena.shacl_rules.jena.AppendGraph;
  */
 public class RulesEngineFwdSimple implements RulesEngine {
 
-    private boolean TRACE = true;
+    private boolean TRACE = false;
     @Override
     public RulesEngineFwdSimple setTrace(boolean traceSetting) {
         TRACE = traceSetting;
@@ -202,9 +199,10 @@ public class RulesEngineFwdSimple implements RulesEngine {
             graph1.flush();
         }
 
-        // dataGraph.getAdded() == accumulationGraph+DATA?
+        Graph inferred = dataGraph.getAdded();
+        inferred.getPrefixMapping().setNsPrefixes(dataGraph.getPrefixMapping());
 
-        return new Evaluation(baseGraph, ruleSet, accumulationGraph, dataGraph, round);
+        return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, round);
     }
 
     /**
@@ -214,17 +212,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     private void evalOneRule(Graph graph, Rule rule) {
         if ( TRACE )
             System.out.println("Rule: "+rule);
-        RowSetRewindable rowset = RuleExec.evalRule(graph, rule).rewindable();
-
-        if ( TRACE ) {
-            RowSetOps.out(rowset);
-            rowset.reset();
-        }
-
-        BasicPattern bgp = rule.getHead().asBGP();
-        rowset.forEach(row->{
-            BasicPattern bgp2 = Substitute.substitute(bgp, row);
-            bgp2.forEach(t->graph.add(t));
-        });
+        List<Triple> triples = RuleExec.evalRule(graph, rule);
+        GraphUtil.add(graph, triples);
     }
 }

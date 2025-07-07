@@ -23,10 +23,12 @@ import java.util.stream.Stream;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
@@ -35,15 +37,22 @@ import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.function.FunctionEnv;
+import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.EngineType;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.cmds.Access;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
+import org.seaborne.jena.shacl_rules.sys.RuleDependencies;
 
 /*
  * A simple backwards chaining rule engine.
@@ -88,21 +97,12 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     public Graph materializedGraph() {
         Evaluation e = solveTop(queryTripleAll);
         return e.outputGraph;
-//        Graph graph = GraphFactory.createDefaultGraph();
-//        GraphUtil.addInto(graph, baseGraph);
-//        Graph g2 = infer();
-//        GraphUtil.addInto(graph, g2);
-//        return graph;
     }
 
     @Override
     public RuleSet ruleSet() {
         return ruleSet;
     }
-
-    //static ElementRule emptyRule0 = ShaclRulesParser.parseString("RULE {} WHERE {}").getRules().getFirst();
-
-    //static ElementRule emptyRule1 = Rule.create(List.of(), new ElementRule(new BasicPattern(), new ElementGroup()));
 
     @Override
     public Stream<Triple> solve(Node s, Node p, Node o) {
@@ -116,7 +116,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( TRACE )
             LOG.printf("<< query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
         // Do better! Query subClass of Rule.
-        Rule query = Rule.create(List.of(queryTriple), new ElementGroup());
+        Rule query = Rule.create(List.of(queryTriple), List.of());
 
         // Collects all inferred triples from rules touched during the evaluation.
         // Filter inferred triples to find the ones we want.
@@ -227,7 +227,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         List<Rule> dependsOn = new ArrayList<>();
         for ( Rule rule : ruleSet.getRules() ) {
             // XXX Check this!!!
-            if ( RuleOps.dependsOn(queryTriple, rule) ) {
+            if ( RuleDependencies.dependsOn(queryTriple, rule) ) {
                 dependsOn.add(rule);
             }
         }
@@ -244,32 +244,36 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             LOG.printf("solveRule(%s)\n", rule.toString());
         }
 
-        List<Triple> body = rule.getBody().getTriples();
-        Stream<Triple> results = null;
-
         // Start
         Binding binding = BindingFactory.binding();
         Iterator<Binding> chain = Iter.singletonIterator(binding);
 
         if ( TRACE )
             LOG.incIndent();
-        for ( Triple pattern : body ) {
-            List<Rule> subRules = dependsOn(pattern);
-            if ( TRACE ) {
-                LOG.printf("DependsOn: %s\n", subRules.toString());
+
+        for ( RuleElement elt : rule.getBody().getBodyElements() ) {
+            switch(elt) {
+                case EltTriplePattern(Triple triplePattern) -> {
+                    List<Rule> subRules = dependsOn(triplePattern);
+                    for ( Rule subRule : subRules ) {
+                        Stream<Triple> sub = solveRule(subRule, workingGraph, visited);
+                        sub.forEach(workingGraph::add);
+                    }
+                    chain = Access.accessGraph(chain, workingGraph, triplePattern);
+                }
+                case EltCondition(Expr condition) -> {
+                    chain = Iter.filter(chain, solution-> {
+                        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+                        // ExprNode.isSatisfied converts exceptions to ExprEvalException
+                        return condition.isSatisfied(solution, functionEnv);
+                    });
+                }
+                case EltAssignment(Var var, Expr expression) -> {
+                    throw new NotImplemented();
+                }
+//                case null -> {}
+//                default -> {}}
             }
-
-            // solve these and then
-            // Binding + rename to avoid triples.
-            // Later.
-
-            for ( Rule subRule : subRules ) {
-                // Stream<Triple> solveRule(Rule rule, AppendGraph workingGraph, Set<Rule> visited) {
-                Stream<Triple> sub = solveRule(subRule, workingGraph, visited);
-                sub.forEach(workingGraph::add);
-            }
-
-            chain = Access.accessGraph(chain, workingGraph, pattern);
 
             if ( TRACE ) {
                 LOG.print("chain: ");
@@ -277,6 +281,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             }
         }
 
+        //
         // Change to skip "instantiate" - needs a renamer.
         if ( TRACE )
             LOG.decIndent();
@@ -350,7 +355,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     }
 
     private static String str(Rule rule, PrefixMap prefixMap) {
-        return str(rule.getHead().getTriples(), prefixMap) + " :- " +         str(rule.getBody().getTriples(), prefixMap);
+        return str(rule.getHead().getTriples(), prefixMap) + " :- " +         str(rule.getBody().getDependentTriples(), prefixMap);
     }
 
     private static String str(List<Triple> triples, PrefixMap prefixMap) {
@@ -374,15 +379,15 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
     private boolean mayGenerate(Triple queryTriple, Rule r) {
         for ( Triple headTriple : r.getHead().getTriples() ) {
-            if ( RuleOps.dependsOn(headTriple, queryTriple) ) {
+            if ( RuleDependencies.dependsOn(headTriple, queryTriple) ) {
                 return true;
             }
         }
         return false;
     }
-
-    private boolean provides(Triple queryTriple, Triple headTriple) {
-        return false;
-    }
-
+//
+//    private boolean provides(Triple queryTriple, Triple headTriple) {
+//        return false;
+//    }
+//
 }

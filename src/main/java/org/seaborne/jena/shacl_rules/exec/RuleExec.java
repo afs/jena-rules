@@ -18,20 +18,77 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.query.Query;
-import org.apache.jena.sparql.exec.QueryExec;
-import org.apache.jena.sparql.exec.RowSet;
-import org.seaborne.jena.shacl_rules.Rule;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ARQ;
+import org.apache.jena.sparql.core.Substitute;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.function.FunctionEnv;
+import org.apache.jena.sparql.function.FunctionEnvBase;
+import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.cmds.Access;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
+
+/** Forward execution support */
 public class RuleExec {
 
-    /**
-     * Execute a rule once on a graph.
-     */
-    public static RowSet evalRule(Graph graph, Rule rule) {
-        Query query = rule.bodyAsQuery();
-        RowSet rowset = QueryExec.graph(graph).query(query).select();
-        return rowset;
+    public static Iterator<Binding> evalBody(Graph graph, Rule rule) {
+        Binding binding = BindingFactory.binding();
+        return buildEvalBody(graph, binding, rule);
+    }
+
+    public static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, Rule rule) {
+        Iterator<Binding> chain = Iter.singletonIterator(binding);
+
+        for ( RuleElement elt : rule.getBody().getBodyElements() ) {
+            switch(elt) {
+                case EltTriplePattern(Triple triplePattern) -> {
+                    chain = Access.accessGraph(chain, graph, triplePattern);
+                }
+                case EltCondition(Expr condition) -> {
+                    chain = Iter.filter(chain, solution-> {
+                        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+                        // ExprNode.isSatisfied converts exceptions to ExprEvalException
+                        return condition.isSatisfied(solution, functionEnv);
+                    });
+                }
+                case EltAssignment(Var var, Expr expression) -> {
+                    throw new NotImplemented();
+                }
+//                case null -> {}
+//                default -> {}}
+            }
+            if ( false ) {
+                FmtLog.info(RuleExec.class, "chain: ");
+                chain = Iter.log(System.out, chain);
+            }
+        }
+        return chain;
+    }
+
+    public static List<Triple> evalRule(Graph graph, Rule rule) {
+        Iterator<Binding> iter = evalBody(graph, rule);
+        List<Triple> x = new ArrayList<>();
+        Iter.forEach(iter, solution->accInstantiateHead(x, rule, solution));
+        return x;
+    }
+
+    private static void accInstantiateHead(List<Triple> acc,  Rule rule, Binding solution) {
+        rule.getHead().getTriples().stream()
+                .map(triple->Substitute.substitute(triple, solution))
+                .forEach(acc::add);
     }
 }

@@ -33,9 +33,11 @@ import org.apache.jena.riot.system.*;
 import org.apache.jena.riot.writer.DirectiveStyle;
 import org.apache.jena.sparql.serializer.FormatterElement;
 import org.apache.jena.sparql.serializer.SerializationContext;
+import org.apache.jena.sparql.syntax.Element;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleHead;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.sys.RuleLib;
 
 public class ShaclRulesWriter {
 
@@ -228,7 +230,7 @@ public class ShaclRulesWriter {
         private void writeHead(Rule rule) {
             RuleHead head = rule.getHead();
             out.print("{");
-            head.forEach(triple -> {
+            head.getTriples().forEach(triple -> {
                 out.print(" ");
                 writeTriple(triple);
             });
@@ -262,7 +264,8 @@ public class ShaclRulesWriter {
             }
             // Without braces.
             IndentedLineBuffer outx = new IndentedLineBuffer();
-            FormatterElement.format(outx, sCxt, rule.getBody().asElement());
+            Element element = RuleLib.ruleEltsToElementGroup(rule.getBody().getBodyElements());
+            FormatterElement.format(outx, sCxt, element);
             String x = outx.asString();
             // Remove outer {}s. Put back leading space.
             x = " "+x.substring(1, x.length()-1);

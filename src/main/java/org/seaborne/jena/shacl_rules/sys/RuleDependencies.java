@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.exec;
+package org.seaborne.jena.shacl_rules.sys;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,13 +28,12 @@ import org.apache.jena.sparql.core.Var;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 
-public // For development.
-/*package*/ class RuleOps {
+public class RuleDependencies {
     /** Return the rules that have a given rule depends on. */
     public static Collection<Rule> dependencies(Rule rule, RuleSet ruleSet) {
         List<Rule> array = new ArrayList<>();
         for ( Rule r : ruleSet.getRules() ) {
-            for ( Triple bodyTriple : rule.getBody().getTriples() ) {
+            for ( Triple bodyTriple : rule.getBody().getDependentTriples() ) {
                 if ( dependsOn(bodyTriple, r) ) {
                     array.add(r);
                     // Short circuit looking in the rest of the body.

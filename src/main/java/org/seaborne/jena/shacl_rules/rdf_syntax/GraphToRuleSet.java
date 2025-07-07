@@ -28,14 +28,12 @@ import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.syntax.Element;
-import org.apache.jena.sparql.syntax.ElementFilter;
-import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.util.graph.GNode;
 import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
 
 public class GraphToRuleSet {
@@ -103,7 +101,7 @@ public class GraphToRuleSet {
         Node bodyNode = G.getOneSP(graph, n, V.body);
 
         List<Triple> headTemplate = parseRuleHead(graph, headNode);
-        ElementGroup body = parseRuleBody(graph, bodyNode);
+        List<RuleElement> body = parseRuleBody(graph, bodyNode);
         Rule rule = Rule.create(headTemplate, body);
         return rule;
     }
@@ -130,8 +128,8 @@ public class GraphToRuleSet {
         return t;
     }
 
-    private static ElementGroup parseRuleBody(Graph graph, Node bodyNode) {
-        ElementGroup elg = new ElementGroup();
+    private static List<RuleElement> parseRuleBody(Graph graph, Node bodyNode) {
+        List<RuleElement> body = new ArrayList<>();
         GNode gNode = GNode.create(graph, bodyNode);
         List<Node> x = GraphList.members(gNode);
         // Mutated
@@ -140,15 +138,14 @@ public class GraphToRuleSet {
             // Two forms:
             if ( G.hasProperty(graph, node, V.expr) || G.hasProperty(graph, node, V.sparqlExpr) ) {
                 Expr expr = SparqlNodeExpression.rdfToExpr(graph, node);
-                Element elt = new ElementFilter(expr);
-                elg.addElement(elt);
+                body.add(new RuleElement.EltCondition(expr));
                 continue;
             }
 
             if ( G.hasProperty(graph, node, V.subject) ) {
                 // Single triple rule.
                 Triple triple = parseTriple(graph, node);
-                elg.addTriplePattern(triple);
+                body.add(new RuleElement.EltTriplePattern(triple));
                 continue;
             }
             if ( G.hasProperty(graph, node, V.sparqlBody) ) {
@@ -157,7 +154,7 @@ public class GraphToRuleSet {
             }
             throw new ShaclException("Didn't recognized RDF for rule body");
         }
-        return elg;
+        return body;
     }
 
     private static List<Triple> parseData(Graph graph, Node ruleSetNode) {
@@ -176,16 +173,6 @@ public class GraphToRuleSet {
         tripleTerms.forEach(tt-> triples.add(tt.getTriple()));
         return triples;
     }
-
-//    private static void flushBGP(ElementGroup elg, List<Triple> triples) {
-//        if ( triples == null )
-//            return;
-//        if ( triples.isEmpty() )
-//            return;
-//        BasicPattern bgp = new BasicPattern(List.copyOf(triples));
-//        Element elt = new ElementTriplesBlock(bgp);
-//        elg.addElement(el);
-//    }
 
     private static Node extractVar(Graph graph, Node node) {
         if ( ! node.isBlank() )
