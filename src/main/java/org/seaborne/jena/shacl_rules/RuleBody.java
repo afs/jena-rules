@@ -20,6 +20,7 @@ package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
@@ -51,6 +52,10 @@ public class RuleBody {
 
     public List<RuleElement> getBodyElements() {
         return body;
+    }
+
+    public void forEach(Consumer<RuleElement> action) {
+        body.forEach(action);
     }
 
     /**

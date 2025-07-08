@@ -50,8 +50,6 @@ public class Rule {
         return body;
     }
 
-    // equal is object identity.
-
     /**
      * Rule equivalence is defined as two rules being the same for execution.
      * but they may be different by object identity. In java terms, {@code rule1 != rule2}.

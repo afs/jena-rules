@@ -23,21 +23,23 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterTTL_MultiLine;
 import org.apache.jena.riot.system.*;
 import org.apache.jena.riot.writer.DirectiveStyle;
-import org.apache.jena.sparql.serializer.FormatterElement;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.serializer.FmtExprSPARQL;
 import org.apache.jena.sparql.serializer.SerializationContext;
-import org.apache.jena.sparql.syntax.Element;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.RuleBody;
 import org.seaborne.jena.shacl_rules.RuleHead;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.sys.RuleLib;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
 public class ShaclRulesWriter {
 
@@ -111,12 +113,8 @@ public class ShaclRulesWriter {
     // ---------------------
 
     private static void internalPrint(IndentedWriter out, RuleSet ruleSet, Style style) {
-        IRIx baseIRI = null;
-        PrefixMap prefixMap = null;
-        if ( ruleSet != null ) {
-            baseIRI = ruleSet.getBase();
-            prefixMap = ruleSet.getPrefixMap();
-        }
+        IRIx baseIRI = ruleSet.getBase();
+        PrefixMap prefixMap = ruleSet.getPrefixMap();
         if ( prefixMap == null )
             // Helps switching to/from PrefixMappings.
             prefixMap = PrefixMapFactory.create();
@@ -126,12 +124,6 @@ public class ShaclRulesWriter {
     }
 
     private static void internalPrint(IndentedWriter out, Rule rule, Style style, PrefixMap prefixMap) {
-//        IRIx baseIRI = ruleSet.getBase();
-//        PrefixMap prefixMap = ruleSet.getPrefixMap();
-//        if ( prefixMap == null )
-//            prefixMap = PrefixMapFactory.create();
-        //PrefixMap prefixMap = PrefixMapFactory.create();
-
         RuleSetWriter srw = new RuleSetWriter(out, prefixMap, null, style);
         srw.writeRule(rule);
     }
@@ -146,10 +138,10 @@ public class ShaclRulesWriter {
         private final NodeFormatter nodeFormatter;
         private final SerializationContext sCxt;
 
-        private final Style style;
+        private final Style styleRuleSet;
 
         // There is little value in using the visitor pattern due to detailed control of space between items.
-        private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Style style) {
+        private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Style baseStyle) {
             if  (prefixMap == null )
                 prefixMap = PrefixMapZero.empty; // Prefixes.empty()
 
@@ -161,7 +153,7 @@ public class ShaclRulesWriter {
             this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
             // XXX Replace me.
             this.sCxt = new SerializationContext(Prefixes.adapt(prefixMap));
-            this.style = Objects.requireNonNull(style);
+            this.styleRuleSet = Objects.requireNonNull(baseStyle);
         }
 
         private void writeRuleSet(RuleSet ruleSet) {
@@ -176,27 +168,24 @@ public class ShaclRulesWriter {
             writeData(ruleSet);
 
             List<Rule> rules = ruleSet.getRules();
-            boolean first = true;
+            boolean blankLine = ruleSet.hasData();
 
             for ( Rule rule : rules ) {
-                if ( ! first ) {
-                    if ( style == Style.MultiLine )
-                        out.println();
+                if ( blankLine ) {
+                    out.println();
                 }
-
-                first = false;
-
+                blankLine = true;
                 writeRule(rule);
             }
         }
 
         private void writeData(RuleSet ruleSet) {
-            List<Triple> data = ruleSet.getDataTriples();
-            if ( data == null || data.isEmpty() )
+            if ( ! ruleSet.hasData() )
                 return;
+            List<Triple> data = ruleSet.getDataTriples();
 
             out.print("DATA {");
-            if ( style == Style.Flat || data.size() == 1 ) {
+            if ( styleRuleSet == Style.Flat || data.size() == 1 ) {
                 data.forEach(triple->{
                     out.print(" ");
                     writeTriple(triple);
@@ -216,25 +205,119 @@ public class ShaclRulesWriter {
         }
 
         private void writeRule(Rule rule) {
+            Style styleHead = this.styleRuleSet;
+            Style styleBody = rule.getBody().getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
             out.print("RULE ");
-            writeHead(rule);
-            if ( style == Style.MultiLine )
+            writeHead(rule.getHead(), styleHead);
+
+            if ( styleRuleSet == Style.MultiLine )
                 out.println();
             else
                 out.print(" ");
             out.print("WHERE ");
-            writeBody(rule);
-            out.println();
+            writeBody(rule.getBody(), styleBody);
         }
 
-        private void writeHead(Rule rule) {
-            RuleHead head = rule.getHead();
+        private void writeHead(RuleHead head, Style styleRule) {
             out.print("{");
             head.getTriples().forEach(triple -> {
                 out.print(" ");
                 writeTriple(triple);
             });
             out.print(" }");
+        }
+
+        private void writeBody(RuleBody ruleBody, Style styleBody) {
+            int initIndent = 0;
+            int offset = out.getCol()-6;
+            out.setAbsoluteIndent(offset);
+            try {
+                writeBodyInner(ruleBody, styleBody);
+            } finally {
+                out.setAbsoluteIndent(initIndent);
+            }
+        }
+
+        private void writeBodyInner(RuleBody ruleBody, Style styleBody) {
+            int indent = 2;
+
+            switch(styleBody) {
+                case Flat -> {
+                    out.setFlatMode(true);
+                    out.print("{ ");
+                }
+                case MultiLine -> {
+
+                    out.print("{");
+                    out.println();
+                    out.incIndent(indent);
+                }
+            }
+            // Without braces.
+            if ( true ) {
+                boolean first = true;
+                for ( RuleElement elt : ruleBody.getBodyElements() ) {
+                    if ( ! first ) {
+                        if ( styleBody == Style.MultiLine )
+                            out.println();
+                        else
+                        out.print(" ");
+                    }
+                    first = false;
+
+                    switch (elt) {
+                        case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                            writeTriple(triplePattern);
+                        }
+                        case RuleElement.EltCondition(Expr condition) -> {
+                            out.write("FILTER");
+                            writeExpr(condition);
+                        }
+                        case RuleElement.EltAssignment(Var var, Expr expression) -> {
+                            out.write("BIND( ");
+                            writeExpr(expression);
+                            out.write(" AS ");
+                            nodeFormatter.format(out, var);
+                            out.write(")");
+                        }
+                        case null -> {
+                            throw new InternalErrorException();
+                        }
+                    }
+                }
+
+
+//            } else {
+//                IndentedLineBuffer outx = new IndentedLineBuffer();
+//
+//                Element element = RuleLib.ruleEltsToElementGroup(ruleBody.getBodyElements());
+//                FormatterElement.format(outx, sCxt, element);
+//                String x = outx.asString();
+//                // Remove outer {}s. Put back leading space.
+//                x = " "+x.substring(1, x.length()-1);
+//                if ( style == Style.Flat ) {
+//                    //x = x.replace("\n", " ");
+//                    x = x.replaceAll("  +", " ");
+//                }
+//
+//                out.print(x);
+            }
+
+            switch(styleBody) {
+                case Flat -> {
+                    out.print(" }");
+                    out.setFlatMode(false);
+                }
+                case MultiLine ->{
+                    out.decIndent(indent);
+                    out.println();
+                    out.print("}");
+                }
+            }
+
+            out.ensureStartOfLine();
+
+            out.flush();
         }
 
         // Space then triple.
@@ -247,46 +330,20 @@ public class ShaclRulesWriter {
             out.print(" .");
         }
 
-        private void writeBody(Rule rule) {
-            // The element block in indented. Later ...
-            int indent = 0 ;
+        private void writeExpr(Expr expr) {
+            FmtExprSPARQL v = new FmtExprSPARQL(out, sCxt);
 
-            switch(style) {
-                case Flat -> {
-                    out.setFlatMode(true);
-                    out.print("{");
-                }
-                case MultiLine -> {
-                    out.print("{");
-                    out.println();
-                    //out.incIndent(indent);
-                }
-            }
-            // Without braces.
-            IndentedLineBuffer outx = new IndentedLineBuffer();
-            Element element = RuleLib.ruleEltsToElementGroup(rule.getBody().getBodyElements());
-            FormatterElement.format(outx, sCxt, element);
-            String x = outx.asString();
-            // Remove outer {}s. Put back leading space.
-            x = " "+x.substring(1, x.length()-1);
-            if ( style == Style.Flat ) {
-                //x = x.replace("\n", " ");
-                x = x.replaceAll("  +", " ");
-            }
+            boolean addParens = false;
+            if ( expr.isVariable() )
+                addParens = true;
+            if ( expr.isConstant() )
+                addParens = true;
 
-            out.print(x);
-
-            switch(style) {
-                case Flat -> {
-                    out.print(" }");
-                    out.setFlatMode(false);
-                }
-                case MultiLine ->{
-                    out.decIndent(indent);
-                    out.println("}");
-                }
-            }
-            out.flush();
+            if ( addParens )
+                out.print("( ");
+            v.format(expr);
+            if ( addParens )
+                out.print(" )");
         }
     }
 }
