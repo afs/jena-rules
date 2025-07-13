@@ -53,7 +53,7 @@ public class RuleExec {
     public static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, Rule rule) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
 
-        for ( RuleElement elt : rule.getBody().getBodyElements() ) {
+        for ( RuleElement elt : rule.getBodyElements() ) {
             switch(elt) {
                 case EltTriplePattern(Triple triplePattern) -> {
                     chain = Access.accessGraph(chain, graph, triplePattern);
@@ -87,7 +87,7 @@ public class RuleExec {
     }
 
     private static void accInstantiateHead(List<Triple> acc,  Rule rule, Binding solution) {
-        rule.getHead().getTriples().stream()
+        rule.getTripleTemplates().stream()
                 .map(triple->Substitute.substitute(triple, solution))
                 .forEach(acc::add);
     }

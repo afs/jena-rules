@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
-public class RuleBody {
+class RuleBody {
 
     private final List<RuleElement> body;
     private final List<Triple> bodyTriples;
@@ -50,7 +50,7 @@ public class RuleBody {
         };
     }
 
-    public List<RuleElement> getBodyElements() {
+    List<RuleElement> getBodyElements() {
         return body;
     }
 
@@ -61,7 +61,7 @@ public class RuleBody {
     /**
      * The triples used in pattern matching.
      */
-    public List<Triple> getDependentTriples() {
+    List<Triple> getDependentTriples() {
         return bodyTriples;
     }
 

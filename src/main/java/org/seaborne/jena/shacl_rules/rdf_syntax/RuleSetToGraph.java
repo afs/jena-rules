@@ -90,7 +90,7 @@ public class RuleSetToGraph {
     }
 
     private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {
-        List<Triple> head = rule.getHead().asBGP().getList();
+        List<Triple> head = rule.getTripleTemplates();
         List<Node> x = triplesAsList(graph, head);
         Node bgpNode = list(graph, x);
         graph.add(ruleNode, V.head, bgpNode);
@@ -98,7 +98,7 @@ public class RuleSetToGraph {
     }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
-        var bodyElts = rule.getBody().getBodyElements();
+        var bodyElts = rule.getBodyElements();
         List<Node> items = new ArrayList<>();
         bodyElts.forEach(elt->{
             switch(elt) {

@@ -36,8 +36,6 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.serializer.FmtExprSPARQL;
 import org.apache.jena.sparql.serializer.SerializationContext;
 import org.seaborne.jena.shacl_rules.Rule;
-import org.seaborne.jena.shacl_rules.RuleBody;
-import org.seaborne.jena.shacl_rules.RuleHead;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
@@ -206,39 +204,39 @@ public class ShaclRulesWriter {
 
         private void writeRule(Rule rule) {
             Style styleHead = this.styleRuleSet;
-            Style styleBody = rule.getBody().getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
+            Style styleBody = rule.getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
             out.print("RULE ");
-            writeHead(rule.getHead(), styleHead);
+            writeHead(rule, styleHead);
 
             if ( styleRuleSet == Style.MultiLine )
                 out.println();
             else
                 out.print(" ");
             out.print("WHERE ");
-            writeBody(rule.getBody(), styleBody);
+            writeBody(rule, styleBody);
         }
 
-        private void writeHead(RuleHead head, Style styleRule) {
+        private void writeHead(Rule rule, Style styleRule) {
             out.print("{");
-            head.getTriples().forEach(triple -> {
+            rule.getTripleTemplates().forEach(triple -> {
                 out.print(" ");
                 writeTriple(triple);
             });
             out.print(" }");
         }
 
-        private void writeBody(RuleBody ruleBody, Style styleBody) {
+        private void writeBody(Rule rule, Style styleBody) {
             int initIndent = 0;
             int offset = out.getCol()-6;
             out.setAbsoluteIndent(offset);
             try {
-                writeBodyInner(ruleBody, styleBody);
+                writeBodyInner(rule, styleBody);
             } finally {
                 out.setAbsoluteIndent(initIndent);
             }
         }
 
-        private void writeBodyInner(RuleBody ruleBody, Style styleBody) {
+        private void writeBodyInner(Rule rule, Style styleBody) {
             int indent = 2;
 
             switch(styleBody) {
@@ -256,7 +254,7 @@ public class ShaclRulesWriter {
             // Without braces.
             if ( true ) {
                 boolean first = true;
-                for ( RuleElement elt : ruleBody.getBodyElements() ) {
+                for ( RuleElement elt : rule.getBodyElements() ) {
                     if ( ! first ) {
                         if ( styleBody == Style.MultiLine )
                             out.println();

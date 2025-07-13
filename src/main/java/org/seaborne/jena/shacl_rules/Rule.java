@@ -41,13 +41,38 @@ public class Rule {
         this.body = new RuleBody(body);
     }
 
-    public RuleHead getHead() {
+    // -- Head
+
+    private RuleHead getHead() {
         return head;
     }
 
+    /**
+     * Return the triple templates that used to generate triples.
+     * The triples in the list may contain named variables.
+     */
+    public List<Triple> getTripleTemplates() {
+        return getHead().getTripleTemplates();
+    }
+
+    // -- Body
+
     // Currently, the parser structure.
-    public RuleBody getBody() {
+    private RuleBody getBody() {
         return body;
+    }
+
+    public List<RuleElement> getBodyElements() {
+        return getBody().getBodyElements();
+    }
+
+    /**
+     * Return the triple patterns that occur in the body, and may depend on other
+     * rules as well as appearing in the abox (the facts of the base graph).
+     * The triples in the list may contain named variables.
+     */
+    public List<Triple> getDependentTriples() {
+        return getBody().getDependentTriples();
     }
 
     /**

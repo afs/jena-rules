@@ -24,9 +24,8 @@ import java.util.Objects;
 
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.core.BasicPattern;
 
-public class RuleHead {
+class RuleHead {
 
     private final List<Triple> triples;
 
@@ -34,11 +33,11 @@ public class RuleHead {
         this.triples = Collections.unmodifiableList(triples);
     }
 
-    public BasicPattern asBGP() {
-        return new BasicPattern(triples);
-    }
+//    public BasicPattern asBGP() {
+//        return new BasicPattern(triples);
+//    }
 
-    public List<Triple> getTriples() {
+    List<Triple> getTripleTemplates() {
         return triples;
     }
 

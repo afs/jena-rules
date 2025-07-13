@@ -90,7 +90,7 @@ public class DependencyGraph {
            direct.putAll(rule, c);
        }
 
-       rule.getBody().getDependentTriples().forEach(triple->{
+       rule.getDependentTriples().forEach(triple->{
            // Look for rules with this triple (or a generalization) in the head
            ruleSet.getRules().forEach(r->{
                if ( RuleDependencies.dependsOn(triple,  rule) ) {
@@ -138,7 +138,7 @@ public class DependencyGraph {
        boolean b = isRecursive(rule, rule, stack);
        if ( b ) {
            if ( DEBUG_RECURSIVE ) {
-               stack.stream().map(r->r.getHead()).forEach(h->System.out.printf("--%s", h));
+               stack.stream().map(r->r.getTripleTemplates()).forEach(h->System.out.printf("--%s", h));
                System.out.println();
                System.out.println(stack);
            }

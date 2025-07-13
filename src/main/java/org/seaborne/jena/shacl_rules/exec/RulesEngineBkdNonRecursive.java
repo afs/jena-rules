@@ -251,7 +251,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( TRACE )
             LOG.incIndent();
 
-        for ( RuleElement elt : rule.getBody().getBodyElements() ) {
+        for ( RuleElement elt : rule.getBodyElements() ) {
             switch(elt) {
                 case EltTriplePattern(Triple triplePattern) -> {
                     List<Rule> subRules = dependsOn(triplePattern);
@@ -287,7 +287,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             LOG.decIndent();
 
         // Instantiate the head and store in working graph. (new graph? XXX)
-        List<Triple> head = rule.getHead().getTriples();
+        List<Triple> head = rule.getTripleTemplates();
         BasicPattern bgp = BasicPattern.wrap(head);
         List<Triple> result = new ArrayList<>();
         while(chain.hasNext()) {
@@ -355,7 +355,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     }
 
     private static String str(Rule rule, PrefixMap prefixMap) {
-        return str(rule.getHead().getTriples(), prefixMap) + " :- " +         str(rule.getBody().getDependentTriples(), prefixMap);
+        return str(rule.getTripleTemplates(), prefixMap) + " :- " +         str(rule.getDependentTriples(), prefixMap);
     }
 
     private static String str(List<Triple> triples, PrefixMap prefixMap) {
@@ -378,7 +378,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     }
 
     private boolean mayGenerate(Triple queryTriple, Rule r) {
-        for ( Triple headTriple : r.getHead().getTriples() ) {
+        for ( Triple headTriple : r.getTripleTemplates() ) {
             if ( RuleDependencies.dependsOn(headTriple, queryTriple) ) {
                 return true;
             }

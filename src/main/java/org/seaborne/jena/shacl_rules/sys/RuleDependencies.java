@@ -33,7 +33,7 @@ public class RuleDependencies {
     public static Collection<Rule> dependencies(Rule rule, RuleSet ruleSet) {
         List<Rule> array = new ArrayList<>();
         for ( Rule r : ruleSet.getRules() ) {
-            for ( Triple bodyTriple : rule.getBody().getDependentTriples() ) {
+            for ( Triple bodyTriple : rule.getDependentTriples() ) {
                 if ( dependsOn(bodyTriple, r) ) {
                     array.add(r);
                     // Short circuit looking in the rest of the body.
@@ -62,7 +62,7 @@ public class RuleDependencies {
      *
      */
     public static boolean dependsOn(Triple triple, Rule rule) {
-        for(Triple headTriple : rule.getHead().getTriples() ) {
+        for(Triple headTriple : rule.getTripleTemplates() ) {
             if ( dependsOn(triple, headTriple) )
                 return true;
         }
