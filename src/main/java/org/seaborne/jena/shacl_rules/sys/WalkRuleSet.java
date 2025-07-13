@@ -29,28 +29,23 @@ import org.seaborne.jena.shacl_rules.RuleSet;
  */
 public class WalkRuleSet {
 
-    public static void walk(RuleSet ruleSet, RuleSetVisitor ruleSetVisitor) {
-        walk(ruleSet, ruleSetVisitor, null);
-    }
-
-    public static void walk(RuleSet ruleSet, RuleSetVisitor ruleSetVisitor, RuleVisitor ruleVisitor) {
+    public static void walk(RuleSet ruleSet, RulesVisitor rulesVisitor) {
         Objects.requireNonNull(ruleSet);
 
-        if ( ruleSetVisitor != null ) {
-            ruleSetVisitor.startVisitRuleSet();
-            ruleSetVisitor.visitPrologue(ruleSet);
-            ruleSetVisitor.visitData(ruleSet);
-            ruleSetVisitor.visitData(ruleSet);
-            ruleSetVisitor.visitRules(ruleSet);
-        }
+        rulesVisitor.startVisitRuleSet();
+        rulesVisitor.visitPrologue(ruleSet);
+        rulesVisitor.visitData(ruleSet);
+        rulesVisitor.visitData(ruleSet);
 
-        if ( ruleVisitor != null ) {
-            ruleSet.getRules().forEach(rule->{
-                ruleVisitor.startVisitRule(rule);
-                ruleVisitor.visitRule(rule);
-                ruleVisitor.visitHead(rule);
-                ruleVisitor.visitBody(rule);
-            });
-        }
+        rulesVisitor.startVisitRules(ruleSet.getRules());
+        rulesVisitor.finishVisitRules(ruleSet.getRules());
+
+        ruleSet.getRules().forEach(rule->{
+            rulesVisitor.startVisitRule(rule);
+            rulesVisitor.visitRule(rule);
+            rulesVisitor.visitHead(rule);
+            rulesVisitor.visitBody(rule);
+            rulesVisitor.finishVisitRule(rule);
+        });
     }
 }

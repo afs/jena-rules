@@ -18,14 +18,25 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
+import java.util.List;
+
+import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 
-public interface RuleSetVisitor {
+public interface RulesVisitor {
 
     default void startVisitRuleSet() {}
     default void finishVisitRuleSet() {}
 
     default void visitPrologue(RuleSet ruleSet) {}
-    default void visitData(RuleSet  ruleSet) {}
-    default void visitRules(RuleSet ruleSet) {}
+    default void visitData(RuleSet ruleSet) {}
+
+    default void startVisitRules(List<Rule> rules) {}
+    default void finishVisitRules(List<Rule> rules) {}
+
+    default void startVisitRule(Rule rules) {}
+    default void visitRule(Rule rule) {}
+    default void visitHead(Rule rule) {}
+    default void visitBody(Rule ruleSet) {}
+    default void finishVisitRule(Rule rules) {}
 }
