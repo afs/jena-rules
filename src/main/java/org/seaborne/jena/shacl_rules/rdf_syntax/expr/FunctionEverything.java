@@ -94,7 +94,7 @@ class FunctionEverything {
         // Operators
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, J_SPARQLFuncOp::sparql_plus);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:subtract", E_Subtract.class, "-", E_Subtract::new, J_SPARQLFuncOp::sparql_subtract);
-        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:multiply", E_Divide.class, "*", E_Divide::new, J_SPARQLFuncOp::sparql_multiply);
+        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:multiply", E_Multiply.class, "*", E_Multiply::new, J_SPARQLFuncOp::sparql_multiply);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:divide", E_Divide.class, "/", E_Divide::new, J_SPARQLFuncOp::sparql_divide);
 
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:equals", E_Equals.class, "=", E_Equals::new, J_SPARQLFuncOp::sparql_equals);

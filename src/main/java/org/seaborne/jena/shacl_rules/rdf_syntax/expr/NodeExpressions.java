@@ -73,14 +73,12 @@ public class NodeExpressions {
     }
 
     private static NodeValue execNodeExpression(Graph graph, Node root, Binding row, FunctionEnv functionEnv) {
-        // XXX In common with SparqlNodeExpressions.buildExpr
-        // ---- DRY
         if ( ! root.isBlank() )
             return NodeValue.makeNode(root);
 
         if ( G.contains(graph, root, V.sparqlExpr, null) ) {
             // Should only happen if an expression can not be encoded in RDF.
-            Expr expr = SparqlNodeExpression.buildSparqlExpr(graph, root);
+            Expr expr = SparqlNodeExpressions.buildSparqlExpr(graph, root);
             return expr.eval(row, functionEnv);
         }
 
@@ -93,8 +91,6 @@ public class NodeExpressions {
                 throw new NodeExprEvalException("No value for variable "+v);
             return NodeValue.makeNode(x);
         }
-
-        //---- End DRY
 
         // ---- Functional forms (= special cases)
         // Things that look like functions but process their argument in a special way.
@@ -158,6 +154,32 @@ public class NodeExpressions {
     // ---- Execution
 
     /**
+     * Return the name of the variable at the given node.
+     * Return null for "not a variable".
+     */
+    public static String getVarName(Graph graph, Node node) {
+        // Am I a variable?
+        Node vx = G.getZeroOrOneSP(graph, node, V.var);
+        if ( vx == null )
+            return null;
+        // RDFDataException if it is not a string.
+        String vName = G.asString(vx);
+        return vName;
+    }
+
+    /**
+     * Return the name of the variable at the given node.
+     * Return null for "not a variable".
+     */
+    public static Var getVar(Graph graph, Node node) {
+        String vName = getVarName(graph, node);
+        if ( vName == null )
+            return null;
+        Var var = Var.alloc(vName);
+        return var;
+    }
+
+    /**
      * Get a SPARQL node expression ({@code sh:sparqlExpr}).
      */
     public static Node getSparqlExpression(Graph graph, Node root) {
@@ -169,6 +191,20 @@ public class NodeExpressions {
         return exprSparqlNode;
     }
 
+    /**
+     * Get an RDF node expression for a list argument node expression function.
+     */
+    public static NodeExpressionFunction getRDFExpression(Graph graph, Node root) {
+        Triple t = NodeExpressions.getFunctionTriple(graph, root);
+        Node pFunction = t.getPredicate();
+        if ( ! pFunction.isURI( ) )
+            throw new ShaclException("Not a URI for a node expression function");
+        Node o = t.getObject();
+        List<Node> list = G.rdfList(graph, o);
+        return new NodeExpressionFunction(pFunction.getURI(), list);
+    }
+
+
     // XXX Temporary
     //sh:if is different ...
     private static Set<Node> namedNodeExpressions = Set.of(V.ifCond);
@@ -176,7 +212,7 @@ public class NodeExpressions {
     /**
      * Get the triple for a call.
      */
-    private static Triple getFunctionTriple(Graph graph, Node exprNode) {
+    public static Triple getFunctionTriple(Graph graph, Node exprNode) {
         //return G.getOneOrNull(graph, exprNode, null, null);
 
         // Named argument function forms ...

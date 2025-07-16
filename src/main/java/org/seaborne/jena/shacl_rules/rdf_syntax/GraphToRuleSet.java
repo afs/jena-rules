@@ -34,7 +34,7 @@ import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
+import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpressions;
 
 public class GraphToRuleSet {
 
@@ -137,7 +137,11 @@ public class GraphToRuleSet {
         for ( Node node : x ) {
             // Two forms:
             if ( G.hasProperty(graph, node, V.expr) || G.hasProperty(graph, node, V.sparqlExpr) ) {
-                Expr expr = SparqlNodeExpression.rdfToExpr(graph, node);
+                // Deal with both V.expr and V.sparqlExpr
+                Expr expr = SparqlNodeExpressions.rdfToExpr(graph, node);
+
+                // SparqlNodeExpression.buildExpr controls whether to use ExprNodeExpression or not.
+
                 body.add(new RuleElement.EltCondition(expr));
                 continue;
             }

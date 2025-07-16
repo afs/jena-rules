@@ -35,21 +35,21 @@ public class J_FunctionalForms {
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
         // XXX Bit of a hack!
         //List<Node> args = GraphList.
-        Expr expr1 = SparqlNodeExpression.buildExpr(graph, arg1);
-        Expr expr2 = SparqlNodeExpression.buildExpr(graph, arg2);
+        Expr expr1 = SparqlNodeExpressions.buildExpr(graph, arg1);
+        Expr expr2 = SparqlNodeExpressions.buildExpr(graph, arg2);
         Expr x = new E_LogicalAnd(expr1, expr2);
         return x.eval(row, functionEnv);
     }
 
     static NodeValue sparql_logical_or(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
-        Expr expr1 = SparqlNodeExpression.rdfToExpr(graph, arg1);
-        Expr expr2 = SparqlNodeExpression.rdfToExpr(graph, arg2);
+        Expr expr1 = SparqlNodeExpressions.rdfToExpr(graph, arg1);
+        Expr expr2 = SparqlNodeExpressions.rdfToExpr(graph, arg2);
         Expr x = new E_LogicalOr(expr1, expr2);
         return x.eval(row, functionEnv);
     }
 
     static NodeValue sparql_logical_not(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
-        Expr expr1 = SparqlNodeExpression.rdfToExpr(graph, arg1);
+        Expr expr1 = SparqlNodeExpressions.rdfToExpr(graph, arg1);
         Expr x = new E_LogicalNot(expr1);
         return x.eval(row, functionEnv);
     }
@@ -126,7 +126,7 @@ public class J_FunctionalForms {
     }
 
     static NodeValue sparql_bound(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
-        Expr expr1 =  SparqlNodeExpression.fromExpr(graph, arg1);
+        Expr expr1 =  SparqlNodeExpressions.fromExpr(graph, arg1);
         if ( ! expr1.isVariable() )
             throw new NodeExprEvalException("Argument to sh:bound is not a variable");
         // Just do it!

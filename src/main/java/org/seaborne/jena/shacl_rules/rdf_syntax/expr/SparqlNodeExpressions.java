@@ -25,22 +25,21 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.util.ExprUtils;
-import org.apache.jena.sparql.util.graph.GNode;
-import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
 import org.seaborne.jena.shacl_rules.rdf_syntax.V;
 import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Build;
 
 /**
  * Encode/decode SPAQRL expressions as RDF triples.
  */
-public class SparqlNodeExpression {
+public class SparqlNodeExpressions {
 
     /**
      * Build a {@link Expr} starting from a given node in the graph.
@@ -69,8 +68,8 @@ public class SparqlNodeExpression {
             // Neither
             throw new ShaclException("sh:expr not found (nor sh:sparqlExpr)");
         } catch (Exception ex) {
-            System.out.println("** failed to rebuild expr: "+ex.getMessage());
-            ex.printStackTrace();
+//            System.out.println("** failed to rebuild expr: "+ex.getMessage());
+//            ex.printStackTrace();
             return null;
         }
     }
@@ -139,62 +138,44 @@ s     */
         return x;
     }
 
-//    // Include sh:sparqlExpr as a possibility as a function.
-//
-//    static Expr buildExpr(Graph graph, Node root) {
-//
-//    }
+    private static final boolean UseExprNodeExpression = true;
 
     /*package*/static Expr buildExpr(Graph graph, Node root) {
 
-        // In common with NodeExpressions.execInternal
+        if ( UseExprNodeExpression )
+            return ExprNodeExpression.create(graph, root);
 
+        // In common with NodeExpressions.execNodeExpression
+        // Constant
         if ( ! root.isBlank() )
             return NodeValue.makeNode(root);
 
-        // Probe for sh:sparqlExpr as an expression.
-        Expr sparqLExpr = buildSparqlExpr(graph, root);
-        if ( sparqLExpr != null)
-            return sparqLExpr;
-
+        // root sh:sparqlExpr ...
         if ( G.contains(graph, root, V.sparqlExpr, null) ) {
             return buildSparqlExpr(graph, root);
         }
 
-        //private static Node extractVar(Graph graph, Node node) {
-        Node vx = G.getZeroOrOneSP(graph, root, V.var);
-        if ( vx != null ) {
-            //Var v = Var.alloc(G.asString(vx));
-            return new ExprVar(G.asString(vx));
-        }
-        // ----
+        // Variable?
+        Var v = NodeExpressions.getVar(graph, root);
+        if ( v != null )
+            return new ExprVar(v);
 
-        Triple t = G.find(graph, root, null, null)
-                // Ignores type,
-                //.filterDrop(tt->tt.getPredicate().equals(RDF.Nodes.type))
-                .next();
-
-        Node pFunction = t.getPredicate();
-        Node o = t.getObject();
-
-        GNode gn = new GNode(graph, o);
-        List<Node> list = GraphList.members(gn);
-
-        // Replaces:
+        // General function.
+        NodeExpressionFunction nExprFn = NodeExpressions.getRDFExpression(graph, root);
+        String functionURI = nExprFn.uri();
+        List<Node> list = nExprFn.arguments();
+        // Convert arguments to Expr.
         List<Expr> args = list.stream().map(n->buildExpr(graph, n)).toList();
-
-        String functionURI = pFunction.getURI();
-        Build build = FunctionEverything.getBuild(pFunction.getURI());
+        Build build = FunctionEverything.getBuild(functionURI);
         if ( build == null )
             throw new RuntimeException("Build: "+functionURI);
-
-        // ???
+        // XXX List/Array
         Expr[] array = args.toArray(Expr[]::new);
         Expr expr = build.build(functionURI, array);
         return expr;
     }
 
-    /*package*/ static Expr buildSparqlExpr(Graph graph, Node root) {
+    /*package*/ public static Expr buildSparqlExpr(Graph graph, Node root) {
         Node exprSparqlNode = NodeExpressions.getSparqlExpression(graph, root);
         if ( exprSparqlNode == null )
             return null;
@@ -278,8 +259,12 @@ s     */
     /** For a given SPARQL function or functional form, encode in RDF. */
     private static Node exprFunctionURI(ExprFunction exf, int arity) {
         String uri = FunctionEverything.getUriForExpr(exf);
-        if ( uri == null )
+        if ( uri != null )
+            return NodeFactory.createURI(uri);
+        // No lookup. Either pass out anyway or signal an error.
+        if ( false )
+            // No custom URI functions.
             throw new ShaclTranslateException("Can't determine the URI for '"+exf.getFunctionPrintName(null)+"["+exf.getClass().getSimpleName()+"]' arity "+arity);
-        return NodeFactory.createURI(uri);
+        return NodeFactory.createURI(exf.getFunctionIRI());
     }
 }

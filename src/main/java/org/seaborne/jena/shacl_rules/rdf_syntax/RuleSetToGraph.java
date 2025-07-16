@@ -41,7 +41,7 @@ import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpression;
+import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 
 public class RuleSetToGraph {
@@ -131,7 +131,7 @@ public class RuleSetToGraph {
     }
 
     private static Node expression(Graph graph, Expr expr) {
-        Node x = SparqlNodeExpression.exprToRDF(graph, expr);
+        Node x = SparqlNodeExpressions.exprToRDF(graph, expr);
 
         // Direct as sh:sparqlExpr
 //      Node x = NodeFactory.createBlankNode();

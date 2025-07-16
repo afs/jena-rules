@@ -172,6 +172,9 @@ public class ShaclRulesParserBase extends LangParserBase {
 
     private void addRuleElement(Expr expression) {
         requireNonNull(expression);
+
+        // Replace by any RDF Node Expression
+
         addToBody(new RuleElement.EltCondition(expression));
     }
 

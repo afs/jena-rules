@@ -20,6 +20,7 @@ package org.seaborne.jena.shacl_rules.sys;
 
 import java.util.Objects;
 
+import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 
 /**
@@ -27,7 +28,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
  * <p>
  * This can be useful for separating inspection code from the Rule/RuleSet classes.
  */
-public class WalkRuleSet {
+public class WalkRules {
 
     public static void walk(RuleSet ruleSet, RulesVisitor rulesVisitor) {
         Objects.requireNonNull(ruleSet);
@@ -41,11 +42,15 @@ public class WalkRuleSet {
         rulesVisitor.finishVisitRules(ruleSet.getRules());
 
         ruleSet.getRules().forEach(rule->{
-            rulesVisitor.startVisitRule(rule);
-            rulesVisitor.visitRule(rule);
-            rulesVisitor.visitHead(rule);
-            rulesVisitor.visitBody(rule);
-            rulesVisitor.finishVisitRule(rule);
+            walk(rule, rulesVisitor);
         });
+    }
+
+    public static void walk(Rule rule, RulesVisitor rulesVisitor) {
+        rulesVisitor.startVisitRule(rule);
+        rulesVisitor.visitRule(rule);
+        rulesVisitor.visitHead(rule);
+        rulesVisitor.visitBody(rule);
+        rulesVisitor.finishVisitRule(rule);
     }
 }
