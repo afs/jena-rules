@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
 import java.util.List;
 

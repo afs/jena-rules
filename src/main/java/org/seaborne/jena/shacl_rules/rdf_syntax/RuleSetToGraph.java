@@ -37,11 +37,11 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 
 public class RuleSetToGraph {

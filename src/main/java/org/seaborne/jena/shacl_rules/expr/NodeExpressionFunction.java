@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
-class SPARQLEvalException extends NodeExprEvalException {
-    SPARQLEvalException(String msg) { super(msg); }
-}
+import java.util.List;
+
+import org.apache.jena.graph.Node;
+
+public record NodeExpressionFunction(String uri, List<Node> arguments) {}

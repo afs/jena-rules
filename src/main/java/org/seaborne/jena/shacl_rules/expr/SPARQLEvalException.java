@@ -16,13 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
-import org.apache.jena.shacl.ShaclException;
-
-public class ShaclTranslateException extends ShaclException
-{
-    public ShaclTranslateException(String msg) {
-        super(msg);
-    }
+class SPARQLEvalException extends NodeExprEvalException {
+    SPARQLEvalException(String msg) { super(msg); }
 }

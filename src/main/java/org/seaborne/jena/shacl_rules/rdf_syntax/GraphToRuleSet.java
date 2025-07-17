@@ -33,8 +33,8 @@ import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpressions;
 
 public class GraphToRuleSet {
 

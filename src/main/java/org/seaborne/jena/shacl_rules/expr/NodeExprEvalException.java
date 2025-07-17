@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
-import java.util.List;
+import org.apache.jena.shared.JenaException;
 
-import org.apache.jena.graph.Node;
-
-public record NodeExpressionFunction(String uri, List<Node> arguments) {}
+class NodeExprEvalException extends JenaException {
+    NodeExprEvalException(String msg) { super(msg); }
+}

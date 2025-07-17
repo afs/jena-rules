@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
 import java.util.List;
 
@@ -31,10 +31,10 @@ import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.apache.jena.system.G;
 import org.apache.jena.system.buffering.BufferingGraph;
+import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Build;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
 import org.seaborne.jena.shacl_rules.rdf_syntax.V;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Build;
 
 /**
  * Encode/decode SPAQRL expressions as RDF triples.
@@ -166,7 +166,7 @@ s     */
         List<Node> list = nExprFn.arguments();
         // Convert arguments to Expr.
         List<Expr> args = list.stream().map(n->buildExpr(graph, n)).toList();
-        Build build = FunctionEverything.getBuild(functionURI);
+        Build build = NodeExprTables.getBuild(functionURI);
         if ( build == null )
             throw new RuntimeException("Build: "+functionURI);
         // XXX List/Array
@@ -258,7 +258,7 @@ s     */
 
     /** For a given SPARQL function or functional form, encode in RDF. */
     private static Node exprFunctionURI(ExprFunction exf, int arity) {
-        String uri = FunctionEverything.getUriForExpr(exf);
+        String uri = NodeExprTables.getUriForExpr(exf);
         if ( uri != null )
             return NodeFactory.createURI(uri);
         // No lookup. Either pass out anyway or signal an error.

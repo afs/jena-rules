@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
 import java.util.List;
 import java.util.Map;
@@ -35,9 +35,9 @@ import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.*;
 import org.apache.jena.system.G;
+import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.rdf_syntax.V;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.FunctionEverything.Call;
 
 public class NodeExpressions {
     static { INIT.init(); }
@@ -103,7 +103,7 @@ public class NodeExpressions {
         // Return array.
         List<Node> args = JLib.asList(graph, argsNode);
 
-        FunctionEverything.CallFF callFF = FunctionEverything.getCallFF(uri);
+        NodeExprTables.CallFF callFF = NodeExprTables.getCallFF(uri);
         if ( callFF != null ) {
             /* Functional forms look like functions - a URI and a list of arguments)
              * but aren't. Examples include {@code sh:if}, {@code sparql:coalesce},
@@ -120,7 +120,7 @@ public class NodeExpressions {
         // Evaluate arguments, call function.
 
         NodeValue[] evalArgs = args.stream().map(a->execNodeExpression(graph, a, row)).toArray(NodeValue[]::new);
-        FunctionEverything.Call call = FunctionEverything.getCall(uri);
+        NodeExprTables.Call call = NodeExprTables.getCall(uri);
         if ( call == null ) {
             // err
             throw new NodeExprEvalException("Failed to find a call: <"+uri+">");
@@ -244,7 +244,7 @@ public class NodeExpressions {
     }
 
     private static NodeValue exec(String uri, NodeValue...args) {
-        Call call = FunctionEverything.getCall(uri);
+        Call call = NodeExprTables.getCall(uri);
         if ( call == null )
             throw new SPARQLEvalException("No such function: "+uri);
         return call.exec(args);
@@ -266,7 +266,7 @@ public class NodeExpressions {
 
         /** Load the SPARQL functions into a {@link FunctionRegistry}. */
         private static void init_loadFunctionRegistry(FunctionRegistry reg) {
-            Map<String, FunctionEverything.Call> map = FunctionEverything.mapDispatch();
+            Map<String, NodeExprTables.Call> map = NodeExprTables.mapDispatch();
             // Add to the system FunctionRegistry once.
             addToFunctionRegistry(FunctionRegistry.get(), map);
         }

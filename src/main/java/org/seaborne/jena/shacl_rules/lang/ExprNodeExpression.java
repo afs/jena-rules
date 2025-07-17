@@ -31,9 +31,9 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.graph.NodeTransform;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.NodeExpressionFunction;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.NodeExpressions;
-import org.seaborne.jena.shacl_rules.rdf_syntax.expr.SparqlNodeExpressions;
+import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
+import org.seaborne.jena.shacl_rules.expr.NodeExpressions;
+import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 
 /**
  * An {@link Expr} wrapper for a NodeExpression.

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
 import java.util.List;
 
@@ -30,6 +30,9 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.rdf_syntax.V;
 
+/**
+ * Functional forms.
+ */
 public class J_FunctionalForms {
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {

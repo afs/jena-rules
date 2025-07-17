@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax.expr;
+package org.seaborne.jena.shacl_rules.expr;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,14 +31,79 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnv;
 
-class FunctionEverything {
+// Manage the lookup tables.
+class NodeExprTables {
+
+    private NodeExprTables() {}
 
     // FunctionEverything, J_FunctionalForm, J_SPARQLFuncOp replace SPARQLDispatch, SPARQLFuncOp
 
     // API:
     //    Execution of RDF expressions : NodeExpressions
 
+    /**
+     * Look up an URI to get a callable object.
+     */
+    static Call getCall(String uri) {
+        return mapDispatch().get(uri);
+    }
 
+    /**
+     * Look up an URI to get a callable functional form object.
+     */
+    static CallFF getCallFF(String uri) {
+        return mapDispatchFF().get(uri);
+    }
+
+    /**
+     * Look up an URI to get a build function that will build an {@Expr} instance.
+     */
+    static Build getBuild(String uri) {
+        return mapBuild().get(uri);
+    }
+
+    /**
+     * Look up a {@Expr} to get its URI.
+     * This could be a method on {@link Expr}.
+     * Currently, there is a separate table based on class.
+     * Used to build the RDF representation of an {@link Expr}.
+     */
+    /*package*/ static String getUriForExpr(Expr expr) {
+        return mapFunctionURI().get(expr.getClass());
+    }
+
+    /**
+     * Used to load the ARQ function registry.
+     */
+    /* package */ static Map<String, Call> mapDispatch() { return LazyInit.mapDispatch; }
+
+    // FunctionalForms.
+    private static Map<String, CallFF> mapDispatchFF() { return LazyInit.mapDispatchFF; }
+
+    // FunctionalForms.
+    private static Map<String, Build> mapBuild() { return LazyInit.mapBuild; }
+
+    private static Map<Class<?>, String> mapFunctionURI() { return LazyInit.mapFunctionURI; }
+
+    static class LazyInit {
+        // Function URI to callable
+        // Used to load the ARQ function registry
+        private static Map<String, Call> mapDispatch = new HashMap<>();
+
+        // Function URI to callable for functional forms.
+        private static Map<String, CallFF> mapDispatchFF = new HashMap<>();
+
+        // Function URI to build function ; Node expression to Expr
+        static Map<String, Build> mapBuild = new HashMap<>();
+
+        // Class to URI,
+        static Map<Class<?>, String> mapFunctionURI = new HashMap<>();
+
+        // Lazy initialization
+        static {
+            NodeExprTables.initTables(mapDispatch, mapDispatchFF, mapBuild, mapFunctionURI);
+        }
+    }
     /**
      * Build the mappings
      */
@@ -236,64 +301,6 @@ class FunctionEverything {
         //        entry(mapDispatch, mapBuild, mapFunctionURI,"arq:cast", E_Cast.class, "CAST", E_Cast::new, J_SPARQLFuncOp::);
         entry0(mapDispatch, mapBuild, mapFunctionURI,"arq:version", E_Version.class, "VERISON", E_Version::new, J_SPARQLFuncOp::arq_version);
     }
-
-    /**
-     * Look up an URI to get a callable object.
-     */
-    static Call getCall(String uri) {
-        return mapDispatch().get(uri);
-    }
-
-    /**
-     * Look up an URI to get a callable functional form object.
-     */
-    static CallFF getCallFF(String uri) {
-        return mapDispatchFF().get(uri);
-    }
-
-    /**
-     * Look up an URI to get a function that will build an {@Expr}.
-     */
-    static Build getBuild(String uri) {
-        return mapBuild().get(uri);
-    }
-
-    /**
-     * Look up a {@Expr} to get its URI.
-     * This could be a methods on Expr.
-     * For now, while development is in progress, there is a separate table based on class.
-     */
-    static String getUriForExpr(Expr expr) {
-        return mapFunctionURI().get(expr.getClass());
-    }
-
-    static class LazyInit {
-        // Function URI to callable
-        // Used to load the ARQ function registry
-        private static Map<String, Call> mapDispatch = new HashMap<>();
-
-        // Function URI to callable for functional forms.
-        private static Map<String, CallFF> mapDispatchFF = new HashMap<>();
-
-        // Function URI to build function ; Node expression to Expr
-        static Map<String, Build> mapBuild = new HashMap<>();
-
-        // Class to URI,
-        static Map<Class<?>, String> mapFunctionURI = new HashMap<>();
-
-        // Lazy initialization
-        static {
-            FunctionEverything.initTables(mapDispatch, mapDispatchFF, mapBuild, mapFunctionURI);
-        }
-    }
-
-    static Map<String, Call> mapDispatch() { return LazyInit.mapDispatch; }
-    static Map<String, CallFF> mapDispatchFF() { return LazyInit.mapDispatchFF; }
-    static Map<String, Build> mapBuild() { return LazyInit.mapBuild; }
-    static Map<Class<?>, String> mapFunctionURI() { return LazyInit.mapFunctionURI; }
-
-    // ----
-
     //@formatter:off
     // The table uses prefixes names for URIs for readability.
     private static PrefixMap prefixMap = PrefixMapFactory.create(Map.of
@@ -502,10 +509,10 @@ class FunctionEverything {
 
     // Does not have to be a SPARQL FunctionForm - can be RDF only.
 
-    static <X extends Expr> void entryFunctionForm1(Map<String, CallFF> mapDispatchFF,
-                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
-                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                    Create1<X> maker, FunctionalForm1 functionForm1) {
+    private static <X extends Expr> void entryFunctionForm1(Map<String, CallFF> mapDispatchFF,
+                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                            String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                            Create1<X> maker, FunctionalForm1 functionForm1) {
         String uri = expandName(uriName);
         if ( maker != null ) {
             Build build = (u, exprs) ->{
@@ -525,10 +532,10 @@ class FunctionEverything {
             mapFunctionURI.put(implClass, uri);
     }
 
-    static <X extends Expr> void entryFunctionForm2(Map<String, CallFF> mapDispatchFF,
-                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
-                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                    Create2<X> maker, FunctionalForm2 functionForm2) {
+    private static <X extends Expr> void entryFunctionForm2(Map<String, CallFF> mapDispatchFF,
+                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                            String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                            Create2<X> maker, FunctionalForm2 functionForm2) {
         String uri = expandName(uriName);
         if ( maker != null ) {
             Build build = (u, exprs) ->{
@@ -548,10 +555,10 @@ class FunctionEverything {
             mapFunctionURI.put(implClass, uri);
     }
 
-    static <X extends Expr> void entryFunctionForm3(Map<String, CallFF> mapDispatchFF,
-                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
-                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                    Create3<X> maker, FunctionalForm3 functionForm3) {
+    private static <X extends Expr> void entryFunctionForm3(Map<String, CallFF> mapDispatchFF,
+                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                            String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                            Create3<X> maker, FunctionalForm3 functionForm3) {
         String uri = expandName(uriName);
         if ( maker != null ) {
             Build build = (u, exprs) ->{
@@ -571,10 +578,10 @@ class FunctionEverything {
             mapFunctionURI.put(implClass, uri);
     }
 
-    static <X extends Expr> void entryFunctionFormN(Map<String, CallFF> mapDispatchFF,
-                                                    Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
-                                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                    CreateN<X> maker, FunctionalFormN functionFormN) {
+    private static <X extends Expr> void entryFunctionFormN(Map<String, CallFF> mapDispatchFF,
+                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                            String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                            CreateN<X> maker, FunctionalFormN functionFormN) {
         String uri = expandName(uriName);
         if ( maker != null ) {
             Build build = (u, exprs) ->{
