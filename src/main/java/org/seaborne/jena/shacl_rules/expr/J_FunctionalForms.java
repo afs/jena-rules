@@ -36,8 +36,6 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.V;
 public class J_FunctionalForms {
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
-        // XXX Bit of a hack!
-        //List<Node> args = GraphList.
         Expr expr1 = SparqlNodeExpressions.buildExpr(graph, arg1);
         Expr expr2 = SparqlNodeExpressions.buildExpr(graph, arg2);
         Expr x = new E_LogicalAnd(expr1, expr2);

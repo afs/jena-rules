@@ -151,7 +151,6 @@ public class J_SPARQLFuncOp {
 //    sparql_in
 //    sparql_not_in
 
-
     public static NodeValue sparql_sameTerm(NodeValue nv1, NodeValue nv2) { return NodeFunctions.sameTerm(nv1, nv2); }
     public static NodeValue sparql_sameValue(NodeValue nv1, NodeValue nv2) {
         // Need to deal with NaN.

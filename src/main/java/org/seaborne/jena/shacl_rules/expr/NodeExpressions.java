@@ -254,6 +254,7 @@ public class NodeExpressions {
 
     static class INIT {
         static boolean initialized = false;
+        // Called from a NodeExpressions class static which takes care of concurrency.
         static void init() {
             if ( ! initialized ) {
                 initialized = true;
@@ -262,7 +263,6 @@ public class NodeExpressions {
         }
 
         // ---- Registration with ARQ
-        // Can be called in SPARQL as "sh:name(a1,a2,..)" and "sparql:name(a1, a2)"
 
         /** Load the SPARQL functions into a {@link FunctionRegistry}. */
         private static void init_loadFunctionRegistry(FunctionRegistry reg) {
