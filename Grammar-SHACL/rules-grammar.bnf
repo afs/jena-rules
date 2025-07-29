@@ -1,5 +1,4 @@
-RulesUnit                 ::= ByteOrderMark ( Prologue ( Rule | Data ) )* 
-ByteOrderMark             ::= '\uFEFF'?
+RuleSet                   ::= ( Prologue ( Rule | Data ) )* 
 Rule                      ::= Rule1 |	Rule2 |	Rule3 |	Declaration
 Rule1                     ::= 'RULE' HeadTemplate 'WHERE' BodyPattern
 Rule2                     ::= 'IF' BodyPattern 'THEN' HeadTemplate

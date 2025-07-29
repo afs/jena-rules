@@ -71,7 +71,7 @@ public class GraphToRuleSet {
 //        });
 
         // Find by property sh:ruleSet.
-        List<Triple> ruleSetTriples = G.find(graph, null, V.ruleSet, null).toList();
+        List<Triple> ruleSetTriples = G.find(graph, null, V.rules, null).toList();
         ruleSetTriples.forEach(t->{
             Node ruleSetNode = t.getSubject();
             Node listOfRules = t.getObject();

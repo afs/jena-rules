@@ -220,8 +220,17 @@ TOKENS
 }
 
 NON-TERMINALS
-	RulesUnit	:=	ByteOrderMark ( Prologue ( Rule | Data ) )* <EOF>
-	ByteOrderMark	:=	( <BOM> )?
+// void RulesUnit(): {}
+// {
+//      ByteOrderMark()
+//      RuleSet()
+// }
+//
+// void ByteOrderMark() : {}
+// {
+//    (<BOM>)?
+// }
+	RuleSet	:=	( Prologue ( Rule | Data ) )* <EOF>
 	Rule	:=	Rule1
 		|	Rule2
 		|	Rule3

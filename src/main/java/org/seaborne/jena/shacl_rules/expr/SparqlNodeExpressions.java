@@ -49,7 +49,7 @@ public class SparqlNodeExpressions {
      * @param graph
      * @param topNode Start of the expression.
      */
-    public static Expr rdfToExpr(Graph graph, Node root) {
+    public static Expr rdfToExpr(Graph graph, Node topNode) {
         try {
             // [] sh:expr ...
             //   or
@@ -57,14 +57,14 @@ public class SparqlNodeExpressions {
 
             // Duplicate sh:expr?
             // Look for sh:expr, return object
-            Node expression1 = NodeExpressions.getNodeExpression(graph, root);
+            Node expression1 = NodeExpressions.getNodeExpression(graph, topNode);
             if ( expression1 != null )
                 return buildExpr(graph, expression1);
 
             // Look for sh:sparqlExpr, return object (which is a string).
-            Node expression2 = NodeExpressions.getSparqlExpression(graph, root);
+            Node expression2 = NodeExpressions.getSparqlExpression(graph, topNode);
             if ( expression2 != null)
-                return buildSparqlExpr(graph, root);
+                return buildSparqlExpr(graph, topNode);
             // Neither
             throw new ShaclException("sh:expr not found (nor sh:sparqlExpr)");
         } catch (Exception ex) {
@@ -78,7 +78,7 @@ public class SparqlNodeExpressions {
      * Build an {@link Expr} from a node with a property {@code sh:expr}. The object
      * is a blank node structure of a SHACL Node Expression.
      * <p>
-     * Prefer using {@link rdfToExpr} which switches between node expressions and
+     * Prefer using {@link #rdfToExpr} which switches between node expressions and
      * SPARQL expression strings.
      */
     public static Expr fromExpr(Graph graph, Node root) {
@@ -89,9 +89,9 @@ public class SparqlNodeExpressions {
      * Build an {@link Expr} from a node with a property {@code sh:sparqExpr}
      * whose value is a simple string in SPARQL expression syntax.
      * <p>
-     * Prefer using {@link rdfToExpr} which switches between node expressions and
+     * Prefer using {@link #rdfToExpr} which switches between node expressions and
      * SPARQL expression strings.
-s     */
+     */
     public static Expr fromSparqlExpr(Graph graph, Node root) {
         return buildSparqlExpr(graph, root);
     }

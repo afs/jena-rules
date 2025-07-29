@@ -32,7 +32,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 
 public class RuleLib {
 
-    /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link Element}. */
+    /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */
     public static ElementGroup ruleEltsToElementGroup(List<RuleElement> ruleElts) {
         ElementGroup group = new ElementGroup();
         ElementTriplesBlock tBlk = null;

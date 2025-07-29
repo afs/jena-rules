@@ -66,9 +66,19 @@ public class ShaclRulesJavacc extends ShaclRulesParserBase
 {}
 PARSER_END(ShaclRulesJavacc)
 
-void RulesUnit(): { }
+// void RulesUnit(): {}
+// {
+//      ByteOrderMark()
+//      RuleSet()
+// }
+//
+// void ByteOrderMark() : {}
+// {
+//    (<BOM>)?
+// }
+
+void RuleSet(): { }
 {
-  ByteOrderMark()
   { startRules() ; }
   (
      Prologue()
@@ -76,11 +86,6 @@ void RulesUnit(): { }
   )*
   <EOF>
   { finishRules() ; }
-}
-
-void ByteOrderMark() : {}
-{
-   (<BOM>)?
 }
 
 void Rule() : {  }

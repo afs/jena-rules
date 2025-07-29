@@ -44,7 +44,10 @@ class V {
     public static final Node rule = uri("rule");
 
     public static final Node classRuleSet = uri("RuleSet");
-    public static final Node ruleSet = uri("ruleSet");
+    //public static final Node ruleSet = uri("ruleSet");
+
+    // Property connecting to the rule sequence of a rule set.
+    public static final Node rules = uri("rules");
     public static final Node data = uri("data");
 
     public static final Node var = uri("var");

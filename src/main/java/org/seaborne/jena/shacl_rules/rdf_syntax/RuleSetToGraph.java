@@ -74,7 +74,7 @@ public class RuleSetToGraph {
             rules.add(ruleNode);
         });
         Node rulesList = list(graph, rules);
-        graph.add(ruleSetNode, V.ruleSet, rulesList);
+        graph.add(ruleSetNode, V.rules, rulesList);
 
         writeData(graph, ruleSet, ruleSetNode);
     }

@@ -80,7 +80,7 @@ public class ShaclRulesParser {
 
         try {
             output.start();
-            parser.RulesUnit();
+            parser.RuleSet();
             output.finish();
 
             List<Rule> rules = parser.getRules();
