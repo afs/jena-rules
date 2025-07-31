@@ -68,14 +68,14 @@ public class J_FunctionalForms {
 
     // SPARQL IF(condition, then, else)
     static NodeValue sparql_if(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node condition, Node thenArg, Node elseArg) {
-        NodeValue nv = NodeExpressions.execNodeExpression(graph, condition, row);
+        NodeValue nv = NodeExpressions.evalNodeExpression(graph, condition, row);
         boolean b = XSDFuncOp.effectiveBooleanValue(nv);
         if ( b ) {
             if ( thenArg != null )
-                return NodeExpressions.execNodeExpression(graph, thenArg, row);
+                return NodeExpressions.evalNodeExpression(graph, thenArg, row);
         } else {
             if ( elseArg != null )
-                return NodeExpressions.execNodeExpression(graph, elseArg, row);
+                return NodeExpressions.evalNodeExpression(graph, elseArg, row);
         }
         return XSDFuncOp.effectiveBooleanValueAsNodeValue(nv);
 
@@ -86,7 +86,7 @@ public class J_FunctionalForms {
     static NodeValue sparql_coalesce(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
         for ( Node arg : args ) {
             try {
-                NodeValue nv = NodeExpressions.execNodeExpression(graph, arg, row);
+                NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row);
                 if ( nv == null )
                     throw new InternalErrorException("Node expressiom return null");
                 return nv;
@@ -114,10 +114,10 @@ public class J_FunctionalForms {
         // Alt - build the Expr and make a E_OneOf to eval.
 
         Node valueNode = args.getFirst();
-        NodeValue value = NodeExpressions.execNodeExpression(graph, valueNode, row);
+        NodeValue value = NodeExpressions.evalNodeExpression(graph, valueNode, row);
         for ( int i = 1 ; i < args.size(); i++ ) {
             Node arg = args.get(i);
-            NodeValue nv = NodeExpressions.execNodeExpression(graph, arg, row);
+            NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row);
             if ( nv == null )
                 throw new InternalErrorException("Node expression return null");
             if ( NodeValue.sameValueAs(value, nv) )

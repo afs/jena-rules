@@ -39,34 +39,40 @@ import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.rdf_syntax.V;
 
+/**
+ * SHACL node expression evaluation.
+ * @see SparqlNodeExpressions for translation to/from SPARQL functions.
+ */
 public class NodeExpressions {
     static { INIT.init(); }
 
-    // ---- Execution
-
     /**
-     * Node expression evaluation - either {@code sh:expr} or {@code sh:sparqlExpr}.
-     * See {@link #execNodeExpression(Graph, Node, Binding)} for execution of the node expression itself.
+     * Node expression evaluation - this function evaluates starting from a root node
+     * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
+     * <p>
+     * See
+     * {@link #evalNodeExpression(Graph, Node, Binding)} for execution of the node
+     * expression itself.
+     * </p>
      *
-     * @implNote
-     * {@code sh:expr} is evaluated as a node expression tree in RDF,
-     * not by converting to a SPARQL expression.
+     * @implNote {@code sh:expr} is evaluated as a node expression tree in RDF, not
+     *     by converting to a SPARQL expression.
      */
 
-    public static NodeValue execute(Graph graph, Node root, Binding row) {
+    public static NodeValue evaluate(Graph graph, Node root, Binding row) {
         Node x = getNodeExpression(graph, root);
         if ( x == null )
             // Warning?
             return null;
-        return execNodeExpression(graph, x, row);
+        return evalNodeExpression(graph, x, row);
     }
 
     /**
      * Execute a node expression in a node expression tree.
-     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #execute(Graph, Node, Binding)} for those.
+     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #evaluate(Graph, Node, Binding)} for those.
      */
     // List argument execution
-    public static NodeValue execNodeExpression(Graph graph, Node root, Binding row) {
+    public static NodeValue evalNodeExpression(Graph graph, Node root, Binding row) {
         FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
         return execNodeExpression(graph, root, row, functionEnv);
     }
@@ -118,7 +124,7 @@ public class NodeExpressions {
         // ---- General functions.
         // Evaluate arguments, call function.
 
-        NodeValue[] evalArgs = args.stream().map(a->execNodeExpression(graph, a, row)).toArray(NodeValue[]::new);
+        NodeValue[] evalArgs = args.stream().map(a->evalNodeExpression(graph, a, row)).toArray(NodeValue[]::new);
         NodeExprTables.Call call = NodeExprTables.getCall(uri);
         if ( call == null ) {
             // err

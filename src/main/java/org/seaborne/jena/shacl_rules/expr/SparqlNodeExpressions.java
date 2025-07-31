@@ -18,6 +18,8 @@
 
 package org.seaborne.jena.shacl_rules.expr;
 
+import static java.lang.String.format;
+
 import java.util.List;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
@@ -259,9 +261,20 @@ public class SparqlNodeExpressions {
         if ( uri != null )
             return NodeFactory.createURI(uri);
         // No lookup. Either pass out anyway or signal an error.
-        if ( false )
-            // No custom URI functions.
-            throw new ShaclTranslateException("Can't determine the URI for '"+exf.getFunctionPrintName(null)+"["+exf.getClass().getSimpleName()+"]' arity "+arity);
+        if ( false ) {
+            String msg = format("Can't determine the URI for '%s [%s]' arity %d", exf.getFunctionPrintName(null), exf.getClass().getSimpleName(), arity);
+            throw new ShaclTranslateException(msg);
+        }
+        // A URI for the function.
         return NodeFactory.createURI(exf.getFunctionIRI());
+    }
+
+    /**
+     * Failure to encode a SPARQL functions as a SHACL node expressions.
+     */
+    public static class ShaclTranslateException extends ShaclException {
+        public ShaclTranslateException(String msg) {
+            super(msg);
+        }
     }
 }

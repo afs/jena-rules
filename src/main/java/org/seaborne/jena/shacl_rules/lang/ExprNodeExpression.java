@@ -47,9 +47,6 @@ public class ExprNodeExpression extends ExprNode {
     private final Set<Var> varsMentioned;
 
     public static Expr create(Graph graph, Node node) {
-        // Is sh;expr or
-
-
         return new ExprNodeExpression(graph, node);
     }
 
@@ -130,7 +127,7 @@ public class ExprNodeExpression extends ExprNode {
 
     @Override
     public NodeValue eval(Binding binding, FunctionEnv env) {
-        return NodeExpressions.execNodeExpression(graph, exprNode, binding);
+        return NodeExpressions.evalNodeExpression(graph, exprNode, binding);
     }
 
     @Override
