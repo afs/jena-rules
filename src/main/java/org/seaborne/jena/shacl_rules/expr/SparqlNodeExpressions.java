@@ -156,12 +156,12 @@ public class SparqlNodeExpressions {
         }
 
         // Variable?
-        Var v = NodeExpressions.getVar(graph, root);
+        Var v = NX.getVar(graph, root);
         if ( v != null )
             return new ExprVar(v);
 
         // General function.
-        NodeExpressionFunction nExprFn = NodeExpressions.getRDFExpression(graph, root);
+        NodeExpressionFunction nExprFn = NX.getRDFExpression(graph, root);
         String functionURI = nExprFn.uri();
         List<Node> list = nExprFn.arguments();
         // Convert arguments to Expr.
@@ -217,7 +217,7 @@ public class SparqlNodeExpressions {
      * Return the blank node that encodes the function and
      * has the function URI as a predicate.
      */
-    private static Node exprAsRDF(Graph g, Expr expr) {
+    private static Node exprAsRDF(Graph graph, Expr expr) {
         switch(expr) {
             case NodeValue nv -> {
                 // Constant.
@@ -225,20 +225,17 @@ public class SparqlNodeExpressions {
             }
             case ExprVar nvar -> {
                 // Blank node: [ sh:var "varname" ]
-                Node x = NodeFactory.createBlankNode();
-                Node str = NodeFactory.createLiteralString(nvar.getVarName());
-                g.add(x, V.var, str);
-                return x;
+                return NX.addVar(graph, nvar.getVarName());
             }
             case ExprFunction exf -> {
                 // [ function_uri (args) ]
                 List<Expr> args = exf.getArgs();
                 // Recursive step : arguments to RDF.
-                List<Node> argNodes = args.stream().map(e->exprAsRDF(g,e)).toList();
-                Node argNodeList = JLib.addList(g, argNodes);
+                List<Node> argNodes = args.stream().map(e->exprAsRDF(graph,e)).toList();
+                Node argNodeList = JLib.addList(graph, argNodes);
                 Node uri = exprFunctionURI(exf, argNodes.size());
                 Node x = NodeFactory.createBlankNode();
-                g.add(x, uri, argNodeList);
+                graph.add(x, uri, argNodeList);
                 return x;
             }
             case ExprAggregator agg -> {

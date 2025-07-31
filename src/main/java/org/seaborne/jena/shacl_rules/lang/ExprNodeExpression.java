@@ -31,6 +31,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.graph.NodeTransform;
+import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
 import org.seaborne.jena.shacl_rules.expr.NodeExpressions;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
@@ -100,7 +101,7 @@ public class ExprNodeExpression extends ExprNode {
             return;
         }
 
-        Var var = NodeExpressions.getVar(graph, node);
+        Var var = NX.getVar(graph, node);
         if ( var != null ) {
             // Variable.
              vars.add(var);
@@ -112,7 +113,7 @@ public class ExprNodeExpression extends ExprNode {
 
         // or sh:expr.
 
-        NodeExpressionFunction nExprFn = NodeExpressions.getRDFExpression(graph, node);
+        NodeExpressionFunction nExprFn = NX.getRDFExpression(graph, node);
         for ( Node arg : nExprFn.arguments() ) {
             accVars(vars, graph, arg);
         }

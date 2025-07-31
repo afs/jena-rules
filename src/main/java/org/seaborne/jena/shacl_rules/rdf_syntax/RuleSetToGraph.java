@@ -37,6 +37,7 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
@@ -179,9 +180,7 @@ public class RuleSetToGraph {
         if ( node.isConcrete() )
             return node;
         if ( Var.isVar(node) ) {
-            Node varNode = NodeFactory.createBlankNode();
-            Node varName = NodeFactory.createLiteralString(Var.alloc(node).getVarName());
-            graph.add(varNode, V.var, varName);
+            Node varNode = NX.addVar(graph, node.getName());
             return varNode;
         }
         throw new ShaclException("Node type not recognized:; "+node);

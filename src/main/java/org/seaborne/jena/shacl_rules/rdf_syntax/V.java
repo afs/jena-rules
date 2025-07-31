@@ -21,6 +21,7 @@ package org.seaborne.jena.shacl_rules.rdf_syntax;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
+import org.seaborne.jena.shacl_rules.expr.NX;
 
 public
 class V {
@@ -50,7 +51,13 @@ class V {
     public static final Node rules = uri("rules");
     public static final Node data = uri("data");
 
+    /**
+     * The property that gives a resource (usually a blank node) a variable name.
+     * In application code, prefer using {@link NX#getVar}/{@link NX#addVar}/{@link NX#getVarName}
+     * over accessing the graph using V.var.
+     */
     public static final Node var = uri("var");
+
 
     public static final Node ifCond = uri("if");
     public static final Node ifThen = uri("then");

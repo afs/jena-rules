@@ -33,6 +33,7 @@ import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
@@ -121,11 +122,21 @@ public class GraphToRuleSet {
         Node sn = G.getOneSP(graph, node, V.subject);
         Node pn = G.getOneSP(graph, node, V.predicate);
         Node on = G.getOneSP(graph, node, V.object);
-        Node s = extractVar(graph, sn);
-        Node p = extractVar(graph, pn);
-        Node o = extractVar(graph, on);
+        Node s = getVarMaybe(graph, sn);
+        Node p = getVarMaybe(graph, pn);
+        Node o = getVarMaybe(graph, on);
         Triple t = Triple.create(s, p, o);
         return t;
+    }
+
+    // Translate into a variable or return the node.
+    private static Node getVarMaybe(Graph graph, Node node) {
+            if ( ! node.isBlank() )
+                return node;
+            Var x = NX.getVar(graph, node);
+            if ( x == null )
+                throw new ShaclException("Blank node in pattern or malformed [ sh:var ]");
+            return x;
     }
 
     private static List<RuleElement> parseRuleBody(Graph graph, Node bodyNode) {
@@ -177,14 +188,4 @@ public class GraphToRuleSet {
         tripleTerms.forEach(tt-> triples.add(tt.getTriple()));
         return triples;
     }
-
-    private static Node extractVar(Graph graph, Node node) {
-        if ( ! node.isBlank() )
-            return node;
-        Node x = G.getZeroOrOneSP(graph, node, V.var);
-        if ( x == null )
-            throw new ShaclException("Blank node in pattern or malformed [ sh:var ]");
-        return Var.alloc(G.asString(x));
-    }
-
 }

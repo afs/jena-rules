@@ -63,9 +63,8 @@ public class NodeExpressions {
 
     /**
      * Execute a node expression in a node expression tree.
-     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr}
+     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #execute(Graph, Node, Binding)} for those.
      */
-
     // List argument execution
     public static NodeValue execNodeExpression(Graph graph, Node root, Binding row) {
         FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
@@ -95,7 +94,7 @@ public class NodeExpressions {
         // ---- Functional forms (= special cases)
         // Things that look like functions but process their argument in a special way.
 
-        Triple functionTriple = getFunctionTriple(graph, root);
+        Triple functionTriple = NX.getFunctionTriple(graph, root);
         if ( functionTriple == null ) {}
 
         String uri = functionTriple.getPredicate().getURI();
@@ -133,7 +132,7 @@ public class NodeExpressions {
     /**
      * Get a node expression - either {@code sh:expr} or {@code sh:sparqlExpr}.
      */
-    public static Node getNodeExpression(Graph graph, Node root) {
+    /* package*/ static Node getNodeExpression(Graph graph, Node root) {
         Node x1 = getListNodeExpression(graph, root);
         if ( x1 != null )
             return x1;
@@ -146,7 +145,7 @@ public class NodeExpressions {
     /**
      * Get a node expression ({@code sh:expr}), not a ({@code sh:sparqlExpr}).
      */
-    public static Node getListNodeExpression(Graph graph, Node root) {
+    /*package*/ static Node getListNodeExpression(Graph graph, Node root) {
         Node expressionNode = G.getZeroOrOneSP(graph, root, V.expr);
         return expressionNode;
     }
@@ -154,35 +153,9 @@ public class NodeExpressions {
     // ---- Execution
 
     /**
-     * Return the name of the variable at the given node.
-     * Return null for "not a variable".
-     */
-    public static String getVarName(Graph graph, Node node) {
-        // Am I a variable?
-        Node vx = G.getZeroOrOneSP(graph, node, V.var);
-        if ( vx == null )
-            return null;
-        // RDFDataException if it is not a string.
-        String vName = G.asString(vx);
-        return vName;
-    }
-
-    /**
-     * Return the name of the variable at the given node.
-     * Return null for "not a variable".
-     */
-    public static Var getVar(Graph graph, Node node) {
-        String vName = getVarName(graph, node);
-        if ( vName == null )
-            return null;
-        Var var = Var.alloc(vName);
-        return var;
-    }
-
-    /**
      * Get a SPARQL node expression ({@code sh:sparqlExpr}).
      */
-    public static Node getSparqlExpression(Graph graph, Node root) {
+    /*package*/ static Node getSparqlExpression(Graph graph, Node root) {
         Node exprSparqlNode = G.getZeroOrOneSP(graph, root, V.sparqlExpr);
         if ( exprSparqlNode == null )
             return null;
@@ -191,49 +164,9 @@ public class NodeExpressions {
         return exprSparqlNode;
     }
 
-    /**
-     * Get an RDF node expression for a list argument node expression function.
-     */
-    public static NodeExpressionFunction getRDFExpression(Graph graph, Node root) {
-        Triple t = NodeExpressions.getFunctionTriple(graph, root);
-        Node pFunction = t.getPredicate();
-        if ( ! pFunction.isURI( ) )
-            throw new ShaclException("Not a URI for a node expression function");
-        Node o = t.getObject();
-        List<Node> list = G.rdfList(graph, o);
-        return new NodeExpressionFunction(pFunction.getURI(), list);
-    }
-
-
     // XXX Temporary
     //sh:if is different ...
-    private static Set<Node> namedNodeExpressions = Set.of(V.ifCond);
-
-    /**
-     * Get the triple for a call.
-     */
-    public static Triple getFunctionTriple(Graph graph, Node exprNode) {
-        //return G.getOneOrNull(graph, exprNode, null, null);
-
-        // Named argument function forms ...
-        List<Triple> triples = G.find(graph, exprNode, null, null).toList();
-
-        if ( triples.isEmpty() )
-            return null;
-        if ( triples.size() == 1 )
-            // List argument function form.
-            return triples.getFirst();
-        // See whether it is a named argument form:
-        for ( Triple t : triples ) {
-            Node p = t.getPredicate();
-            if ( namedNodeExpressions.contains(p)) {
-                return t;
-            }
-        }
-        // - Not named a recognized named argument expression,
-        // - Not the syntax of a list argument function/functional form.
-        throw new NodeExprEvalException("Multiple triples for function: "+triples);
-    }
+    static Set<Node> namedNodeExpressions = Set.of(V.ifCond);
 
     /** Execute a function node expression. */
     private static NodeValue exec(String uri, List<NodeValue>args) {

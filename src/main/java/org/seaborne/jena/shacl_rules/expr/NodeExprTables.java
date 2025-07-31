@@ -221,8 +221,7 @@ class NodeExprTables {
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:sameTerm", E_SameTerm.class, "sameTERM", E_SameTerm::new, J_SPARQLFuncOp::sparql_sameTerm);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:sameValue", E_SameValue.class, "sameVALUE", E_SameValue::new, J_SPARQLFuncOp::sparql_sameValue);
 
-        // Datetime
-
+        // DateTime
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:year", E_DateTimeYear.class, "YEAR", E_DateTimeYear::new, J_SPARQLFuncOp::sparql_year);
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:month", E_DateTimeMonth.class, "MONTH", E_DateTimeMonth::new, J_SPARQLFuncOp::sparql_month);
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:day", E_DateTimeDay.class, "DAY", E_DateTimeDay::new, J_SPARQLFuncOp::sparql_day);
@@ -238,7 +237,6 @@ class NodeExprTables {
                 E_AdjustToTimezone::new, J_SPARQLFuncOp::arq_adjust);
 
         // Numerics
-
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:abs", E_NumAbs.class, "ABS", E_NumAbs::new, J_SPARQLFuncOp::sparql_abs);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:ceil", E_NumCeiling.class, "CEIL", E_NumCeiling::new, J_SPARQLFuncOp::sparql_ceil);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:floor", E_NumFloor.class, "FLOOR", E_NumFloor::new, J_SPARQLFuncOp::sparql_floor);
@@ -246,7 +244,6 @@ class NodeExprTables {
         entry0(mapDispatch, mapBuild, mapFunctionURI,"sparql:rand", E_Random.class, "RAND", E_Random::new, J_SPARQLFuncOp::sparql_rand);
 
         // Hash functions
-
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:md5", E_MD5.class, "MD5", E_MD5::new, J_SPARQLFuncOp::sparql_md5);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:sha1", E_SHA1.class, "SHA1", E_SHA1::new, J_SPARQLFuncOp::sparql_sha1);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:sha224", E_SHA224.class, "SHA224", E_SHA224::new, J_SPARQLFuncOp::sparql_sha224);
@@ -255,11 +252,10 @@ class NodeExprTables {
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:sha512", E_SHA512.class, "SHA512", E_SHA512::new, J_SPARQLFuncOp::sparql_sha512);
 
         // Strings
-
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:str", E_Str.class, "STR", E_Str::new, J_SPARQLFuncOp::sparql_str);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:strlen", E_StrLength.class, "STRLEN", E_StrLength::new, J_SPARQLFuncOp::sparql_strlen);
 
-        // Arity 2/3
+        // Strings - arity 2/3
         entry23(mapDispatch, mapBuild, mapFunctionURI,"sparql:regex", E_Regex.class, "REGEX",
                 E_Regex::new, J_SPARQLFuncOp::sparql_regex,
                 E_Regex::new, J_SPARQLFuncOp::sparql_regex);
@@ -270,7 +266,7 @@ class NodeExprTables {
         entry2(mapDispatch, mapBuild, mapFunctionURI,"sparql:strends", E_StrEndsWith.class, "STRENDS", E_StrEndsWith::new, J_SPARQLFuncOp::sparql_strends);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:lcase", E_StrLowerCase.class, "LCASE", E_StrLowerCase::new, J_SPARQLFuncOp::sparql_lcase);
 
-        // Arity 3/4
+        // Strings - arity 3/4
         entry34(mapDispatch, mapBuild, mapFunctionURI,"sparql:replace", E_StrReplace.class, "REPLACE",
                 E_StrReplace::new, J_SPARQLFuncOp::sparql_replace,
                 E_StrReplace::new, J_SPARQLFuncOp::sparql_replace);
@@ -278,25 +274,22 @@ class NodeExprTables {
         entry3(mapDispatch, mapBuild, mapFunctionURI,"sparql:substr", E_StrSubstring.class, "SUBSTR", E_StrSubstring::new, J_SPARQLFuncOp::sparql_substr);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:ucase", E_StrUpperCase.class, "UCASE", E_StrUpperCase::new, J_SPARQLFuncOp::sparql_ucase);
 
-        // Arity N
+        // String - arity N
         entryN(mapDispatch, mapBuild, mapFunctionURI,"sparql:concat", E_StrConcat.class, "CONCAT", E_StrConcat::new, J_SPARQLFuncOp::sparql_concat);
         entry2(mapDispatch, mapBuild, mapFunctionURI,"sparql:contains", E_StrContains.class, "CONTAINS", E_StrContains::new, J_SPARQLFuncOp::sparql_contains);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:encode-for-uri", E_StrEncodeForURI.class, "ENCODE_FOR_URI", E_StrEncodeForURI::new, J_SPARQLFuncOp::sparql_encode_for_uri);
 
         // UUIDs
-
         entry0(mapDispatch, mapBuild, mapFunctionURI,"sparql:uuid", E_UUID.class, "UUID", E_UUID::new, J_SPARQLFuncOp::sparql_uuid);
         entry0(mapDispatch, mapBuild, mapFunctionURI,"sparql:struuid", E_StrUUID.class, "STRUUID", E_StrUUID::new, J_SPARQLFuncOp::sparql_struuid);
 
         // Triple terms
-
         entry3(mapDispatch, mapBuild, mapFunctionURI,"sparql:triple", E_TripleFn.class, "TRIPLE", E_TripleFn::new, J_SPARQLFuncOp::sparql_triple);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:object", E_TripleObject.class, "OBJECT", E_TripleObject::new, J_SPARQLFuncOp::sparql_object);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:predicate", E_TriplePredicate.class, "PREDICATE", E_TriplePredicate::new, J_SPARQLFuncOp::sparql_predicate);
         entry1(mapDispatch, mapBuild, mapFunctionURI,"sparql:subject", E_TripleSubject.class, "SUBJECT", E_TripleSubject::new, J_SPARQLFuncOp::sparql_subject);
 
         // ARQ
-
         //        entry(mapDispatch, mapBuild, mapFunctionURI,"arq:call", E_Call.class, "CALL", E_Call::new, J_SPARQLFuncOp::);
         //        entry(mapDispatch, mapBuild, mapFunctionURI,"arq:cast", E_Cast.class, "CAST", E_Cast::new, J_SPARQLFuncOp::);
         entry0(mapDispatch, mapBuild, mapFunctionURI,"arq:version", E_Version.class, "VERISON", E_Version::new, J_SPARQLFuncOp::arq_version);
