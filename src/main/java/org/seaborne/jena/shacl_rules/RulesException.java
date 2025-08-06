@@ -16,21 +16,13 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.runner;
+package org.seaborne.jena.shacl_rules;
 
-import org.junit.runners.model.InitializationError;
+import org.apache.jena.shared.JenaException;
 
-import org.apache.jena.arq.junit.runners.AbstractRunnerOfTests;
-
-/**
- * Runner for SHACL Rules Manifests. Annotations supported:
- * <ul>
- * <li>{@code @Label("Some name")}</li>
- * <li>{@code @Manifests({"manifest1","manifest2",...})}</li>
- * </ul>
- */
-public class RunnerRules extends AbstractRunnerOfTests {
-    public RunnerRules(Class<? > klass) throws InitializationError {
-        super(klass, RuleTests::makeRuleTest);
-    }
+public class RulesException extends JenaException {
+    //public RulesException()                                  { super(); }
+    public RulesException(String message)                    { super(message); }
+    public RulesException(Throwable cause)                   { super(cause) ; }
+    public RulesException(String message, Throwable cause)   { super(message, cause) ; }
 }

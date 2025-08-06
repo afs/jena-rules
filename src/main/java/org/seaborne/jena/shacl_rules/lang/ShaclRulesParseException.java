@@ -18,9 +18,9 @@
 
 package org.seaborne.jena.shacl_rules.lang;
 
-import org.apache.jena.shared.JenaException;
+import org.seaborne.jena.shacl_rules.RulesException;
 
-public class ShaclRulesParseException extends JenaException {
+public class ShaclRulesParseException extends RulesException {
     private int line ;
     private int column ;
 

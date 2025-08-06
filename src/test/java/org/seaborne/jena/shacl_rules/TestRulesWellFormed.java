@@ -16,21 +16,16 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.runner;
+package org.seaborne.jena.shacl_rules;
 
-import org.junit.runners.model.InitializationError;
+import org.junit.jupiter.api.Test;
 
-import org.apache.jena.arq.junit.runners.AbstractRunnerOfTests;
+public class TestRulesWellFormed {
+    enum WellFormed { WELLFORMED, NOT_WELLFORMED }
 
-/**
- * Runner for SHACL Rules Manifests. Annotations supported:
- * <ul>
- * <li>{@code @Label("Some name")}</li>
- * <li>{@code @Manifests({"manifest1","manifest2",...})}</li>
- * </ul>
- */
-public class RunnerRules extends AbstractRunnerOfTests {
-    public RunnerRules(Class<? > klass) throws InitializationError {
-        super(klass, RuleTests::makeRuleTest);
-    }
+    @Test public void wellformed_01() { wellFormed("") ; }
+
+    private static void wellFormed(String string) { }
+
+
 }

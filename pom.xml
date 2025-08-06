@@ -49,13 +49,7 @@
     <ver.jena>5.6.0-SNAPSHOT</ver.jena>
     <ver.slf4j>2.0.16</ver.slf4j>
     <ver.log4j2>2.24.3</ver.log4j2>
-
-    <ver.junit4>4.13.2</ver.junit4>
-
     <ver.junit5>5.11.4</ver.junit5>
-    <!--
-    <ver.junit5-platform>1.10.2</ver.junit5-platform>
-    -->
   </properties>
 
   <dependencies>
@@ -72,6 +66,7 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-arq</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-arq</artifactId>
@@ -81,7 +76,6 @@
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
-      <version>${ver.jena}</version>
     </dependency>
 
     <!--
@@ -107,8 +101,7 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- -->
-
+    <!-- For manifests -->
     <dependency>
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
@@ -156,11 +149,6 @@
 
       <dependency>
         <groupId>org.apache.jena</groupId>
-        <artifactId>jena-cmds</artifactId>
-      </dependency>
-    
-      <dependency>
-        <groupId>org.apache.jena</groupId>
         <artifactId>jena-base</artifactId>
         <version>${ver.jena}</version>
         <classifier>tests</classifier>
@@ -188,34 +176,18 @@
         <scope>import</scope>
       </dependency>
 
-      <!--
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${ver.junit4}</version>
-        <scope>test</scope>
-      </dependency>
-      -->
-
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${ver.slf4j}</version>
       </dependency>
 
-      <!-- Log4j2 -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-bom</artifactId>
         <version>${ver.log4j2}</version>
         <scope>import</scope>
         <type>pom</type>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j2-impl</artifactId>
-        <version>${ver.log4j2}</version>
       </dependency>
 
     </dependencies>

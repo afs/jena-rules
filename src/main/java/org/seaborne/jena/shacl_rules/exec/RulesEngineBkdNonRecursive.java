@@ -41,10 +41,7 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.seaborne.jena.shacl_rules.EngineType;
-import org.seaborne.jena.shacl_rules.Rule;
-import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.RulesEngine;
+import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.cmds.Access;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
@@ -303,7 +300,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         return result.stream();
     }
 
-    private static class RuleEvalException extends RuntimeException {
+    private static class RuleEvalException extends RulesException {
         RuleEvalException(String msg) { super(msg); }
         RuleEvalException(String msg, Throwable th) { super(msg, th); }
     }

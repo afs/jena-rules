@@ -16,21 +16,19 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.runner;
+package org.seaborne.jena.shacl_rules;
 
-import org.junit.runners.model.InitializationError;
-
-import org.apache.jena.arq.junit.runners.AbstractRunnerOfTests;
+import org.junit.jupiter.api.Test;
 
 /**
- * Runner for SHACL Rules Manifests. Annotations supported:
- * <ul>
- * <li>{@code @Label("Some name")}</li>
- * <li>{@code @Manifests({"manifest1","manifest2",...})}</li>
- * </ul>
+ * Basic rule testing.
+ * The manifest-driven tests are more comprehensive.
  */
-public class RunnerRules extends AbstractRunnerOfTests {
-    public RunnerRules(Class<? > klass) throws InitializationError {
-        super(klass, RuleTests::makeRuleTest);
+public class TestRuleSyntaxBasic {
+    @Test public void synatx_01() { parse("") ; }
+    @Test public void synatx_02() { parse("RULE {} WHERE {}") ; }
+
+    private static void parse(String string) {
+        RuleSet ruleSet = ShaclRulesParser.parseString(string);
     }
 }

@@ -68,7 +68,7 @@ public class Rule {
 
     /**
      * Return the triple patterns that occur in the body, and may depend on other
-     * rules as well as appearing in the abox (the facts of the base graph).
+     * rules, as well as appearing in the abox (the facts of the base graph).
      * The triples in the list may contain named variables.
      */
     public List<Triple> getDependentTriples() {

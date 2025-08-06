@@ -163,7 +163,9 @@ public class ShaclRulesParserBase extends LangParserBase {
         headAcc.add(tripleTemplate);
     }
 
-    private void addToBody(RuleElement ruleElt)   { bodyAcc.add(ruleElt); }
+    private void addToBody(RuleElement ruleElt) {
+        bodyAcc.add(ruleElt);
+    }
 
     private void addRuleElement(Triple triplePattern) {
         requireNonNull(triplePattern);
@@ -204,8 +206,6 @@ public class ShaclRulesParserBase extends LangParserBase {
 
     protected void emitExpr(Expr expr, int line, int column) {
         debug("emitExpr", line, column);
-        // System.out.println(Fmt.fmtSPARQL(expr, profile.getPrefixMap()));
-        accExpr(expr);
         addRuleElement(expr);
     }
 
@@ -258,10 +258,6 @@ public class ShaclRulesParserBase extends LangParserBase {
                 throwInternalStateException("Triple emited in state "+state);
             }
         }
-    }
-
-    private void accExpr(Expr expr) {
-        addRuleElement(expr);
     }
 
     // To LangParseBase?

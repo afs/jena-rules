@@ -126,15 +126,12 @@ public class ShaclRulesWriter {
         srw.writeRule(rule);
     }
 
-
-
     static class RuleSetWriter {
 
         private final IndentedWriter out;
         private final PrefixMap prefixMap;
         private final IRIx base;
         private final NodeFormatter nodeFormatter;
-        private final SerializationContext sCxt;
 
         private final Style styleRuleSet;
 
@@ -149,8 +146,6 @@ public class ShaclRulesWriter {
             String baseStr = (baseIRI == null) ?null : baseIRI.str();
 
             this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
-            // XXX Replace me.
-            this.sCxt = new SerializationContext(Prefixes.adapt(prefixMap));
             this.styleRuleSet = Objects.requireNonNull(baseStyle);
         }
 
@@ -218,10 +213,10 @@ public class ShaclRulesWriter {
 
         private void writeHead(Rule rule, Style styleRule) {
             out.print("{");
-//            rule.getTripleTemplates().forEach(triple -> {
-//                out.print(" ");
-//                writeTriple(triple);
-//            });
+            rule.getTripleTemplates().forEach(triple -> {
+                out.print(" ");
+                writeTriple(triple);
+            });
             out.print(" }");
         }
 
@@ -251,55 +246,8 @@ public class ShaclRulesWriter {
                     out.incIndent(indent);
                 }
             }
-            // Without braces.
-            if ( true ) {
-                boolean first = true;
-                for ( RuleElement elt : rule.getBodyElements() ) {
-                    if ( ! first ) {
-                        if ( styleBody == Style.MultiLine )
-                            out.println();
-                        else
-                        out.print(" ");
-                    }
-                    first = false;
 
-                    switch (elt) {
-                        case RuleElement.EltTriplePattern(Triple triplePattern) -> {
-                            writeTriple(triplePattern);
-                        }
-                        case RuleElement.EltCondition(Expr condition) -> {
-                            out.write("FILTER");
-                            writeExpr(condition);
-                        }
-                        case RuleElement.EltAssignment(Var var, Expr expression) -> {
-                            out.write("BIND( ");
-                            writeExpr(expression);
-                            out.write(" AS ");
-                            nodeFormatter.format(out, var);
-                            out.write(")");
-                        }
-                        case null -> {
-                            throw new InternalErrorException();
-                        }
-                    }
-                }
-
-
-//            } else {
-//                IndentedLineBuffer outx = new IndentedLineBuffer();
-//
-//                Element element = RuleLib.ruleEltsToElementGroup(ruleBody.getBodyElements());
-//                FormatterElement.format(outx, sCxt, element);
-//                String x = outx.asString();
-//                // Remove outer {}s. Put back leading space.
-//                x = " "+x.substring(1, x.length()-1);
-//                if ( style == Style.Flat ) {
-//                    //x = x.replace("\n", " ");
-//                    x = x.replaceAll("  +", " ");
-//                }
-//
-//                out.print(x);
-            }
+            writeBodyInnerElements(rule, styleBody);
 
             switch(styleBody) {
                 case Flat -> {
@@ -318,6 +266,40 @@ public class ShaclRulesWriter {
             out.flush();
         }
 
+        private void writeBodyInnerElements(Rule rule, Style styleBody) {
+            // Without braces.
+            boolean first = true;
+            for ( RuleElement elt : rule.getBodyElements() ) {
+                if ( ! first ) {
+                    if ( styleBody == Style.MultiLine )
+                        out.println();
+                    else
+                        out.print(" ");
+                }
+                first = false;
+
+                switch (elt) {
+                    case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                        writeTriple(triplePattern);
+                    }
+                    case RuleElement.EltCondition(Expr condition) -> {
+                        out.write("FILTER");
+                        writeExpr(condition);
+                    }
+                    case RuleElement.EltAssignment(Var var, Expr expression) -> {
+                        out.write("BIND( ");
+                        writeExpr(expression);
+                        out.write(" AS ");
+                        nodeFormatter.format(out, var);
+                        out.write(")");
+                    }
+                    case null -> {
+                        throw new InternalErrorException();
+                    }
+                }
+            }
+        }
+
         // Space then triple.
         private void writeTriple(Triple triple) {
             nodeFormatter.format(out, triple.getSubject());
@@ -329,7 +311,14 @@ public class ShaclRulesWriter {
         }
 
         private void writeExpr(Expr expr) {
+            SerializationContext sCxt = new SerializationContext(Prefixes.adapt(prefixMap));
             FmtExprSPARQL v = new FmtExprSPARQL(out, sCxt);
+
+//            public FmtExprSPARQL(IndentedWriter writer, PrefixMap pmap) {
+//                visitor = new FmtExprARQVisitor(writer, Prefixes.adapt(pmap));
+//            }
+//
+//            FmtExprSPARQL v = new FmtExprSPARQL(out, prefixMap);
 
             boolean addParens = false;
             if ( expr.isVariable() )

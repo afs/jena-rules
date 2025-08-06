@@ -30,6 +30,7 @@ import org.apache.jena.query.ARQ;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
@@ -46,6 +47,22 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.V;
 public class NodeExpressions {
     static { INIT.init(); }
 
+    /** Evaluate a function node expression. */
+    private static NodeValue eval(String uri, List<NodeValue>args) {
+        Objects.requireNonNull(uri);
+        Objects.requireNonNull(args);
+        NodeValue[] a = args.toArray(NodeValue[]::new);
+        return eval(uri,a);
+    }
+
+    /** Evaluate a function node expression. */
+    private static NodeValue eval(String uri, NodeValue...args) {
+        Call call = NodeExprTables.getCall(uri);
+        if ( call == null )
+            throw new NodeExprEvalException("No such function: "+uri);
+        return call.exec(args);
+    }
+
     /**
      * Node expression evaluation - this function evaluates starting from a root node
      * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
@@ -58,7 +75,22 @@ public class NodeExpressions {
      * @implNote {@code sh:expr} is evaluated as a node expression tree in RDF, not
      *     by converting to a SPARQL expression.
      */
+    public static NodeValue evaluate(Graph graph, Node root) {
+        return evaluate(graph, root, BindingFactory.empty());
+    }
 
+    /**
+     * Node expression evaluation - this function evaluates starting from a root node
+     * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
+     * <p>
+     * See
+     * {@link #evalNodeExpression(Graph, Node, Binding)} for execution of the node
+     * expression itself.
+     * </p>
+     *
+     * @implNote {@code sh:expr} is evaluated as a node expression tree in RDF, not
+     *     by converting to a SPARQL expression.
+     */
     public static NodeValue evaluate(Graph graph, Node root, Binding row) {
         Node x = getNodeExpression(graph, root);
         if ( x == null )
@@ -170,24 +202,9 @@ public class NodeExpressions {
         return exprSparqlNode;
     }
 
-    // XXX Temporary
     //sh:if is different ...
+    // Named arguments, not list arguments.
     static Set<Node> namedNodeExpressions = Set.of(V.ifCond);
-
-    /** Execute a function node expression. */
-    private static NodeValue exec(String uri, List<NodeValue>args) {
-        Objects.requireNonNull(uri);
-        Objects.requireNonNull(args);
-        NodeValue[] a = args.toArray(NodeValue[]::new);
-        return exec(uri,a);
-    }
-
-    private static NodeValue exec(String uri, NodeValue...args) {
-        Call call = NodeExprTables.getCall(uri);
-        if ( call == null )
-            throw new SPARQLEvalException("No such function: "+uri);
-        return call.exec(args);
-    }
 
     // ---- Integration into ARQ function execution
 
@@ -217,7 +234,7 @@ public class NodeExpressions {
 
         private static FunctionFactory createFunctionFactory() {
             return uri -> new FunctionBase() {
-                @Override public NodeValue exec(List<NodeValue> args) { return NodeExpressions.exec(uri, args); }
+                @Override public NodeValue exec(List<NodeValue> args) { return NodeExpressions.eval(uri, args); }
                 @Override public void checkBuild(String uri, ExprList args) {}
             };
         }
