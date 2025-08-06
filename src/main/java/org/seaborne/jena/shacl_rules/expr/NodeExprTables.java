@@ -36,11 +36,6 @@ class NodeExprTables {
 
     private NodeExprTables() {}
 
-    // FunctionEverything, J_FunctionalForm, J_SPARQLFuncOp replace SPARQLDispatch, SPARQLFuncOp
-
-    // API:
-    //    Execution of RDF expressions : NodeExpressions
-
     /**
      * Look up an URI to get a callable object.
      */

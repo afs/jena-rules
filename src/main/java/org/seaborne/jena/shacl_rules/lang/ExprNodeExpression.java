@@ -43,7 +43,7 @@ public class ExprNodeExpression extends ExprNode {
 
     private final Node exprNode;
     private final Graph graph;
-    private final Expr asExpr;
+    private Expr asExpr = null;
     private final Set<Var> varsMentioned;
 
     public static Expr create(Graph graph, Node node) {
@@ -53,14 +53,31 @@ public class ExprNodeExpression extends ExprNode {
     private ExprNodeExpression(Graph graph, Node node) {
         this.exprNode = node;
         this.graph = graph;
-        Expr x = null;
-        try {
-            x =  SparqlNodeExpressions.buildSparqlExpr(graph, exprNode);
-        } catch (RuntimeException ex) {}
-        asExpr = x;
+        // Calculate the vars based on the node expression.
         List<Var> vars = new ArrayList<>();
         accVars(vars, graph, exprNode);
         varsMentioned = Set.of(vars.toArray(Var[]::new));
+    }
+
+    private Expr asExpr() {
+        if ( asExpr == null ) {
+            // Delayed calculation.
+            synchronized(ExprNodeExpression.class) {
+                if ( asExpr != null )
+                    return asExpr;
+                asExpr = convertToExpr();
+            }
+        }
+        return asExpr;
+    }
+
+    // Conversion. This is expected to work.
+    private Expr convertToExpr() {
+        try {
+            return SparqlNodeExpressions.buildSparqlExpr(graph, exprNode);
+        } catch (RuntimeException ex) {
+            return null;
+        }
     }
 
     /**
@@ -68,7 +85,7 @@ public class ExprNodeExpression extends ExprNode {
      * converted to a SPARQL function structure internally.
      */
     public Expr converted() {
-        return asExpr;
+        return asExpr();
     }
 
     private static String exprURI(Node node) {
@@ -107,7 +124,6 @@ public class ExprNodeExpression extends ExprNode {
 
         // It's a function
         //  [ function ( args1, args2) ]
-
         // or sh:expr.
 
         NodeExpressionFunction nExprFn = NX.getRDFExpression(graph, node);
@@ -120,7 +136,7 @@ public class ExprNodeExpression extends ExprNode {
     public void visit(ExprVisitor visitor) {
         if ( asExpr == null)
             return;
-        // XXX What about variable extraction?
+        // Variable extraction is done in the constructor.
         Expr x1 = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
         x1.visit(visitor);
     }
@@ -157,7 +173,7 @@ public class ExprNodeExpression extends ExprNode {
             return asExpr.equals(other);
         if ( ! ( other instanceof ExprNodeExpression exprNX ) )
             return false;
-        // This rather strong; better to XXX Extract args and compare
+        // This rather strong but asExpr didn't work.
         return
                 graph == exprNX.graph &&
                 exprNode.equals(exprNX.exprNode);

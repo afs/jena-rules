@@ -126,8 +126,6 @@ public class ShaclRulesWriter {
         srw.writeRule(rule);
     }
 
-
-
     static class RuleSetWriter {
 
         private final IndentedWriter out;
@@ -218,10 +216,10 @@ public class ShaclRulesWriter {
 
         private void writeHead(Rule rule, Style styleRule) {
             out.print("{");
-//            rule.getTripleTemplates().forEach(triple -> {
-//                out.print(" ");
-//                writeTriple(triple);
-//            });
+            rule.getTripleTemplates().forEach(triple -> {
+                out.print(" ");
+                writeTriple(triple);
+            });
             out.print(" }");
         }
 
