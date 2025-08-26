@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.runner;
+package org.seaborne.jena.shacl_rules.junit5;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.jena.arq.junit.LibTestSetup;
-import org.apache.jena.arq.junit.manifest.ManifestEntry;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.arq.junit5.manifest.ManifestEntry;
+import org.apache.jena.graph.Node;
 import org.apache.jena.shared.JenaException;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.util.SplitIRI;
 import org.seaborne.jena.shacl_rules.tests.RulesEvalTest;
 import org.seaborne.jena.shacl_rules.tests.RulesSyntaxTest;
 
@@ -34,23 +33,24 @@ public class RuleTests {
     /** Create a Rules test - or return null for "unrecognized" */
     public static Runnable makeRuleTest(ManifestEntry entry) {
         //Resource manifest = entry.getManifest();
-        Resource item = entry.getEntry();
+        Node item = entry.getEntry();
         String testName = entry.getName();
-        Resource action = entry.getAction();
-        Resource result = entry.getResult();
+        Node action = entry.getAction();
+        Node result = entry.getResult();
 
-        String labelPrefix = "[Rules]";
+        //String labelPrefix = "[Rules]";
+        String labelPrefix = null;
 
         try {
-            Resource testType = LibTestSetup.getResource(item, RDF.type);
+            Node testType = entry.getTestType();
             if ( testType == null )
                 throw new JenaException("Can't determine the test type");
 
             if ( labelPrefix != null )
                 testName = labelPrefix+testName;
 
-            Resource input = action;
-            Resource output = result;
+            Node input = action;
+            Node output = result;
 
             // Some tests assume a certain base URI.
 
@@ -60,15 +60,15 @@ public class RuleTests {
             String base = rebase(input, assumedBase);
 
             // == Syntax
-            if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules) )
+            if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules.asNode()) )
                 return new RulesSyntaxTest(entry, base, true);
-            if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules) )
+            if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules.asNode()) )
                 return new RulesSyntaxTest(entry, base, false);
 
             // == Eval
-            if ( testType.equals(VocabRulesTests.TestEvalRules) )
+            if ( testType.equals(VocabRulesTests.TestEvalRules.asNode()) )
                 return new RulesEvalTest(entry, base, true);
-            if ( testType.equals(VocabRulesTests.TestNegativeEvalRules) )
+            if ( testType.equals(VocabRulesTests.TestNegativeEvalRules.asNode()) )
                 return new RulesEvalTest(entry, base, false);
 
             return null;
@@ -82,9 +82,17 @@ public class RuleTests {
         }
     }
 
-    private static String rebase(Resource input, String baseIRI) {
-        String x = input.getLocalName();
-        // Yuk, yuk, yuk.
+    private static String rebase(Node input, String baseIRI) {
+        if ( input.isBlank() )
+            return baseIRI;
+        String inputURI = input.getURI();
+        if ( baseIRI == null )
+            return inputURI;
+        int splitPoint = SplitIRI.splitpoint(input.getURI());
+        if ( splitPoint < 0 )
+            return inputURI;
+
+        String x = SplitIRI.localname(inputURI) ;
         baseIRI = baseIRI+x;
         return baseIRI;
     }

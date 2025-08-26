@@ -18,24 +18,24 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
 
-import org.apache.jena.arq.junit.manifest.Manifests;
-import org.apache.jena.arq.junit.runners.Label;
-import org.apache.jena.arq.junit.runners.RunnerSPARQL;
+import org.junit.jupiter.api.*;
 
-@RunWith(RunnerSPARQL.class)
-@Label("SHACL Rules")
-@Manifests({
-    "src/test/files/manifest.ttl"
-})
+import org.apache.jena.arq.junit5.Scripts;
+import org.seaborne.jena.shacl_rules.junit5.RuleTests;
+
 public class Scripts_RuleTests {
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {}
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {}
+
+    @TestFactory
+    @DisplayName("Jena Rules")
+    public Stream<DynamicNode> testFactory() {
+        return Scripts.manifestTestFactory("src/test/files/manifest.ttl", RuleTests::makeRuleTest);
+    }
 }
