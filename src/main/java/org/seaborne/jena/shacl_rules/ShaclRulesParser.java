@@ -18,6 +18,8 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import static org.apache.jena.riot.SysRIOT.fmtMessage;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -32,13 +34,12 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.irix.IRIxResolver;
 import org.apache.jena.riot.lang.extra.javacc.TokenMgrError;
-import org.apache.jena.riot.system.ParserProfile;
-import org.apache.jena.riot.system.RiotLib;
-import org.apache.jena.riot.system.StreamRDF;
-import org.apache.jena.riot.system.StreamRDFLib;
+import org.apache.jena.riot.system.*;
 import org.seaborne.jena.shacl_rules.lang.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.lang.parser.ParseException;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesJavacc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ShaclRulesParser {
 
@@ -66,6 +67,8 @@ public class ShaclRulesParser {
         return parse(parser, baseURI);
     }
 
+    public final static Logger parserLogger = LoggerFactory.getLogger(ShaclRulesParser.class);
+
     // Parser to RuleSet
     private static RuleSet parse(ShaclRulesJavacc parser, String baseURI) {
         IRIxResolver resolver =
@@ -74,7 +77,11 @@ public class ShaclRulesParser {
         // The Rules parse catches the triple by context.
         // PrefixMap is managed by the ParserProfile and the sent to the StreamRDF.
         StreamRDF output = StreamRDFLib.sinkNull();
-        ParserProfile parserProfile = RiotLib.dftProfile();
+        ErrorHandler errorHandler = new ErrorHandlerShacl(parserLogger);
+
+        ParserProfile parserProfile = //RiotLib.dftProfile();
+                RiotLib.createParserProfile(RiotLib.factoryRDF(), errorHandler, true);
+
         parser.setDest(output);
         parser.setProfile(parserProfile);
 
@@ -103,6 +110,59 @@ public class ShaclRulesParser {
             int line = parser.token.endLine;
             parserProfile.getErrorHandler().error(tErr.getMessage(), line, col);
             throw new ShaclRulesParseException(tErr.getMessage(), line, col);
+        }
+    }
+
+
+    /** Messages to a logger. This is not an ErrorHandler */
+    private static class ErrorLogger {
+        protected final Logger log ;
+
+        public ErrorLogger(Logger log) {
+            this.log = log ;
+        }
+
+        /** report a warning */
+        public void logWarning(String message, long line, long col) {
+            if ( log != null )
+                log.warn(fmtMessage(message, line, col)) ;
+        }
+
+        /** report an error */
+        public void logError(String message, long line, long col) {
+            if ( log != null )
+                log.error(fmtMessage(message, line, col)) ;
+        }
+
+        /** report a catastrophic error */
+        public void logFatal(String message, long line, long col) {
+            if ( log != null )
+                logError(message, line, col) ;
+        }
+    }
+
+    private static class ErrorHandlerShacl extends ErrorLogger implements ErrorHandler {
+
+        public ErrorHandlerShacl(Logger log) {
+            super(log);
+            //this.log = log;
+        }
+
+        @Override
+        public void warning(String message, long line, long col) {
+            logWarning(message, line, col);
+        }
+
+        @Override
+        public void error(String message, long line, long col) {
+            logError(message, line, col) ;
+            throw new ShaclRulesParseException(message, (int)line, (int)col);
+        }
+
+        @Override
+        public void fatal(String message, long line, long col) {
+            logFatal(message, line, col) ;
+            throw new ShaclRulesParseException(message, (int)line, (int)col);
         }
     }
 }

@@ -55,7 +55,6 @@ package org.seaborne.jena.shacl_rules.lang.parser;
 
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
-import org.apache.jena.sparql.syntax.* ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.extra.LangParserLib.*;
@@ -280,14 +279,7 @@ Node ReifiedTripleBlockPath() : { Node reifId ; }
     { return reifId ; }
 }
 
-Element Assignment() : { Element el = null ; }
-{
-  el = Bind()
-  //el = Let()
-    { return el; }
-}
-
-Element Bind() : {  Var v ; Expr expr ; }
+void Assignment() : {  Var v ; Expr expr ; }
 {
     <BIND>
     <LPAREN>
@@ -295,19 +287,20 @@ Element Bind() : {  Var v ; Expr expr ; }
     <AS>
     v = Var()
     <RPAREN>
-    { return new ElementBind(v, expr) ; }
+    { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
+    //{ return new ElementBind(v, expr) ; }
 }
 
-Element Let() : { Var v ; Expr expr ; }
-{
-    <LET>  
-    <LPAREN>
-    v = Var()
-    <ASSIGN> 
-    expr = Expression()
-    <RPAREN>
-    { return new ElementAssign(v, expr) ; }
-}
+// Element Let() : { Var v ; Expr expr ; }
+// {
+//     <LET>  
+//     <LPAREN>
+//     v = Var()
+//     <ASSIGN> 
+//     expr = Expression()
+//     <RPAREN>
+//     { return new ElementAssign(v, expr) ; }
+// }
 
 // ---- Reifier, various cases.
 // May return null.
@@ -330,7 +323,7 @@ Node VarOrReifierId() : { Node n = null; String iri = null; }
 void Filter() : { Expr c ; }
 {
     <FILTER> c = Constraint()
-    { emitExpr(c, token.beginLine, token.beginColumn); }
+    { emitFilterExpr(c, token.beginLine, token.beginColumn); }
 }
 
 Expr Constraint() : { Expr c ; }
@@ -1253,7 +1246,7 @@ Expr BuiltInCall() : { Expr expr ;
   | <IF> <LPAREN> expr = Expression() <COMMA> 
                   expr1 = Expression() <COMMA> 
                   expr2 = Expression() <RPAREN>
-    { return new E_Conditional(expr, expr1, expr2) ; }
+    { return new E_If(expr, expr1, expr2) ; }
 
   | <STRLANG> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrLang(expr1, expr2) ; }

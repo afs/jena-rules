@@ -259,9 +259,18 @@ NON-TERMINALS
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
 	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
 	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
-	Assignment	:=	Bind
-	Bind	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
-	Let	:=	<LET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
+	Assignment	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
+// Element Let() : { Var v ; Expr expr ; }
+// {
+//     <LET>  
+//     <LPAREN>
+//     v = Var()
+//     <ASSIGN> 
+//     expr = Expression()
+//     <RPAREN>
+//     { return new ElementAssign(v, expr) ; }
+// }
+
 // ---- Reifier, various cases.
 // May return null.
 	Reifier	:=	<TILDE> ( VarOrReifierId )?

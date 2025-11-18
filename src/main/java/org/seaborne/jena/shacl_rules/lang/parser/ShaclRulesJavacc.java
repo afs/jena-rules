@@ -22,7 +22,6 @@ package org.seaborne.jena.shacl_rules.lang.parser;
 
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
-import org.apache.jena.sparql.syntax.* ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.extra.LangParserLib.*;
@@ -595,33 +594,26 @@ finishTriplesTemplate(token.beginLine, token.beginColumn);
     throw new Error("Missing return statement in function");
 }
 
-  final public Element Assignment() throws ParseException {Element el = null ;
-    el = Bind();
-{if ("" != null) return el;}
-    throw new Error("Missing return statement in function");
-}
-
-  final public Element Bind() throws ParseException {Var v ; Expr expr ;
+  final public void Assignment() throws ParseException {Var v ; Expr expr ;
     jj_consume_token(BIND);
     jj_consume_token(LPAREN);
     expr = Expression();
     jj_consume_token(AS);
     v = Var();
     jj_consume_token(RPAREN);
-{if ("" != null) return new ElementBind(v, expr) ;}
-    throw new Error("Missing return statement in function");
+emitAssignment(v, expr, token.beginLine, token.beginColumn);
 }
 
-  final public Element Let() throws ParseException {Var v ; Expr expr ;
-    jj_consume_token(LET);
-    jj_consume_token(LPAREN);
-    v = Var();
-    jj_consume_token(ASSIGN);
-    expr = Expression();
-    jj_consume_token(RPAREN);
-{if ("" != null) return new ElementAssign(v, expr) ;}
-    throw new Error("Missing return statement in function");
-}
+// Element Let() : { Var v ; Expr expr ; }
+// {
+//     <LET>  
+//     <LPAREN>
+//     v = Var()
+//     <ASSIGN> 
+//     expr = Expression()
+//     <RPAREN>
+//     { return new ElementAssign(v, expr) ; }
+// }
 
 // ---- Reifier, various cases.
 // May return null.
@@ -679,7 +671,7 @@ Node Reifier() throws ParseException {Token tok = null ; Node reifId = null ;
   final public void Filter() throws ParseException {Expr c ;
     jj_consume_token(FILTER);
     c = Constraint();
-emitExpr(c, token.beginLine, token.beginColumn);
+emitFilterExpr(c, token.beginLine, token.beginColumn);
 }
 
   final public Expr Constraint() throws ParseException {Expr c ;
@@ -3193,7 +3185,7 @@ n = createURI(iri, token.beginLine, token.beginColumn);
       jj_consume_token(COMMA);
       expr2 = Expression();
       jj_consume_token(RPAREN);
-{if ("" != null) return new E_Conditional(expr, expr1, expr2) ;}
+{if ("" != null) return new E_If(expr, expr1, expr2) ;}
       break;
       }
     case STRLANG:{
