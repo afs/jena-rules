@@ -229,7 +229,7 @@ public class NodeExpressions {
 
         private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, Call> map) {
             FunctionFactory ff = createFunctionFactory();
-            map.forEach((uri,call) -> FunctionRegistry.get().put(uri, ff));
+            map.forEach((uri,_) -> FunctionRegistry.get().put(uri, ff));
         }
 
         private static FunctionFactory createFunctionFactory() {

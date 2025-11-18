@@ -261,7 +261,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 case EltCondition(Expr condition) -> {
                     chain = Iter.filter(chain, solution-> {
                         FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
-                        // ExprNode.isSatisfied converts exceptions to ExprEvalException
+                        // ExprNode.isSatisfied converts ExprEvalException to false.
                         return condition.isSatisfied(solution, functionEnv);
                     });
                 }

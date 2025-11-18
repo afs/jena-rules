@@ -310,7 +310,7 @@ class NodeExprTables {
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    Create0<? extends Expr> maker, Function0 function) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length != 0 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
             return maker.create();
@@ -329,7 +329,7 @@ class NodeExprTables {
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    Create1<? extends Expr> maker, Function1 function) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length != 1 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
             return maker.create(exprs[0]);
@@ -349,7 +349,7 @@ class NodeExprTables {
                                     Create1<? extends Expr> maker1, Function1 function1,
                                     Create2<? extends Expr> maker2, Function2 function2) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length == 1 )
                 return maker1.create(exprs[0]);
             if ( exprs.length == 2 )
@@ -373,7 +373,7 @@ class NodeExprTables {
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    Create2<? extends Expr> maker, Function2 function) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length != 2 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
             return maker.create(exprs[0], exprs[1]);
@@ -393,7 +393,7 @@ class NodeExprTables {
                                     Create2<? extends Expr> maker2, Function2 function2,
                                     Create3<? extends Expr> maker3, Function3 function3) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length == 2)
                 return maker2.create(exprs[0], exprs[1]);
             if ( exprs.length == 3 )
@@ -417,7 +417,7 @@ class NodeExprTables {
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    Create3<? extends Expr> maker, Function3 function) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length != 3 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
             return maker.create(exprs[0], exprs[1], exprs[2]);
@@ -437,7 +437,7 @@ class NodeExprTables {
                                     Create3<? extends Expr> maker3, Function3 function3,
                                     Create4<? extends Expr> maker4, Function4 function4) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length == 3)
                 return maker4.create(exprs[0], exprs[1], exprs[2],null);
             if ( exprs.length == 4 )
@@ -460,7 +460,7 @@ class NodeExprTables {
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    Create4<? extends Expr> maker, Function4 function) {
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length != 4 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             return maker.create(exprs[0], exprs[1], exprs[2], exprs[3]);
@@ -481,7 +481,7 @@ class NodeExprTables {
                                    String sparqlName, CreateN<? extends Expr> maker, FunctionN function) {
 
         String uri = expandName(uriName);
-        Build build = (u, exprs) ->{
+        Build build = (_, exprs) ->{
             if ( exprs.length != 4 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             ExprList exprList = ExprList.create(exprs);
@@ -503,7 +503,7 @@ class NodeExprTables {
                                                             Create1<X> maker, FunctionalForm1 functionForm1) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (u, exprs) ->{
+            Build build = (_, exprs) ->{
                 if ( exprs.length != 2 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
                 return maker.create(exprs[0]);
@@ -526,7 +526,7 @@ class NodeExprTables {
                                                             Create2<X> maker, FunctionalForm2 functionForm2) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (u, exprs) ->{
+            Build build = (_, exprs) ->{
                 if ( exprs.length != 2 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
                 return maker.create(exprs[0], exprs[1]);
@@ -549,7 +549,7 @@ class NodeExprTables {
                                                             Create3<X> maker, FunctionalForm3 functionForm3) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (u, exprs) ->{
+            Build build = (_, exprs) ->{
                 if ( exprs.length != 3 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
                 return maker.create(exprs[0], exprs[1], exprs[2]);
@@ -572,7 +572,7 @@ class NodeExprTables {
                                                             CreateN<X> maker, FunctionalFormN functionFormN) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (u, exprs) ->{
+            Build build = (_, exprs) ->{
                 ExprList exprList = ExprList.create(exprs);
                 return maker.create(exprList);
             };

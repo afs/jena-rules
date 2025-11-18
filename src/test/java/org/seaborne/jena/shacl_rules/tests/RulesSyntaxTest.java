@@ -20,13 +20,15 @@ package org.seaborne.jena.shacl_rules.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import org.apache.jena.arq.junit5.manifest.ManifestEntry;
+import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
-import org.apache.jena.shacl.parser.ShaclParseException;
+import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.riot.RiotException;
 import org.apache.jena.shared.NotFoundException;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
+import org.seaborne.jena.shacl_rules.lang.ShaclRulesParseException;
 
 public class RulesSyntaxTest implements Runnable {
 
@@ -62,7 +64,7 @@ public class RulesSyntaxTest implements Runnable {
         boolean allowWarnings = false;
 
         try {
-            parseForTest(filename, base, allowWarnings);
+            parseForTest(filename, base, allowWarnings, expectLegalSyntax);
             if (! expectLegalSyntax ) {
                 String s = IO.readWholeFileAsUTF8(fn);
                 System.err.println();
@@ -70,13 +72,25 @@ public class RulesSyntaxTest implements Runnable {
                 System.err.print(s);
                 fail("Parsing succeeded in a bad syntax test");
             }
-        } catch(ShaclParseException ex) {
+        } catch(ShaclRulesParseException | RiotException ex) {
             if ( expectLegalSyntax )
                 fail("Parse error: "+ex.getMessage());
         }
     }
 
-    private static void parseForTest(String filename, String base, boolean allowWarnings) {
-        ShaclRulesParser.parseFile(filename);
+    private static void parseForTest(String filename, String base, boolean allowWarnings, boolean expectLegalSyntax) {
+        if ( expectLegalSyntax ) {
+            ShaclRulesParser.parseFile(filename);
+            return;
+        }
+
+        String level = LogCtl.getLevel(ShaclRulesParser.parserLogger);
+        LogCtl.setLevel(ShaclRulesParser.parserLogger, "FATAL");
+        try {
+            // Expect errors - so don't log them.
+            ShaclRulesParser.parseFile(filename);
+        } finally {
+            LogCtl.setLevel(ShaclRulesParser.parserLogger, level);
+        }
     }
 }

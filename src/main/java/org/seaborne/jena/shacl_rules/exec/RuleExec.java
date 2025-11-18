@@ -21,9 +21,9 @@ package org.seaborne.jena.shacl_rules.exec;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -33,6 +33,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.seaborne.jena.shacl_rules.Rule;
@@ -61,12 +62,17 @@ public class RuleExec {
                 case EltCondition(Expr condition) -> {
                     chain = Iter.filter(chain, solution-> {
                         FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
-                        // ExprNode.isSatisfied converts exceptions to ExprEvalException
+                        // ExprNode.isSatisfied converts ExprEvalException to false.
                         return condition.isSatisfied(solution, functionEnv);
                     });
                 }
                 case EltAssignment(Var var, Expr expression) -> {
-                    throw new NotImplemented();
+                    Function<Binding, Binding> mapper = row -> {
+                        FunctionEnv funcEnv = new FunctionEnvBase();
+                        NodeValue nv = expression.eval(row, funcEnv);
+                        return BindingFactory.binding(row, var, nv.asNode());
+                    };
+                    return Iter.map(chain, mapper);
                 }
 //                case null -> {}
 //                default -> {}}

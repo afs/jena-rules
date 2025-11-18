@@ -204,9 +204,14 @@ public class ShaclRulesParserBase extends LangParserBase {
         accTriple(s, p, o, line, column);
     }
 
-    protected void emitExpr(Expr expr, int line, int column) {
-        debug("emitExpr", line, column);
+    protected void emitFilterExpr(Expr expr, int line, int column) {
+        debug("emitFilterExpr", line, column);
         addRuleElement(expr);
+    }
+
+    protected void emitAssignment(Var var, Expr expr, int line, int column) {
+        debug("emitAssignment", line, column);
+        addRuleElement(var, expr);
     }
 
     protected Node emitTripleReifier(Node reifierId, Node s, Node p, Node o, int line, int column) {

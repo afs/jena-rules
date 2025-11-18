@@ -18,10 +18,8 @@
 
 package org.seaborne.jena.shacl_rules.junit5;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.jena.arq.junit5.manifest.ManifestEntry;
+import org.apache.jena.arq.junit.manifest.ManifestEntry;
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.SplitIRI;
@@ -52,24 +50,23 @@ public class RuleTests {
             Node input = action;
             Node output = result;
 
-            // Some tests assume a certain base URI.
-
-            // == Syntax tests.
-
+            // Tests may assume a certain base URI.
             String assumedBase = entry.getManifest().getTestBase();
-            String base = rebase(input, assumedBase);
+            String testURI = rebase(input, assumedBase);
 
             // == Syntax
             if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules.asNode()) )
-                return new RulesSyntaxTest(entry, base, true);
+                return new RulesSyntaxTest(entry, testURI, true);
             if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules.asNode()) )
-                return new RulesSyntaxTest(entry, base, false);
+                return new RulesSyntaxTest(entry, testURI, false);
 
             // == Eval
-            if ( testType.equals(VocabRulesTests.TestEvalRules.asNode()) )
-                return new RulesEvalTest(entry, base, true);
+            if ( testType.equals(VocabRulesTests.TestPositiveEvalRules.asNode()) )
+                return new RulesEvalTest(entry, testURI, true);
             if ( testType.equals(VocabRulesTests.TestNegativeEvalRules.asNode()) )
-                return new RulesEvalTest(entry, base, false);
+                return new RulesEvalTest(entry, testURI, false);
+
+            Log.warn(RuleTests.class, "Test not classified - "+entry.getName()+" <"+entry.getURI()+">");
 
             return null;
             //return new SurpressedTest(entry);
@@ -95,11 +92,5 @@ public class RuleTests {
         String x = SplitIRI.localname(inputURI) ;
         baseIRI = baseIRI+x;
         return baseIRI;
-    }
-
-    static Set<String> allowWarningSet = new HashSet<>();
-    static {
-        // example:
-        //allowWarningSet.add("#turtle-eval-bad-01");
     }
 }

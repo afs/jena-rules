@@ -92,7 +92,7 @@ public class DependencyGraph {
 
        rule.getDependentTriples().forEach(triple->{
            // Look for rules with this triple (or a generalization) in the head
-           ruleSet.getRules().forEach(r->{
+           ruleSet.getRules().forEach(_->{
                if ( RuleDependencies.dependsOn(triple,  rule) ) {
                    providers.put(triple,rule);
                }

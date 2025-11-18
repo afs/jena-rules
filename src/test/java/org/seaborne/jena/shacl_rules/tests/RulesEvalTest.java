@@ -18,7 +18,7 @@
 
 package org.seaborne.jena.shacl_rules.tests;
 
-import org.apache.jena.arq.junit5.manifest.ManifestEntry;
+import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.lib.NotImplemented;
 
 public class RulesEvalTest implements Runnable {

@@ -16,12 +16,12 @@ PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
   #dct:creator [ foaf:homepage <https://w3c.github.io/rdf-star-wg/> ; foaf:name "W3C Data Shapes Working Group" ] ;
   
   rdfs:comment """
-    These test suites are a product of the [W3C  Data Shapes Working Group]()
+    These test suites are a product of the [W3C Data Shapes Working Group]()
     and have been maintained by the
     [RDF Test Curation Community Group](https://www.w3.org/community/rdf-tests/)
     at [https://github.com/w3c/rdf-tests/tree/main/rdf/rdf11](https://github.com/w3c/rdf-tests/tree/main/rdf/rdf11/).
   """;
   mf:include (
     <syntax/manifest.ttl>
-    <eval/manifest.ttl>
+##    <eval/manifest.ttl>
   ) .

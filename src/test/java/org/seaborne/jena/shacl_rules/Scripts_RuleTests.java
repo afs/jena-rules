@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.*;
 
-import org.apache.jena.arq.junit5.Scripts;
+import org.apache.jena.arq.junit.Scripts;
 import org.seaborne.jena.shacl_rules.junit5.RuleTests;
 
 public class Scripts_RuleTests {
@@ -35,7 +35,7 @@ public class Scripts_RuleTests {
 
     @TestFactory
     @DisplayName("Jena Rules")
-    public Stream<DynamicNode> testFactory() {
-        return Scripts.manifestTestFactory("src/test/files/manifest.ttl", RuleTests::makeRuleTest);
+    public Stream<DynamicNode> t() {
+        return Scripts.manifestTestFactory("src/test/files/manifest-rules.ttl", RuleTests::makeRuleTest);
     }
 }

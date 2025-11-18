@@ -22,10 +22,13 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 class VocabRulesTests {
-    public static final String NS =  "https://jena.apache.org/rules#";
-    public static final Resource TestPositiveSyntaxRules    = ResourceFactory.createResource( NS+"TestRulesPositiveSyntax" );
-    public static final Resource TestNegativeSyntaxRules    = ResourceFactory.createResource( NS+"TestRulesNegativeSyntax" );
-    public static final Resource TestEvalRules              = ResourceFactory.createResource( NS+"TestRulesEval" );
-    public static final Resource TestNegativeEvalRules      = ResourceFactory.createResource( NS+"TestRulesNegativeEval" );
+    public static final String NS =  "http://www.w3.org/ns/shacl-rules-test#";
+
+    public static final Resource TestPositiveSyntaxRules    = ResourceFactory.createResource( NS+"RulesPositiveSyntaxTest" );
+    public static final Resource TestNegativeSyntaxRules    = ResourceFactory.createResource( NS+"RulesNegativeSyntaxTest" );
+
+    public static final Resource TestPositiveEvalRules              = ResourceFactory.createResource( NS+"RulesPositiveEvalTest" );
+    public static final Resource TestNegativeEvalRules      = ResourceFactory.createResource( NS+"RulesNegativeEvalTest" );
+
     public static final Resource TestSurpressed             = ResourceFactory.createResource( NS+"Test" );
 }
