@@ -47,7 +47,8 @@ public class ExprNodeExpression extends ExprNode {
     private final Set<Var> varsMentioned;
 
     public static Expr create(Graph graph, Node node) {
-        return new ExprNodeExpression(graph, node);
+        ExprNodeExpression exprNodeExpr = new ExprNodeExpression(graph, node);
+        return exprNodeExpr;
     }
 
     private ExprNodeExpression(Graph graph, Node node) {

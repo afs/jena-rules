@@ -19,16 +19,20 @@
 package org.seaborne.jena.shacl_rules.sys;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 
 /**
  * Rule well-formed conditions.
@@ -57,6 +61,12 @@ public class WellFormed {
                 }
                 case RuleElement.EltCondition(Expr condition) -> {
                     processWellFormedExpr(tracker, condition);
+                }
+                case EltNegation(List<RuleElement> innerBody) -> {
+                    ElementGroup innerGroup = RuleLib.ruleEltsToElementGroup(innerBody);
+                    Expr expression = new E_NotExists(innerGroup);
+                    // XXX ???
+                    processWellFormedExpr(tracker, expression);
                 }
                 case RuleElement.EltAssignment(Var var, Expr expression) -> {
                     processWellFormedExpr(tracker, expression);

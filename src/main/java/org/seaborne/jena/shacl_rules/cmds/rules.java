@@ -21,6 +21,7 @@ package org.seaborne.jena.shacl_rules.cmds;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.Version;
 
 public class rules {
@@ -34,9 +35,10 @@ public class rules {
         String cmd = args[0];
         String[] argsSub = Arrays.copyOfRange(args, 1, args.length);
         String cmdExec = cmd;
+        String cmdExecUC = Lib.lowercase(cmdExec);
 
         // Help
-        switch (cmdExec) {
+        switch (cmdExecUC) {
             case "help" :
             case "-h" :
             case "-help" :

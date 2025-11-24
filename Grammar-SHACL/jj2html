@@ -166,7 +166,7 @@ EOF
     print "\n" ;
 } ## End TABLE
 
-$indent = "        ";
+$indent = "      ";
 ## $indent = "";
 
 print $indent,"<div class=\"grammarTable\">\n" ;

@@ -18,6 +18,8 @@
 
 package org.seaborne.jena.shacl_rules.lang;
 
+import java.util.List;
+
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
@@ -26,4 +28,8 @@ public sealed interface RuleElement  {
     public record EltTriplePattern(Triple triplePattern) implements RuleElement {}
     public record EltCondition(Expr condition) implements RuleElement {}
     public record EltAssignment(Var var, Expr expression) implements RuleElement {}
+    public record EltNegation(List<RuleElement> inner) implements RuleElement {}
+//    public record EltExists(List<RuleElement> inner) implements RuleElement {}
+//    public record EltNotExists(List<RuleElement> inner) implements RuleElement {}
+//    public record EltAggregation(Var var, Expr expression) implements RuleElement {}
 }

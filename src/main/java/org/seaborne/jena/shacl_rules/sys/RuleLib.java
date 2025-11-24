@@ -21,13 +21,12 @@ package org.seaborne.jena.shacl_rules.sys;
 import java.util.List;
 
 import org.apache.jena.query.Query;
-import org.apache.jena.sparql.syntax.ElementBind;
-import org.apache.jena.sparql.syntax.ElementFilter;
-import org.apache.jena.sparql.syntax.ElementGroup;
-import org.apache.jena.sparql.syntax.ElementTriplesBlock;
+import org.apache.jena.sparql.expr.E_NotExists;
+import org.apache.jena.sparql.syntax.*;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 
 public class RuleLib {
@@ -40,6 +39,13 @@ public class RuleLib {
             switch (rElt) {
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
                 case EltCondition(var expr) -> group.addElement(new ElementFilter(expr));
+                case EltNegation(var innerBody) -> {
+                    ElementGroup innerGroup = ruleEltsToElementGroup(innerBody);
+                    // Use ARQ extension
+                    //Element element = new ElementNotExists(innerGroup);
+                    Element element = new ElementFilter(new E_NotExists(innerGroup));
+                    group.addElement(element);
+                }
                 case EltAssignment(var assignedVar, var expr) -> {
                     group.addElement(new ElementBind(assignedVar, expr));
                 }

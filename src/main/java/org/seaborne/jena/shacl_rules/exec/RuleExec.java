@@ -28,20 +28,26 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
+import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.cmds.Access;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.sys.RuleLib;
 
 /** Forward execution support */
 public class RuleExec {
@@ -60,7 +66,7 @@ public class RuleExec {
                     chain = Access.accessGraph(chain, graph, triplePattern);
                 }
                 case EltCondition(Expr condition) -> {
-                    chain = Iter.filter(chain, solution-> {
+                    Iterator<Binding> chain2 = Iter.filter(chain, solution-> {
                         FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
                         // ExprNode.isSatisfied converts ExprEvalException to false.
                         return condition.isSatisfied(solution, functionEnv);
@@ -74,8 +80,22 @@ public class RuleExec {
                     };
                     return Iter.map(chain, mapper);
                 }
+
+                case EltNegation(List<RuleElement> innerBody) -> {
+                    // XXX Temp use SPARQL
+                    ElementGroup innerGroup = RuleLib.ruleEltsToElementGroup(innerBody);
+                    Expr expression = new E_NotExists(innerGroup);
+                    DatasetGraph dsg = DatasetGraphFactory.wrap(graph);
+                    Iterator<Binding> chain2 = Iter.filter(chain, solution-> {
+                        // Include the graph.
+                        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext(), graph, dsg);
+                        return expression.isSatisfied(solution, functionEnv);
+                    });
+
+                    chain = chain2;
+                }
 //                case null -> {}
-//                default -> {}}
+//                default -> {}
             }
             if ( false ) {
                 FmtLog.info(RuleExec.class, "chain: ");

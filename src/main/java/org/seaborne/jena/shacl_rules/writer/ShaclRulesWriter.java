@@ -231,6 +231,7 @@ public class ShaclRulesWriter {
             }
         }
 
+        // XXX Rename - not "Inner"
         private void writeBodyInner(Rule rule, Style styleBody) {
             int indent = 2;
 
@@ -240,7 +241,6 @@ public class ShaclRulesWriter {
                     out.print("{ ");
                 }
                 case MultiLine -> {
-
                     out.print("{");
                     out.println();
                     out.incIndent(indent);
@@ -266,10 +266,15 @@ public class ShaclRulesWriter {
             out.flush();
         }
 
+        // XXX Rename - not "Inner"
         private void writeBodyInnerElements(Rule rule, Style styleBody) {
+            writeRuleElements(rule.getBodyElements(), styleBody);
+        }
+
+        private void writeRuleElements(List<RuleElement> bodyElements, Style styleBody) {
             // Without braces.
             boolean first = true;
-            for ( RuleElement elt : rule.getBodyElements() ) {
+            for ( RuleElement elt : bodyElements ) {
                 if ( ! first ) {
                     if ( styleBody == Style.MultiLine )
                         out.println();
@@ -285,6 +290,16 @@ public class ShaclRulesWriter {
                     case RuleElement.EltCondition(Expr condition) -> {
                         out.write("FILTER");
                         writeExpr(condition);
+                    }
+                    case RuleElement.EltNegation(List<RuleElement> inner) -> {
+                        out.write("NOT { ");
+                        out.println();
+                        final int indentLevelNegation = 4 ;
+                        out.incIndent(indentLevelNegation);
+                        writeRuleElements(inner, styleBody);
+                        out.decIndent(indentLevelNegation);
+                        out.println();
+                        out.write(" }");
                     }
                     case RuleElement.EltAssignment(Var var, Expr expression) -> {
                         out.write("BIND( ");

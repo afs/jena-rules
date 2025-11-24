@@ -47,7 +47,10 @@ public class ShaclRulesParserBase extends LangParserBase {
     public List<Rule> getRules() { return rules; }
     public List<Triple> getData() { return data; }
 
-    private static final boolean DEBUG = false;
+    private static boolean DEBUG = false;
+    public static void debug(boolean setting) {
+        DEBUG = setting;
+    }
 
     private static void debug(String fmt, int line, int column, Object...args) {
         if ( DEBUG ) {
@@ -57,17 +60,19 @@ public class ShaclRulesParserBase extends LangParserBase {
             System.out.println(msg);
         }
     }
-    // The finish "start, end" are position of the start of the syntax element
+    // The finish "start, end" arguments are position of the start of the syntax element
 
     // ---- Parser state.
 
-    enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY };
+    enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY, INNER };
     protected BuildState state = BuildState.OUTER;
 
     // Used while parsing the head.
     private List<Triple> headAcc = null;
-    // Used while parsing the head.
+    // Used while parsing the body.
     private List<RuleElement> bodyAcc = null;
+    // Used while parsing a negation or aggregation inner body.
+    private List<RuleElement> innerBodyAcc = null;
 
     // ----
 
@@ -128,6 +133,16 @@ public class ShaclRulesParserBase extends LangParserBase {
         state = BuildState.RULE;
     }
 
+    protected void startBodyBasic(int line, int column) {
+        debug("startBodyBasic", line, column);
+        state = BuildState.INNER;
+    }
+
+    protected void finishBodyBasic(int line, int column) {
+        debug("finishBodyBasic", line, column);
+        state = BuildState.BODY;
+    }
+
     // Allows variables. Paths expand by the parser (??)
     protected void startTriplesBlock(int line, int column) {
         debug("startTriplesBlock", line, column);
@@ -158,28 +173,80 @@ public class ShaclRulesParserBase extends LangParserBase {
         state = BuildState.OUTER;
     }
 
+    protected void startNegation(int line, int column) {
+        debug("startNegation", line, column);
+        state = BuildState.INNER;
+        innerBodyAcc = new ArrayList<>();
+    }
+
+    protected void finishNegation(int line, int column) {
+        debug("finishNegation", line, column);
+        state = BuildState.BODY;
+    }
+
+//    protected void startExistsElement(int line, int column) {
+//        debug("startExistsElement", line, column);
+//        state = BuildState.INNER;
+//        innerBodyAcc = new ArrayList<>();
+//    }
+//
+//    protected void finishExistsElement(int line, int column) {
+//        debug("finishExistsElement", line, column);
+////        RuleElement rElt = new RuleElement.EltExists(innerBodyAcc);
+////        addToBody(rElt);
+//        state = BuildState.BODY;
+//    }
+//
+//    protected void startNotExistsElement(int line, int column) {
+//        debug("startNotExistsElement", line, column);
+//        state = BuildState.INNER;
+//        innerBodyAcc = new ArrayList<>();
+//    }
+//
+//    protected void finishNotExistsElement(int line, int column) {
+//        debug("finishNotExistsElement", line, column);
+////        RuleElement rElt = new RuleElement.EltNotExists(innerBodyAcc);
+////        addToBody(rElt);
+//        state = BuildState.BODY;
+//    }
+
     private void addToHead(Triple tripleTemplate) {
         requireNonNull(tripleTemplate);
         headAcc.add(tripleTemplate);
     }
 
     private void addToBody(RuleElement ruleElt) {
-        bodyAcc.add(ruleElt);
+        requireNonNull(ruleElt);
+        switch(state) {
+            case BODY -> bodyAcc.add(ruleElt);
+            case INNER -> innerBodyAcc.add(ruleElt);
+            default ->
+                throwInternalStateException("Rule element emitted when in state "+state);
+        }
     }
 
+    // XXX Rename to the specific element type.
+
+    // Triple pattern.
     private void addRuleElement(Triple triplePattern) {
         requireNonNull(triplePattern);
         addToBody(new RuleElement.EltTriplePattern(triplePattern));
     }
 
+    // Condition
     private void addRuleElement(Expr expression) {
         requireNonNull(expression);
-
-        // Replace by any RDF Node Expression
-
         addToBody(new RuleElement.EltCondition(expression));
     }
 
+    // Negation
+    private void addRuleElement(List<RuleElement> inner) {
+        requireNonNull(inner);
+        RuleElement rElt = new RuleElement.EltNegation(inner);
+        addToBody(rElt);
+}
+
+    // Assignment
     private void addRuleElement(Var var, Expr expression) {
         requireNonNull(var);
         requireNonNull(expression);
@@ -202,6 +269,24 @@ public class ShaclRulesParserBase extends LangParserBase {
     protected void emitTriple(Node s, Node p, Node o, int line, int column) {
         debug("emitTriple", line, column);
         accTriple(s, p, o, line, column);
+    }
+
+    // If NOT EXISTS, EXISTS
+    protected void emitExistsElement(int line, int column) {
+//      RuleElement rElt = new RuleElement.EltExists(innerBodyAcc);
+//      addToBody(rElt);
+        innerBodyAcc = null;
+    }
+
+    protected void emitNotExistsElement(int line, int column) {
+//        RuleElement rElt = new RuleElement.EltNotExists(innerBodyAcc);
+//        addToBody(rElt);
+        innerBodyAcc = null;
+    }
+
+    protected void emitNegation(int line, int column) {
+        addRuleElement(innerBodyAcc);
+        innerBodyAcc = null;
     }
 
     protected void emitFilterExpr(Expr expr, int line, int column) {
@@ -250,6 +335,11 @@ public class ShaclRulesParserBase extends LangParserBase {
         switch(state) {
             case HEAD -> { addToHead(triple); }
             case BODY -> { addRuleElement(Triple.create(s,p,o)); }
+            case INNER -> {
+                Triple triplePattern = Triple.create(s,p,o);
+                requireNonNull(triplePattern);
+                innerBodyAcc.addLast(new RuleElement.EltTriplePattern(triplePattern));
+            }
             case DATA -> {
                 if ( ! triple.isConcrete() )
                     throwParseException("Triple must be concrete (no variables): "+triple, line, column);
@@ -260,7 +350,7 @@ public class ShaclRulesParserBase extends LangParserBase {
 //            case OUTER -> {}
 //            case RULE -> {}
             default -> {
-                throwInternalStateException("Triple emited in state "+state);
+                throwInternalStateException("Triple emitted in state "+state);
             }
         }
     }

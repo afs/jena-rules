@@ -87,6 +87,51 @@ void RuleSet(): { }
   { finishRules() ; }
 }
 
+// ---- Prologue
+
+void Prologue() : {}
+{
+   ( BaseDecl() | PrefixDecl() | VersionDecl() | ImportsDecl() ) *
+}
+
+void BaseDecl() : { Token t ; String iri ; }
+{
+   t = <BASE> iri = IRIREF()
+   { setBase(iri, t.beginLine, t.beginColumn ) ; }
+}
+
+void PrefixDecl() : { Token t ; String iri ; }
+{
+    <PREFIX> t = <PNAME_NS> iri = IRIREF()
+    { setPrefix(t.image, iri, t.beginLine, t.beginColumn) ; }
+}
+
+void VersionDecl() : { Token t ; String version ; }
+{
+    t = <VERSION> version = VersionSpecifier()
+    { declareVersion(version, t.beginLine, t.beginColumn); }
+}
+
+String VersionSpecifier() : { Token t ; String version ; }
+{
+    ( t = <STRING_LITERAL1> { version = stripQuotes(t.image) ; }
+    | t = <STRING_LITERAL2> { version = stripQuotes(t.image) ; }
+    )
+    {
+      version = unescapeStr(version,  t.beginLine, t.beginColumn) ;
+      checkRDFString(version, t.beginLine, t.beginColumn) ;
+      return version;
+    }
+}
+
+void ImportsDecl() : { String iri ; }
+{
+  <IMPORTS> iri = iri()
+  { declareImport(iri); }
+}
+
+// ---- Rules
+
 void Rule() : {  }
 {
    Rule1() | Rule2() | Rule3() | Declaration()
@@ -164,79 +209,90 @@ void BodyPattern() : { Token t ; }
 {
     t = <LBRACE>
     { startBody(t.beginLine, t.beginColumn); }
-    ( BodyPattern1() )?
-    ( Assignment() )*
+    BodyPattern1()
     <RBRACE>
     { finishBody(t.beginLine, t.beginColumn); }
 }
 
 void BodyPattern1() : { }
 {
-   // Make sure BodyPatternSub() can't be followed by BodyPatternSub()
+   // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
+   //   Why isn't BodyTriplesBlock() (i.e.  TriplesBlock()) is maximal?
+   (BodyTriplesBlock())?
+   ( BodyNotTriples() (BodyTriplesBlock())? )*
+}
+
+void BodyNotTriples() : {}
+{
    (  Filter()
-   |  BodyPatternSub() 
-      ( Filter() (BodyPatternSub())? )*
+//    |  Exists()
+//    |  NotExists()
+   | Negation()
+   |  Assignment()
    )
 }
 
-void BodyPatternSub() : { }
+// XXX Matches zero triples
+void BodyTriplesBlock() : { }
 {
    { startTriplesBlock(token.beginLine, token.beginColumn) ; }
    TriplesBlock()
    { finishTriplesBlock(token.beginLine, token.beginColumn) ; }
 }
 
-// ---- Prologue
+// ---- EXISTS, NOT EXISTS
 
-void Prologue() : {}
+// void Exists() : {  Token t; }
+// {
+//     // XXX t not needed
+//     t = <EXISTS>
+//     { startExistsElement(token.beginLine, token.beginColumn) ; }
+//     t = <LBRACE>
+//     BodyBasic()
+//     <RBRACE>
+//     { emitExistsElement(token.beginLine, token.beginColumn); }
+//     { finishExistsElement(t.beginLine, t.beginColumn) ; }
+// }
+// 
+// void NotExists() : { Token t; }
+// {
+//     t = <NOT> <EXISTS>
+//     { startNotExistsElement(token.beginLine, token.beginColumn) ; }
+//     t = <LBRACE>
+//     BodyBasic()
+//     <RBRACE>
+//     { emitNotExistsElement(token.beginLine, token.beginColumn); }
+//     { finishNotExistsElement(t.beginLine, t.beginColumn) ; }
+// }
+
+void Negation() : { Token t; }
 {
-   ( BaseDecl() | PrefixDecl() | VersionDecl() | ImportsDecl() ) *
+    t = <NOT>
+    { startNegation(token.beginLine, token.beginColumn) ; }
+    t = <LBRACE>
+    BodyBasic()
+    <RBRACE>
+    { emitNegation(token.beginLine, token.beginColumn); }
+    { finishNegation(t.beginLine, t.beginColumn) ; }
 }
 
-void BaseDecl() : { Token t ; String iri ; }
+// Body-like pattern for EXISTS 
+void BodyBasic() : {}
 {
-   t = <BASE> iri = IRIREF()
-   { setBase(iri, t.beginLine, t.beginColumn ) ; }
-}
-
-void PrefixDecl() : { Token t ; String iri ; }
-{
-    <PREFIX> t = <PNAME_NS> iri = IRIREF()
-    { setPrefix(t.image, iri, t.beginLine, t.beginColumn) ; }
-}
-
-void VersionDecl() : { Token t ; String version ; }
-{
-    t = <VERSION> version = VersionSpecifier()
-    { declareVersion(version, t.beginLine, t.beginColumn); }
-}
-
-String VersionSpecifier() : { Token t ; String version ; }
-{
-    ( t = <STRING_LITERAL1> { version = stripQuotes(t.image) ; }
-    | t = <STRING_LITERAL2> { version = stripQuotes(t.image) ; }
-    )
-    {
-      version = unescapeStr(version,  t.beginLine, t.beginColumn) ;
-      checkRDFString(version, t.beginLine, t.beginColumn) ;
-      return version;
-    }
-}
-
-void ImportsDecl() : { String iri ; }
-{
-  <IMPORTS> iri = iri()
-  { declareImport(iri); }
+    { startBodyBasic(token.beginLine, token.beginColumn) ; }
+    (BodyTriplesBlock())?
+    ( Filter() (BodyTriplesBlock())? )*
+    { finishBodyBasic(token.beginLine, token.beginColumn) ; }
 }
 
 // ---- Triples
 
-void TriplesTemplateBlock() : { }
+void TriplesTemplateBlock() : { Token t; }
 {
-   <LBRACE>
-   { startTriplesTemplate(token.beginLine, token.beginColumn); }
+   t = <LBRACE>
+   { startTriplesTemplate(t.beginLine, t.beginColumn); }
    ( TriplesTemplate() )?
-   { finishTriplesTemplate(token.beginLine, token.beginColumn); }
+   { finishTriplesTemplate(t.beginLine, t.beginColumn); }
    <RBRACE>
 }
 
@@ -1510,6 +1566,8 @@ TOKEN [IGNORE_CASE] :
 |  < SUBJECT:     "SUBJECT" >
 |  < PREDICATE:   "PREDICATE" >
 |  < OBJECT:      "OBJECT" >
+
+| < EXISTS:       "EXISTS" >
 
 |  < NOT:         "not" >
 |  < FILTER:      "filter" >

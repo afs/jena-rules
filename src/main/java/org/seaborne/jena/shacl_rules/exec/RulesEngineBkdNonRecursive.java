@@ -47,6 +47,7 @@ import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RuleDependencies;
@@ -265,6 +266,12 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                         return condition.isSatisfied(solution, functionEnv);
                     });
                 }
+                case EltNegation(var expr) -> {
+                    // SPARQL FILTER NOT EXISTs, recursive translation.
+                    System.err.println("EltNegation in RulesEngineBkdNonRecursive.solveRule");
+                    throw new NotImplemented();
+                }
+
                 case EltAssignment(Var var, Expr expression) -> {
                     throw new NotImplemented();
                 }

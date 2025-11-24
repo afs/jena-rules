@@ -70,6 +70,7 @@ TOKENS
 | <SUBJECT: "SUBJECT">
 | <PREDICATE: "PREDICATE">
 | <OBJECT: "OBJECT">
+| <EXISTS: "EXISTS">
 | <NOT: "not">
 | <FILTER: "filter">
 | <BOUND: "bound">
@@ -231,6 +232,14 @@ NON-TERMINALS
 //    (<BOM>)?
 // }
 	RuleSet	:=	( Prologue ( Rule | Data ) )* <EOF>
+// ---- Prologue
+	Prologue	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )*
+	BaseDecl	:=	<BASE> IRIREF
+	PrefixDecl	:=	<PREFIX> <PNAME_NS> IRIREF
+	VersionDecl	:=	<VERSION> VersionSpecifier
+	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
+	ImportsDecl	:=	<IMPORTS> iri
+// ---- Rules
 	Rule	:=	Rule1
 		|	Rule2
 		|	Rule3
@@ -243,16 +252,38 @@ NON-TERMINALS
 // ---- Rule head
 	HeadTemplate	:=	TriplesTemplateBlock
 // ---- Rule body
-	BodyPattern	:=	<LBRACE> ( BodyPattern1 )? ( Assignment )* <RBRACE>
-	BodyPattern1	:=	( Filter | BodyPatternSub ( Filter ( BodyPatternSub )? )* )
-	BodyPatternSub	:=	TriplesBlock
-// ---- Prologue
-	Prologue	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )*
-	BaseDecl	:=	<BASE> IRIREF
-	PrefixDecl	:=	<PREFIX> <PNAME_NS> IRIREF
-	VersionDecl	:=	<VERSION> VersionSpecifier
-	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
-	ImportsDecl	:=	<IMPORTS> iri
+	BodyPattern	:=	<LBRACE> BodyPattern1 <RBRACE>
+	BodyPattern1	:=	( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )*
+	BodyNotTriples	:=	( Filter | Negation | Assignment )
+// XXX Matches zero triples
+	BodyTriplesBlock	:=	TriplesBlock
+// ---- EXISTS, NOT EXISTS
+
+// void Exists() : {  Token t; }
+// {
+//     // XXX t not needed
+//     t = <EXISTS>
+//     { startExistsElement(token.beginLine, token.beginColumn) ; }
+//     t = <LBRACE>
+//     BodyBasic()
+//     <RBRACE>
+//     { emitExistsElement(token.beginLine, token.beginColumn); }
+//     { finishExistsElement(t.beginLine, t.beginColumn) ; }
+// }
+// 
+// void NotExists() : { Token t; }
+// {
+//     t = <NOT> <EXISTS>
+//     { startNotExistsElement(token.beginLine, token.beginColumn) ; }
+//     t = <LBRACE>
+//     BodyBasic()
+//     <RBRACE>
+//     { emitNotExistsElement(token.beginLine, token.beginColumn); }
+//     { finishNotExistsElement(t.beginLine, t.beginColumn) ; }
+// }
+	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
+// Body-like pattern for EXISTS 
+	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
 // ---- Triples
 	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
 	TriplesTemplate	:=	TriplesSameSubject ( <DOT> ( TriplesTemplate )? )?
