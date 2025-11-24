@@ -24,12 +24,11 @@ import java.util.Map;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnv;
+import org.seaborne.jena.shacl_rules.sys.P;
 
 // Manage the lookup tables.
 class NodeExprTables {
@@ -289,17 +288,9 @@ class NodeExprTables {
         //        entry(mapDispatch, mapBuild, mapFunctionURI,"arq:cast", E_Cast.class, "CAST", E_Cast::new, J_SPARQLFuncOp::);
         entry0(mapDispatch, mapBuild, mapFunctionURI,"arq:version", E_Version.class, "VERISON", E_Version::new, J_SPARQLFuncOp::arq_version);
     }
-    //@formatter:off
-    // The table uses prefixes names for URIs for readability.
-    private static PrefixMap prefixMap = PrefixMapFactory.create(Map.of
-                                                                 ("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                                                                  "sh",      "http://www.w3.org/ns/shacl#",
-                                                                  "sparql",  "http://www.w3.org/ns/sparql#",
-                                                                  "arq",     "http://jena.apache.org/ARQ/function#"));
-    //@formatter:on
 
     private static String expandName(String x) {
-        String z = prefixMap.expand(x);
+        String z = P.prefixMap.expand(x);
         return (z != null) ? z : x;
     }
 

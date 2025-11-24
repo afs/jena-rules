@@ -328,7 +328,10 @@ public class ShaclRulesWriter {
 
             if ( addParens )
                 out.print("( ");
-            v.format(expr);
+
+            // no expr if node value.
+
+            v.format(expr); // DOES NOT PRINT!
             if ( addParens )
                 out.print(" )");
         }

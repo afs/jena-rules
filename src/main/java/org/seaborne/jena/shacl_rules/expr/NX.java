@@ -27,10 +27,10 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.system.G;
-import org.seaborne.jena.shacl_rules.rdf_syntax.V;
+import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
- * Helper functions for workign with node expressions.
+ * Helper functions for working with node expressions.
  * @see NodeExpressions for the main API including evaluation.
  */
 public class NX {

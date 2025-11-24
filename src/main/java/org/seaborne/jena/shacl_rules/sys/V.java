@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.rdf_syntax;
+package org.seaborne.jena.shacl_rules.sys;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -31,8 +31,11 @@ class V {
     public static Node TYPE = RDF.Nodes.type;
 
     static final String SH = "http://www.w3.org/ns/shacl#";
+    static final String SHR = "http://www.w3.org/ns/shacl-rules#";
+    static final String SHNEX = "http://www.w3.org/ns/shnex#";
 
-    private static Node uri(String localName) { return NodeFactory.createURI(SH+localName); }
+    private static Node uri(String localName) { return uri(SHR, localName); }
+    private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
 
     public static final Node subject = uri("subject");
     public static final Node predicate = uri("predicate");
@@ -56,7 +59,9 @@ class V {
      * In application code, prefer using {@link NX#getVar}/{@link NX#addVar}/{@link NX#getVarName}
      * over accessing the graph using V.var.
      */
-    public static final Node var = uri("var");
+
+    // rename Node as varName?
+    public static final Node var = uri(SHNEX, "var");
 
 
     public static final Node ifCond = uri("if");
@@ -67,8 +72,12 @@ class V {
     public static final Node sparqlExpr = uri("sparqlExpr");
     public static final Node expr = uri("expr");
 
-    // Temp
-    static final Node sparqlBody = uri("sparqlBody");
+    public static final Node assign = uri("assign");
+    public static final Node assignVar = uri("assignVar");
+    public static final Node assignValue = uri("assignValue");
+
+    // Temp?
+    public static final Node sparqlBody = uri("sparqlBody");
 
 //    /** Class for list argument node expressions */
 //    public static final Node exprClass = uri("Expression");

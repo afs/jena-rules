@@ -24,7 +24,6 @@ import java.util.ListIterator;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -44,6 +43,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
+import org.seaborne.jena.shacl_rules.sys.V;
 
 public class RuleSetToGraph {
 
@@ -98,6 +98,7 @@ public class RuleSetToGraph {
         return bgpNode;
     }
 
+
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
         var bodyElts = rule.getBodyElements();
         List<Node> items = new ArrayList<>();
@@ -106,12 +107,22 @@ public class RuleSetToGraph {
                 case EltTriplePattern(var triplePattern) -> {
                    items.add(encodeTriple(graph, triplePattern));
                 }
-                case EltCondition(var condition) -> {
+                case EltCondition(Expr condition) -> {
                     Node nExpr = expression(graph, condition);
                     items.add(nExpr);
                 }
                 case EltAssignment(Var var, Expr expression) -> {
-                    throw new NotImplemented();
+                    // Functions.
+                    Node nExpr = expression(graph, expression);
+                    Node nVar = NX.addVar(graph, var.getVarName());
+
+                    Node x1 = NodeFactory.createBlankNode();
+                    graph.add(x1, V.assignVar, nVar);
+                    graph.add(x1, V.assignValue, nExpr);
+
+                    Node x2 = NodeFactory.createBlankNode();
+                    graph.add(x2, V.assign, x1);
+                    items.add(x2);
                 }
                 case null -> {}
                 default -> {}

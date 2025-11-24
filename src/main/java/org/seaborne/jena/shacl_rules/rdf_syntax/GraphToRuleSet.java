@@ -36,6 +36,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.sys.V;
 
 public class GraphToRuleSet {
 
@@ -131,12 +132,12 @@ public class GraphToRuleSet {
 
     // Translate into a variable or return the node.
     private static Node getVarMaybe(Graph graph, Node node) {
-            if ( ! node.isBlank() )
-                return node;
-            Var x = NX.getVar(graph, node);
-            if ( x == null )
-                throw new ShaclException("Blank node in pattern or malformed [ sh:var ]");
-            return x;
+        if ( ! node.isBlank() )
+            return node;
+        Var x = NX.getVar(graph, node);
+        if ( x == null )
+            throw new ShaclException("Blank node in pattern or malformed [ sh:var ]");
+        return x;
     }
 
     private static List<RuleElement> parseRuleBody(Graph graph, Node bodyNode) {
@@ -167,6 +168,18 @@ public class GraphToRuleSet {
                 // Ignore
                 continue;
             }
+
+            if ( G.hasProperty(graph, node, V.assign) ) {
+                Node assign = G.getOneSP(graph, node, V.assign) ;
+                Node varNode= G.getOneSP(graph, assign, V.assignVar);
+                Var var = NX.getVar(graph, varNode);
+                Node exprNode = G.getOneSP(graph, assign, V.assignValue);
+                // Force expr
+                Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+                body.add(new RuleElement.EltAssignment(var, expr));
+                continue;
+            }
+
             throw new ShaclException("Didn't recognized RDF for rule body");
         }
         return body;

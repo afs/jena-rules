@@ -38,7 +38,7 @@ import org.apache.jena.sparql.function.*;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
 import org.seaborne.jena.shacl_rules.jena.JLib;
-import org.seaborne.jena.shacl_rules.rdf_syntax.V;
+import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
  * SHACL node expression evaluation.

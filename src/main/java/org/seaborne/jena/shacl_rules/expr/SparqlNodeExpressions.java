@@ -36,7 +36,7 @@ import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Build;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
-import org.seaborne.jena.shacl_rules.rdf_syntax.V;
+import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
  * Encode/decode SPAQRL expressions as RDF triples.
@@ -143,10 +143,21 @@ public class SparqlNodeExpressions {
     private static final boolean UseExprNodeExpression = true;
 
     /*package*/static Expr buildExpr(Graph graph, Node root) {
+//        if ( UseExprNodeExpression )
+//            return ExprNodeExpression.create(graph, root);
 
-        if ( UseExprNodeExpression )
-            return ExprNodeExpression.create(graph, root);
+        Expr expr0 = null;
+        try {
+            expr0 = buildExprForReal(graph, root);
+        } catch (Exception ex) {}
+        if ( expr0 != null )
+            return expr0;
+        // Simply wrap.
+        // XXX Later - replace by calling SPARQL URI functions.
+        return ExprNodeExpression.create(graph, root);
+    }
 
+    private static Expr buildExprForReal(Graph graph, Node root) {
         // In common with NodeExpressions.execNodeExpression
         // Constant
         if ( ! root.isBlank() )

@@ -26,8 +26,8 @@ import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
-import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToGraph;
+import org.seaborne.jena.shacl_rules.sys.P;
 import org.seaborne.jena.shacl_rules.writer.ShaclRulesWriter;
 
 public class rules_parse extends CmdGeneral {
@@ -70,13 +70,7 @@ public class rules_parse extends CmdGeneral {
         }
     }
 
-    public static void addPrefixes(Graph graph) {
-        JLib.addPrefixes(graph,
-                         "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                         "sh", "http://www.w3.org/ns/shacl#",
-                         "sparql:", "http://www.w3.org/ns/sparql#"
-                         );
-    }
+    public static void addPrefixes(Graph graph) { P.addPrefixes(graph); }
 
     @Override
     protected String getCommandName() {
