@@ -23,7 +23,7 @@ EOF
 
 
 
-## Bad syntax - including well-frmness failures.
+## Bad syntax - including well-formness failures.
 
 N=0
 

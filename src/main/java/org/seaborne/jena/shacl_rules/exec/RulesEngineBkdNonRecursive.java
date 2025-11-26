@@ -42,7 +42,6 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.seaborne.jena.shacl_rules.*;
-import org.seaborne.jena.shacl_rules.cmds.Access;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
@@ -214,11 +213,11 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( ruleSet.hasData() )
             GraphUtil.addInto(output, ruleSet.getData());
 
-        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, output, -1);
+        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, output);
         return e;
     }
 
-    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph, int rounds) {}
+    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph)  implements RuleSetEvaluation {}
 
     // XXX DependencyGraph
     private List<Rule> dependsOn(Triple queryTriple)  {

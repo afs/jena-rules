@@ -169,6 +169,14 @@ public class GraphToRuleSet {
                 continue;
             }
 
+            if ( G.hasProperty(graph, node, V.negation) ) {
+                System.err.println("RDF syntax - negation");
+                Node nInnerBody = G.getOneSP(graph, node, V.negation);
+                List<RuleElement> innerBody = parseRuleBody(graph, nInnerBody);
+                body.add(new RuleElement.EltNegation(innerBody));
+                continue;
+            }
+
             if ( G.hasProperty(graph, node, V.assign) ) {
                 Node assign = G.getOneSP(graph, node, V.assign) ;
                 Node varNode= G.getOneSP(graph, assign, V.assignVar);

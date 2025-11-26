@@ -21,6 +21,7 @@ package org.seaborne.jena.shacl_rules.junit5;
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.SplitIRI;
 import org.seaborne.jena.shacl_rules.tests.RulesEvalTest;
@@ -55,18 +56,18 @@ public class RuleTests {
             String testURI = rebase(input, assumedBase);
 
             // == Syntax
-            if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules.asNode()) )
+            if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules) )
                 return new RulesSyntaxTest(entry, testURI, true);
-            if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules.asNode()) )
+            if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules) )
                 return new RulesSyntaxTest(entry, testURI, false);
 
             // == Eval
-            if ( testType.equals(VocabRulesTests.TestPositiveEvalRules.asNode()) )
+            if ( testType.equals(VocabRulesTests.TestPositiveEvalRules) )
                 return new RulesEvalTest(entry, testURI, true);
-            if ( testType.equals(VocabRulesTests.TestNegativeEvalRules.asNode()) )
+            if ( testType.equals(VocabRulesTests.TestNegativeEvalRules) )
                 return new RulesEvalTest(entry, testURI, false);
 
-            Log.warn(RuleTests.class, "Test not classified - "+entry.getName()+" <"+entry.getURI()+">");
+            Log.warn(RuleTests.class, "Test not classified - "+entry.getName()+" <"+entry.getURI()+"> Type:"+NodeFmtLib.displayStr(testType));
 
             return null;
             //return new SurpressedTest(entry);

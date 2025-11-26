@@ -39,8 +39,10 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 import org.seaborne.jena.shacl_rules.sys.V;
@@ -70,8 +72,13 @@ public class RuleSetToGraph {
                 graph.add(ruleNode, V.rule, x);
                 ruleNode = x;
             }
+
             Node nHead = writeHead(graph, ruleNode, rule);
+            graph.add(ruleNode, V.head, nHead);
+
             Node nBody = writeBody(graph, ruleNode, rule);
+            graph.add(ruleNode, V.body, nBody);
+
             rules.add(ruleNode);
         });
         Node rulesList = list(graph, rules);
@@ -94,13 +101,29 @@ public class RuleSetToGraph {
         List<Triple> head = rule.getTripleTemplates();
         List<Node> x = triplesAsList(graph, head);
         Node bgpNode = list(graph, x);
-        graph.add(ruleNode, V.head, bgpNode);
         return bgpNode;
     }
 
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
-        var bodyElts = rule.getBodyElements();
+        List<RuleElement> bodyElts = rule.getBodyElements();
+        Node bodyNode = writeBodyElements(graph, bodyElts);
+
+        if ( false ) {
+            // Put in the SPARQL form.
+            String qs = RuleLib.ruleEltsToElementGroup(bodyElts).toString();
+            Node nSparqlForm = NodeFactory.createBlankNode();
+            Node nQueryString = NodeFactory.createLiteralString(qs);
+            graph.add(ruleNode, V.sparqlBody, nQueryString);
+
+            // Or add to body:
+            //graph.add(nSparqlForm, V.sparqlBody, nQueryString);
+            //items.addLast(nSparqlForm);
+        }
+        return bodyNode;
+    }
+
+    private static Node writeBodyElements(Graph graph, List<RuleElement> bodyElts) {
         List<Node> items = new ArrayList<>();
         bodyElts.forEach(elt->{
             switch(elt) {
@@ -111,6 +134,13 @@ public class RuleSetToGraph {
                     Node nExpr = expression(graph, condition);
                     items.add(nExpr);
                 }
+                case EltNegation(var innerBody) ->{
+                    Node nInnerBody = writeBodyElements(graph, innerBody);
+                    Node x1 = NodeFactory.createBlankNode();
+                    graph.add(x1, V.negation, nInnerBody);
+                    items.add(x1);
+                }
+
                 case EltAssignment(Var var, Expr expression) -> {
                     // Functions.
                     Node nExpr = expression(graph, expression);
@@ -124,21 +154,13 @@ public class RuleSetToGraph {
                     graph.add(x2, V.assign, x1);
                     items.add(x2);
                 }
+
                 case null -> {}
                 default -> {}
                 }
         });
 
-        if ( false ) {
-            // Put in the SPARQL form.
-            String qs = RuleLib.ruleEltsToElementGroup(bodyElts).toString();
-            Node nSparqlForm = NodeFactory.createBlankNode();
-            Node nQueryString = NodeFactory.createLiteralString(qs);
-            graph.add(nSparqlForm, V.sparqlBody, nQueryString);
-            items.addLast(nSparqlForm);
-        }
         Node bodyNode = list(graph, items);
-        graph.add(ruleNode, V.body, bodyNode);
         return bodyNode;
     }
 

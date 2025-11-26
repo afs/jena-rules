@@ -20,7 +20,7 @@ PREFIX rdft:   <http://www.w3.org/ns/rdftest#>
 
 PREFIX :       <https://w3c.github.io/rdf-tests/shacl/shacl12/>
 
-PREFIX test:   <https://jena.apache.org/rules#>
+PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
 
 PREFIX dct:    <http://purl.org/dc/terms/> 
 PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#> 
@@ -40,14 +40,23 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
     mf:entries
     (
         :eval-01
+        :eval-02
     ) .
 
 ## Good Evaluation
 
-:eval-01 rdf:type test:TestRulesEval ;
-    mf:name "Eval-1";
+:eval-01 rdf:type srt:RulesPositiveEvalTest ;
+    mf:name "Eval-basic-1";
     mf:action
-         [ test:ruleset  <eval-01.shr> ;
-           test:data   <data-01.ttl> ] ;
-    mf:result  <eval-results-01.ttl> ;
+         [ srt:ruleset  <eval-basic-01.shr> ;
+           srt:data   <data-01.ttl> ] ;
+    mf:result  <eval-results-basic-01.ttl> ;
+    .
+    
+:eval-02 rdf:type srt:RulesPositiveEvalTest ;
+    mf:name "Eval-basic-2";
+    mf:action
+         [ srt:ruleset  <eval-basic-02.shr> ;
+           srt:data   <data-02.ttl> ] ;
+    mf:result  <eval-results-basic-02.ttl> ;
     .

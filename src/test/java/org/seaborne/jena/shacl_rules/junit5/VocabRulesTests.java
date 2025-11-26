@@ -18,17 +18,26 @@
 
 package org.seaborne.jena.shacl_rules.junit5;
 
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 
-class VocabRulesTests {
-    public static final String NS =  "http://www.w3.org/ns/shacl-rules-test#";
+public class VocabRulesTests {
+    public static final String SRT =  "http://www.w3.org/ns/shacl-rules-test#";
 
-    public static final Resource TestPositiveSyntaxRules    = ResourceFactory.createResource( NS+"RulesPositiveSyntaxTest" );
-    public static final Resource TestNegativeSyntaxRules    = ResourceFactory.createResource( NS+"RulesNegativeSyntaxTest" );
+    public static final Node TestPositiveSyntaxRules    = uri("RulesPositiveSyntaxTest");
+    public static final Node TestNegativeSyntaxRules    = uri("RulesNegativeSyntaxTest");
 
-    public static final Resource TestPositiveEvalRules              = ResourceFactory.createResource( NS+"RulesPositiveEvalTest" );
-    public static final Resource TestNegativeEvalRules      = ResourceFactory.createResource( NS+"RulesNegativeEvalTest" );
+    public static final Node TestPositiveEvalRules      = uri("RulesPositiveEvalTest");
+    public static final Node TestNegativeEvalRules      = uri("RulesNegativeEvalTest");
 
-    public static final Resource TestSurpressed             = ResourceFactory.createResource( NS+"Test" );
+    public static final Node TestSurpressed             = uri("Test");
+
+    public static final Node ruleSet                    = uri("ruleset");
+
+    public static final Node data                       = uri("data");
+
+    private static Node uri(String localName) { return uri(SRT, localName); }
+    private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
+
+
 }

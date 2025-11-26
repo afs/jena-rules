@@ -43,7 +43,7 @@ public class rules {
             case "-h" :
             case "-help" :
             case "--help" :
-                System.err.println("Commands: execute(x), parse (p)");
+                System.err.println("Commands: execute (x), parse (p)");
                 return;
             case "version":
             case "--version":
@@ -56,7 +56,7 @@ public class rules {
 
         // Map to full name.
         switch (cmdExec) {
-            case "exec", "execute", "x":
+            case "exec", "execute", "x", "eval":
                 cmdExec = "execute";
                 break;
             case "parse", "p", "print":

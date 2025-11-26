@@ -41,7 +41,6 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.Rule;
-import org.seaborne.jena.shacl_rules.cmds.Access;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
@@ -50,7 +49,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 
 /** Forward execution support */
-public class RuleExec {
+class RuleExecLib {
 
     public static Iterator<Binding> evalBody(Graph graph, Rule rule) {
         Binding binding = BindingFactory.binding();
@@ -98,7 +97,7 @@ public class RuleExec {
 //                default -> {}
             }
             if ( false ) {
-                FmtLog.info(RuleExec.class, "chain: ");
+                FmtLog.info(RuleExecLib.class, "chain: ");
                 chain = Iter.log(System.out, chain);
             }
         }

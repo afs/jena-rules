@@ -37,9 +37,7 @@ class V {
     private static Node uri(String localName) { return uri(SHR, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
 
-    public static final Node subject = uri("subject");
-    public static final Node predicate = uri("predicate");
-    public static final Node object = uri("object");
+    // ---- RDF Rules syntax
 
     public static final Node classRule = uri("Rule");
     public static final Node head = uri("head");
@@ -49,10 +47,18 @@ class V {
 
     public static final Node classRuleSet = uri("RuleSet");
     //public static final Node ruleSet = uri("ruleSet");
-
     // Property connecting to the rule sequence of a rule set.
     public static final Node rules = uri("rules");
     public static final Node data = uri("data");
+
+    public static final Node subject = uri("subject");
+    public static final Node predicate = uri("predicate");
+    public static final Node object = uri("object");
+
+    public static final Node negation = uri("not");
+    public static final Node assign = uri("assign");
+    public static final Node assignVar = uri("assignVar");
+    public static final Node assignValue = uri("assignValue");
 
     /**
      * The property that gives a resource (usually a blank node) a variable name.
@@ -60,9 +66,9 @@ class V {
      * over accessing the graph using V.var.
      */
 
+    // Node expressions
     // rename Node as varName?
     public static final Node var = uri(SHNEX, "var");
-
 
     public static final Node ifCond = uri("if");
     public static final Node ifThen = uri("then");
@@ -71,10 +77,6 @@ class V {
     // Bad name? Use type instead?
     public static final Node sparqlExpr = uri("sparqlExpr");
     public static final Node expr = uri("expr");
-
-    public static final Node assign = uri("assign");
-    public static final Node assignVar = uri("assignVar");
-    public static final Node assignValue = uri("assignValue");
 
     // Temp?
     public static final Node sparqlBody = uri("sparqlBody");

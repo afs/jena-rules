@@ -13,7 +13,7 @@ PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
   rdfs:seeAlso <https://w3c.github.io/rdf-tests/> ;
   #dct:modified "2023-10-28"^^xsd:date ;
   #dct:licence <https://www.w3.org/Consortium/Legal/2008/03-bsd-license> ;
-  #dct:creator [ foaf:homepage <https://w3c.github.io/rdf-star-wg/> ; foaf:name "W3C Data Shapes Working Group" ] ;
+  #dct:creator [ foaf:homepage <https://w3c.github.io/data-shapes-wg/> ; foaf:name "W3C Data Shapes Working Group" ] ;
   
   rdfs:comment """
     These test suites are a product of the [W3C Data Shapes Working Group]()
@@ -23,5 +23,5 @@ PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
   """;
   mf:include (
     <syntax/manifest.ttl>
-##    <eval/manifest.ttl>
+    <eval/manifest.ttl>
   ) .

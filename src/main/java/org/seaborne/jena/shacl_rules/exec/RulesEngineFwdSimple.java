@@ -109,7 +109,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
      * </ul>
      */
 
-    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph, int rounds) {}
+    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph, int rounds) implements RuleSetEvaluation {}
 
     public Evaluation eval() {
 
@@ -212,7 +212,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     private void evalOneRule(Graph graph, Rule rule) {
         if ( TRACE )
             System.out.println("Rule: "+rule);
-        List<Triple> triples = RuleExec.evalRule(graph, rule);
+        List<Triple> triples = RuleExecLib.evalRule(graph, rule);
         GraphUtil.add(graph, triples);
     }
 }
