@@ -45,7 +45,7 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
 
 ## Good Evaluation
 
-:eval-01 rdf:type srt:RulesPositiveEvalTest ;
+:eval-01 rdf:type srt:RulesEvalTest ;
     mf:name "Eval-basic-1";
     mf:action
          [ srt:ruleset  <eval-basic-01.shr> ;
@@ -53,7 +53,7 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
     mf:result  <eval-results-basic-01.ttl> ;
     .
     
-:eval-02 rdf:type srt:RulesPositiveEvalTest ;
+:eval-02 rdf:type srt:RulesEvalTest ;
     mf:name "Eval-basic-2";
     mf:action
          [ srt:ruleset  <eval-basic-02.shr> ;

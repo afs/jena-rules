@@ -25,7 +25,7 @@ import org.junit.jupiter.api.*;
 import org.apache.jena.arq.junit.Scripts;
 import org.seaborne.jena.shacl_rules.junit5.RuleTests;
 
-public class Scripts_RuleTests {
+public class Scripts_RuleEval {
 
     @BeforeAll
     public static void beforeClass() {}
@@ -33,10 +33,9 @@ public class Scripts_RuleTests {
     @AfterAll
     public static void afterClass() {}
 
-    // All.
     @TestFactory
-    @DisplayName("Jena Rules")
-    public Stream<DynamicNode> t() {
-        return Scripts.manifestTestFactory("src/test/files/manifest-rules.ttl", RuleTests::makeRuleTest);
+    @DisplayName("Jena Rules (Execution)")
+    public Stream<DynamicNode> execution() {
+        return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", RuleTests::makeRuleTest);
     }
 }

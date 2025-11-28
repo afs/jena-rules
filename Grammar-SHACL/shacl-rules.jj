@@ -79,19 +79,32 @@ PARSER_END(ShaclRulesJavacc)
 void RuleSet(): { }
 {
   { startRules() ; }
-  (
-     Prologue()
-     ( Rule() | Data() )
-  )*
+  RuleOrDataBlock()
   <EOF>
   { finishRules() ; }
+}
+
+void RuleOrDataBlock(): { }
+{
+  Prologue()
+  (
+    ( Rule() | Data() )
+//    RuleOrDataBlock() // No need for spearate Prologue1 in Prologue
+    // Better - not recursive.
+    (Prologue1() ( Rule() | Data() )?)*
+  )?
 }
 
 // ---- Prologue
 
 void Prologue() : {}
 {
-   ( BaseDecl() | PrefixDecl() | VersionDecl() | ImportsDecl() ) *
+   ( Prologue1() ) *
+}
+
+void Prologue1() : {}
+{
+   ( BaseDecl() | PrefixDecl() | VersionDecl() | ImportsDecl() )
 }
 
 void BaseDecl() : { Token t ; String iri ; }

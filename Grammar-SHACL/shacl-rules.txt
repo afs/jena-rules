@@ -231,9 +231,11 @@ NON-TERMINALS
 // {
 //    (<BOM>)?
 // }
-	RuleSet	:=	( Prologue ( Rule | Data ) )* <EOF>
+	RuleSet	:=	RuleOrDataBlock <EOF>
+	RuleOrDataBlock	:=	Prologue ( ( Rule | Data ) ( Prologue1 ( Rule | Data )? )* )?
 // ---- Prologue
-	Prologue	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )*
+	Prologue	:=	( Prologue1 )*
+	Prologue1	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )
 	BaseDecl	:=	<BASE> IRIREF
 	PrefixDecl	:=	<PREFIX> <PNAME_NS> IRIREF
 	VersionDecl	:=	<VERSION> VersionSpecifier

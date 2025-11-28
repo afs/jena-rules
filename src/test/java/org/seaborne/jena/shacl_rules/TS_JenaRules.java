@@ -18,25 +18,19 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import java.util.stream.Stream;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-import org.junit.jupiter.api.*;
+@Suite
+@SelectClasses({
+    TestAppendGraph.class,
+//    TestRulesWellFormed.class,
+//    TestRuleSyntaxBasic.class,
 
-import org.apache.jena.arq.junit.Scripts;
-import org.seaborne.jena.shacl_rules.junit5.RuleTests;
+    Scripts_RuleSyntax.class,
+    Scripts_RuleEval.class
 
-public class Scripts_RuleTests {
+    //Scripts_RuleTests.class
+})
+public class TS_JenaRules {}
 
-    @BeforeAll
-    public static void beforeClass() {}
-
-    @AfterAll
-    public static void afterClass() {}
-
-    // All.
-    @TestFactory
-    @DisplayName("Jena Rules")
-    public Stream<DynamicNode> t() {
-        return Scripts.manifestTestFactory("src/test/files/manifest-rules.ttl", RuleTests::makeRuleTest);
-    }
-}

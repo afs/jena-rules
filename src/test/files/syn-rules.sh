@@ -6,6 +6,15 @@
 
 N=0
 
+N=$((N+1)) ; testGood $(fname "syntax-rule-empty-" $N) <<EOF
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-empty-" $N) <<EOF
+PREFIX : <http://example>
+EOF
+
+N=0
+
 N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
 RULE {} WHERE {}
 EOF
@@ -40,6 +49,11 @@ EOF
 N=$((N+1)) ; testBad $(fname "syntax-rule-bad-" $N) <<EOF
 PREFIX : <http://example>
 RULE {} WHERE
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-bad-" $N) <<EOF
+## PREFIX : <http://example>
+RULE {} WHERE {:s :p :o }
 EOF
 
 ## Well-formedness
