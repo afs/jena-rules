@@ -33,7 +33,6 @@ import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.sys.V;
@@ -134,9 +133,9 @@ public class GraphToRuleSet {
     private static Node getVarMaybe(Graph graph, Node node) {
         if ( ! node.isBlank() )
             return node;
-        Var x = NX.getVar(graph, node);
+        Var x = RVar.getVar(graph, node);
         if ( x == null )
-            throw new ShaclException("Blank node in pattern or malformed [ sh:var ]");
+            throw new ShaclException("Blank node in pattern or malformed for a variable.");
         return x;
     }
 
@@ -151,9 +150,7 @@ public class GraphToRuleSet {
             if ( G.hasProperty(graph, node, V.expr) || G.hasProperty(graph, node, V.sparqlExpr) ) {
                 // Deal with both V.expr and V.sparqlExpr
                 Expr expr = SparqlNodeExpressions.rdfToExpr(graph, node);
-
                 // SparqlNodeExpression.buildExpr controls whether to use ExprNodeExpression or not.
-
                 body.add(new RuleElement.EltCondition(expr));
                 continue;
             }
@@ -170,7 +167,6 @@ public class GraphToRuleSet {
             }
 
             if ( G.hasProperty(graph, node, V.negation) ) {
-                System.err.println("RDF syntax - negation");
                 Node nInnerBody = G.getOneSP(graph, node, V.negation);
                 List<RuleElement> innerBody = parseRuleBody(graph, nInnerBody);
                 body.add(new RuleElement.EltNegation(innerBody));
@@ -180,7 +176,7 @@ public class GraphToRuleSet {
             if ( G.hasProperty(graph, node, V.assign) ) {
                 Node assign = G.getOneSP(graph, node, V.assign) ;
                 Node varNode= G.getOneSP(graph, assign, V.assignVar);
-                Var var = NX.getVar(graph, varNode);
+                Var var = RVar.getVar(graph, varNode);
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
                 // Force expr
                 Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);

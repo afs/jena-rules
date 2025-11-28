@@ -120,7 +120,7 @@ public class NodeExpressions {
         }
 
         // Variables?
-        Node vx = G.getZeroOrOneSP(graph, root, V.var);
+        Node vx = G.getZeroOrOneSP(graph, root, V.varName);
         if ( vx != null ) {
             Var v = Var.alloc(G.asString(vx));
             Node x = row.get(v);

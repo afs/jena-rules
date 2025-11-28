@@ -27,7 +27,8 @@ public class VocabRulesTests {
     public static final Node TestPositiveSyntaxRules    = uri("RulesPositiveSyntaxTest");
     public static final Node TestNegativeSyntaxRules    = uri("RulesNegativeSyntaxTest");
 
-    public static final Node TestPositiveEvalRules      = uri("RulesPositiveEvalTest");
+    //public static final Node TestPositiveEvalRules      = uri("RulesPositiveEvalTest");
+    public static final Node TestPositiveEvalRules      = uri("RulesEvalTest");
     public static final Node TestNegativeEvalRules      = uri("RulesNegativeEvalTest");
 
     public static final Node TestSurpressed             = uri("Test");

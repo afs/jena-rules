@@ -22,6 +22,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.expr.NX;
+import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 public
 class V {
@@ -32,7 +33,7 @@ class V {
 
     static final String SH = "http://www.w3.org/ns/shacl#";
     static final String SHR = "http://www.w3.org/ns/shacl-rules#";
-    static final String SHNEX = "http://www.w3.org/ns/shnex#";
+    static final String SHNEX = NX.SHNEX;
 
     private static Node uri(String localName) { return uri(SHR, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
@@ -62,13 +63,15 @@ class V {
 
     /**
      * The property that gives a resource (usually a blank node) a variable name.
-     * In application code, prefer using {@link NX#getVar}/{@link NX#addVar}/{@link NX#getVarName}
+     * In application code, prefer using {@link RVar#getVar}/{@link RVar#addVar}/{@link RVar#getVarName}
      * over accessing the graph using V.var.
      */
 
     // Node expressions
-    // rename Node as varName?
-    public static final Node var = uri(SHNEX, "var");
+    // Synonym for shnex:var
+//    public static final Node varName = uri(SHNEX, "var");
+//    public static final Node varName = NX.var;
+    public static final Node varName = uri("varName");
 
     public static final Node ifCond = uri("if");
     public static final Node ifThen = uri("then");

@@ -27,7 +27,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.system.G;
-import org.seaborne.jena.shacl_rules.sys.V;
+import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**
  * Helper functions for working with node expressions.
@@ -35,13 +35,20 @@ import org.seaborne.jena.shacl_rules.sys.V;
  */
 public class NX {
 
+    public static final String SHNEX = "http://www.w3.org/ns/shnex#";
+
+    public static final Node var = uri("var");
+
+    private static Node uri(String localName) { return uri(SHNEX, localName); }
+    private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
+
     /**
      * Return the name of the variable at the given node.
      * Return null for "not a variable".
      */
     public static String getVarName(Graph graph, Node node) {
         // Am I a variable?
-        Node vx = G.getZeroOrOneSP(graph, node, V.var);
+        Node vx = G.getZeroOrOneSP(graph, node, NX.var);
         if ( vx == null )
             return null;
         // RDFDataException if it is not a string.
@@ -49,17 +56,24 @@ public class NX {
         return vName;
     }
 
-    /**
-     * Return the name of the variable at the given node.
-     * Return null for "not a variable".
-     */
+    /** @see RVar */
     public static Var getVar(Graph graph, Node node) {
-        String vName = getVarName(graph, node);
-        if ( vName == null )
-            return null;
-        Var var = Var.alloc(vName);
-        return var;
+        // Accepts both forms.
+        return RVar.getVar(graph, node);
     }
+
+//    /**
+//     * Return the name of the variable at the given node.
+//     * Return null for "not a variable".
+//     * Only accepts {@code shnex:var}
+//     */
+//    public static Var getVar(Graph graph, Node node) {
+//        String vName = getVarName(graph, node);
+//        if ( vName == null )
+//            return null;
+//        Var var = Var.alloc(vName);
+//        return var;
+//    }
 
     /**
      * Update the graph to put in a variable as
@@ -69,7 +83,7 @@ public class NX {
     public static Node addVar(Graph graph, String varName) {
         Node x = NodeFactory.createBlankNode();
         Node str = NodeFactory.createLiteralString(varName);
-        graph.add(x, V.var, str);
+        graph.add(x, NX.var, str);
         return x;
     }
 

@@ -225,14 +225,14 @@ public class ShaclRulesWriter {
             int offset = out.getCol()-6;
             out.setAbsoluteIndent(offset);
             try {
-                writeBodyInner(rule, styleBody);
+                writeBodyBlock(rule, styleBody);
             } finally {
                 out.setAbsoluteIndent(initIndent);
             }
         }
 
         // XXX Rename - not "Inner"
-        private void writeBodyInner(Rule rule, Style styleBody) {
+        private void writeBodyBlock(Rule rule, Style styleBody) {
             int indent = 2;
 
             switch(styleBody) {
@@ -247,7 +247,7 @@ public class ShaclRulesWriter {
                 }
             }
 
-            writeBodyInnerElements(rule, styleBody);
+            writeRuleElements(rule.getBodyElements(), styleBody);
 
             switch(styleBody) {
                 case Flat -> {
@@ -264,11 +264,6 @@ public class ShaclRulesWriter {
             out.ensureStartOfLine();
 
             out.flush();
-        }
-
-        // XXX Rename - not "Inner"
-        private void writeBodyInnerElements(Rule rule, Style styleBody) {
-            writeRuleElements(rule.getBodyElements(), styleBody);
         }
 
         private void writeRuleElements(List<RuleElement> bodyElements, Style styleBody) {
@@ -292,7 +287,7 @@ public class ShaclRulesWriter {
                         writeExpr(condition);
                     }
                     case RuleElement.EltNegation(List<RuleElement> inner) -> {
-                        out.write("NOT { ");
+                        out.write("NOT {");
                         out.println();
                         final int indentLevelNegation = 4 ;
                         out.incIndent(indentLevelNegation);

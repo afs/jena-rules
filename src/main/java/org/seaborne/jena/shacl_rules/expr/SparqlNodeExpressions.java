@@ -36,6 +36,7 @@ import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Build;
 import org.seaborne.jena.shacl_rules.jena.JLib;
 import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
+import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
@@ -116,7 +117,6 @@ public class SparqlNodeExpressions {
      * and also always has {@code sh:sparqlExpr}.
      */
     public static Node exprToRDF(Graph graph, Expr expr, boolean includeSparqlExpr) {
-        // XXX Remove later.
         BufferingGraph graphx = new BufferingGraph(graph);
         Node x = NodeFactory.createBlankNode();
 
@@ -169,7 +169,7 @@ public class SparqlNodeExpressions {
         }
 
         // Variable?
-        Var v = NX.getVar(graph, root);
+        Var v = RVar.getVar(graph, root);
         if ( v != null )
             return new ExprVar(v);
 
@@ -237,7 +237,9 @@ public class SparqlNodeExpressions {
                 return nv.asNode();
             }
             case ExprVar nvar -> {
-                // Blank node: [ sh:var "varname" ]
+                // Blank node: [ shr:varName "varname" ] or [ shnex:var "varname" ]
+
+                // Use Node expression form.
                 return NX.addVar(graph, nvar.getVarName());
             }
             case ExprFunction exf -> {

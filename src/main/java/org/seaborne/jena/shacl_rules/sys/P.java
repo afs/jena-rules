@@ -39,7 +39,7 @@ public class P {
     //@formatter:off
     private static Map<String, String> prefixesMap = Map.of("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
                                                             "sh",      "http://www.w3.org/ns/shacl#",
-                                                            "shrl",    "http://www.w3.org/ns/shacl-rules#",
+                                                            "srl",     "http://www.w3.org/ns/shacl-rules#",
                                                             "shnex",   "http://www.w3.org/ns/shnex#",
                                                             "sparql",  "http://www.w3.org/ns/sparql#",
                                                             "arq",     "http://jena.apache.org/ARQ/function#");
@@ -53,7 +53,7 @@ public class P {
 //        JLib.addPrefixes(graph,
 //                         "rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 //                         "sh",      "http://www.w3.org/ns/shacl#",
-//                         "shr",     "http://www.w3.org/ns/shacl-rules#",
+//                         "srl",     "http://www.w3.org/ns/shacl-rules#",
 //                         "shnex",   "http://www.w3.org/ns/shnex#",
 //                         "sparql:", "http://www.w3.org/ns/sparql#");
     }

@@ -35,6 +35,8 @@ import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
 import org.seaborne.jena.shacl_rules.expr.NodeExpressions;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
+//import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
+import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**
  * An {@link Expr} wrapper for a NodeExpression.
@@ -116,7 +118,8 @@ public class ExprNodeExpression extends ExprNode {
             return;
         }
 
-        Var var = NX.getVar(graph, node);
+        // Accepts either predicate for a variable.
+        Var var = RVar.getVar(graph, node);
         if ( var != null ) {
             // Variable.
              vars.add(var);
