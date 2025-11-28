@@ -232,7 +232,7 @@ NON-TERMINALS
 //    (<BOM>)?
 // }
 	RuleSet	:=	RuleOrDataBlock <EOF>
-	RuleOrDataBlock	:=	Prologue ( ( Rule | Data ) ( Prologue1 ( Rule | Data )? )* )?
+	RuleOrDataBlock	:=	Prologue ( ( Rule | Data )+ ( Prologue1 ( Rule | Data )? )* )?
 // ---- Prologue
 	Prologue	:=	( Prologue1 )*
 	Prologue1	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )

@@ -88,8 +88,8 @@ void RuleOrDataBlock(): { }
 {
   Prologue()
   (
-    ( Rule() | Data() )
-//    RuleOrDataBlock() // No need for spearate Prologue1 in Prologue
+    ( Rule() | Data() )+
+//    RuleOrDataBlock() // Recursive, but not need sepearate Prologue1 in Prologue
     // Better - not recursive.
     (Prologue1() ( Rule() | Data() )?)*
   )?
