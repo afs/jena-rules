@@ -31,7 +31,7 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.seaborne.jena.shacl_rules.sys.P;
 
 // Manage the lookup tables.
-class NodeExprTables {
+/*package*/ class NodeExprTables {
 
     private NodeExprTables() {}
 
@@ -106,9 +106,9 @@ class NodeExprTables {
 
         // Functional forms (not functions)
 
-        entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_FunctionalForms::sparql_logical_and);
-        entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_FunctionalForms::sparql_logical_and);
-        entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_FunctionalForms::sparql_logical_not);
+        entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFunctionalForms::sparql_logical_and);
+        entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFunctionalForms::sparql_logical_and);
+        entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-not", E_LogicalNot.class, "!", E_LogicalNot::new, J_SPARQLFunctionalForms::sparql_logical_not);
 
         // As functions (extension)
 
@@ -117,9 +117,9 @@ class NodeExprTables {
         //entry(mapDispatch, mapBuild, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, SPARQLFuncOp::logical_or);
 
         // SHACL sh:if node expressions name argument format.
-        entryFunctionForm3(mapDispatchFF, mapBuild, mapFunctionURI, "sh:if", null, "sh:if", null, J_FunctionalForms::shacl_if);
+        entryFunctionForm3(mapDispatchFF, mapBuild, mapFunctionURI, "sh:if", null, "sh:if", null, J_SPARQLFunctionalForms::shacl_if);
 
-        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, J_FunctionalForms::sparql_coalesce);
+        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, J_SPARQLFunctionalForms::sparql_coalesce);
 
         // Adjust for the constructor which is E_OneOf(Expr, ExporList) and same of E_NotOneOf
         CreateN<Expr> makeOneOf = exprList -> {
@@ -135,9 +135,9 @@ class NodeExprTables {
             return new E_NotOneOf(expr, exprList2);
         };
 
-        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:in", E_OneOf.class, "IN", makeOneOf, J_FunctionalForms::sparql_in);
-        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:not_in", E_NotOneOf.class, "NOT IN", makeNotOneOf, J_FunctionalForms::sparql_not_in);
-        entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, J_FunctionalForms::sparql_bound);
+        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:in", E_OneOf.class, "IN", makeOneOf, J_SPARQLFunctionalForms::sparql_in);
+        entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:not_in", E_NotOneOf.class, "NOT IN", makeNotOneOf, J_SPARQLFunctionalForms::sparql_not_in);
+        entryFunctionForm1(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:bound", E_Bound.class, "BOUND", E_Bound::new, J_SPARQLFunctionalForms::sparql_bound);
 
         // URI function call.
         //entry(mapDispatch, mapBuild, mapFunctionURI, "arq:function", E_Function.class, "FUNCTION", E_Function::new, J_SPARQLFuncOp::function);
@@ -151,7 +151,7 @@ class NodeExprTables {
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:iri", E_IRI.class, "IRI", E_IRI::new, J_SPARQLFuncOp::sparql_iri);
 
         // Operators
-        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, J_SPARQLFuncOp::sparql_plus);
+        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:plus", E_Add.class, "+", E_Add::new, J_SPARQLFuncOp::sparql_add);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:subtract", E_Subtract.class, "-", E_Subtract::new, J_SPARQLFuncOp::sparql_subtract);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:multiply", E_Multiply.class, "*", E_Multiply::new, J_SPARQLFuncOp::sparql_multiply);
         entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:divide", E_Divide.class, "/", E_Divide::new, J_SPARQLFuncOp::sparql_divide);

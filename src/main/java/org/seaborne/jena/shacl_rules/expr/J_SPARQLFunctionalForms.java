@@ -33,7 +33,7 @@ import org.seaborne.jena.shacl_rules.sys.V;
 /**
  * Functional forms.
  */
-public class J_FunctionalForms {
+public class J_SPARQLFunctionalForms {
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
         Expr expr1 = SparqlNodeExpressions.buildExpr(graph, arg1);

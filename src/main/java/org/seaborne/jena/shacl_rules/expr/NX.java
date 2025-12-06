@@ -28,6 +28,7 @@ import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
+import org.seaborne.jena.shacl_rules.sys.P;
 
 /**
  * Helper functions for working with node expressions.
@@ -35,7 +36,7 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
  */
 public class NX {
 
-    public static final String SHNEX = "http://www.w3.org/ns/shnex#";
+    public static final String SHNEX = P.SHNEX;
 
     public static final Node var = uri("var");
 

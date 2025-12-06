@@ -100,6 +100,15 @@ public class DependencyGraph {
        });
    }
 
+   /** Return direct dependencies for a rule.
+    *  This method returns null if the rule is not in the dependency graph
+    *  and an empty collection if the rule has no dependencies.
+    */
+   public Collection<Rule> dependencies(Rule rule) {
+       return direct.get(rule);
+   }
+
+
    public void walk(Rule rule, Consumer<Rule> action) {
        walk$(rule, action);
    }

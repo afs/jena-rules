@@ -21,7 +21,6 @@ package org.seaborne.jena.shacl_rules.sys;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
-import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 public
@@ -31,11 +30,7 @@ class V {
     public static Node CDR = RDF.Nodes.rest;
     public static Node TYPE = RDF.Nodes.type;
 
-    static final String SH = "http://www.w3.org/ns/shacl#";
-    static final String SHR = "http://www.w3.org/ns/shacl-rules#";
-    static final String SHNEX = NX.SHNEX;
-
-    private static Node uri(String localName) { return uri(SHR, localName); }
+    private static Node uri(String localName) { return uri(P.SHR, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
 
     // ---- RDF Rules syntax

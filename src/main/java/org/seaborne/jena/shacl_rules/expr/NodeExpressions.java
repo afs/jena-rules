@@ -34,6 +34,7 @@ import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.expr.urifunctions.SPARQLDispatch;
 import org.apache.jena.sparql.function.*;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
@@ -43,6 +44,7 @@ import org.seaborne.jena.shacl_rules.sys.V;
 /**
  * SHACL node expression evaluation.
  * @see SparqlNodeExpressions for translation to/from SPARQL functions.
+ * @see SPARQLDispatch
  */
 public class NodeExpressions {
     static { INIT.init(); }

@@ -65,10 +65,8 @@ public class Graph2 extends GraphWrapper {
 
     private static PrefixMapping setupPrefixMapping(PrefixMapping baseGraphPrefixes) {
         PrefixMapping basePrefixes = baseGraphPrefixes;
-        // XXX
         // Copy to isolate.
         basePrefixes = new PrefixMappingImpl().setNsPrefixes(basePrefixes);
-        // FIXME
         PrefixMapping prefixMapping = new AppendPrefixMapping(basePrefixes);
         return prefixMapping;
     }
@@ -98,8 +96,6 @@ public class Graph2 extends GraphWrapper {
     public void remove( Node s, Node p, Node o ) {
         throw new JenaException("Graph2::remove");
     }
-
-    // XXX Transaction handler
 
     // ---- Read access.
 
@@ -144,7 +140,7 @@ public class Graph2 extends GraphWrapper {
 
     @Override
     public ExtendedIterator<Triple> find(Triple m) {
-        return find(m.getMatchSubject(), m.getMatchPredicate(), m.getMatchObject());
+        return find(m.getSubject(), m.getPredicate(), m.getObject());
     }
 
     @Override

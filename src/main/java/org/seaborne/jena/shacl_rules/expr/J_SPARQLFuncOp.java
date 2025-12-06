@@ -43,6 +43,11 @@ import org.apache.jena.sparql.function.library.triple.TripleTermOps;
  */
 public class J_SPARQLFuncOp {
 
+
+
+    // Stand-in for org.apache.jena.sparql.expr.urifunctions.SPARQLFuncOp
+    // See also J_SPARQLFunctionalForms
+
     // ----
 
     private static boolean strict() {
@@ -51,7 +56,7 @@ public class J_SPARQLFuncOp {
 
     // ---- All the implementations
 
-    public static NodeValue sparql_plus(NodeValue nv1, NodeValue nv2) {
+    public static NodeValue sparql_add(NodeValue nv1, NodeValue nv2) {
         if ( strict() )
             return XSDFuncOp.numAdd(nv1, nv2);
         return NodeValueOps.additionNV(nv1, nv2);

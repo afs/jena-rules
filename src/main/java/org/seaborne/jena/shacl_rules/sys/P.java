@@ -36,16 +36,25 @@ import org.apache.jena.shared.JenaException;
  */
 public class P {
 
+    public static final String SH = "http://www.w3.org/ns/shacl#";
+    public static final String SHR = "http://www.w3.org/ns/shacl-rules#";
+    public static final String SHNEX = "http://www.w3.org/ns/shacl-node-expr#";
+
     //@formatter:off
     private static Map<String, String> prefixesMap = Map.of("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                                                            "sh",      "http://www.w3.org/ns/shacl#",
-                                                            "srl",     "http://www.w3.org/ns/shacl-rules#",
-                                                            "shnex",   "http://www.w3.org/ns/shnex#",
+                                                            "sh",      SH,
+                                                            "srl",     SHR,
+                                                            "shnex",   SHNEX,
                                                             "sparql",  "http://www.w3.org/ns/sparql#",
                                                             "arq",     "http://jena.apache.org/ARQ/function#");
+
     //@formatter:on
     // It would be nice if this were immutable.
     public static PrefixMap prefixMap = PrefixMapFactory.create(prefixesMap);
+
+    public static String getPrefix(String prefix) {
+        return prefixMap.get(prefix);
+    }
 
     public static void addPrefixes(Graph graph) {
         prefixesMap.forEach((prefix, uri) -> graph.getPrefixMapping().setNsPrefix(prefix, uri));

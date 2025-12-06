@@ -45,7 +45,7 @@ public class ShaclRulesWriter {
 
     public static void printBasic(RuleSet ruleSet) {
         ruleSet.getRules().forEach(r -> {
-            System.out.println(r);
+            print(System.out, r, ruleSet.getPrefixMap(), true);
         });
     }
 
@@ -58,9 +58,7 @@ public class ShaclRulesWriter {
     }
 
     public static void print(OutputStream outStream, RuleSet ruleSet, boolean flatMode) {
-
         Style style = flatMode ? Style.Flat : Style.MultiLine;
-
         IndentedWriter output = new IndentedWriter(outStream);
         try {
             internalPrint(output, ruleSet, style);
