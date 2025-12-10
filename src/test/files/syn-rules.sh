@@ -29,8 +29,47 @@ PREFIX : <http://example>
 RULE { ?s :q :z } WHERE { ?s :p :o }
 EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
+PREFIX :    <http://example>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
+RULE { ?s :q :z } WHERE { ?s :p "123"^^xsd:xsd:nonNegativeInteger }
+EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s :q :z ; :q ?r } WHERE { ?s :p :o ; :q ?r }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s :q :z ; :q ?r }
+WHERE {
+    ?s :p1 [ :q1 123 ] ;
+}
+EOF
+N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s :q :z ; :q ?r }
+WHERE {
+    ?s :p2 ( 1 2 ?x 3 ) ;
+}
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s :q :z ; :q ?r }
+WHERE {
+    ?s :p3 <<( :s :p :o )>> ;
+}
+EOF
+N=$((N+1)) ; testGood $(fname "syntax-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s :q :z ; :q ?r }
+WHERE {
+    ?s :p4 << :s :p :o >> ;
+}
+EOF
 
 ## Bad syntax - including well-formness failures.
 

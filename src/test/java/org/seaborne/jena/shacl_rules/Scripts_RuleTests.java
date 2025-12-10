@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 
 import org.apache.jena.arq.junit.Scripts;
-import org.seaborne.jena.shacl_rules.junit5.RuleTests;
+import org.seaborne.jena.shacl_rules.junit.RuleTests;
 
 public class Scripts_RuleTests {
 

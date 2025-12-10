@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+DIR="/home/afs/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
+
+rm $DIR/manifest*
+rm -rf $DIR/eval $DIR/syntax
+
+cp manifest-rules.ttl $DIR
+cp -r eval syntax $DIR

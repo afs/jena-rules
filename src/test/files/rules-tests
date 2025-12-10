@@ -1,0 +1,7 @@
+#!/bin/bash
+
+CMD=$(basename $0)
+
+CP="~/ASF/Rules/jena-rules/target"
+
+jena "rdftests" "$@"

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.junit5;
+package org.seaborne.jena.shacl_rules.junit;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;

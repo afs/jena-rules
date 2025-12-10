@@ -2,5 +2,3 @@ PREFIX : <http://example/>
 
 :s :p :z .
 :z :q :o .
-
-

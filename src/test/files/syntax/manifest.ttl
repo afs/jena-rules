@@ -1,17 +1,5 @@
-#  Licensed to the Apache Software Foundation (ASF) under one or more
-#  contributor license agreements.  See the NOTICE file distributed with
-#  this work for additional information regarding copyright ownership.
-#  The ASF licenses this file to You under the Apache License, Version 2.0
-#  (the "License"); you may not use this file except in compliance with
-#  the License.  You may obtain a copy of the License at
-# 
-#       http://www.apache.org/licenses/LICENSE-2.0
-# 
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
+## [1] https://www.w3.org/Consortium/Legal/2008/04-testsuite-license
+## [2] https://www.w3.org/Consortium/Legal/2008/03-bsd-license
 
 PREFIX :       <manifest#>
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
@@ -32,6 +20,12 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
         :test_7
         :test_8
         :test_9
+        :test_10
+        :test_11
+        :test_12
+        :test_13
+        :test_14
+        :test_15
     ) .
 
 :test_1 rdf:type   srt:RulesPositiveSyntaxTest ;
@@ -59,22 +53,52 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
    mf:action  <syntax-rule-03.srl> ;
    .
 
-:test_6 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_6 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-rule-04.srl" ;
+   mf:action  <syntax-rule-04.srl> ;
+   .
+
+:test_7 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-rule-05.srl" ;
+   mf:action  <syntax-rule-05.srl> ;
+   .
+
+:test_8 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-rule-06.srl" ;
+   mf:action  <syntax-rule-06.srl> ;
+   .
+
+:test_9 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-rule-07.srl" ;
+   mf:action  <syntax-rule-07.srl> ;
+   .
+
+:test_10 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-rule-08.srl" ;
+   mf:action  <syntax-rule-08.srl> ;
+   .
+
+:test_11 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-rule-09.srl" ;
+   mf:action  <syntax-rule-09.srl> ;
+   .
+
+:test_12 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-01.srl" ;
    mf:action  <syntax-rule-bad-01.srl> ;
    .
 
-:test_7 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_13 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-02.srl" ;
    mf:action  <syntax-rule-bad-02.srl> ;
    .
 
-:test_8 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_14 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-03.srl" ;
    mf:action  <syntax-rule-bad-03.srl> ;
    .
 
-:test_9 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_15 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-04.srl" ;
    mf:action  <syntax-rule-bad-04.srl> ;
    .

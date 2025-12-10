@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.junit5;
+package org.seaborne.jena.shacl_rules.junit;
 
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.logging.Log;
