@@ -33,11 +33,11 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.irix.IRIxResolver;
-import org.apache.jena.riot.lang.extra.javacc.TokenMgrError;
 import org.apache.jena.riot.system.*;
-import org.seaborne.jena.shacl_rules.lang.ShaclRulesParseException;
-import org.seaborne.jena.shacl_rules.lang.parser.ParseException;
-import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesJavacc;
+import org.seaborne.jena.shacl_rules.lang.parser.javacc.ParseException;
+import org.seaborne.jena.shacl_rules.lang.parser.javacc.ShaclRulesJavacc;
+import org.seaborne.jena.shacl_rules.lang.parser.javacc.TokenMgrError;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

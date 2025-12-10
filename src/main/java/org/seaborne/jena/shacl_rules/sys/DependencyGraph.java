@@ -28,7 +28,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.writer.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
 
 /**
  * Rules dependency graph. The graph has vertices of rules and links being "depends

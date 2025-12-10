@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.lang.parser;
+package org.seaborne.jena.shacl_rules.lang.parser.javacc;
 
 /** Token Manager Error. */
 public class TokenMgrError extends Error
@@ -162,4 +162,4 @@ public class TokenMgrError extends Error
     this(LexicalErr(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);
   }
 }
-/* JavaCC - OriginalChecksum=fcbf0b3667b010e9870a2877be10b9c9 (do not edit this line) */
+/* JavaCC - OriginalChecksum=899b32a440cbde7730ee6c0b43b7e6f6 (do not edit this line) */

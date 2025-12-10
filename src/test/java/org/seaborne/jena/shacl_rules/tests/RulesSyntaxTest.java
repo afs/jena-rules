@@ -28,7 +28,7 @@ import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.shared.NotFoundException;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
-import org.seaborne.jena.shacl_rules.lang.ShaclRulesParseException;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 
 public class RulesSyntaxTest implements Runnable {
 

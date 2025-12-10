@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.lang.parser;
+package org.seaborne.jena.shacl_rules.lang.parser.javacc;
 
 
 /**

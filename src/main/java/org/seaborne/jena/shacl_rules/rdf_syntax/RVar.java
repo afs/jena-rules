@@ -38,7 +38,7 @@ import org.seaborne.jena.shacl_rules.sys.V;
  */
 public class RVar {
     // Accept both, write one.
-    // Write srl:varName in triple patterns and templates
+    // Write shr:varName in triple patterns and templates
     // Write shnex:var in node expressions
 
     private static Node predicateSHR = V.varName;

@@ -43,7 +43,7 @@ public class P {
     //@formatter:off
     private static Map<String, String> prefixesMap = Map.of("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
                                                             "sh",      SH,
-                                                            "srl",     SHR,
+                                                            "shr",     SHR,
                                                             "shnex",   SHNEX,
                                                             "sparql",  "http://www.w3.org/ns/sparql#",
                                                             "arq",     "http://jena.apache.org/ARQ/function#");

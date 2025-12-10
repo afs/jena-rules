@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.lang.parser;
+package org.seaborne.jena.shacl_rules.lang.parser.javacc;
 
 /**
  * An implementation of interface CharStream, where the stream is assumed to
@@ -487,4 +487,4 @@ public class SimpleCharStream
   boolean getTrackLineColumn() { return trackLineColumn; }
   void setTrackLineColumn(boolean tlc) { trackLineColumn = tlc; }
 }
-/* JavaCC - OriginalChecksum=2c7f82f3f7cc1d2fd6f7d6d7276a6adc (do not edit this line) */
+/* JavaCC - OriginalChecksum=806c1ca2ca61f680266a0683366ad529 (do not edit this line) */

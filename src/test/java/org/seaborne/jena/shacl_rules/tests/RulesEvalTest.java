@@ -38,7 +38,7 @@ import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 import org.seaborne.jena.shacl_rules.junit.VocabRulesTests;
-import org.seaborne.jena.shacl_rules.lang.ShaclRulesParseException;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 
 public class RulesEvalTest implements Runnable {
 

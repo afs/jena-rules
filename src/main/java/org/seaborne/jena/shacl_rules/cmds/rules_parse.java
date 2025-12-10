@@ -39,12 +39,12 @@ import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
-import org.seaborne.jena.shacl_rules.lang.ShaclRulesParseException;
-import org.seaborne.jena.shacl_rules.lang.ShaclRulesParserBase;
+import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParserBase;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToGraph;
 import org.seaborne.jena.shacl_rules.sys.P;
-import org.seaborne.jena.shacl_rules.writer.ShaclRulesWriter;
 
 public class rules_parse extends CmdGeneral {
 
@@ -64,6 +64,7 @@ public class rules_parse extends CmdGeneral {
 
     private boolean printRDF           = false;
     private boolean printText          = false;
+    private boolean printSRL           = false;
 
     public static void main(String...argv) {
         new rules_parse(argv).mainRun();
@@ -72,7 +73,7 @@ public class rules_parse extends CmdGeneral {
     protected rules_parse(String[] argv) {
         super(argv);
         //super.add(argDeclDebug);
-        super.add(argOutput,  "--output=",      "Output formats: RDF(r), text(t) (default: text)");
+        super.add(argOutput,  "--output=",      "Output formats: RDF(r), SRL(s) (default: SRL)");
         super.add(argSyntax,  "--syntax=NAME",  "Set syntax (otherwise syntax guessed from file extension)");
         super.add(argBase,    "--base=URI",     "Set the base URI");
     }
@@ -101,18 +102,20 @@ public class rules_parse extends CmdGeneral {
 
              printText = values.remove("text") || values.remove("t");
              printRDF = values.remove("rdf") || values.remove("r") || values.remove("ttl");
+             printSRL = values.remove("s") || values.remove("srl");
 
              if ( values.remove("all") || values.remove("a") ) {
                  printRDF = true;
                  printText = true;
              }
              if ( ! values.isEmpty() )
-                 throw new CmdException("Formats not recognized: "+values+" : Formats are 'text', 'compact', 'rdf','ttl' and 'all'");
+                 throw new CmdException("Formats not recognized: "+values+" : Formats are 's(SRL)', 'rdf', 'ttl' and 'all'");
 
          } else {
              // Default
              printRDF = false;
-             printText = true;
+             printSRL = true;
+             printText = false;
          }
 
          if ( super.contains(argSyntax) ) {
@@ -182,6 +185,12 @@ public class rules_parse extends CmdGeneral {
         }
 
         if ( printText ) {
+            ShaclRulesWriter.print(ruleSet);
+            if ( printRDF || printSRL )
+                System.out.println("- - - -");
+        }
+
+        if ( printSRL ) {
             ShaclRulesWriter.print(ruleSet);
             if ( printRDF )
                 System.out.println("- - - -");

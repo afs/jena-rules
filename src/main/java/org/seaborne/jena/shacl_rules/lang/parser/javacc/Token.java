@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.lang.parser;
+package org.seaborne.jena.shacl_rules.lang.parser.javacc;
 
 /**
  * Describes the input token stream.
@@ -147,4 +147,4 @@ public class Token implements java.io.Serializable {
   }
 
 }
-/* JavaCC - OriginalChecksum=8b56f8531c0cf41e4be31153bf82e1ff (do not edit this line) */
+/* JavaCC - OriginalChecksum=1d6ea296e8b4f002971c7d12e503b783 (do not edit this line) */

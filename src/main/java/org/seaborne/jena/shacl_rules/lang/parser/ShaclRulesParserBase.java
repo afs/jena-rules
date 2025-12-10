@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.lang;
+package org.seaborne.jena.shacl_rules.lang.parser;
 
 import static java.util.Objects.requireNonNull;
 
@@ -31,13 +31,14 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.TextDirection;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryParseException;
-import org.apache.jena.riot.lang.extra.LangParserBase;
+import org.apache.jena.riot.lang.LangParserBase;
 import org.apache.jena.sparql.ARQInternalErrorException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
 public class ShaclRulesParserBase extends LangParserBase {
 

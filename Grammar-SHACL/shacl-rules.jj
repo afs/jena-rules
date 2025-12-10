@@ -18,7 +18,7 @@
 
 // SHACL Rules Compact Syntax
 
-//#define PACKAGE     org.seaborne.jena.shacl_rules.lang.parser
+//#define PACKAGE     org.seaborne.jena.shacl_rules.lang.parser.javacc
 //#define CLASS       ShaclRulesJavacc
 //#define PARSERBASE  ShaclRulesParserBase
 
@@ -51,15 +51,15 @@ PARSER_BEGIN(ShaclRulesJavacc)
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.lang.parser;
+package org.seaborne.jena.shacl_rules.lang.parser.javacc;
 
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
-import static org.apache.jena.riot.lang.extra.LangParserLib.*;
+import static org.apache.jena.riot.lang.LangParserLib.*;
 
-import org.seaborne.jena.shacl_rules.lang.*;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParserBase;
 
 public class ShaclRulesJavacc extends ShaclRulesParserBase
 {}
