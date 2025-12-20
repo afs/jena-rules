@@ -73,7 +73,7 @@ public class rules_eval extends CmdGeneral {
                 dataFile = positionals.get(1);
             }
             default ->
-                throw new CmdException("Usage: rules RulesFile [DataFile]");
+                throw new CmdException("Usage: rules exec RulesFile [DataFile]");
         }
 
         RuleSet ruleSet = ShaclRulesParser.parseFile(rulesFile);

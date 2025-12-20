@@ -28,15 +28,14 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.riot.out.NodeFormatter;
-import org.apache.jena.riot.out.NodeFormatterTTL_MultiLine;
+import org.apache.jena.riot.out.NodeFormatterTTL;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapZero;
 import org.apache.jena.riot.system.Prefixes;
-import org.apache.jena.riot.system.RiotLib;
-import org.apache.jena.riot.writer.DirectiveStyle;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.serializer.SerializationContext;
+import org.apache.jena.sparql.sse.Tags;
 import org.apache.jena.sparql.sse.writers.WriterExpr;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
@@ -59,6 +58,15 @@ public class RuleSetASTWriter {
         w.flush();
     }
 
+    private static final String tagRuleSet = "ruleset";
+    private static final String tagRule = "rule";
+    private static final String tagTriple = Tags.tagTriple;
+    private static final String tagSubject = Tags.tagSubject;
+    private static final String tagProperty = Tags.tagPredicate; // XXX
+    private static final String tagObject = Tags.tagObject;
+
+
+
     // There is little value in using the visitor pattern due to detailed control of space between items.
     private RuleSetASTWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI) {
         if  (prefixMap == null )
@@ -68,18 +76,76 @@ public class RuleSetASTWriter {
         this.prefixMap = prefixMap;
         this.base = baseIRI;
         String baseStr = (baseIRI == null) ?null : baseIRI.str();
-
-        this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
+        this.nodeFormatter = new NodeFormatterTTL(baseStr, prefixMap);
     }
 
     public void writeRuleSet(RuleSet ruleSet) {
         Objects.requireNonNull(ruleSet);
-        if ( base != null )
-            RiotLib.writeBase(out, base.str(), DirectiveStyle.KEYWORD);
-        if ( prefixMap != null )
-            RiotLib.writePrefixes(out, prefixMap, DirectiveStyle.KEYWORD);
-        if ( ( base != null || !prefixMap.isEmpty() ) && !ruleSet.isEmpty() )
+
+        int depth = 0;
+
+
+        // WriterBasePrefix but update for PrefixMap.
+
+        if ( base != null ) {
+            writeBase(base);
+            depth++ ;
+        }
+        if ( prefixMap != null && !ruleSet.isEmpty() ) {
+            writePrefixes(prefixMap);
+            depth++ ;
+        }
+
+        out.print("(");
+        out.print(tagRuleSet);
+        out.incIndent();
+        out.println();
+
+        writeRuleSet1(ruleSet);
+
+        out.print(")");
+        out.decIndent();
+        for ( int i = 0 ; i < depth ; i++ )
+            out.decIndent();
+        out.println();
+    }
+
+    private void writeBase(IRIx base) {
+        out.print("(base ");
+        printURI(base.str());
+
+        out.incIndent();
+        out.println();
+    }
+
+    private void writePrefixes(PrefixMap prefixMap) {
+        out.print("(prefixes");
+        // Indent 2 levels
+        out.incIndent();
+        out.print(" (");
+        out.incIndent();
+        prefixMap.forEach((prefix, uriStr) -> {
+            // Base relative URI = but not prefix mappings!
             out.println();
+            out.print("(");
+            out.print(prefix);
+            out.print(": ");
+            printURI(uriStr);
+            out.print(")");
+        });
+        out.println(")");
+        // Only one back
+        out.decIndent();
+        out.ensureStartOfLine();
+    }
+
+    private void printURI(String uriStr) {
+        out.print("<");
+        out.print(uriStr);
+        out.print(">");
+    }
+
+    private void writeRuleSet1(RuleSet ruleSet) {
 
         writeData(ruleSet);
 
