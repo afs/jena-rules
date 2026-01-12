@@ -39,6 +39,7 @@ import org.apache.jena.sparql.function.*;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
 import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
@@ -48,6 +49,8 @@ import org.seaborne.jena.shacl_rules.sys.V;
  */
 public class NodeExpressions {
     static { INIT.init(); }
+
+    private NodeExpressions() {}
 
     /** Evaluate a function node expression. */
     private static NodeValue eval(String uri, List<NodeValue>args) {
@@ -101,71 +104,6 @@ public class NodeExpressions {
         return evalNodeExpression(graph, x, row);
     }
 
-    /**
-     * Execute a node expression in a node expression tree.
-     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #evaluate(Graph, Node, Binding)} for those.
-     */
-    // List argument execution
-    public static NodeValue evalNodeExpression(Graph graph, Node root, Binding row) {
-        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
-        return execNodeExpression(graph, root, row, functionEnv);
-    }
-
-    private static NodeValue execNodeExpression(Graph graph, Node root, Binding row, FunctionEnv functionEnv) {
-        if ( ! root.isBlank() )
-            return NodeValue.makeNode(root);
-
-        if ( G.contains(graph, root, V.sparqlExpr, null) ) {
-            // Should only happen if an expression can not be encoded in RDF.
-            Expr expr = SparqlNodeExpressions.buildSparqlExpr(graph, root);
-            return expr.eval(row, functionEnv);
-        }
-
-        // Variables?
-        Node vx = G.getZeroOrOneSP(graph, root, V.varName);
-        if ( vx != null ) {
-            Var v = Var.alloc(G.asString(vx));
-            Node x = row.get(v);
-            if ( x == null )
-                throw new NodeExprEvalException("No value for variable "+v);
-            return NodeValue.makeNode(x);
-        }
-
-        // ---- Functional forms (= special cases)
-        // Things that look like functions but process their argument in a special way.
-
-        Triple functionTriple = NX.getFunctionTriple(graph, root);
-        if ( functionTriple == null ) {}
-
-        String uri = functionTriple.getPredicate().getURI();
-        Node argsNode = functionTriple.getObject();
-        // Return array.
-        List<Node> args = JLib.asList(graph, argsNode);
-
-        NodeExprTables.CallFF callFF = NodeExprTables.getCallFF(uri);
-        if ( callFF != null ) {
-            /* Functional forms look like functions - a URI and a list of arguments)
-             * but aren't. Examples include {@code sh:if}, {@code sparql:coalesce},
-             * {@code sparql:logical-and} which control the evaluation of their arguments,
-             * and {@code sparql:bound} which tests a variables.
-             */
-            // sh:if is different. looks like a named function.
-            // XXX for now, three argument sh:if
-            Node[] a = args.toArray(Node[]::new);
-            return callFF.execFF(graph, root, functionEnv, row, a);
-        }
-
-        // ---- General functions.
-        // Evaluate arguments, call function.
-
-        NodeValue[] evalArgs = args.stream().map(a->evalNodeExpression(graph, a, row)).toArray(NodeValue[]::new);
-        NodeExprTables.Call call = NodeExprTables.getCall(uri);
-        if ( call == null ) {
-            // err
-            throw new NodeExprEvalException("Failed to find a call: <"+uri+">");
-        }
-        return call.exec(evalArgs);
-    }
 
     // --- Execution
 
@@ -204,18 +142,113 @@ public class NodeExpressions {
         return exprSparqlNode;
     }
 
+    /**
+     * Execute a node expression in a node expression tree.
+     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #evaluate(Graph, Node, Binding)} for those.
+     */
+    // List argument execution
+    public static NodeValue evalNodeExpression(Graph graph, Node root) {
+        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+        Binding row = BindingFactory.empty();
+        return execNodeExpression(graph, root, row, functionEnv);
+    }
+
+    /**
+     * Execute a node expression in a node expression tree.
+     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #evaluate(Graph, Node, Binding)} for those.
+     */
+    // List argument execution
+    public static NodeValue evalNodeExpression(Graph graph, Node root, Binding row) {
+        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+        return execNodeExpression(graph, root, row, functionEnv);
+    }
+
+    private static NodeValue execNodeExpression(Graph graph, Node root, Binding row, FunctionEnv functionEnv) {
+        if ( ! root.isBlank() )
+            return NodeValue.makeNode(root);
+
+        if ( G.contains(graph, root, V.sparqlExpr, null) ) {
+            // Should only happen if an expression can not be encoded in RDF.
+            Expr expr = SparqlNodeExpressions.buildSparqlExpr(graph, root);
+            return expr.eval(row, functionEnv);
+        }
+
+        // Variables?
+        Var v = RVar.getVar(graph, root);
+        if ( v != null ) {
+            Node x = row.get(v);
+            if ( x == null )
+                throw new NodeExprEvalException("No value for variable "+v);
+            return NodeValue.makeNode(x);
+        }
+
+        // ---- Functional forms (= special cases)
+        // Things that look like functions but process their argument in a special way.
+
+        Triple functionTriple = NX.getFunctionTriple(graph, root);
+        if ( functionTriple == null ) {}
+
+        String uri = functionTriple.getPredicate().getURI();
+        Node argsNode = functionTriple.getObject();
+        // Return array.
+        List<Node> args = JLib.asList(graph, argsNode);
+
+        NodeExprTables.CallFF callFF = NodeExprTables.getCallFF(uri);
+        if ( callFF != null ) {
+            /* Functional forms look like functions - a URI and a list of arguments)
+             * but aren't. Examples include {@code sh:if}, {@code sparql:coalesce},
+             * {@code sparql:logical-and} which control the evaluation of their arguments,
+             * and {@code sparql:bound} which tests a variables.
+             */
+            // sh:if is different. looks like a named function.
+            // XXX for now, three argument sh:if
+            Node[] a = args.toArray(Node[]::new);
+            return callFF.execFF(graph, root, functionEnv, row, a);
+        }
+
+        // ---- General functions.
+        // Evaluate arguments, call function.
+        // XXX [NX] hasn't NodeExprTables been loaded?
+        Function expr = NX.getFunction(uri);
+        if ( expr != null ) {
+            ExprList exprList = new ExprList();
+            args.stream().map(a->evalNodeExpression(graph, a, row)).forEach(exprList::add);
+            return expr.exec(row, exprList, uri, functionEnv);
+        }
+
+
+        // XXX [NX] Also provide List<NodeValue> forms.
+        // XXX [NX] Load registry
+
+        NodeValue[] evalArgs = args.stream().map(a->evalNodeExpression(graph, a, row)).toArray(NodeValue[]::new);
+        NodeExprTables.Call call = NodeExprTables.getCall(uri);
+        if ( call == null ) {
+            // err
+            throw new NodeExprEvalException("Failed to find a call: <"+uri+">");
+        }
+        return call.exec(evalArgs);
+    }
+
+    // --- Execution
+
+
+
+    // ---- Execution
+
     //sh:if is different ...
     // Named arguments, not list arguments.
     static Set<Node> namedNodeExpressions = Set.of(V.ifCond);
 
     // ---- Integration into ARQ function execution
 
-    static class INIT {
+    private static class INIT {
         static boolean initialized = false;
         // Called from a NodeExpressions class static which takes care of concurrency.
         static void init() {
             if ( ! initialized ) {
                 initialized = true;
+                // Use NX.functionRegistry() for node expression use only.
+                // Expose to SPARQL queries!
                 init_loadFunctionRegistry(FunctionRegistry.get());
             }
         }
@@ -226,12 +259,12 @@ public class NodeExpressions {
         private static void init_loadFunctionRegistry(FunctionRegistry reg) {
             Map<String, NodeExprTables.Call> map = NodeExprTables.mapDispatch();
             // Add to the system FunctionRegistry once.
-            addToFunctionRegistry(FunctionRegistry.get(), map);
+            addToFunctionRegistry(reg, map);
         }
 
         private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, Call> map) {
             FunctionFactory ff = createFunctionFactory();
-            map.forEach((uri,_) -> FunctionRegistry.get().put(uri, ff));
+            map.forEach((uri,_) -> reg.put(uri, ff));
         }
 
         private static FunctionFactory createFunctionFactory() {

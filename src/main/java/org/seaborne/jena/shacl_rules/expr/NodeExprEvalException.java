@@ -18,8 +18,6 @@
 
 package org.seaborne.jena.shacl_rules.expr;
 
-import org.apache.jena.shared.JenaException;
-
-class NodeExprEvalException extends JenaException {
+class NodeExprEvalException extends NodeExprException {
     NodeExprEvalException(String msg) { super(msg); }
 }

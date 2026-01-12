@@ -14,18 +14,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
 
-import java.util.List;
+package org.seaborne.jena.shacl_rules.cmds;
 
-import org.apache.jena.graph.Node;
+import org.apache.jena.cmd.CmdMain;
 
 /**
- * A list-argument Node Expression, including the zero argument case.
- *
- * <a href="https://www.w3.org/TR/shacl12-node-expr/">SHACL Node Expressions</a>.
- *
- *  */
-public record NodeExpressionFunction(String uri, List<Node> arguments) {}
+ * Starting point for rules relate commands.  
+ */
+abstract class CmdRules extends CmdMain {
+
+    protected CmdRules(String[] args) {
+        super(args);
+    }
+}

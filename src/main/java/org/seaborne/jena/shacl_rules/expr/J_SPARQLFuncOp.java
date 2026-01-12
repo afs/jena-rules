@@ -43,8 +43,6 @@ import org.apache.jena.sparql.function.library.triple.TripleTermOps;
  */
 public class J_SPARQLFuncOp {
 
-
-
     // Stand-in for org.apache.jena.sparql.expr.urifunctions.SPARQLFuncOp
     // See also J_SPARQLFunctionalForms
 

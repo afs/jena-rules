@@ -18,6 +18,7 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +41,22 @@ public class P {
     public static final String SHR = "http://www.w3.org/ns/shacl-rules#";
     public static final String SHNEX = "http://www.w3.org/ns/shacl-node-expr#";
 
+
+    /** Build a PREFIXes block for SRL/Turtle/SPARQL syntax. */
+    private static String prefixesAsString(Map<String, String> map, String...includes) {
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(includes).forEachOrdered(p->{
+            String u = map.get(p);
+            if ( u != null ) {
+                String line = String.format("PREFIX %-8s <%s>\n", p+":", u);
+                sb.append(line);
+            }
+        });
+        return sb.toString();
+
+
+    }
+
     //@formatter:off
     private static Map<String, String> prefixesMap = Map.of("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
                                                             "sh",      SH,
@@ -49,6 +66,10 @@ public class P {
                                                             "arq",     "http://jena.apache.org/ARQ/function#");
 
     //@formatter:on
+
+    public static final String PREFIXES = prefixesAsString(prefixesMap, "rdf", "sh", "shr", "shnex", "sparql", "arq");
+
+
     // It would be nice if this were immutable.
     public static PrefixMap prefixMap = PrefixMapFactory.create(prefixesMap);
 
@@ -95,6 +116,4 @@ public class P {
         IRIs.checkEx(uri);
         graph.getPrefixMapping().setNsPrefix(prefix, uri);
     }
-
-
 }

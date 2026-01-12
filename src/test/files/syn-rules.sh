@@ -71,7 +71,30 @@ WHERE {
 }
 EOF
 
-## Bad syntax - including well-formness failures.
+## Well-formed
+
+N=0
+
+N=$((N+1)) ; testGood $(fname "well-formed-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s ?p ?o }
+WHERE {
+    ?s ?p ?o . FILTER(?o < 50)
+}
+EOF
+
+N=$((N+1)) ; testGood $(fname "well-formed-rule-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s ?p ?o }
+WHERE {
+    BIND(123 AS ?o)
+    ?s ?p ?o
+}
+EOF
+
+
+
+## Bad syntax
 
 N=0
 
@@ -91,8 +114,30 @@ RULE {} WHERE
 EOF
 
 N=$((N+1)) ; testBad $(fname "syntax-rule-bad-" $N) <<EOF
-## PREFIX : <http://example>
 RULE {} WHERE {:s :p :o }
 EOF
 
-## Well-formedness
+
+
+
+## Bad Well-formedness
+
+N=0
+
+N=$((N+1)) ; testGood $(fname "well-formed-rule-bad-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s ?p ?o }
+WHERE {
+    ?s ?p ?o
+    BIND(123 AS ?o)
+}
+EOF
+
+N=$((N+1)) ; testGood $(fname "well-formed-rule-bad-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s ?p ?o }
+WHERE {
+    FILTER(?o < 50)
+    ?s ?p ?o
+}
+EOF

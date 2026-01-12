@@ -18,14 +18,8 @@
 
 package org.seaborne.jena.shacl_rules.expr;
 
-import java.util.List;
+import org.apache.jena.shared.JenaException;
 
-import org.apache.jena.graph.Node;
-
-/**
- * A list-argument Node Expression, including the zero argument case.
- *
- * <a href="https://www.w3.org/TR/shacl12-node-expr/">SHACL Node Expressions</a>.
- *
- *  */
-public record NodeExpressionFunction(String uri, List<Node> arguments) {}
+class NodeExprException extends JenaException {
+    NodeExprException(String msg) { super(msg); }
+}

@@ -26,7 +26,6 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.riot.RDFFormat;
@@ -41,11 +40,11 @@ import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
-import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 
-public class rules_eval extends CmdGeneral {
+public class rules_eval extends CmdRules {
 
     static { JenaSystem.init(); }
 

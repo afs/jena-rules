@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.cmd.ArgDecl;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.irix.IRIException;
 import org.apache.jena.irix.IRIs;
@@ -46,7 +45,7 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToGraph;
 import org.seaborne.jena.shacl_rules.sys.P;
 
-public class rules_parse extends CmdGeneral {
+public class rules_parse extends CmdRules {
 
     static { JenaSystem.init(); }
 

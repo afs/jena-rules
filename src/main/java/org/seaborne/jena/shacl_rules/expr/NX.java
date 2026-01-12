@@ -26,6 +26,9 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.function.Function;
+import org.apache.jena.sparql.function.FunctionFactory;
+import org.apache.jena.sparql.function.FunctionRegistry;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.P;
@@ -122,7 +125,37 @@ public class NX {
             throw new ShaclException("Not a URI for a node expression function");
         Node o = t.getObject();
         List<Node> list = G.rdfList(graph, o);
+        // If the list is null, then not a list argument expression, and probably a bad expression.
         return new NodeExpressionFunction(pFunction.getURI(), list);
     }
 
+    // XXX [NX] to sys package?
+    // XXX [NX] Do we need FunctionRegistry2? Or just have "custom additions?"
+
+//    private static FunctionRegistry theRulesSystemFunctionRegistry = FunctionRegistry2.create(FunctionRegistry.get());
+//
+//    public static void registerFunctionFactory(String uri, FunctionFactory functionFactory) {
+//        theRulesSystemFunctionRegistry.put(uri, functionFactory);
+//    }
+
+    private static FunctionRegistry theRulesSystemFunctionRegistry = new FunctionRegistry();
+
+    public static void registerFunctionFactory(String uri, FunctionFactory functionFactory) {
+        theRulesSystemFunctionRegistry.put(uri, functionFactory);
+    }
+
+    /** Is the URI registered as a function? */
+    public static boolean isRegistered(String uri) {
+        return functionRegistry().isRegistered(uri);
+    }
+
+    /** The NodeExpressions {@link FunctionRegistry}. */
+    public static Function getFunction(String uri) {
+        return functionRegistry().getFunction(uri);
+    }
+
+    /** The NodeExpressions {@link FunctionRegistry}. */
+    private static FunctionRegistry functionRegistry() {
+        return theRulesSystemFunctionRegistry;
+    }
 }

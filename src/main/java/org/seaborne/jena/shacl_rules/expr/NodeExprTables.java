@@ -307,7 +307,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
             return maker.create();
         };
         Call call = args->{
-            if ( args.length != 1 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+            if ( args.length != 0 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
             return function.exec();
         };
         mapDispatch.put(uri, call);

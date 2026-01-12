@@ -34,6 +34,7 @@ import org.seaborne.jena.shacl_rules.sys.V;
  * Functional forms.
  */
 public class J_SPARQLFunctionalForms {
+    // See also J_SPARQLFuncOp
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
         Expr expr1 = SparqlNodeExpressions.buildExpr(graph, arg1);
@@ -127,7 +128,7 @@ public class J_SPARQLFunctionalForms {
     }
 
     static NodeValue sparql_bound(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
-        Expr expr1 =  SparqlNodeExpressions.fromExpr(graph, arg1);
+        Expr expr1 =  SparqlNodeExpressions.fromNodeExpr(graph, arg1);
         if ( ! expr1.isVariable() )
             throw new NodeExprEvalException("Argument to sh:bound is not a variable");
         // Just do it!

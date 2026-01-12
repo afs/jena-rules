@@ -33,9 +33,9 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.graph.NodeTransform;
 import org.seaborne.jena.shacl_rules.expr.NX;
 import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
+//import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
 import org.seaborne.jena.shacl_rules.expr.NodeExpressions;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
-//import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**
@@ -110,7 +110,7 @@ public class ExprNodeExpression extends ExprNode {
             // Constant.
             return;
 
-        // n sh:sparqlExpr "..."
+        // [ sh:sparqlExpr "..." ]
         // Should only happen if an expression can not be encoded in RDF.
         Expr expr = SparqlNodeExpressions.fromSparqlExpr(graph, node);
         if ( expr != null ) {
@@ -128,7 +128,7 @@ public class ExprNodeExpression extends ExprNode {
 
         // It's a function
         //  [ function ( args1, args2) ]
-        // or sh:expr.
+        // or shr:expr.
 
         NodeExpressionFunction nExprFn = NX.getRDFExpression(graph, node);
         for ( Node arg : nExprFn.arguments() ) {

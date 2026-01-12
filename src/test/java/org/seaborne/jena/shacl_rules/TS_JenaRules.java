@@ -23,13 +23,20 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({
+    // Infrastructure
     TestAppendGraph.class,
+
+
+    // NodeExpressions
+    TestNodeExpressions.class,
+
 //    TestRulesWellFormed.class,
 //    TestRuleSyntaxBasic.class,
 
     Scripts_RuleSyntax.class,
     Scripts_RuleEval.class
 
+    // Combinded
     //Scripts_RuleTests.class
 })
 public class TS_JenaRules {}
