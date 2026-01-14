@@ -244,11 +244,19 @@ NON-TERMINALS
 // ---- Rules
 	Rule	:=	Rule1
 		|	Rule2
-		|	Rule3
 		|	Declaration
 	Rule1	:=	<RULE> HeadTemplate <WHERE> BodyPattern
 	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
-	Rule3	:=	HeadTemplate <RULE_INFER> BodyPattern
+// Withdrawn.
+// void Rule3() : { Token t; }
+// {
+//    { t = token; }
+//    { startRule(t.beginLine, t.beginColumn); }
+//    HeadTemplate()
+//    <RULE_INFER>
+//    BodyPattern()
+//    { finishRule(t.beginLine, t.beginColumn); }
+// }
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 	Data	:=	<DATA> TriplesTemplateBlock
 // ---- Rule head
@@ -444,7 +452,6 @@ NON-TERMINALS
 		|	<LANGMATCHES> <LPAREN> Expression <COMMA> Expression <RPAREN>
 		|	<LANGDIR> <LPAREN> Expression <RPAREN>
 		|	<DTYPE> <LPAREN> Expression <RPAREN>
-		|	<BOUND> <LPAREN> Var <RPAREN>
 		|	<IRI> <LPAREN> Expression <RPAREN>
 		|	<URI> <LPAREN> Expression <RPAREN>
 		|	<BNODE> ( <LPAREN> Expression <RPAREN> | <NIL> )

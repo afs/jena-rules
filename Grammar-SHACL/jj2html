@@ -53,6 +53,9 @@ $grammar =~ s!^[\n\s]*!\n! ;
 # Merge alts
 $grammar =~ s!\n\s*\|!\ |!g ;
 
+# Tab after |
+$grammar =~ s!\|\t!\| !g ;
+
 $tokens =~ s!//.*!!g ;
 $tokens =~ s!\r!!g ;
 

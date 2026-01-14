@@ -147,7 +147,7 @@ void ImportsDecl() : { String iri ; }
 
 void Rule() : {  }
 {
-   Rule1() | Rule2() | Rule3() | Declaration()
+   Rule1() | Rule2() | Declaration()
 }
 
 void Rule1() : { Token t; }
@@ -170,15 +170,16 @@ void Rule2() : { Token t; }
    { finishRule(t.beginLine, t.beginColumn); }
 }
 
-void Rule3() : { Token t; }
-{
-   { t = token; }
-   { startRule(t.beginLine, t.beginColumn); }
-   HeadTemplate()
-   <RULE_INFER>
-   BodyPattern()
-   { finishRule(t.beginLine, t.beginColumn); }
-}
+// Withdrawn.
+// void Rule3() : { Token t; }
+// {
+//    { t = token; }
+//    { startRule(t.beginLine, t.beginColumn); }
+//    HeadTemplate()
+//    <RULE_INFER>
+//    BodyPattern()
+//    { finishRule(t.beginLine, t.beginColumn); }
+// }
 
 void Declaration() : { Token t; String iriStr ; }
 {
@@ -1166,8 +1167,8 @@ Expr BuiltInCall() : { Expr expr ;
   | <DTYPE> <LPAREN> expr = Expression() <RPAREN>
     { return new E_Datatype(expr) ; }
 
-  | <BOUND> <LPAREN> gn = Var() <RPAREN>
-    { return new E_Bound(new ExprVar(gn)) ; }
+//   | <BOUND> <LPAREN> gn = Var() <RPAREN>
+//     { return new E_Bound(new ExprVar(gn)) ; }
 
 // #ifdef ARQ
 //     // ARQ extension
