@@ -20,14 +20,11 @@ package org.seaborne.jena.shacl_rules.sys;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.util.function.Consumer;
 
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.riot.out.NodeFmtLib;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
@@ -48,7 +45,8 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement;
  * </ul>
  */
 
-public class DependencyGraph {
+public class DependencyGraphAlt {
+    // Does not use "providers" (triples to rule multimap), instead it iterates over the rule set.
 
     // Edge type.
     enum Link {
@@ -57,7 +55,6 @@ public class DependencyGraph {
         Link(String symbol) { this.symbol = symbol; }
     }
 
-    // XXX Rename as "DependencyEdge"?
     public record Edge(Rule rule, Link link, Rule linkedRule ) {
         //public boolean edgeToBase() { return linkedRule == null; }
     }
@@ -66,39 +63,23 @@ public class DependencyGraph {
     // See also level0 for rules that only depend on the base graph.
     private ListValuedMap<Rule, Edge> direct = MultiMapUtils.newListValuedHashMap();
 
-//    // TEMP
-//    // Convenience - does not record whether a positive or a negative edge.
-//    private MultiValuedMap<Rule, Rule> directRuleMaker() {
-//        MultiValuedMap<Rule, Rule> x = MultiMapUtils.newListValuedHashMap();
-//        direct.entries().forEach(entry->x.put(entry.getKey(), entry.getValue().linkedRule));
-//        return x;
-//    }
-
     // Rule without any dependent rules (the rule is satisfied by the data directly)
     private Set<Rule> level0 = new HashSet<>();
 
     private final RuleSet ruleSet;
 
-    public static DependencyGraph create(RuleSet ruleSet) {
-        DependencyGraph depGraph = new DependencyGraph(ruleSet);
+    public static DependencyGraphAlt create(RuleSet ruleSet) {
+        DependencyGraphAlt depGraph = new DependencyGraphAlt(ruleSet);
         //depGraph.initialize();
         return depGraph;
     }
 
-    private DependencyGraph(RuleSet ruleSet) {
+    private DependencyGraphAlt(RuleSet ruleSet) {
         this.ruleSet = ruleSet;
-
-        // Head triple template to rule.
-        // Keep?
-        MultiValuedMap<Triple, Rule> providers = MultiMapUtils.newListValuedHashMap();
-        ruleSet.getRules().forEach(rule->{
-            rule.getTripleTemplates().forEach(t->providers.put(t, rule));
-        });
 
         // For each rule, connect to its positive and negative dependencies.
         ruleSet.getRules().forEach(rule->{
-
-            Collection<Edge> connections = edges(rule, providers);
+            Collection<Edge> connections = edges(rule, ruleSet);
             if ( connections.isEmpty() ) {
                 // Alternative is have a "no edge" distinguished edge.
                 // Maybe be necessary for positive and negative flavours.
@@ -114,42 +95,29 @@ public class DependencyGraph {
     private static final boolean DEBUG_BUILD = false;
 
     // Entry point to calculate the direct edge set.
-    static Collection<Edge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers) {
+    static Collection<Edge> edges(Rule rule, RuleSet ruleSet) {
         if ( DEBUG_BUILD )
             ShaclRulesWriter.print(rule);
         List<Edge> connections = new ArrayList<>();
-        accumulateEdges(connections, rule, Link.POSITIVE, rule.getBodyElements(), providers);
+
+        accumulateEdges(connections, rule, Link.POSITIVE, rule.getBodyElements(), ruleSet);
+
         if ( DEBUG_BUILD )
             System.out.println(connections.size()+" :: put:"+connections);
         return connections;
     }
 
-    private static void accumulateEdges(List<Edge> accumulator, Rule rule, Link linkType, List<RuleElement> elts, MultiValuedMap<Triple, Rule> providers) {
+    private static void accumulateEdges(List<Edge> accumulator, Rule rule, Link linkType, List<RuleElement> elts, RuleSet ruleSet) {
         for ( RuleElement elt : elts ) {
             switch(elt) {
                 case RuleElement.EltTriplePattern(Triple triplePattern) -> {
-                    // Using providers.
-                    providers.keySet().forEach(tripleTemplate -> {
-                        if ( DEBUG_BUILD ) {
-                            System.out.println("Link type: "+linkType);
-                            System.out.println("Pattern:   "+NodeFmtLib.displayStr(triplePattern));
-                            System.out.println("Template:  "+NodeFmtLib.displayStr(tripleTemplate));
-                            System.out.println(RuleDependencies.dependsOn(triplePattern, tripleTemplate));
-                        }
-                        if ( RuleDependencies.dependsOn(triplePattern, tripleTemplate) ) {
-                            providers.get(tripleTemplate).forEach(r -> {
-                                // Check for duplicates.
-                                if ( freshEdge(accumulator, rule, linkType, r) )
-                                    accumulator.add(new Edge(rule, linkType, r));
-                            });
-                        }
-                    });
+                    accumulateEdgesTriplePattern(accumulator, rule, linkType, triplePattern, ruleSet);
                 }
                 case RuleElement.EltNegation(List<RuleElement> inner) -> {
                     // Do as a second pass once all the positives are done?
                     // NB Negative overrides positive in stratification.
                     // Anything inside NOT is also "negative"
-                    accumulateEdges(accumulator, rule, Link.NEGATIVE, inner, providers);
+                    accumulateEdges(accumulator, rule, Link.NEGATIVE, inner, ruleSet);
                 }
                 // These do not cause a dependency relationship.
 //                case RuleElement.EltCondition(Expr condition) -> {}
@@ -158,6 +126,17 @@ public class DependencyGraph {
                 case null -> throw new RulesException("Encountered a null rule element");
 
                 default -> {}
+            }
+        }
+    }
+
+    private static void accumulateEdgesTriplePattern(List<Edge> accumulator, Rule rule, Link linkType, Triple triplePattern, RuleSet ruleSet) {
+        // Alt to using providers.
+        // Loop on rules and use RuleDependencies.dependsOn(triplePattern, rule) which looks in heads.
+        for ( Rule r : ruleSet.getRules() ) {
+            if ( RuleDependencies.dependsOn(triplePattern, r) ) {
+                if ( freshEdge(accumulator, rule, linkType, r) )
+                    accumulator.add(new Edge(rule, linkType, r));
             }
         }
     }
@@ -189,83 +168,6 @@ public class DependencyGraph {
             return List.of();
         return direct.get(rule);
     }
-
-    public void walk(Rule rule, Consumer<Rule> action) {
-        walk$(rule, action);
-    }
-
-    // -- Rule set traversal.  A depth-first walk from a rule.
-
-    private void walk$(Rule rule, Consumer<Rule> action) {
-        Set<Rule> acc = new HashSet<>();
-        Deque<Rule> stack = new ArrayDeque<>();
-        walk$(rule, action, acc, stack);
-    }
-
-    private void walk$(Rule rule, Consumer<Rule> action, Set<Rule> visited, Deque<Rule> pathVisited) {
-        if ( visited.contains(rule) )
-            return;
-        visited.add(rule);
-        // Action on this rule.
-        action.accept(rule);
-        // Traversal stack
-        pathVisited.push(rule);
-        walkStep(rule, action, visited, pathVisited);
-        pathVisited.pop();
-    }
-
-    /** Walk from a rule using the direct connections. */
-    private void walkStep(Rule rule, Consumer<Rule> action, Set<Rule> visited, Deque<Rule> pathVisited) {
-        Collection<Edge> others = direct.get(rule);
-        for ( Edge edge : others ) {
-            walk$(edge.linkedRule, action, visited, pathVisited);
-        }
-    }
-
-    private final static boolean DEBUG_RECURSIVE = false;
-
-//    // Recursion test. Like walk but with early exit.
-//    // Can terminate early if all we want is whether it is/is not recursive.
-//    public boolean isRecursive(Rule rule) {
-//        Deque<Rule> stack = new ArrayDeque<>();
-//        boolean b = isRecursive(rule, rule, stack);
-//        if ( b ) {
-//            if ( DEBUG_RECURSIVE ) {
-//                stack.stream().map(r->r.getTripleTemplates()).forEach(h->System.out.printf("--%s", h));
-//                System.out.println();
-//                System.out.println(stack);
-//            }
-//        }
-//        return b;
-//    }
-//
-//    // XXX "matches" - considers variables.
-//
-//    private boolean isRecursive(Rule topRule, Rule rule, Deque<Rule> visited) {
-//        if ( DEBUG_RECURSIVE )
-//            System.out.printf("isRecursive(\n  %s,\n  %s,\n  %s)\n", topRule, rule, visited);
-//        if ( ! visited.isEmpty() && topRule.equals(rule))
-//            return true;
-//        if ( visited.contains(rule) )
-//            // Other cycle.
-//            return false;
-//        visited.push(rule);
-//        boolean b = isRecursive2(topRule, rule, visited) ;
-//        if ( b )
-//            return b;
-//        visited.pop();
-//        return false;
-//    }
-//
-//    // topRule is the overall rule we are testing. */
-//    private boolean isRecursive2(Rule topRule, Rule visitRule, Deque<Rule> visited) {
-//        Collection<Edge> providedBy = direct.get(visitRule);
-//        for( Rule otherRule : providedBy ) {
-//            if ( isRecursive(topRule, otherRule, visited) )
-//                return true;
-//        }
-//        return false;
-//    }
 
     public void print() { print(IndentedWriter.stdout.clone()); }
 

@@ -26,10 +26,8 @@ import org.apache.jena.sparql.expr.Expr;
 
 public sealed interface RuleElement  {
     public record EltTriplePattern(Triple triplePattern) implements RuleElement {}
+    public record EltNegation(List<RuleElement> inner) implements RuleElement {}
     public record EltCondition(Expr condition) implements RuleElement {}
     public record EltAssignment(Var var, Expr expression) implements RuleElement {}
-    public record EltNegation(List<RuleElement> inner) implements RuleElement {}
-//    public record EltExists(List<RuleElement> inner) implements RuleElement {}
-//    public record EltNotExists(List<RuleElement> inner) implements RuleElement {}
 //    public record EltAggregation(Var var, Expr expression) implements RuleElement {}
 }

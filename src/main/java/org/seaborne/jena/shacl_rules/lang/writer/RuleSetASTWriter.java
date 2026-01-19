@@ -51,21 +51,33 @@ public class RuleSetASTWriter {
     private final NodeFormatter nodeFormatter;
 
 
-    public static void dump(RuleSet ruleSet) {
+    public static void write(RuleSet ruleSet) {
+        //IndentedWriter w = IndentedWriter.stdout.clone().setEndOfLineMarker(" NL");
         IndentedWriter w = IndentedWriter.stdout.clone();
-        RuleSetASTWriter astw = new RuleSetASTWriter(w, ruleSet.getPrefixMap(), IRIx.create("http://base/"));
-        astw.writeRuleSet(ruleSet);
-        w.flush();
+        try ( w ) {
+            RuleSetASTWriter astw = new RuleSetASTWriter(w, ruleSet.getPrefixMap(), ruleSet.getBase());
+            astw.writeRuleSet(ruleSet);
+        } finally { w.flush(); }
     }
 
     private static final String tagRuleSet = "ruleset";
+    private static final String tagData = "data";
     private static final String tagRule = "rule";
+
+    private static final String tagHead = "head";
+    private static final String tagBody = "body";
+
+    private static final String tagFilter = "filter";
+    private static final String tagBind = "filter";
+    private static final String tagNot = "not";
+
     private static final String tagTriple = Tags.tagTriple;
     private static final String tagSubject = Tags.tagSubject;
-    private static final String tagProperty = Tags.tagPredicate; // XXX
+    private static final String tagProperty = Tags.tagPredicate;
     private static final String tagObject = Tags.tagObject;
 
-
+    private static final String tagBase = "base";
+    private static final String tagPrefixes = "prefixes";
 
     // There is little value in using the visitor pattern due to detailed control of space between items.
     private RuleSetASTWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI) {
@@ -84,42 +96,175 @@ public class RuleSetASTWriter {
 
         int depth = 0;
 
-
         // WriterBasePrefix but update for PrefixMap.
 
         if ( base != null ) {
             writeBase(base);
             depth++ ;
         }
-        if ( prefixMap != null && !ruleSet.isEmpty() ) {
+        if ( prefixMap != null && !prefixMap.isEmpty() ) {
             writePrefixes(prefixMap);
             depth++ ;
         }
 
         out.print("(");
         out.print(tagRuleSet);
+        out.println();
         out.incIndent();
-        out.println();
 
-        writeRuleSet1(ruleSet);
-
-        out.print(")");
+        writeData(ruleSet);
+        writeRules(ruleSet);
         out.decIndent();
-        for ( int i = 0 ; i < depth ; i++ )
+        out.println(")");
+        for ( int i = 0 ; i < depth ; i++ ) {
             out.decIndent();
+            out.println(")");
+        }
+    }
+
+    private void writeRules(RuleSet ruleSet) {
+        List<Rule> rules = ruleSet.getRules();
+        boolean blankLine = false;//ruleSet.hasData();
+        for ( Rule rule : rules ) {
+            if ( blankLine ) {
+                out.println();
+            }
+            //blankLine = true;
+            writeRule(rule);
+        }
+    }
+
+    public void writeRule(Rule rule) {
+        out.print("(");
+        out.print(tagRule);
+        out.printf(" [%s]", rule.id);
         out.println();
+        out.incIndent();
+
+        writeHead(rule);
+        writeBody(rule);
+
+        out.decIndent();
+        out.println(")");
+    }
+
+    private void writeHead(Rule rule) {
+        out.print("(");
+        out.println(tagHead);
+        out.incIndent();
+
+        rule.getTripleTemplates().forEach(triple -> {
+            writeTriple(triple);
+            out.println();
+        });
+
+        out.decIndent();
+        out.println(")");
+    }
+
+    private void writeBody(Rule rule) {
+        out.print("(");
+        out.println(tagBody);
+        out.incIndent();
+
+        writeRuleElements(rule.getBodyElements());
+        out.ensureStartOfLine();
+
+        out.decIndent();
+        out.println(")");
+    }
+
+    private void writeRuleElements(List<RuleElement> bodyElements) {
+            // Without braces.
+            boolean first = true;
+            for ( RuleElement elt : bodyElements ) {
+                //if ( ! first ) {}
+                first = false;
+
+                switch (elt) {
+                    case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                        writeTriple(triplePattern);
+                    }
+                    case RuleElement.EltCondition(Expr condition) -> {
+                        out.print("(");
+                        out.print(tagFilter);
+                        out.print(" ");
+                        writeExpr(condition);
+                        out.print(")");
+
+                        // Multi-line
+//                        out.println("(");
+//                        out.println(tagFilter);
+//                        out.incIndent();
+//                        writeExpr(condition);
+//                        out.println();
+//                        out.decIndent();
+//                        out.print(")");
+                    }
+                    case RuleElement.EltNegation(List<RuleElement> inner) -> {
+                        final int indentLevelNegation = 2 ;
+                        out.print("(");
+                        out.println(tagNot);
+                        out.incIndent(indentLevelNegation);
+
+                        writeRuleElements(inner);
+
+                        out.decIndent(indentLevelNegation);
+                        out.print(")");
+                    }
+                    case RuleElement.EltAssignment(Var var, Expr expression) -> {
+                        out.print("(");
+                        out.print(tagBind);
+                        nodeFormatter.format(out, var);
+                        out.print(" := ");
+                        writeExpr(expression);
+                        out.print(")");
+                    }
+                    case null -> {
+                        throw new InternalErrorException();
+                    }
+                }
+                out.println();
+            }
+        }
+
+    private void printURI(String uriStr) {
+        out.print("<");
+        out.print(uriStr);
+        out.print(">");
+    }
+
+    private void writeData(RuleSet ruleSet) {
+        if ( ! ruleSet.hasData() )
+            return;
+
+        out.print("(");
+        out.println(tagData);
+        out.incIndent();
+
+        List<Triple> data = ruleSet.getDataTriples();
+
+        data.forEach(triple->{
+            writeTriple(triple);
+            out.println();
+        });
+
+        out.decIndent();
+        out.println(")");
     }
 
     private void writeBase(IRIx base) {
-        out.print("(base ");
+        out.print("(");
+        out.print(tagBase);
+        out.print(" ");
         printURI(base.str());
-
         out.incIndent();
         out.println();
     }
 
     private void writePrefixes(PrefixMap prefixMap) {
-        out.print("(prefixes");
+        out.print("(");
+        out.print(tagPrefixes);
         // Indent 2 levels
         out.incIndent();
         out.print(" (");
@@ -137,102 +282,6 @@ public class RuleSetASTWriter {
         // Only one back
         out.decIndent();
         out.ensureStartOfLine();
-    }
-
-    private void printURI(String uriStr) {
-        out.print("<");
-        out.print(uriStr);
-        out.print(">");
-    }
-
-    private void writeRuleSet1(RuleSet ruleSet) {
-
-        writeData(ruleSet);
-
-        List<Rule> rules = ruleSet.getRules();
-        boolean blankLine = ruleSet.hasData();
-
-        for ( Rule rule : rules ) {
-            if ( blankLine ) {
-                out.println();
-            }
-            blankLine = true;
-            writeRule(rule);
-        }
-    }
-
-    private void writeData(RuleSet ruleSet) {
-        if ( ! ruleSet.hasData() )
-            return;
-        List<Triple> data = ruleSet.getDataTriples();
-
-        out.println();
-        out.incIndent();
-        data.forEach(triple->{
-            writeTriple(triple);
-            out.println();
-        });
-        out.decIndent();
-        out.println("}");
-        out.println();
-    }
-
-    public void writeRule(Rule rule) {
-        out.print("RULE ");
-        writeHead(rule);
-        writeBody(rule);
-    }
-
-    private void writeHead(Rule rule) {
-        rule.getTripleTemplates().forEach(triple -> {
-            out.print(" ");
-            writeTriple(triple);
-        });
-    }
-
-    private void writeBody(Rule rule) {
-        writeRuleElements(rule.getBodyElements());
-        out.ensureStartOfLine();
-        out.flush();
-    }
-
-    private void writeRuleElements(List<RuleElement> bodyElements) {
-        // Without braces.
-        boolean first = true;
-        for ( RuleElement elt : bodyElements ) {
-            //if ( ! first ) {}
-            first = false;
-
-            switch (elt) {
-                case RuleElement.EltTriplePattern(Triple triplePattern) -> {
-                    writeTriple(triplePattern);
-                }
-                case RuleElement.EltCondition(Expr condition) -> {
-                    out.write("FILTER");
-                    writeExpr(condition);
-                }
-                case RuleElement.EltNegation(List<RuleElement> inner) -> {
-                    out.write("NOT {");
-                    out.println();
-                    final int indentLevelNegation = 4 ;
-                    out.incIndent(indentLevelNegation);
-                    writeRuleElements(inner);
-                    out.decIndent(indentLevelNegation);
-                    out.println();
-                    out.write(" }");
-                }
-                case RuleElement.EltAssignment(Var var, Expr expression) -> {
-                    out.write("BIND( ");
-                    writeExpr(expression);
-                    out.write(" AS ");
-                    nodeFormatter.format(out, var);
-                    out.write(")");
-                }
-                case null -> {
-                    throw new InternalErrorException();
-                }
-            }
-        }
     }
 
     // Space then triple.

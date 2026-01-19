@@ -156,7 +156,6 @@ public class RuleSetWriter {
         Style styleBody = rule.getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
         out.print("RULE ");
         writeHead(rule, styleHead);
-
         if ( styleRuleSet == Style.MultiLine )
             out.println();
         else
@@ -175,7 +174,7 @@ public class RuleSetWriter {
     }
 
     private void writeBody(Rule rule, Style styleBody) {
-        int initIndent = 0;
+        int initIndent = out.getAbsoluteIndent();
         int offset = out.getCol()-6;
         out.setAbsoluteIndent(offset);
         try {

@@ -357,7 +357,9 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         } finally { out.decIndent(); }
     }
 
+    @SuppressWarnings("removal")
     private static String str(Rule rule, PrefixMap prefixMap) {
+        // XXX No negation.
         return str(rule.getTripleTemplates(), prefixMap) + " :- " +         str(rule.getDependentTriples(), prefixMap);
     }
 

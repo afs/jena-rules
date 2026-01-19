@@ -1,0 +1,12 @@
+==== SHACL Rules
+
+( rules2html ; rules2bnf )
+
+rules2html : produce HTML and BNF for the spec.
+    Output rules-grammar.html
+
+
+rules2bnf : Produce BNF
+    Output: rules-grammar.bnf
+Not currently in the spec.
+    cp rules-grammar.bnf ~/W3C/SHACL/rules-shacl-wg/

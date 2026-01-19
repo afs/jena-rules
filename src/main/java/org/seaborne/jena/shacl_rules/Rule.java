@@ -19,6 +19,7 @@
 package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
@@ -28,6 +29,9 @@ public class Rule {
 
     private final RuleHead head;
     private final RuleBody body;
+    // Debug!
+    private static int counter = 0;
+    public final String id;
 
     /**
      * Used by the parser and {@link GraphToRuleSet}
@@ -39,6 +43,8 @@ public class Rule {
     private Rule(List<Triple> triples, List<RuleElement> body) {
         this.head = new RuleHead(triples);
         this.body = new RuleBody(body);
+        counter++;
+        id = ""+counter;
     }
 
     // -- Head
@@ -66,11 +72,16 @@ public class Rule {
         return getBody().getBodyElements();
     }
 
+    public void forEachBodyElement(Consumer<RuleElement> action) {
+        getBody().getBodyElements().forEach(action);
+    }
+
     /**
      * Return the triple patterns that occur in the body, and may depend on other
      * rules, as well as appearing in the abox (the facts of the base graph).
      * The triples in the list may contain named variables.
      */
+    @Deprecated(forRemoval = true)
     public List<Triple> getDependentTriples() {
         return getBody().getDependentTriples();
     }
@@ -110,6 +121,6 @@ public class Rule {
         String x = body.toString();
         x = x.replace("\n", " ");
         x = x.replaceAll("  +", " ");
-        return head.toString() + " :- " + x;
+        return "["+id+"]" +head.toString() + " :- " + x;
     }
 }
