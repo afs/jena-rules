@@ -21,6 +21,7 @@ package org.seaborne.jena.shacl_rules;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.shacl_rules.lang.writer.RuleSetWriter;
@@ -57,6 +58,13 @@ public class ShaclRulesWriter {
     /** Write a rule using a prefix map (not printed). */
     public static void print(Rule rule, PrefixMap prefixMap) {
         print(System.out, rule, prefixMap, true);
+    }
+
+    public static String asString(Rule rule, PrefixMap prefixMap) {
+       try ( IndentedLineBuffer out = new IndentedLineBuffer() ) {
+           print(out, rule, prefixMap, true);
+           return out.asString();
+       }
     }
 
     /** Write a rule (no prologue). */

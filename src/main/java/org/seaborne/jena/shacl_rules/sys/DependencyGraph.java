@@ -51,7 +51,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement;
 public class DependencyGraph {
 
     // Edge type.
-    enum Link {
+    public enum Link {
         POSITIVE("+"), NEGATIVE("-"), AGGREGATE("A");
         public final String symbol;
         Link(String symbol) { this.symbol = symbol; }
@@ -74,7 +74,7 @@ public class DependencyGraph {
 //        return x;
 //    }
 
-    // Rule without any dependent rules (the rule is satisfied by the data directly)
+    // Rules without any dependent rules (the rule is satisfied by the data directly)
     private Set<Rule> level0 = new HashSet<>();
 
     private final RuleSet ruleSet;
@@ -97,11 +97,10 @@ public class DependencyGraph {
 
         // For each rule, connect to its positive and negative dependencies.
         ruleSet.getRules().forEach(rule->{
-
             Collection<Edge> connections = edges(rule, providers);
             if ( connections.isEmpty() ) {
                 // Alternative is have a "no edge" distinguished edge.
-                // Maybe be necessary for positive and negative flavours.
+                // May be be necessary for positive and negative flavours.
                 level0.add(rule);
             } else {
                 direct.putAll(rule, connections);
@@ -136,6 +135,13 @@ public class DependencyGraph {
                             System.out.println("Template:  "+NodeFmtLib.displayStr(tripleTemplate));
                             System.out.println(RuleDependencies.dependsOn(triplePattern, tripleTemplate));
                         }
+
+                        // Possible improvement.
+                        // Find triple templtaes that match riple patterns using e.g. index by predicate.
+                        // rather then a ruleset scan?
+                        // ie. a better Triple template to rule lookup.
+                        //  TriplePattern -> Possible (Triple templates, rule)
+
                         if ( RuleDependencies.dependsOn(triplePattern, tripleTemplate) ) {
                             providers.get(tripleTemplate).forEach(r -> {
                                 // Check for duplicates.
@@ -190,6 +196,19 @@ public class DependencyGraph {
         return direct.get(rule);
     }
 
+    /**
+     * Return true if this rule only depends on the base data graph.
+     * That is, {@link #directDependencies} would return an empty collection.
+     */
+    public boolean isDataRule(Rule rule) {
+        return level0.contains(rule);
+    }
+
+
+    public Collection<Edge> edges() {
+        return direct.values();
+    }
+
     public void walk(Rule rule, Consumer<Rule> action) {
         walk$(rule, action);
     }
@@ -224,48 +243,52 @@ public class DependencyGraph {
 
     private final static boolean DEBUG_RECURSIVE = false;
 
-//    // Recursion test. Like walk but with early exit.
-//    // Can terminate early if all we want is whether it is/is not recursive.
-//    public boolean isRecursive(Rule rule) {
-//        Deque<Rule> stack = new ArrayDeque<>();
-//        boolean b = isRecursive(rule, rule, stack);
-//        if ( b ) {
-//            if ( DEBUG_RECURSIVE ) {
-//                stack.stream().map(r->r.getTripleTemplates()).forEach(h->System.out.printf("--%s", h));
-//                System.out.println();
-//                System.out.println(stack);
-//            }
-//        }
-//        return b;
-//    }
+    // Look for recursion.
+    // Look for recursion through negation.
+
+    // EXPERIMENTAL
+
+//  // Recursion test. Like walk but with early exit.
+//  public boolean isRecursive(Rule rule) {
+//      Deque<Rule> stack = new ArrayDeque<>();
+//      boolean b = isRecursive(rule, rule, stack);
+//      if ( b ) {
+//          if ( DEBUG_RECURSIVE ) {
+//              stack.stream().map(r->r.getTripleTemplates()).forEach(h->System.out.printf("--%s", h));
+//              System.out.println();
+//              System.out.println(stack);
+//          }
+//      }
+//      return b;
+//  }
 //
-//    // XXX "matches" - considers variables.
+//  // XXX "matches" - considers variables.
 //
-//    private boolean isRecursive(Rule topRule, Rule rule, Deque<Rule> visited) {
-//        if ( DEBUG_RECURSIVE )
-//            System.out.printf("isRecursive(\n  %s,\n  %s,\n  %s)\n", topRule, rule, visited);
-//        if ( ! visited.isEmpty() && topRule.equals(rule))
-//            return true;
-//        if ( visited.contains(rule) )
-//            // Other cycle.
-//            return false;
-//        visited.push(rule);
-//        boolean b = isRecursive2(topRule, rule, visited) ;
-//        if ( b )
-//            return b;
-//        visited.pop();
-//        return false;
-//    }
+//  private boolean isRecursive(Rule topRule, Rule rule, Deque<Rule> visited) {
+//      if ( DEBUG_RECURSIVE )
+//          System.out.printf("isRecursive(\n  %s,\n  %s,\n  %s)\n", topRule, rule, visited);
+//      if ( ! visited.isEmpty() && topRule.equals(rule))
+//          return true;
+//      if ( visited.contains(rule) )
+//          // Other cycle.
+//          return false;
+//      visited.push(rule);
+//      boolean b = isRecursive2(topRule, rule, visited) ;
+//      if ( b )
+//          return b;
+//      visited.pop();
+//      return false;
+//  }
 //
-//    // topRule is the overall rule we are testing. */
-//    private boolean isRecursive2(Rule topRule, Rule visitRule, Deque<Rule> visited) {
-//        Collection<Edge> providedBy = direct.get(visitRule);
-//        for( Rule otherRule : providedBy ) {
-//            if ( isRecursive(topRule, otherRule, visited) )
-//                return true;
-//        }
-//        return false;
-//    }
+//  // topRule is the overall rule we are testing. */
+//  private boolean isRecursive2(Rule topRule, Rule visitRule, Deque<Rule> visited) {
+//      Collection<Edge> providedBy = direct.get(visitRule);
+//      for( Edge edge : providedBy ) {
+//          if ( isRecursive(topRule, edge.linkedRule, visited) )
+//              return true;
+//      }
+//      return false;
+//  }
 
     public void print() { print(IndentedWriter.stdout.clone()); }
 
@@ -302,6 +325,7 @@ public class DependencyGraph {
                         out.print(" ");
                         ShaclRulesWriter.print(out, edge.linkedRule, ruleSet.getPrefixMap(), true);
                         out.decIndent(EdgeOffset);
+                        out.ensureStartOfLine();
                     });
                 }
                 out.decIndent();

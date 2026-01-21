@@ -174,13 +174,20 @@ public class RuleSetWriter {
     }
 
     private void writeBody(Rule rule, Style styleBody) {
-        int initIndent = out.getAbsoluteIndent();
-        int offset = out.getCol()-6;
-        out.setAbsoluteIndent(offset);
-        try {
-            writeBodyBlock(rule, styleBody);
-        } finally {
-            out.setAbsoluteIndent(initIndent);
+        switch(styleBody) {
+            case Flat->{
+                writeBodyBlock(rule, styleBody);
+            }
+            case MultiLine->{
+                int initIndent = out.getAbsoluteIndent();
+                int offset = out.getCol()-6;
+                out.setAbsoluteIndent(offset);
+                try {
+                    writeBodyBlock(rule, styleBody);
+                } finally {
+                    out.setAbsoluteIndent(initIndent);
+                }
+            }
         }
     }
 

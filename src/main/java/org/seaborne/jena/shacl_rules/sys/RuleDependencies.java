@@ -48,7 +48,7 @@ public class RuleDependencies {
      * <p>In other words, can triple1, as a pattern, generate a concrete triple that triple2 as a template can produce?
      *
      */
-    public // For development.
+    public // Used by RuleEngineBkdNonRecursions
     /*package*/ static boolean dependsOn(Triple triplePattern, Triple tripleTemplate) {
         // Does not consider variable names: e.g. ?x :p ?x
         // but safely returns true as "may provide".

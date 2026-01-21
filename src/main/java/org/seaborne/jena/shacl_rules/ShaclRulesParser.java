@@ -113,7 +113,6 @@ public class ShaclRulesParser {
         }
     }
 
-
     /** Messages to a logger. This is not an ErrorHandler */
     private static class ErrorLogger {
         protected final Logger log ;

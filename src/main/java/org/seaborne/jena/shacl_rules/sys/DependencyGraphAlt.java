@@ -55,7 +55,7 @@ public class DependencyGraphAlt {
         Link(String symbol) { this.symbol = symbol; }
     }
 
-    public record Edge(Rule rule, Link link, Rule linkedRule ) {
+    /*public*/ record Edge(Rule rule, Link link, Rule linkedRule ) {
         //public boolean edgeToBase() { return linkedRule == null; }
     }
 
