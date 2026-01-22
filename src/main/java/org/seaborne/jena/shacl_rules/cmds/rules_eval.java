@@ -76,8 +76,8 @@ public class rules_eval extends CmdRules {
         }
 
         RuleSet ruleSet = ShaclRulesParser.parseFile(rulesFile);
-
         Graph data = GraphMemFactory.createDefaultGraph();
+
         if ( dataFile != null ) {
             RDFParser.source(dataFile).parse(data);
         } else {
@@ -86,11 +86,17 @@ public class rules_eval extends CmdRules {
         }
 
         boolean verbose = super.isVerbose();
-        RulesEngineFwdSimple.Evaluation e = RulesEngineFwdSimple.build(data, ruleSet).setTrace(verbose).eval();
 
+        exec(ruleSet, data, verbose);
+    }
+
+    public static void exec(RuleSet ruleSet, Graph data, boolean verbose) {
+        //ShaclRulesExec.execute(ruleSet, baseGraph)
+
+        RulesEngineFwdSimple.Evaluation e = RulesEngineFwdSimple.build(data, ruleSet).setTrace(verbose).eval();
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();
-
+        System.out.println();
         System.out.println("## Rounds: "+e.rounds());
         System.out.println();
 
@@ -122,7 +128,6 @@ public class rules_eval extends CmdRules {
             print(output);
             System.out.println();
         }
-
     }
 
     public static void write(Graph graph) {

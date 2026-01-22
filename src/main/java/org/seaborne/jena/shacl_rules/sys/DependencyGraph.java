@@ -100,7 +100,7 @@ public class DependencyGraph {
             Collection<Edge> connections = edges(rule, providers);
             if ( connections.isEmpty() ) {
                 // Alternative is have a "no edge" distinguished edge.
-                // May be be necessary for positive and negative flavours.
+                // May be necessary for positive and negative flavours.
                 level0.add(rule);
             } else {
                 direct.putAll(rule, connections);
@@ -241,55 +241,6 @@ public class DependencyGraph {
         }
     }
 
-    private final static boolean DEBUG_RECURSIVE = false;
-
-    // Look for recursion.
-    // Look for recursion through negation.
-
-    // EXPERIMENTAL
-
-//  // Recursion test. Like walk but with early exit.
-//  public boolean isRecursive(Rule rule) {
-//      Deque<Rule> stack = new ArrayDeque<>();
-//      boolean b = isRecursive(rule, rule, stack);
-//      if ( b ) {
-//          if ( DEBUG_RECURSIVE ) {
-//              stack.stream().map(r->r.getTripleTemplates()).forEach(h->System.out.printf("--%s", h));
-//              System.out.println();
-//              System.out.println(stack);
-//          }
-//      }
-//      return b;
-//  }
-//
-//  // XXX "matches" - considers variables.
-//
-//  private boolean isRecursive(Rule topRule, Rule rule, Deque<Rule> visited) {
-//      if ( DEBUG_RECURSIVE )
-//          System.out.printf("isRecursive(\n  %s,\n  %s,\n  %s)\n", topRule, rule, visited);
-//      if ( ! visited.isEmpty() && topRule.equals(rule))
-//          return true;
-//      if ( visited.contains(rule) )
-//          // Other cycle.
-//          return false;
-//      visited.push(rule);
-//      boolean b = isRecursive2(topRule, rule, visited) ;
-//      if ( b )
-//          return b;
-//      visited.pop();
-//      return false;
-//  }
-//
-//  // topRule is the overall rule we are testing. */
-//  private boolean isRecursive2(Rule topRule, Rule visitRule, Deque<Rule> visited) {
-//      Collection<Edge> providedBy = direct.get(visitRule);
-//      for( Edge edge : providedBy ) {
-//          if ( isRecursive(topRule, edge.linkedRule, visited) )
-//              return true;
-//      }
-//      return false;
-//  }
-
     public void print() { print(IndentedWriter.stdout.clone()); }
 
     public void print(PrintStream pStream) {
@@ -300,7 +251,6 @@ public class DependencyGraph {
 
     public void print(IndentedWriter out) {
         //out.setEndOfLineMarker(" NL");
-
         try ( out ) {
             out.println("[DependencyGraph]");
             if ( ! level0.isEmpty() ) {

@@ -35,6 +35,22 @@ import org.seaborne.jena.shacl_rules.sys.DependencyGraph.Link;
  * Checking for illegal recursion - a recursive path that goes through a negation (NOT).
  */
 public class RecursionChecker {
+    // Efficiency: later:
+
+    // Use Strongly connected components.
+    //   which may also help with evaluation (do cycles differently to non-cycles)
+    //
+    // Path-based strong component algorithm
+    // https://en.wikipedia.org/wiki/Path-based_strong_component_algorithm
+    //
+    // Tarjan's algorithm
+    // https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+    //
+    // Kosaraju's algorithm
+    // https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm
+    // ("simpler, more expensive")
+
+    // Handle shared DAGs by caching at the ruleset level.
 
     public enum IsRecursive { YES, NO }
     enum PathIncludesNegation { YES, NO }
@@ -49,64 +65,26 @@ public class RecursionChecker {
         public Deque<Rule> getPath() { return path; }
     }
 
-    private final static boolean DEBUG_RECURSIVE = false;
-
     /*
      * Check for illegal recursion - a recursive path that goes through a negation (NOT).
      * This function throws an exception if it finds an illegal recursion.
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph) {
-        System.out.println("== Check recursion");
         for ( Rule rule : depGraph.getRuleSet().getRules()) {
-            ShaclRulesWriter.print(rule, depGraph.getRuleSet().getPrefixMap());
-            try {
-                IsRecursive isRecursive = RecursionChecker.checkRecursion(depGraph, rule);
-                switch (isRecursive) {
-                    case NO->{ System.out.println("--> No recursion"); }
-                    case YES-> { System.out.println("--> Safe recursion"); }
-                    //null ->{}
-                }
-            } catch ( RecursionException ex ) {
-                System.out.println("--> Error: "+ex.getMessage());
-                System.out.println("Path");
-                int i = 0 ;
-                for ( Rule pathRule : ex.getPath().reversed() ) {
-                    i++;
-                    System.out.printf("%d: ", i);
-                    ShaclRulesWriter.print(pathRule);
-                }
-                if ( false ) {
-                    // Debug.
-                    try {
-                        RecursionChecker.checkRecursion(depGraph, rule);
-                    } catch ( RecursionException ex2 ) {}
-                }
-
-            }
+            // Throws an exception on an illegal recursion.
+            /*IsRecursive isRecursive = */RecursionChecker.checkRecursion(depGraph, rule);
         }
-        System.out.println();
     }
 
-
-
-    // Return true if safely recursive, false if not recursive, and exception if recursion includes a negation.
-    // Later - handle shared DAGs by caching at the ruleset level.
-    public static IsRecursive checkRecursion( DependencyGraph depGraph, Rule rule) {
+    // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecurive.NO} if not recursive, and
+    // throw exception if recursion includes a negation (illegal).
+    public static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
         Deque<Rule> path = new ArrayDeque<>();
-        //Set<Rule> visited = new HashSet<>();
         IsRecursive isRecursive = RecursionChecker.checkRecursion(depGraph, rule, PathIncludesNegation.NO, rule, path);
-//            if ( IsRecursive.YES == isRecursive ) {
-//                if ( DEBUG_RECURSIVE ) {
-//                    stack.stream().map(r->r.getTripleTemplates()).forEach(h->System.out.printf("--%s", h));
-//                    System.out.println();
-//                    System.out.println(stack);
-//                }
-//            }
         return isRecursive;
     }
 
     private static IsRecursive checkRecursion(DependencyGraph depGraph, Rule topRule, PathIncludesNegation seenNegation, Rule rule, Deque<Rule> path) {
-        if ( DEBUG_RECURSIVE ) System.out.printf("isRecursive(\n  %s,\n  %s,\n  %s)\n", topRule, rule, path);
         if ( path.contains(rule) ) {
             if ( seenNegation == PathIncludesNegation.YES ) {
                 String ruleStr = ShaclRulesWriter.asString(rule, null);

@@ -41,15 +41,25 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
-import org.seaborne.jena.shacl_rules.sys.RuleLib;
+import org.seaborne.jena.shacl_rules.sys.*;
 
 /** Forward execution support */
 class RuleExecLib {
+
+    /** Perform checking and setup */
+    public static void prepare(RuleSet ruleSet) {
+        WellFormed.checkWellFormed(ruleSet);
+        // XXX Ought to do this once as a "prepare" step and keep in the RuleSet.
+        DependencyGraph depGraph = DependencyGraph.create(ruleSet);
+        RecursionChecker.checkForIllegalRecursion(depGraph);
+        Stratification.create(ruleSet, depGraph);
+    }
 
     public static Iterator<Binding> evalBody(Graph graph, Rule rule) {
         Binding binding = BindingFactory.binding();

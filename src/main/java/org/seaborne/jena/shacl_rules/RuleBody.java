@@ -88,14 +88,15 @@ class RuleBody {
         return Objects.equals(body, other.body);
     }
 
-    @Override
-    public String toString() {
-        List<Triple> x = body.stream()
-                .map(elt-> switch(elt) {
-                    case RuleElement.EltTriplePattern el -> el.triplePattern();
-                    default -> null;
-                })
-                .filter(Objects::nonNull).toList();
-        return x.toString();
-    }
+//    @Override
+//    public String toString() {
+//        // XXX Unfinished
+//        body.stream()
+//                .map(elt-> switch(elt) {
+//                    case RuleElement.EltTriplePattern el -> el.triplePattern();
+//                    case RuleElement.EltNegation neg -> { }
+//                })
+//                .filter(Objects::nonNull).toList();
+//        return x.toString();
+//    }
 }

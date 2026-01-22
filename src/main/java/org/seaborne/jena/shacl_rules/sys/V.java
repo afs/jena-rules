@@ -23,6 +23,10 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
+/**
+ * Vocabulary relating to SHALC rules, including importing terms from elsewhere.
+ * Expected use is as a static import.
+ */
 public
 class V {
     public static Node NIL = RDF.Nodes.nil;

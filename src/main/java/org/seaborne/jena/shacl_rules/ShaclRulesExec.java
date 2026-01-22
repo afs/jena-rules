@@ -24,8 +24,8 @@ import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 
 /** API - evaluation of a {@link RuleSet} over a {@link Graph baseGraph} */
 public class ShaclRulesExec {
-    public static Graph execute(RuleSet ruleSet, Graph baseGraph) {
+    public static RuleSetEvaluation execute(RuleSet ruleSet, Graph baseGraph) {
         RuleSetEvaluation e = RulesEngineFwdSimple.build(baseGraph, ruleSet).eval();
-        return e.inferredTriples();
+        return e;
     }
 }

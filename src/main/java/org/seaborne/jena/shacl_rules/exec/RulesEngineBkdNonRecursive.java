@@ -67,6 +67,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     public static IndentedWriter LOG = IndentedWriter.stdout.clone().setFlushOnNewline(true).setLinePrefix("R: ");
 
     public static RulesEngineBkdNonRecursive build(Graph graph, RuleSet ruleSet) {
+        RuleExecLib.prepare(ruleSet);
         return new RulesEngineBkdNonRecursive(graph, ruleSet);
     }
 

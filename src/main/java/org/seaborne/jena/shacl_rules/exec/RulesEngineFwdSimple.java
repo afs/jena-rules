@@ -25,11 +25,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.seaborne.jena.shacl_rules.EngineType;
-import org.seaborne.jena.shacl_rules.Rule;
-import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.RulesEngine;
+import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 
 /**
@@ -48,6 +46,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     }
 
     public static RulesEngineFwdSimple build(Graph graph, RuleSet ruleSet) {
+        RuleExecLib.prepare(ruleSet);
         return new RulesEngineFwdSimple(graph, ruleSet);
     }
 
@@ -166,7 +165,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
                 System.out.println("Round: "+round);
 
             for (Rule rule : ruleSet.getRules() ) {
-                evalOneRule(graph1, rule);
+                evalOneRule(graph1, rule, ruleSet.getPrefixMap());
 
                 if ( TRACE )
                     System.out.println("Accumulator: "+graph1.getAdded().size());
@@ -209,9 +208,13 @@ public class RulesEngineFwdSimple implements RulesEngine {
      * One execution of one rules.
      * The argument graph is updated.
      */
-    private void evalOneRule(Graph graph, Rule rule) {
-        if ( TRACE )
-            System.out.println("Rule: "+rule);
+    private void evalOneRule(Graph graph, Rule rule, PrefixMap pmap) {
+        if ( TRACE ) {
+            System.out.print("Rule: ");
+            String rs = ShaclRulesWriter.asString(rule, pmap);
+            System.out.print(rs);
+            System.out.println();
+        }
         List<Triple> triples = RuleExecLib.evalRule(graph, rule);
         GraphUtil.add(graph, triples);
     }
