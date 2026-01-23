@@ -26,10 +26,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
@@ -40,60 +39,78 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
  */
 public class WellFormed {
 
-    public static class NotWellFormed extends RulesException {
-        public NotWellFormed(String message)                    { super(message); }
+    public static class NotWellFormedException extends RulesException {
+        public NotWellFormedException(String message)                    { super(message); }
 //        public NotWellFormed(Throwable cause)                   { super(cause) ; }
 //        public NotWellFormed(String message, Throwable cause)   { super(message, cause) ; }
     }
 
-    public static boolean wellFormed(Rule rule) {
-        // head
-        // body
+    /**
+     * Check whether a ruleset is well-formed.
+     * This function throws {@link NotWellFormedException}
+     * if a problem is detected.
+     */
+    public static void checkWellFormed(RuleSet ruleSet) {
+        for ( Rule rule : ruleSet.getRules() ) {
+            checkWellFormed(rule);
+        }
+    }
 
+    /**
+     * Check whether a rule is well-formed.
+     * This function throws {@link NotWellFormedException}
+     * if a problem is detected.
+     */
+    public static void checkWellFormed(Rule rule) {
         VarTracker tracker = new VarTracker();
 
-        for ( RuleElement elt : rule.getBodyElements() ) {
-            switch(elt) {
-                case RuleElement.EltTriplePattern(Triple triplePattern) -> {
-                    addVar(tracker.bodyDefined, triplePattern.getSubject());
-                    addVar(tracker.bodyDefined, triplePattern.getPredicate());
-                    addVar(tracker.bodyDefined, triplePattern.getObject());
-                }
-                case RuleElement.EltCondition(Expr condition) -> {
-                    processWellFormedExpr(tracker, condition);
-                }
-                case EltNegation(List<RuleElement> innerBody) -> {
-                    ElementGroup innerGroup = RuleLib.ruleEltsToElementGroup(innerBody);
-                    Expr expression = new E_NotExists(innerGroup);
-                    // XXX ???
-                    processWellFormedExpr(tracker, expression);
-                }
-                case RuleElement.EltAssignment(Var var, Expr expression) -> {
-                    processWellFormedExpr(tracker, expression);
-                    if ( tracker.bodyDefined.contains(var) )
-                        throw new NotWellFormed("Assignment variable already defined: "+var);
-                    tracker.bodyDefined.add(var);
-                }
-                case null -> { throw new ShaclException("Null in rule body"); }
-            }
-        }
+        // Body
+        checkRuleElements(tracker, rule.getBodyElements());
 
-        // triple.forEach
-
+        // Head
         for ( Triple tripleTemplate : rule.getTripleTemplates() ) {
             checkDefined(tracker, tripleTemplate.getSubject());
             checkDefined(tracker, tripleTemplate.getPredicate());
             checkDefined(tracker, tripleTemplate.getObject());
         }
+    }
 
-        return true;
+    private static void checkRuleElements(VarTracker tracker, List<RuleElement> elts) {
+        for ( RuleElement elt : elts ) {
+            checkRuleElement(tracker, elt);
+        }
+    }
+
+    public static void checkRuleElement(VarTracker tracker, RuleElement elt) {
+        switch(elt) {
+            case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                addVar(tracker.bodyDefined, triplePattern.getSubject());
+                addVar(tracker.bodyDefined, triplePattern.getPredicate());
+                addVar(tracker.bodyDefined, triplePattern.getObject());
+            }
+            case RuleElement.EltCondition(Expr condition) -> {
+                processWellFormedExpr(tracker, condition);
+            }
+            case EltNegation(List<RuleElement> innerBody) -> {
+                // Isolated tracker.
+                VarTracker negTracker = tracker.copyOf();
+                checkRuleElements(negTracker, innerBody);
+            }
+            case RuleElement.EltAssignment(Var var, Expr expression) -> {
+                processWellFormedExpr(tracker, expression);
+                if ( tracker.bodyDefined.contains(var) )
+                    throw new NotWellFormedException("Assignment variable already defined: "+var);
+                tracker.bodyDefined.add(var);
+            }
+            case null -> { throw new ShaclException("Null in rule body"); }
+        }
     }
 
     private static void checkDefined(VarTracker tracker, Node term) {
         if ( Var.isVar(term) ) {
             Var var = Var.alloc(term);
             if ( ! tracker.bodyDefined.contains(term) ) {
-                throw new NotWellFormed("Variable in rule head not defined: "+var);
+                throw new NotWellFormedException("Variable in rule head not defined: "+var);
             }
         }
     }
@@ -101,9 +118,9 @@ public class WellFormed {
     private static void processWellFormedExpr(VarTracker tracker, Expr condition) {
         Set<Var> vars = condition.getVarsMentioned();
         for ( Var var : vars ) {
-            tracker.bodyMentioned.add(var);
+            //tracker.bodyMentioned.add(var);
             if ( ! tracker.bodyDefined.contains(var) )
-                throw new NotWellFormed("Expression variable not defined: "+var);
+                throw new NotWellFormedException("Expression variable not defined: "+var);
         }
     }
 
@@ -114,12 +131,24 @@ public class WellFormed {
 
     private static class VarTracker {
         // Patterns and assigned
-        Set<Var> bodyDefined = new HashSet<>();
-        Set<Var> bodyMentioned = new HashSet<>();
-        Set<Var> headConsumed = new HashSet<>();
+        final Set<Var> bodyDefined;
+        //final Set<Var> bodyMentioned;
+        //final Set<Var> headConsumed;
 
-        VarTracker() {}
+        VarTracker() {
+            bodyDefined = new HashSet<>();
+            //bodyMentioned = new HashSet<>();
+            //headConsumed = new HashSet<>();
+        }
 
+        private VarTracker(VarTracker other) {
+            bodyDefined = new HashSet<>(other.bodyDefined);
+            //bodyMentioned = new HashSet<>(other.bodyMentioned);
+            //headConsumed = new HashSet<>(other.headConsumed);
+        }
+
+        VarTracker copyOf() {
+            return new VarTracker(this);
+        }
     }
-
 }
