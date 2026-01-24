@@ -43,6 +43,12 @@ public class Stratification {
     // Later - combine with "Connected components" and SCCs
     // See also RcursionChecker
 
+    public static class StratificationException extends RulesException {
+        public StratificationException(String message)                    { super(message); }
+//        public NotWellFormed(Throwable cause)                   { super(cause) ; }
+//        public NotWellFormed(String message, Throwable cause)   { super(message, cause) ; }
+    }
+
     final private int minStratum;
     final private int maxStratum;
     final private ListValuedMap<Integer, Rule> stratumLevels;
@@ -140,7 +146,7 @@ public class Stratification {
                         if ( stratumMap.get(pRule) <= stratumMap.get(qRule) ) {
                             int xStratum = 1 + stratumMap.get(qRule);
                             if ( xStratum > limit )
-                                throw new RulesException("Stratification error");
+                                throw new StratificationException("Stratification error");
                             stratumMap.put(pRule, xStratum);
                             changed = true;
                         }

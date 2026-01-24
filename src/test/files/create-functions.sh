@@ -4,8 +4,6 @@
 ## Source this file.
 
 EXT="srl"
-POSTIVE_SYNTAX="srt:RulesPositiveSyntaxTest"
-NEGATIVE_SYNTAX="srt:RulesNegativeSyntaxTest"
 
 ## setup ()
 function clean
@@ -127,7 +125,7 @@ PREFIX srl:    <http://www.w3.org/ns/shacl-rules#>
 PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
 
 <>  rdf:type mf:Manifest ;
-    rdfs:comment "Syntax tests $LABEL" ;
+    rdfs:comment "$LABEL" ;
     mf:entries (
 EOF
 
@@ -138,7 +136,6 @@ EOF
 
     for f in "${GOOD[@]}"
     do
-	# Reuse PositiveSyntaxTest12
 	output "$f" "${POSTIVE_SYNTAX}"
     done
 

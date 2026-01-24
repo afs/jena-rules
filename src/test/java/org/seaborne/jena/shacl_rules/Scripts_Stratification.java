@@ -18,28 +18,24 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import org.junit.platform.suite.api.SelectClasses;
-import org.junit.platform.suite.api.Suite;
+import java.util.stream.Stream;
 
-@Suite
-@SelectClasses({
-    // Infrastructure
-    TestAppendGraph.class,
+import org.junit.jupiter.api.*;
 
+import org.apache.jena.arq.junit.Scripts;
+import org.seaborne.jena.shacl_rules.junit.RuleTests;
 
-    // NodeExpressions
-    TestNodeExpressions.class,
+public class Scripts_Stratification {
 
-//    TestRulesWellFormed.class,
-//    TestRuleSyntaxBasic.class,
+    @BeforeAll
+    public static void beforeClass() {}
 
-    Scripts_RuleSyntax.class,
-    Scripts_Wellformed.class,
-    Scripts_Stratification.class,
-    Scripts_RuleEval.class,
+    @AfterAll
+    public static void afterClass() {}
 
-    // Or combined
-    //Scripts_RuleTests.class
-})
-public class TS_JenaRules {}
-
+    @TestFactory
+    @DisplayName("Jena Rules (Stratification)")
+    public Stream<DynamicNode> execution() {
+        return Scripts.manifestTestFactory("src/test/files/stratification/manifest.ttl", RuleTests::makeRuleTest);
+    }
+}

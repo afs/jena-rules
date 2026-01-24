@@ -20,7 +20,7 @@ package org.seaborne.jena.shacl_rules.sys;
 
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 
-public class InitShaclRules  implements JenaSubsystemLifecycle {
+public class InitShaclRules implements JenaSubsystemLifecycle {
 
     @Override
     public void start() {}

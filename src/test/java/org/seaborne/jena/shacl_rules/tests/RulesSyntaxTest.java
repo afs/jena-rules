@@ -80,7 +80,6 @@ public class RulesSyntaxTest implements Runnable {
     private static void printFile(String filename) {
         String fn = IRILib.IRIToFilename(filename);
         String s = IO.readWholeFileAsUTF8(fn);
-        System.err.println();
         System.err.println("== "+filename);
         System.err.print(s);
     }

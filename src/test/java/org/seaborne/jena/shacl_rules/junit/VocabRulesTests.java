@@ -28,7 +28,7 @@ public class VocabRulesTests {
     public static final Node TestNegativeSyntaxRules    = uri("RulesNegativeSyntaxTest");
 
     public static final Node TestPositiveWellFormedness = uri("RulesPositiveWellFormednessTest");
-    public static final Node TestNegativeWellFormedness = uri("RulesNegatievWellFormednessTest");
+    public static final Node TestNegativeWellFormedness = uri("RulesNegativeWellFormednessTest");
 
     public static final Node TestPositiveStratification = uri("RulesPositiveStratificationTest");
     public static final Node TestNegativeStratification = uri("RulesNegativeStratificationTest");
@@ -40,12 +40,10 @@ public class VocabRulesTests {
 
     public static final Node TestSurpressed             = uri("Test");
 
+    // The evaluation action has a ruleSet and (optionally) a data graph.
     public static final Node ruleSet                    = uri("ruleset");
-
     public static final Node data                       = uri("data");
 
     private static Node uri(String localName) { return uri(SRT, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
-
-
 }

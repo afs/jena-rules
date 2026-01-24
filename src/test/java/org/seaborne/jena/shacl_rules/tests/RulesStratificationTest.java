@@ -76,7 +76,7 @@ public class RulesStratificationTest implements Runnable {
                 printFile(filename);
                 fail("Stratification step succeeded in a negative test");
             }
-        } catch(WellFormed.NotWellFormedException ex) {
+        } catch(Stratification.StratificationException ex) {
             if ( expectLegalSyntax ) {
                 printFile(filename);
                 //ex.printStackTrace();
@@ -88,7 +88,6 @@ public class RulesStratificationTest implements Runnable {
     private static void printFile(String filename) {
         String fn = IRILib.IRIToFilename(filename);
         String s = IO.readWholeFileAsUTF8(fn);
-        System.err.println();
         System.err.println("== "+filename);
         System.err.print(s);
     }

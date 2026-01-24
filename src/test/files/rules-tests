@@ -2,6 +2,8 @@
 
 CMD=$(basename $0)
 
-CP="~/ASF/Rules/jena-rules/target"
+R="$HOME/ASF/Rules/jena-rules"
+
+export CP="$R/target/classes:$R/target/test-classes"
 
 jena "rdftests" "$@"

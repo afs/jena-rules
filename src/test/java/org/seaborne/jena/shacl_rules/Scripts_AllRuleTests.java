@@ -25,7 +25,7 @@ import org.junit.jupiter.api.*;
 import org.apache.jena.arq.junit.Scripts;
 import org.seaborne.jena.shacl_rules.junit.RuleTests;
 
-public class Scripts_RuleTests {
+public class Scripts_AllRuleTests {
 
     @BeforeAll
     public static void beforeClass() {}

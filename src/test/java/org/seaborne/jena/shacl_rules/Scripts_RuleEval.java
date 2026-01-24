@@ -36,6 +36,6 @@ public class Scripts_RuleEval {
     @TestFactory
     @DisplayName("Jena Rules (Execution)")
     public Stream<DynamicNode> execution() {
-        return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", RuleTests::makeRuleTest);
+        return Scripts.manifestTestFactory("src/test/files/wellformed/manifest.ttl", RuleTests::makeRuleTest);
     }
 }

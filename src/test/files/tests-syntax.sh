@@ -398,27 +398,3 @@ N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
 PREFIX : <http://example/>
 DATA { :s :p ?o }
 EOF
-
-
-
-## Well-formedness
-
-N=0
-
-N=$((N+1)) ; testGood $(fname "well-formed-data-bad-" $N) <<EOF
-PREFIX : <http://example/>
-RULE { ?s ?p ?o }
-WHERE {
-    ?s ?p ?o
-    BIND(123 AS ?o)
-}
-EOF
-
-N=$((N+1)) ; testGood $(fname "well-formed-data-bad-" $N) <<EOF
-PREFIX : <http://example/>
-RULE { ?s ?p ?o }
-WHERE {
-    FILTER(?o < 50)
-    ?s ?p ?o
-}
-EOF
