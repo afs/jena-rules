@@ -2,8 +2,10 @@
 
 DIR="/home/afs/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
 
-rm $DIR/manifest*
+rm -f $DIR/README.md
+rm -f $DIR/manifest*
 rm -rf $DIR/eval $DIR/syntax
 
 cp manifest-rules.ttl $DIR
+cp README.md $DIR
 cp -r eval syntax $DIR
