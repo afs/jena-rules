@@ -27,6 +27,13 @@ public class VocabRulesTests {
     public static final Node TestPositiveSyntaxRules    = uri("RulesPositiveSyntaxTest");
     public static final Node TestNegativeSyntaxRules    = uri("RulesNegativeSyntaxTest");
 
+    public static final Node TestPositiveWellFormedness = uri("RulesPositiveWellFormednessTest");
+    public static final Node TestNegativeWellFormedness = uri("RulesNegatievWellFormednessTest");
+
+    public static final Node TestPositiveStratification = uri("RulesPositiveStratificationTest");
+    public static final Node TestNegativeStratification = uri("RulesNegativeStratificationTest");
+
+
     //public static final Node TestPositiveEvalRules      = uri("RulesPositiveEvalTest");
     public static final Node TestPositiveEvalRules      = uri("RulesEvalTest");
     public static final Node TestNegativeEvalRules      = uri("RulesNegativeEvalTest");

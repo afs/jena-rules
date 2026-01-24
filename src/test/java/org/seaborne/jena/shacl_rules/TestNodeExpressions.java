@@ -41,9 +41,19 @@ import org.seaborne.jena.shacl_rules.sys.V;
 public class TestNodeExpressions {
 
     private static String PREFIXES = P.PREFIXES+"PREFIX : <http://example/>\n";
-    private static Node pNode = NodeFactory.createURI("http://example/expr");
 
-    @Test public void nx_01() {
+    @Test public void nx_expr_uri() {
+        String nxGraph = PREFIXES+"""
+                :nx shr:expr [ sparql:now () ] .
+                """;
+        Node nx = NodeFactory.createURI("http://example/nx");
+        Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
+
+        NodeValue nv = NodeExpressions.evalNodeExpression(graph, nx);
+        assertNotNull(nv);
+    }
+
+    @Test public void nx_expr_bnode() {
         String nxGraph = PREFIXES+"""
                 [] shr:expr [ sparql:now () ] .
                 """;
@@ -60,5 +70,4 @@ public class TestNodeExpressions {
     }
 
     // Define a test function.
-
 }

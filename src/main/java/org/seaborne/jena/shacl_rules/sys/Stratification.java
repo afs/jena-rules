@@ -52,8 +52,13 @@ public class Stratification {
     // Setting to one separates data rules (no dependencies) from rule with rule dependencies.
     static Integer minDependentStratum = Integer.valueOf(1);
 
+    public static Stratification create(RuleSet ruleSet) {
+        DependencyGraph depGraph = DependencyGraph.create(ruleSet);
+        return createStratificationFunction(dataStratum, ruleSet, depGraph);
+    }
+
     public static Stratification create(RuleSet ruleSet, DependencyGraph depGraph) {
-        return createStratification(dataStratum, depGraph.getRuleSet(), depGraph);
+        return createStratificationFunction(dataStratum, ruleSet, depGraph);
     }
 
     private Stratification(int minStratum, int maxStratum,  ListValuedMap<Integer, Rule> stratumLevels) {
@@ -89,7 +94,7 @@ public class Stratification {
     }
 
     // ----
-    private static Stratification createStratification(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph) {
+    private static Stratification createStratificationFunction(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph) {
         // The results.
         Map<Rule, Integer> stratumMap = new HashMap<>();
         ListValuedMap<Integer, Rule> stratumLevels = MultiMapUtils.newListValuedHashMap();

@@ -25,7 +25,9 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.SplitIRI;
 import org.seaborne.jena.shacl_rules.tests.RulesEvalTest;
+import org.seaborne.jena.shacl_rules.tests.RulesStratificationTest;
 import org.seaborne.jena.shacl_rules.tests.RulesSyntaxTest;
+import org.seaborne.jena.shacl_rules.tests.RulesWellFormednessTest;
 
 public class RuleTests {
 
@@ -60,6 +62,19 @@ public class RuleTests {
                 return new RulesSyntaxTest(entry, testURI, true);
             if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules) )
                 return new RulesSyntaxTest(entry, testURI, false);
+
+            // == Wellformedness
+            if ( testType.equals(VocabRulesTests.TestPositiveWellFormedness) )
+                return new RulesWellFormednessTest(entry, testURI, true);
+            if ( testType.equals(VocabRulesTests.TestNegativeWellFormedness) )
+                return new RulesWellFormednessTest(entry, testURI, false);
+
+            // == Stratification
+
+            if ( testType.equals(VocabRulesTests.TestPositiveStratification) )
+                return new RulesStratificationTest(entry, testURI, true);
+            if ( testType.equals(VocabRulesTests.TestNegativeStratification) )
+                return new RulesStratificationTest(entry, testURI, false);
 
             // == Eval
             if ( testType.equals(VocabRulesTests.TestPositiveEvalRules) )

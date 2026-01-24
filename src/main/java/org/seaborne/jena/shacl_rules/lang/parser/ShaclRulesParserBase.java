@@ -37,6 +37,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
+import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
@@ -65,6 +66,8 @@ public class ShaclRulesParserBase extends LangParserBase {
 
     // ---- Parser state.
 
+    // INNER is the restricted body pattern for NOT.
+    // Better name? POSITIVE?
     enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY, INNER };
     protected BuildState state = BuildState.OUTER;
 
@@ -185,32 +188,6 @@ public class ShaclRulesParserBase extends LangParserBase {
         state = BuildState.BODY;
     }
 
-//    protected void startExistsElement(int line, int column) {
-//        debug("startExistsElement", line, column);
-//        state = BuildState.INNER;
-//        innerBodyAcc = new ArrayList<>();
-//    }
-//
-//    protected void finishExistsElement(int line, int column) {
-//        debug("finishExistsElement", line, column);
-////        RuleElement rElt = new RuleElement.EltExists(innerBodyAcc);
-////        addToBody(rElt);
-//        state = BuildState.BODY;
-//    }
-//
-//    protected void startNotExistsElement(int line, int column) {
-//        debug("startNotExistsElement", line, column);
-//        state = BuildState.INNER;
-//        innerBodyAcc = new ArrayList<>();
-//    }
-//
-//    protected void finishNotExistsElement(int line, int column) {
-//        debug("finishNotExistsElement", line, column);
-////        RuleElement rElt = new RuleElement.EltNotExists(innerBodyAcc);
-////        addToBody(rElt);
-//        state = BuildState.BODY;
-//    }
-
     private void addToHead(Triple tripleTemplate) {
         requireNonNull(tripleTemplate);
         headAcc.add(tripleTemplate);
@@ -267,22 +244,10 @@ public class ShaclRulesParserBase extends LangParserBase {
         accTriple(s, p, o, line, column);
     }
 
+    @Override
     protected void emitTriple(Node s, Node p, Node o, int line, int column) {
-        debug("emitTriple", line, column);
+        debug("emitDataTriple", line, column);
         accTriple(s, p, o, line, column);
-    }
-
-    // If NOT EXISTS, EXISTS
-    protected void emitExistsElement(int line, int column) {
-//      RuleElement rElt = new RuleElement.EltExists(innerBodyAcc);
-//      addToBody(rElt);
-        innerBodyAcc = null;
-    }
-
-    protected void emitNotExistsElement(int line, int column) {
-//        RuleElement rElt = new RuleElement.EltNotExists(innerBodyAcc);
-//        addToBody(rElt);
-        innerBodyAcc = null;
     }
 
     protected void emitNegation(int line, int column) {
@@ -300,8 +265,23 @@ public class ShaclRulesParserBase extends LangParserBase {
         addRuleElement(var, expr);
     }
 
+    // << x y z >>
+    @Override
     protected Node emitTripleReifier(Node reifierId, Node s, Node p, Node o, int line, int column) {
-        return super.emitTripleReifier(line, column, reifierId, s, p, o);
+        //Node tripleTerm = NodeFactory.createTripleTerm(s, p, o);
+        Node tripleTerm = createTripleTerm(s, p, o, line, column);
+        if ( reifierId == null )
+            reifierId = createBNode(line, column);
+        accTriple(s, p, o, line, column);
+        accTriple(reifierId, RDF.Nodes.reifies, tripleTerm, line, column);
+        return reifierId;
+    }
+
+    @Override
+    protected Node createTripleTerm(Node s, Node p, Node o, int line, int column) {
+        // Allow variables.
+        Node tripleTerm = NodeFactory.createTripleTerm(s, p, o);
+        return tripleTerm;
     }
 
     protected void transitiveProperty(String iriStr) {
@@ -346,10 +326,6 @@ public class ShaclRulesParserBase extends LangParserBase {
                     throwParseException("Triple must be concrete (no variables): "+triple, line, column);
                 data.add(triple);
             }
-            // Bad
-//            case NONE -> {}
-//            case OUTER -> {}
-//            case RULE -> {}
             default -> {
                 throwInternalStateException("Triple emitted in state "+state);
             }

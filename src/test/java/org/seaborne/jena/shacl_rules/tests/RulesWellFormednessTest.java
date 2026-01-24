@@ -24,13 +24,12 @@ import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
-import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.riot.RiotException;
 import org.apache.jena.shared.NotFoundException;
+import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
-import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.shacl_rules.sys.WellFormed;
 
-public class RulesSyntaxTest implements Runnable {
+public class RulesWellFormednessTest implements Runnable {
 
     final private boolean expectLegalSyntax;
     final private ManifestEntry testEntry;
@@ -38,7 +37,7 @@ public class RulesSyntaxTest implements Runnable {
     //final private Lang lang;
     final private String filename;
 
-    public RulesSyntaxTest(ManifestEntry entry, String base, boolean positiveTest) {
+    public RulesWellFormednessTest(ManifestEntry entry, String base, boolean positiveTest) {
         this.testEntry = entry;
         this.testBase = base;
         this.expectLegalSyntax = positiveTest;
@@ -62,17 +61,21 @@ public class RulesSyntaxTest implements Runnable {
 
         boolean allowWarnings = false;
 
+        // Must pass as valid syntax
+        RuleSet ruleSet = parseForTest(filename, base, allowWarnings);
+
         try {
-            parseForTest(filename, base, allowWarnings, expectLegalSyntax);
+
+            WellFormed.checkWellFormed(ruleSet);
             if (! expectLegalSyntax ) {
                 printFile(filename);
-                fail("Parsing succeeded in a bad syntax test");
+                fail("WellFormed check succeeded in a negative test");
             }
-        } catch(ShaclRulesParseException | RiotException ex) {
+        } catch(WellFormed.NotWellFormedException ex) {
             if ( expectLegalSyntax ) {
                 printFile(filename);
                 //ex.printStackTrace();
-                fail("Parse error: "+ex.getMessage());
+                fail("WellFormed check failed: "+ex.getMessage());
             }
         }
     }
@@ -85,19 +88,8 @@ public class RulesSyntaxTest implements Runnable {
         System.err.print(s);
     }
 
-    private static void parseForTest(String filename, String base, boolean allowWarnings, boolean expectLegalSyntax) {
-        if ( expectLegalSyntax ) {
-            ShaclRulesParser.parseFile(filename);
-            return;
-        }
-
-        String level = LogCtl.getLevel(ShaclRulesParser.parserLogger);
-        LogCtl.setLevel(ShaclRulesParser.parserLogger, "FATAL");
-        try {
-            // Expect errors - so don't log them.
-            ShaclRulesParser.parseFile(filename);
-        } finally {
-            LogCtl.setLevel(ShaclRulesParser.parserLogger, level);
-        }
+    private static RuleSet parseForTest(String filename, String base, boolean allowWarnings) {
+        RuleSet ruleSet = ShaclRulesParser.parseFile(filename);
+        return ruleSet;
     }
 }

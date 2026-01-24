@@ -208,7 +208,7 @@ public class RuleSetToGraph {
     private static Node convertVar(Graph graph, Node node) {
         // Triple terms
         if ( node.isTripleTerm() )
-            throw new ShaclException("Not implementned: triple terms; "+node);
+            throw new ShaclException("Not implemented: triple terms; "+node);
         if ( node.isConcrete() )
             return node;
         if ( Var.isVar(node) ) {

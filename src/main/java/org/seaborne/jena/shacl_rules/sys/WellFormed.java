@@ -129,6 +129,11 @@ public class WellFormed {
             bodyDefined.add(Var.alloc(node));
     }
 
+    /**
+     * State for tracking variables.
+     * Currently, we only need to know what has been
+     * defined (set by a pattern match or an assignment).
+     */
     private static class VarTracker {
         // Patterns and assigned
         final Set<Var> bodyDefined;
@@ -152,3 +157,4 @@ public class WellFormed {
         }
     }
 }
+
