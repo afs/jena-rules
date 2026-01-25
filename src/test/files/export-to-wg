@@ -2,10 +2,19 @@
 
 DIR="/home/afs/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
 
+function exportDir {
+    local SRC="$1"
+    cp -r $SRC $DIR
+}
+
 rm -f $DIR/README.md
 rm -f $DIR/manifest*
 rm -rf $DIR/eval $DIR/syntax
 
 cp manifest-rules.ttl $DIR
 cp README.md $DIR
-cp -r eval syntax $DIR
+
+exportDir syntax
+exportDir wellformed
+exportDir stratification
+exportDir eval

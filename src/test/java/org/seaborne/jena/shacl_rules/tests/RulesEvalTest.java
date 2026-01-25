@@ -69,10 +69,10 @@ public class RulesEvalTest implements Runnable {
         }
 
         Node nData = G.getOneSP(graph, action, VocabRulesTests.data);
-
         Graph input = ( nData == null ) ? GraphZero.instance() : read(nData);
 
         boolean verbose = false;
+
         RuleSetEvaluation e = RulesEngineFwdSimple.build(input, ruleSet).setTrace(false).eval();
 
         Graph outcome = e.inferredTriples();

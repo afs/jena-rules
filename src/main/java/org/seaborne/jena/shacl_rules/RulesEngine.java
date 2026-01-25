@@ -27,6 +27,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.engine.main.solver.SolverRX3;
+import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 
 /**
  * A {@code RulesEngine} is an execution engine for a given {@link RuleSet} and given
@@ -81,16 +82,18 @@ public interface RulesEngine {
         return stream.map(dataTriple -> SolverRX3.matchTriple(root, dataTriple, triplePattern));
     }
 
+    public RuleSetEvaluation eval();
+
     /**
      * Execute the rule set and enrich the base graph.
      * The base graph is modified.
      */
     public default void execute() {
-        // Implementation note: may become a separate algorithm.
-        Graph inferredGraph = infer();
-        materializedGraph()
-            .getTransactionHandler()
-            .executeAlways( ()->GraphUtil.addInto(materializedGraph(), inferredGraph) );
+        RuleSetEvaluation e = eval();
+        Graph inferredGraph = e.inferredTriples();
+        baseGraph()
+        .getTransactionHandler()
+        .executeAlways( ()-> GraphUtil.addInto(materializedGraph(), inferredGraph) );
     }
 
     /**

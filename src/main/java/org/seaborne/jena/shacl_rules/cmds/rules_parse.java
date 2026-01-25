@@ -86,6 +86,7 @@ public class rules_parse extends CmdRules {
          if ( super.hasArg(argOutput) ) {
              printRDF = false;
              printText = false;
+             printSRL = false;
 
              // Split values.
              Function<String, Stream<String>> f = (x) -> {
@@ -106,10 +107,8 @@ public class rules_parse extends CmdRules {
              if ( values.remove("all") || values.remove("a") ) {
                  printRDF = true;
                  printText = true;
+                 printSRL = true;
              }
-             if ( ! values.isEmpty() )
-                 throw new CmdException("Formats not recognized: "+values+" : Formats are 's(SRL)', 'rdf', 'ttl' and 'all'");
-
          } else {
              // Default
              printRDF = false;

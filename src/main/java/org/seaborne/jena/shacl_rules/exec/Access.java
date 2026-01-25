@@ -26,7 +26,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.main.solver.SolverRX3;
 
-public class Access {
+class Access {
 
     public static Iterator<Binding> accessGraph(Iterator<Binding> input, Graph graph, Triple tPattern) {
         ExecutionContext execCxt = ExecutionContext.createForGraph(graph);

@@ -41,7 +41,9 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
+import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 
 public class rules_eval extends CmdRules {
@@ -86,19 +88,25 @@ public class rules_eval extends CmdRules {
         }
 
         boolean verbose = super.isVerbose();
-
-        exec(ruleSet, data, verbose);
+        RulesEngine engine = defaultRulesEngine(data, ruleSet).setTrace(verbose);
+        exec(ruleSet, data, engine);
     }
 
-    public static void exec(RuleSet ruleSet, Graph data, boolean verbose) {
-        //ShaclRulesExec.execute(ruleSet, baseGraph)
+    private static RulesEngine defaultRulesEngine(Graph data, RuleSet ruleSet) {
+        RulesEngine engine = RulesEngineFwdSimple.build(data, ruleSet);
+        return engine;
+    }
 
-        RulesEngineFwdSimple.Evaluation e = RulesEngineFwdSimple.build(data, ruleSet).setTrace(verbose).eval();
+    public static void exec(RuleSet ruleSet, Graph data, RulesEngine engine) {
+        RuleSetEvaluation e = engine.eval();
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();
         System.out.println();
-        System.out.println("## Rounds: "+e.rounds());
-        System.out.println();
+
+//        if ( e.rounds() >= 0 ) {
+//            System.out.println("## Rounds: "+e.rounds());
+//            System.out.println();
+//        }
 
         if ( true ) {
             if ( ! data.isEmpty() ) {
