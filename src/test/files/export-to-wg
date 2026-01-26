@@ -4,6 +4,7 @@ DIR="/home/afs/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
 
 function exportDir {
     local SRC="$1"
+    rm -rf "$DIR/$1"
     cp -r $SRC $DIR
 }
 

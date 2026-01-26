@@ -258,14 +258,14 @@ N=$((N+1)) ; testGood $(fname "syntax-reification-" $N) <<EOF
 PREFIX :    <http://example/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-RULE { } WHERE { :s :p :o {| :q :r |} . }
+RULE { } WHERE { :s :p :o ~_:b {| :q :r |} . }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-reification-" $N) <<EOF
 PREFIX :    <http://example/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-RULE { } WHERE { :s :p :o {| :q1 :r1 ; :q2 :r2 |} . } 
+RULE { } WHERE { :s :p :o {| :q1 :r1 , :r2 |} . } 
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-reification-" $N) <<EOF
