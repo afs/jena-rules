@@ -98,8 +98,7 @@ BuiltInCall               ::= 'STR' '(' Expression ')'
                           |   'DATATYPE' '(' Expression ')' 
                           |   'IRI' '(' Expression ')' 
                           |   'URI' '(' Expression ')' 
-                          |   'BNODE' ( '(' Expression ')' 
-                          |   NIL ) 
+                          |   'BNODE' ( '(' Expression ')' | NIL ) 
                           |   'RAND' NIL 
                           |   'ABS' '(' Expression ')' 
                           |   'CEIL' '(' Expression ')' 
