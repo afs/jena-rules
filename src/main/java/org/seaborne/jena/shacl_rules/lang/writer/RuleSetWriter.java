@@ -60,7 +60,9 @@ public class RuleSetWriter {
         if ( prefixMap == null )
             // Helps switching to/from PrefixMappings.
             prefixMap = PrefixMapFactory.create();
-        write(out, ruleSet, prefixMap, baseIRI, style);
+        try ( out ) {
+            write(out, ruleSet, prefixMap, baseIRI, style);
+        } finally { out.flush(); }
     }
 
     /** Write a rule set */

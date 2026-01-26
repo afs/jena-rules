@@ -94,8 +94,8 @@ public class ShaclRulesParser {
             List<Triple> triples = parser.getData();
 
             // Last seen
-            String declaredBaseURI = parserProfile.getBaseURI();
-            IRIx baseIRI = declaredBaseURI != null ? IRIx.create(declaredBaseURI) : null;
+            String declaredBaseURI = parser.getBaseIRI();
+            IRIx baseIRI = (declaredBaseURI != null) ? IRIx.create(declaredBaseURI) : null;
 
             RuleSet ruleSet = new RuleSet(baseIRI, parserProfile.getPrefixMap(), rules, triples);
             return ruleSet;

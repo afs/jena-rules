@@ -49,6 +49,21 @@ public class ShaclRulesParserBase extends LangParserBase {
     public List<Rule> getRules() { return rules; }
     public List<Triple> getData() { return data; }
 
+    private boolean seenBaseIRI = false;
+    public String getBaseIRI() {
+        if ( seenBaseIRI )
+            return super.profile.getBaseURI();
+        return null;
+    }
+
+    @Override
+    protected void setBase(String baseStr, int line, int column) {
+        // Remember the parser has seen BASE.
+        seenBaseIRI = true;
+        // This will resolve the base.
+        super.setBase(baseStr, line, column);
+    }
+
     private static boolean DEBUG = false;
     public static void debug(boolean setting) {
         DEBUG = setting;

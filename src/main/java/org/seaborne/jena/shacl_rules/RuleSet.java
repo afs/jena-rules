@@ -118,8 +118,12 @@ public class RuleSet {
     }
 
     /**
-     * Return the base URI explicitly declared during parsing, if any.
-     * This may be null.
+     * Return the base URI if it was explicitly declared during parsing.
+     * Return null if parsing did not see {@code BASE} in the input.
+     * <p>
+     * Warning: a rule set file may have several {@code BASE} declarations.
+     * It is not determined which is returned,
+     * only that the same one will be returned each call.
      */
     public IRIx getBase() {
         return base;
