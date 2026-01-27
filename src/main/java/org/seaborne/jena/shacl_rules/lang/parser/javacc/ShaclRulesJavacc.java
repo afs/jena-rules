@@ -473,32 +473,7 @@ startTriplesBlock(token.beginLine, token.beginColumn) ;
 finishTriplesBlock(token.beginLine, token.beginColumn) ;
 }
 
-// ---- EXISTS, NOT EXISTS
-
-// void Exists() : {  Token t; }
-// {
-//     // XXX t not needed
-//     t = <EXISTS>
-//     { startExistsElement(token.beginLine, token.beginColumn) ; }
-//     t = <LBRACE>
-//     BodyBasic()
-//     <RBRACE>
-//     { emitExistsElement(token.beginLine, token.beginColumn); }
-//     { finishExistsElement(t.beginLine, t.beginColumn) ; }
-// }
-// 
-// void NotExists() : { Token t; }
-// {
-//     t = <NOT> <EXISTS>
-//     { startNotExistsElement(token.beginLine, token.beginColumn) ; }
-//     t = <LBRACE>
-//     BodyBasic()
-//     <RBRACE>
-//     { emitNotExistsElement(token.beginLine, token.beginColumn); }
-//     { finishNotExistsElement(t.beginLine, t.beginColumn) ; }
-// }
-  final public 
-void Negation() throws ParseException {Token t;
+  final public void Negation() throws ParseException {Token t;
     t = jj_consume_token(NOT);
 startNegation(token.beginLine, token.beginColumn) ;
     t = jj_consume_token(LBRACE);
@@ -508,7 +483,7 @@ emitNegation(token.beginLine, token.beginColumn);
 finishNegation(t.beginLine, t.beginColumn) ;
 }
 
-// Body-like pattern for EXISTS 
+// Body-like pattern for NOT
   final public void BodyBasic() throws ParseException {
 startBodyBasic(token.beginLine, token.beginColumn) ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -596,6 +571,22 @@ startBodyBasic(token.beginLine, token.beginColumn) ;
     }
 finishBodyBasic(token.beginLine, token.beginColumn) ;
 }
+
+// ---- Tuples
+
+// void Tuple() : {}
+// {
+//    ("TUPLE"|"$")
+//    <LPAREN>
+//    "name"
+//    ( <COMMA> TupleArg())*
+//    <RPAREN>
+// }
+// 
+// void TupleArg() : { String s ; Var v; }
+// {
+//     String() | Var()    
+// }
 
 // ---- Triples
   final public 

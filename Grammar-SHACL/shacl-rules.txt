@@ -267,33 +267,25 @@ NON-TERMINALS
 	BodyNotTriples	:=	( Filter | Negation | Assignment )
 // XXX Matches zero triples
 	BodyTriplesBlock	:=	TriplesBlock
-// ---- EXISTS, NOT EXISTS
+	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
+// Body-like pattern for NOT
+	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
+// ---- Tuples
 
-// void Exists() : {  Token t; }
+// void Tuple() : {}
 // {
-//     // XXX t not needed
-//     t = <EXISTS>
-//     { startExistsElement(token.beginLine, token.beginColumn) ; }
-//     t = <LBRACE>
-//     BodyBasic()
-//     <RBRACE>
-//     { emitExistsElement(token.beginLine, token.beginColumn); }
-//     { finishExistsElement(t.beginLine, t.beginColumn) ; }
+//    ("TUPLE"|"$")
+//    <LPAREN>
+//    "name"
+//    ( <COMMA> TupleArg())*
+//    <RPAREN>
 // }
 // 
-// void NotExists() : { Token t; }
+// void TupleArg() : { String s ; Var v; }
 // {
-//     t = <NOT> <EXISTS>
-//     { startNotExistsElement(token.beginLine, token.beginColumn) ; }
-//     t = <LBRACE>
-//     BodyBasic()
-//     <RBRACE>
-//     { emitNotExistsElement(token.beginLine, token.beginColumn); }
-//     { finishNotExistsElement(t.beginLine, t.beginColumn) ; }
+//     String() | Var()    
 // }
-	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
-// Body-like pattern for EXISTS 
-	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
+
 // ---- Triples
 	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
 	TriplesTemplate	:=	TriplesSameSubject ( <DOT> ( TriplesTemplate )? )?
