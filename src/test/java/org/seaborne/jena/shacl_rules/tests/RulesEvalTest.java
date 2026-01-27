@@ -93,13 +93,13 @@ public class RulesEvalTest implements Runnable {
         out.println("---- Actual:");
         write(System.out, actual);
         out.println("---------------------------------------");
-        out.println("----Expected:");
+        out.println("---- Expected:");
         write(System.out, expected);
         out.println("---------------------------------------");
     }
 
     private static void write(OutputStream out, Graph graph) {
-        RDFWriter.source(graph).format(RDFFormat.TURTLE_LONG).output(out);
+        RDFWriter.source(graph).format(RDFFormat.TURTLE_FLAT).output(out);
     }
 
     private static Graph read(Node g) {

@@ -20,6 +20,7 @@ package org.seaborne.jena.shacl_rules.cmds;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
@@ -37,12 +38,14 @@ import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.shacl.vocabulary.SHACL;
 import org.apache.jena.sys.JenaSystem;
+import org.apache.jena.util.PrefixMappingUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
+import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 
@@ -101,52 +104,65 @@ public class rules_eval extends CmdRules {
         RuleSetEvaluation e = engine.eval();
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();
-        System.out.println();
-
 //        if ( e.rounds() >= 0 ) {
 //            System.out.println("## Rounds: "+e.rounds());
 //            System.out.println();
 //        }
 
-        if ( true ) {
+        boolean printRuleSet = true;
+        boolean printBaseGraph = true;
+        boolean printRulesData = ! printRuleSet;
+        boolean printInfGraph = true;
+        boolean printOutputGraph = true;
+
+        if ( printRuleSet ) {
+            System.out.println("## Rules");
+            ShaclRulesWriter.print(System.out, ruleSet, false);
+        }
+
+        if ( printBaseGraph ) {
             if ( ! data.isEmpty() ) {
                 System.out.println("## Data graph");
-                print(data);
+                print(System.out, data);
                 System.out.println();
             }
         }
 
-        if ( true ) {
+        if ( printRulesData ) {
             Graph d = ruleSet.getData();
             if ( d != null && !d.isEmpty() ) {
                 System.out.println("## Ruleset data graph");
-                print(ruleSet.getData());
+                print(System.out, ruleSet.getData());
                 System.out.println();
             }
         }
 
-        if ( true ) {
+        if ( printInfGraph ) {
             System.out.println("## Inferred");
-            print(accGraph);
+            print(System.out, accGraph);
             System.out.println();
         }
 
-        if ( true ) {
+        if ( printOutputGraph ) {
             System.out.println("## Output graph");
-            print(output);
+            print(System.out, output);
             System.out.println();
         }
     }
 
-    public static void write(Graph graph) {
-        RDFWriter.source(graph).format(RDFFormat.TURTLE_FLAT).output(System.out);
+    /**
+     * Print a graph.
+     */
+    public static void print(OutputStream out, Graph graph) {
+        Graph graph2 = PrefixMappingUtils.graphInUsePrefixMapping(graph);
+        RDFWriter.source(graph2).format(RDFFormat.TURTLE_BLOCKS).output(System.out);
     }
 
     /**
      * Print a graph in flat, abbreviated triples, but don't print the prefix map
      * Development use.
      */
-    public static void print(Graph graph) {
+    public static void printJustTriples(Graph graph) {
         NodeFormatter nt = new NodeFormatterTTL(null, Prefixes.adapt(graph));
 
         AWriter out = IO.wrapUTF8(System.out);

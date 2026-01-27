@@ -27,8 +27,9 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.shared.impl.PrefixMappingImpl;
 import org.apache.jena.system.buffering.BufferingCtl;
+import org.apache.jena.system.buffering.BufferingGraph;
 
-/*
+/**
  * An {@link AppendGraph} is a special case of a {@link BufferingGraph}.
  * It only supports adds adding triples, not delete.
  * <p>

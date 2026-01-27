@@ -44,7 +44,8 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
     .
 
 :eval-neg-02b rdf:type srt:RulesEvalTest ;
-    mf:name "Eval-negation-01";
+    ## Reverse order of rules.
+    mf:name "Eval-negation-02b";
     mf:action
          [ srt:ruleset  <eval-negation-02b.srl> ;
            srt:data     <data-negation-02.ttl> ;
