@@ -73,8 +73,6 @@ TOKENS
 | <EXISTS: "EXISTS">
 | <NOT: "not">
 | <FILTER: "filter">
-| <BOUND: "bound">
-| <COALESCE: "coalesce">
 | <IN: "in">
 | <IF: "if">
 | <BNODE: "bnode">
@@ -98,7 +96,6 @@ TOKENS
 | <REGEX: "regex">
 | <SAME_TERM: "sameTerm">
 | <SAME_VALUE: "sameValue">
-| <RAND: "RAND">
 | <ABS: "ABS">
 | <CEIL: "CEIL">
 | <FLOOR: "FLOOR">
@@ -126,12 +123,6 @@ TOKENS
 | <NOW: "NOW">
 | <UUID: "UUID">
 | <STRUUID: "STRUUID">
-| <MD5: "MD5">
-| <SHA1: "SHA1">
-| <SHA224: "SHA224">
-| <SHA256: "SHA256">
-| <SHA384: "SHA384">
-| <SHA512: "SHA512">
 | <TRUE: "true">
 | <FALSE: "false">
 }
@@ -447,7 +438,6 @@ NON-TERMINALS
 		|	<IRI> <LPAREN> Expression <RPAREN>
 		|	<URI> <LPAREN> Expression <RPAREN>
 		|	<BNODE> ( <LPAREN> Expression <RPAREN> | <NIL> )
-		|	<RAND> <NIL>
 		|	<ABS> <LPAREN> Expression <RPAREN>
 		|	<CEIL> <LPAREN> Expression <RPAREN>
 		|	<FLOOR> <LPAREN> Expression <RPAREN>
@@ -475,12 +465,6 @@ NON-TERMINALS
 		|	<NOW> <NIL>
 		|	<UUID> <NIL>
 		|	<STRUUID> <NIL>
-		|	<MD5> <LPAREN> Expression <RPAREN>
-		|	<SHA1> <LPAREN> Expression <RPAREN>
-		|	<SHA256> <LPAREN> Expression <RPAREN>
-		|	<SHA384> <LPAREN> Expression <RPAREN>
-		|	<SHA512> <LPAREN> Expression <RPAREN>
-		|	<COALESCE> ExpressionList
 		|	<IF> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>
 		|	<STRLANG> <LPAREN> Expression <COMMA> Expression <RPAREN>
 		|	<STRLANGDIR> <LPAREN> Expression <COMMA> Expression <COMMA> Expression <RPAREN>

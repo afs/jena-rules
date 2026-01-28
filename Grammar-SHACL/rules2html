@@ -3,7 +3,7 @@
 
 OUT='rules-grammar.html'
 
-echo "Grammar output in $OUT"
+echo "Grammar toHTML ($OUT)"
 
 (
     echo "      <!-- GRAMMAR -->"

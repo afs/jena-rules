@@ -1158,6 +1158,7 @@ Expr BuiltInCall() : { Expr expr ;
   | <DTYPE> <LPAREN> expr = Expression() <RPAREN>
     { return new E_Datatype(expr) ; }
 
+// Not in SHACL Rules.
 //   | <BOUND> <LPAREN> gn = Var() <RPAREN>
 //     { return new E_Bound(new ExprVar(gn)) ; }
 
@@ -1186,7 +1187,8 @@ Expr BuiltInCall() : { Expr expr ;
       <NIL> { return makeFunction_BNode() ; }
     )
 
-  | <RAND> <NIL> { return new E_Random() ; }
+// Not in SHACL Rules.
+//  | <RAND> <NIL> { return new E_Random() ; }
 
   | <ABS>  <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumAbs(expr1) ; }
     
@@ -1271,23 +1273,27 @@ Expr BuiltInCall() : { Expr expr ;
   | <UUID> <NIL>  { return new E_UUID() ; }
   | <STRUUID> <NIL>  { return new E_StrUUID() ; }
 
-  | <MD5>         <LPAREN> expr1 = Expression() <RPAREN> { return new E_MD5(expr1) ; }
-  | <SHA1>        <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA1(expr1) ; }
-// #if 0
-//   | <SHA224>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA224(expr1) ; }
+// Not in SHACL Rules.
+// #ifdef 0
+//   | <MD5>         <LPAREN> expr1 = Expression() <RPAREN> { return new E_MD5(expr1) ; }
+//   | <SHA1>        <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA1(expr1) ; }
+// // #if 0
+// //   | <SHA224>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA224(expr1) ; }
+// // #endif
+//   | <SHA256>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA256(expr1) ; }
+// 
+//   | <SHA384>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA384(expr1) ; }
+// 
+//   | <SHA512>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA512(expr1) ; }
 // #endif
-  | <SHA256>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA256(expr1) ; }
-
-  | <SHA384>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA384(expr1) ; }
-
-  | <SHA512>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA512(expr1) ; }
-
+// 
 // #ifdef ARQ
 //   | <VERSION> <NIL>     { return new E_Version(); }
 // #endif    
 
-  | <COALESCE> a = ExpressionList()
-    { return new E_Coalesce(a) ; }
+// Not in SHACl Rules
+//   | <COALESCE> a = ExpressionList()
+//     { return new E_Coalesce(a) ; }
     
 // #ifdef ARQ
 //   // Maybe also allow ?func(?a1,?a2,...)
@@ -1578,8 +1584,8 @@ TOKEN [IGNORE_CASE] :
 |  < FILTER:      "filter" >
 
 // Expression operators
-|  < BOUND:       "bound" >
-|  < COALESCE:    "coalesce" >
+//|  < BOUND:       "bound" >
+//|  < COALESCE:    "coalesce" >
 |  < IN:          "in" >
 |  < IF:          "if" >
 |  < BNODE:       "bnode" >
@@ -1606,7 +1612,7 @@ TOKEN [IGNORE_CASE] :
 |  < SAME_TERM:   "sameTerm" >
 |  < SAME_VALUE:  "sameValue" >
 
-|  < RAND:        "RAND" >
+//|  < RAND:        "RAND" >
 |  < ABS:         "ABS" >
 |  < CEIL:        "CEIL" >
 |  < FLOOR:       "FLOOR" >
@@ -1644,12 +1650,12 @@ TOKEN [IGNORE_CASE] :
 |  < UUID:        "UUID" >
 |  < STRUUID:     "STRUUID" >
 
-| < MD5:          "MD5" >
-| < SHA1:         "SHA1" >
-| < SHA224:       "SHA224" >
-| < SHA256:       "SHA256" >
-| < SHA384:       "SHA384" >
-| < SHA512:       "SHA512" >
+// | < MD5:          "MD5" >
+// | < SHA1:         "SHA1" >
+// | < SHA224:       "SHA224" >
+// | < SHA256:       "SHA256" >
+// | < SHA384:       "SHA384" >
+// | < SHA512:       "SHA512" >
 
 |  < TRUE:        "true" >
 |  < FALSE:       "false" >

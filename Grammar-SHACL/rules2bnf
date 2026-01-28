@@ -1,7 +1,11 @@
 #!/usr/bin/bash
 ## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
-echo "Grammar to BNF (text)"
+
+OUT='rules-grammar.bnf'
+
+echo "Grammar to BNF ($OUT)"
 
 (
     jj2bnf 'shacl-rules.txt' 'tokens.txt'
-) > rules-grammar.bnf
+    
+) > $OUT

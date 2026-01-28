@@ -99,7 +99,6 @@ BuiltInCall               ::= 'STR' '(' Expression ')'
                           |   'IRI' '(' Expression ')' 
                           |   'URI' '(' Expression ')' 
                           |   'BNODE' ( '(' Expression ')' | NIL ) 
-                          |   'RAND' NIL 
                           |   'ABS' '(' Expression ')' 
                           |   'CEIL' '(' Expression ')' 
                           |   'FLOOR' '(' Expression ')' 
@@ -127,12 +126,6 @@ BuiltInCall               ::= 'STR' '(' Expression ')'
                           |   'NOW' NIL 
                           |   'UUID' NIL 
                           |   'STRUUID' NIL 
-                          |   'MD5' '(' Expression ')' 
-                          |   'SHA1' '(' Expression ')' 
-                          |   'SHA256' '(' Expression ')' 
-                          |   'SHA384' '(' Expression ')' 
-                          |   'SHA512' '(' Expression ')' 
-                          |   'COALESCE' ExpressionList 
                           |   'IF' '(' Expression ',' Expression ',' Expression ')' 
                           |   'STRLANG' '(' Expression ',' Expression ')' 
                           |   'STRLANGDIR' '(' Expression ',' Expression ',' Expression ')' 
