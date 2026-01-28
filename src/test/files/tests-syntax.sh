@@ -13,13 +13,13 @@ N=0
 N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
 EOF
 
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-struture-" $N) <<EOF
+N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
 BASE <http://example/base>
 PREFIX : <http://example/>
 PREFIX ns: <http://example/ns#>
 EOF
 
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-struture-" $N) <<EOF
+N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
 BASE <http://example/base1>
 PREFIX : <http://example/>
 BASE <http://example/base2>
