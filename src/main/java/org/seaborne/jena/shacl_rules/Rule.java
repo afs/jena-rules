@@ -77,16 +77,6 @@ public class Rule {
     }
 
     /**
-     * Return the triple patterns that occur in the body, and may depend on other
-     * rules, as well as appearing in the abox (the facts of the base graph).
-     * The triples in the list may contain named variables.
-     */
-    @Deprecated(forRemoval = true)
-    public List<Triple> getDependentTriples() {
-        return getBody().getDependentTriples();
-    }
-
-    /**
      * Rule equivalence is defined as two rules being the same for execution.
      * but they may be different by object identity. In java terms, {@code rule1 != rule2}.
      * That is, parser round trip.

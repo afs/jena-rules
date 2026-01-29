@@ -192,9 +192,9 @@ public class RuleSetToGraph {
 
     private static Node encodeTriple(Graph graph, Triple triple) {
         Node tripleNode = NodeFactory.createBlankNode();
-        Node sNode = convertVar(graph, triple.getSubject());
-        Node pNode = convertVar(graph, triple.getPredicate());
-        Node oNode = convertVar(graph, triple.getObject());
+        Node sNode = convertTermOrVar(graph, triple.getSubject());
+        Node pNode = convertTermOrVar(graph, triple.getPredicate());
+        Node oNode = convertTermOrVar(graph, triple.getObject());
 
         Triple sTriple = Triple.create(tripleNode, V.subject, sNode);
         Triple pTriple = Triple.create(tripleNode, V.predicate, pNode);
@@ -205,12 +205,23 @@ public class RuleSetToGraph {
         return tripleNode;
     }
 
-    private static Node convertVar(Graph graph, Node node) {
+    private static Node convertTermOrVar(Graph graph, Node node) {
         // Triple terms
-        if ( node.isTripleTerm() )
-            throw new ShaclException("Not implemented: triple terms; "+node);
+//        if ( node.isTripleTerm() ) {
+//                // May have variables.
+//        }
+
         if ( node.isConcrete() )
+            // Includes concrete triple terms.
             return node;
+
+        if ( node.isTripleTerm() ) {
+            // With variables
+            Triple t = node.getTriple();
+            Node x = encodeTriple(graph, t);
+            return x;
+        }
+
         if ( Var.isVar(node) ) {
             Node varNode = RVar.addVar(graph, node.getName());
             return varNode;

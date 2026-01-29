@@ -366,29 +366,24 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         } finally { out.decIndent(); }
     }
 
-    @SuppressWarnings("removal")
-    private static String str(Rule rule, PrefixMap prefixMap) {
-        // XXX No negation.
-        return str(rule.getTripleTemplates(), prefixMap) + " :- " +         str(rule.getDependentTriples(), prefixMap);
-    }
-
-    private static String str(List<Triple> triples, PrefixMap prefixMap) {
-        StringJoiner sj = new StringJoiner(", ");
-        triples.forEach(t->sj.add(str(t, prefixMap)));
-        return sj.toString();
-    }
-
+//    @SuppressWarnings("removal")
+//    private static String str(Rule rule, PrefixMap prefixMap) {
+//        // XXX No negation.
+//        return str(rule.getTripleTemplates(), prefixMap) + " :- " +         str(rule.getDependentTriples(), prefixMap);
+//    }
+//
+//    private static String str(List<Triple> triples, PrefixMap prefixMap) {
+//        StringJoiner sj = new StringJoiner(", ");
+//        triples.forEach(t->sj.add(str(t, prefixMap)));
+//        return sj.toString();
+//    }
+//
     private static String str(Triple triple, PrefixMap prefixMap) {
         return str(triple.getSubject(), prefixMap)+" "+str(triple.getPredicate(), prefixMap)+" "+str(triple.getObject(), prefixMap);
     }
 
-    private static String str(Node n, PrefixMap pmap) {
-        if ( n.isURI() ) {
-            String x = pmap.abbreviate(n.getURI());
-            if ( x != null )
-                return x;
-        }
-        return NodeFmtLib.strTTL(n);
+    private static String str(Node node, PrefixMap pmap) {
+        return NodeFmtLib.str(node, pmap);
     }
 
     private boolean mayGenerate(Triple queryTriple, Rule r) {
@@ -399,9 +394,4 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         }
         return false;
     }
-//
-//    private boolean provides(Triple queryTriple, Triple headTriple) {
-//        return false;
-//    }
-//
 }

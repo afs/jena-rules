@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shacl.ShaclException;
@@ -122,21 +123,35 @@ public class GraphToRuleSet {
         Node sn = G.getOneSP(graph, node, V.subject);
         Node pn = G.getOneSP(graph, node, V.predicate);
         Node on = G.getOneSP(graph, node, V.object);
-        Node s = getVarMaybe(graph, sn);
-        Node p = getVarMaybe(graph, pn);
-        Node o = getVarMaybe(graph, on);
+        Node s = getEncodedTermOrVar(graph, sn);
+        Node p = getEncodedTermOrVar(graph, pn);
+        Node o = getEncodedTermOrVar(graph, on);
         Triple t = Triple.create(s, p, o);
         return t;
     }
 
     // Translate into a variable or return the node.
-    private static Node getVarMaybe(Graph graph, Node node) {
+    private static Node getEncodedTermOrVar(Graph graph, Node node) {
         if ( ! node.isBlank() )
             return node;
+
+        // Maybe a triple term.
+        boolean looksLikeTripleTerm = G.contains(graph, node, V.subject, null);
+        if ( looksLikeTripleTerm ) {
+            Node st = G.getOneSP(graph, node, V.subject);
+            Node pt = G.getOneSP(graph, node, V.predicate);
+            Node ot = G.getOneSP(graph, node, V.object);
+            Node s = getEncodedTermOrVar(graph, st);
+            Node p = getEncodedTermOrVar(graph, pt);
+            Node o = getEncodedTermOrVar(graph, ot);
+            return NodeFactory.createTripleTerm(s, p, o);
+        }
+
         Var x = RVar.getVar(graph, node);
-        if ( x == null )
-            throw new ShaclException("Blank node in pattern or malformed for a variable.");
-        return x;
+        if ( x != null )
+            return x ;
+
+        throw new ShaclException("Blank node in pattern or malformed for a variable.");
     }
 
     private static List<RuleElement> parseRuleBody(Graph graph, Node bodyNode) {

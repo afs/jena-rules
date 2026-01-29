@@ -20,6 +20,7 @@ package org.seaborne.jena.shacl_rules;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
@@ -28,18 +29,17 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement;
 class RuleBody {
 
     private final List<RuleElement> body;
-    private final List<Triple> bodyTriples;
 
     public RuleBody(List<RuleElement> ruleElts) {
         this.body = ruleElts;
-        this.bodyTriples = ruleGetTriples(ruleElts);
     }
 
     // The triples used in pattern matching.
     private static List<Triple> ruleGetTriples(List<RuleElement> ruleElts) {
         List<Triple> x = ruleElts.stream()
                 .map(RuleBody::patternTripleOrNull)
-                .filter(Objects::nonNull).toList();
+                .filter(Objects::nonNull)
+                .toList();
         return x;
     }
 
@@ -59,10 +59,13 @@ class RuleBody {
     }
 
     /**
-     * The triples used in pattern matching.
+     * Apply an action to each index and rule, in the order they appear in the body.
      */
-    List<Triple> getDependentTriples() {
-        return bodyTriples;
+    public void forEach(BiConsumer<Integer, RuleElement> action) {
+        int N = body.size();
+        for ( int i = 0 ; i < N ; i++ ) {
+            action.accept(i, body.get(i));
+        }
     }
 
     /**
