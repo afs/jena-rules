@@ -65,8 +65,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
     }
 
     @Override
-    public EngineType engineType() {
-        return EngineType.FWD_NAIVE;
+    public EvalAlgorithm engineType() {
+        return EvalAlgorithm.FWD_NAIVE;
     }
 
     @Override

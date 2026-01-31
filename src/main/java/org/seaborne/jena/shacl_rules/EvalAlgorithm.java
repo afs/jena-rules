@@ -23,7 +23,7 @@ package org.seaborne.jena.shacl_rules;
 //   Do each pass with respect to the previous round.
 // Algorithm: Gauss-Seidel
 //   Do each pass with growing inferred graph
-public enum EngineType {
+public enum EvalAlgorithm {
     // Default naive (used for tests).
     FWD_NAIVE("Naive")
     , FWD_NAIVE_JACOBI("Naive (Jacobi)")
@@ -37,7 +37,7 @@ public enum EngineType {
 
     private final String displayName;
 
-    private EngineType(String string) { this.displayName = string; }
+    private EvalAlgorithm(String string) { this.displayName = string; }
 
     public String displayName() {
         return displayName;

@@ -85,8 +85,8 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     }
 
     @Override
-    public EngineType engineType() {
-        return EngineType.BKD_NON_RECURSIVE_SLD;
+    public EvalAlgorithm engineType() {
+        return EvalAlgorithm.BKD_NON_RECURSIVE_SLD;
     }
 
     @Override

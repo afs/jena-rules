@@ -38,7 +38,7 @@ import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
  */
 public interface RulesEngine {
 
-    public EngineType engineType();
+    public EvalAlgorithm engineType();
 
     /** Graph over which the rules engine executes. */
     public Graph baseGraph();

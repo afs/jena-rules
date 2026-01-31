@@ -34,7 +34,9 @@ import org.apache.jena.system.buffering.BufferingGraph;
  * It only supports adds adding triples, not delete.
  * <p>
  * It can be used, then the accumulated changes flushed to the base graph or
- * uses for temporary workspace and the change thrown away.
+ * uses for temporary workspace and the changes thrown away.
+ * <p>
+ * @see Graph2
  */
 public class AppendGraph extends Graph2 implements BufferingCtl {
 

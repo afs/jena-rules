@@ -40,6 +40,8 @@ import org.apache.jena.util.iterator.WrappedIterator;
  * that is accessed in addition to the main graph.
  * <p>
  * The expected use is that the left graph is additional triples being added to a base graph.
+ * <p>
+ * @see AppendGraph
  */
 public class Graph2 extends GraphWrapper {
 
@@ -67,6 +69,7 @@ public class Graph2 extends GraphWrapper {
         PrefixMapping basePrefixes = baseGraphPrefixes;
         // Copy to isolate.
         basePrefixes = new PrefixMappingImpl().setNsPrefixes(basePrefixes);
+        // XXX Need a Graph2PrefixMapping which is specifically read-only.
         PrefixMapping prefixMapping = new AppendPrefixMapping(basePrefixes);
         return prefixMapping;
     }

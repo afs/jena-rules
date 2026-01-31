@@ -34,7 +34,7 @@ class V {
     public static Node CDR = RDF.Nodes.rest;
     public static Node TYPE = RDF.Nodes.type;
 
-    private static Node uri(String localName) { return uri(P.SHR, localName); }
+    private static Node uri(String localName) { return uri(P.SRL, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
 
     // ---- RDF Rules syntax

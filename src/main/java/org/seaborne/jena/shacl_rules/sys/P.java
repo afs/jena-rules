@@ -38,7 +38,7 @@ import org.apache.jena.shared.JenaException;
 public class P {
 
     public static final String SH = "http://www.w3.org/ns/shacl#";
-    public static final String SHR = "http://www.w3.org/ns/shacl-rules#";
+    public static final String SRL = "http://www.w3.org/ns/shacl-rules#";
     public static final String SHNEX = "http://www.w3.org/ns/shacl-node-expr#";
 
 
@@ -60,7 +60,7 @@ public class P {
     //@formatter:off
     private static Map<String, String> prefixesMap = Map.of("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
                                                             "sh",      SH,
-                                                            "shr",     SHR,
+                                                            "srl",     SRL,
                                                             "shnex",   SHNEX,
                                                             "sparql",  "http://www.w3.org/ns/sparql#",
                                                             "arq",     "http://jena.apache.org/ARQ/function#");
