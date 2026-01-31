@@ -41,7 +41,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
 
-public class ShaclRulesParserBase extends LangParserBase {
+public class RulesParserBase extends LangParserBase {
 
     private List<Rule> rules = new ArrayList<>();
     private List<Triple> data = new ArrayList<>();

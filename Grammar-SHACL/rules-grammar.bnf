@@ -63,6 +63,7 @@ AnnotationBlock           ::= '{|' PropertyListNotEmpty '|}'
 GraphNode                 ::= VarOrTerm | TriplesNode | ReifiedTriple
 GraphNodePath             ::= VarOrTerm | TriplesNodePath | ReifiedTriple
 VarOrTerm                 ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | NIL | TripleTerm
+RDFTerm                   ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | NIL | TripleTerm
 ReifiedTriple             ::= '<<' ReifiedTripleSubject Verb ReifiedTripleObject Reifier? '>>'
 ReifiedTripleSubject      ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple
 ReifiedTripleObject       ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm

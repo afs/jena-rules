@@ -18,7 +18,7 @@
 # Parser builder
 
 DIR="../src/main/java/org/seaborne/jena/shacl_rules/lang/parser/javacc"
-FILE="shacl-rules.jj"
+FILE="${1:-shacl-rules.jj}"
 CLASS="ShaclRulesJavacc"
 
 (cd "$DIR" ; rm -f *.java )

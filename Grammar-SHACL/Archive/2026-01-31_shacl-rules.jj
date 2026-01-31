@@ -7,27 +7,31 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- *   SPDX-License-Identifier: Apache-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-// SHACL Rules Language (SRL)
+
+// SHACL Rules Compact Syntax
+
+//#define PACKAGE     org.seaborne.jena.shacl_rules.lang.parser.javacc
+//#define CLASS       ShaclRulesJavacc
+//#define PARSERBASE  ShaclRulesParserBase
+
 options
 {
   // \ u processed after parsing in strings and IRIs, nowhere else.
-  JAVA_UNICODE_ESCAPE = false ;
-  UNICODE_INPUT = true ;
-  STATIC = false ;
+  JAVA_UNICODE_ESCAPE   = false ;
+  UNICODE_INPUT         = true ;
+  STATIC                = false ;
 //  DEBUG_PARSER          = true ;
 //  DEBUG_TOKEN_MANAGER   = true ;
 }
+
 PARSER_BEGIN(ShaclRulesJavacc)
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,27 +42,29 @@ PARSER_BEGIN(ShaclRulesJavacc)
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- *   SPDX-License-Identifier: Apache-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-package org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.javacc;
+
+package org.seaborne.jena.shacl_rules.lang.parser.javacc;
+
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
-import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.ShaclRulesParserBase;
+
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParserBase;
+
 public class ShaclRulesJavacc extends ShaclRulesParserBase
 {}
 PARSER_END(ShaclRulesJavacc)
+
 // void RulesUnit(): {}
 // {
 //      ByteOrderMark()
@@ -69,6 +75,7 @@ PARSER_END(ShaclRulesJavacc)
 // {
 //    (<BOM>)?
 // }
+
 void RuleSet(): { }
 {
   { startRules() ; }
@@ -76,6 +83,7 @@ void RuleSet(): { }
   <EOF>
   { finishRules() ; }
 }
+
 void RuleOrDataBlock(): { }
 {
   Prologue()
@@ -86,51 +94,62 @@ void RuleOrDataBlock(): { }
     (Prologue1() ( Rule() | Data() )?)*
   )?
 }
+
 // ---- Prologue
+
 void Prologue() : {}
 {
    ( Prologue1() ) *
 }
+
 void Prologue1() : {}
 {
    ( BaseDecl() | PrefixDecl() | VersionDecl() | ImportsDecl() )
 }
+
 void BaseDecl() : { Token t ; String iri ; }
 {
    t = <BASE> iri = IRIREF()
    { setBase(iri, t.beginLine, t.beginColumn ) ; }
 }
+
 void PrefixDecl() : { Token t ; String iri ; }
 {
     <PREFIX> t = <PNAME_NS> iri = IRIREF()
     { setPrefix(t.image, iri, t.beginLine, t.beginColumn) ; }
 }
+
 void VersionDecl() : { Token t ; String version ; }
 {
     t = <VERSION> version = VersionSpecifier()
     { declareVersion(version, t.beginLine, t.beginColumn); }
 }
+
 String VersionSpecifier() : { Token t ; String version ; }
 {
     ( t = <STRING_LITERAL1> { version = stripQuotes(t.image) ; }
     | t = <STRING_LITERAL2> { version = stripQuotes(t.image) ; }
     )
     {
-      version = unescapeStr(version, t.beginLine, t.beginColumn) ;
+      version = unescapeStr(version,  t.beginLine, t.beginColumn) ;
       checkRDFString(version, t.beginLine, t.beginColumn) ;
       return version;
     }
 }
+
 void ImportsDecl() : { String iri ; }
 {
   <IMPORTS> iri = iri()
   { declareImport(iri); }
 }
+
 // ---- Rules
-void Rule() : { }
+
+void Rule() : {  }
 {
    Rule1() | Rule2() | Declaration()
 }
+
 void Rule1() : { Token t; }
 {
    t = <RULE>
@@ -140,6 +159,7 @@ void Rule1() : { Token t; }
    BodyPattern()
    { finishRule(t.beginLine, t.beginColumn); }
 }
+
 void Rule2() : { Token t; }
 {
    t = <IF>
@@ -149,6 +169,7 @@ void Rule2() : { Token t; }
    HeadTemplate()
    { finishRule(t.beginLine, t.beginColumn); }
 }
+
 // Withdrawn.
 // void Rule3() : { Token t; }
 // {
@@ -159,6 +180,7 @@ void Rule2() : { Token t; }
 //    BodyPattern()
 //    { finishRule(t.beginLine, t.beginColumn); }
 // }
+
 void Declaration() : { Token t; String iriStr ; }
 {
   (
@@ -176,6 +198,7 @@ void Declaration() : { Token t; String iriStr ; }
     { inverseProperties(iriStr1, iriStr2); }
   )
 }
+
 void Data() : { Token t; }
 {
     t = <DATA>
@@ -183,15 +206,19 @@ void Data() : { Token t; }
     TriplesTemplateBlock()
     { finishData(t.beginLine, t.beginColumn); }
 }
+
 // ---- Rule head
+
 void HeadTemplate() : { Token t ; }
 {
     { t = token; }
     { startHead(t.beginLine, t.beginColumn); }
-    (TriplesTemplateBlock())
+    TriplesTemplateBlock()
     { finishHead(t.beginLine, t.beginColumn); }
 }
+
 // ---- Rule body
+
 void BodyPattern() : { Token t ; }
 {
     t = <LBRACE>
@@ -200,21 +227,25 @@ void BodyPattern() : { Token t ; }
     <RBRACE>
     { finishBody(t.beginLine, t.beginColumn); }
 }
+
 void BodyPattern1() : { }
 {
    // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
+   //   Why isn't BodyTriplesBlock() (i.e.  TriplesBlock()) is maximal?
    (BodyTriplesBlock())?
    ( BodyNotTriples() (BodyTriplesBlock())? )*
 }
+
 void BodyNotTriples() : {}
 {
-   ( Filter()
+   (  Filter()
 //    |  Exists()
 //    |  NotExists()
    | Negation()
-   | Assignment()
+   |  Assignment()
    )
 }
+
 // XXX Matches zero triples
 void BodyTriplesBlock() : { }
 {
@@ -222,6 +253,7 @@ void BodyTriplesBlock() : { }
    TriplesBlock()
    { finishTriplesBlock(token.beginLine, token.beginColumn) ; }
 }
+
 void Negation() : { Token t; }
 {
     t = <NOT>
@@ -232,6 +264,7 @@ void Negation() : { Token t; }
     { emitNegation(token.beginLine, token.beginColumn); }
     { finishNegation(t.beginLine, t.beginColumn) ; }
 }
+
 // Body-like pattern for NOT
 void BodyBasic() : {}
 {
@@ -240,7 +273,25 @@ void BodyBasic() : {}
     ( Filter() (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
 }
+
+// ---- Tuples
+
+// void Tuple() : {}
+// {
+//    ("TUPLE"|"$")
+//    <LPAREN>
+//    "name"
+//    ( <COMMA> TupleArg())*
+//    <RPAREN>
+// }
+// 
+// void TupleArg() : { String s ; Var v; }
+// {
+//     String() | Var()    
+// }
+
 // ---- Triples
+
 void TriplesTemplateBlock() : { Token t; }
 {
    t = <LBRACE>
@@ -249,41 +300,47 @@ void TriplesTemplateBlock() : { Token t; }
    { finishTriplesTemplate(t.beginLine, t.beginColumn); }
    <RBRACE>
 }
+
 void TriplesTemplate() : { }
 {
      // Version for the spec.
      TriplesSameSubject()
      (<DOT> (TriplesTemplate())?)?
+
 // #ifdef 1
 //     // Version for the spec.
 //     TriplesSameSubject()
 //     (<DOT> (TriplesTemplateTriples())?)?
 // #endif
-// #ifdef JENA
+// #ifdef ARQ
 //     // Rewrite for no recursion - grammar is not LL(1)
 //     TriplesSameSubject()
 //     (LOOKAHEAD(2) (<DOT>) TriplesSameSubject())*
 //     (<DOT>)?
 // #endif
 }
+
 void TriplesBlock() : { }
 {
     TriplesSameSubjectPath()
     ( <DOT> (TriplesBlock())? )?
 }
+
 Node ReifiedTripleBlock() : { Node reifId ; }
 {
     reifId = ReifiedTriple()
-    PropertyList(reifId) // May be empty
+    PropertyList(reifId)   // May be empty
     { return reifId ; }
 }
+
 Node ReifiedTripleBlockPath() : { Node reifId ; }
 {
     reifId = ReifiedTriple()
-    PropertyListPath(reifId) // May be empty
+    PropertyListPath(reifId)   // May be empty
     { return reifId ; }
 }
-void Assignment() : { Var v ; Expr expr ; }
+
+void Assignment() : {  Var v ; Expr expr ; }
 {
     <BIND>
     <LPAREN>
@@ -294,6 +351,7 @@ void Assignment() : { Var v ; Expr expr ; }
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
     //{ return new ElementBind(v, expr) ; }
 }
+
 // Element Let() : { Var v ; Expr expr ; }
 // {
 //     <LET>  
@@ -304,70 +362,80 @@ void Assignment() : { Var v ; Expr expr ; }
 //     <RPAREN>
 //     { return new ElementAssign(v, expr) ; }
 // }
+
 // ---- Reifier, various cases.
 // May return null.
+
 Node Reifier() : { Token tok = null ; Node reifId = null ; }
 {
     tok = <TILDE>
     (reifId = VarOrReifierId() )?
     { return reifId; }
 }
+
 Node VarOrReifierId() : { Node n = null; String iri = null; }
 {
-   ( n = Var() { return n; }
-   | iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
-   | n = BlankNode() { return n ; }
+   ( n = Var()        { return n; }
+   | iri = iri()      { return createURI(iri, token.beginLine, token.beginColumn) ; }
+   | n = BlankNode()  { return n ; }
    )
 }
+
 void Filter() : { Expr c ; }
 {
     <FILTER> c = Constraint()
     { emitFilterExpr(c, token.beginLine, token.beginColumn); }
 }
+
 Expr Constraint() : { Expr c ; }
 {
-  ( c = BrackettedExpression()
+  ( c = BrackettedExpression() 
   | c = BuiltInCall()
   | c = FunctionCall()
   )
   { return c ; }
 }
+
 Expr FunctionCall() : { String fname ; ExprList a ; }
 {
   fname = iri()
   a = ArgList()
   { return new E_Function(fname, a) ; }
 }
+
 ExprList ArgList() : { Expr expr ; ExprList args = new ExprList() ; Token t ; }
-{
+{ 
   (
     <NIL>
   |
     <LPAREN>
-      expr = Expression() { args.add(expr) ; }
+      expr = Expression() { args.add(expr) ; } 
       (<COMMA> expr = Expression() { args.add(expr) ; } )*
     <RPAREN>
    )
    { return args ; }
 }
+
 ExprList ExpressionList() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
 {
   (
     <NIL>
   |
     <LPAREN>
-    expr = Expression() { exprList.add(expr) ; }
-      (<COMMA> expr = Expression() { exprList.add(expr) ; } )*
+    expr = Expression() { exprList.add(expr) ; } 
+      (<COMMA> expr = Expression() { exprList.add(expr) ; } )* 
     <RPAREN>
   )
   { return exprList ; }
 }
+
 // -------- Triple lists with property and object lists
 // -------- Without paths: entry: TriplesSameSubject
-void TriplesSameSubject() : { Node s ; }
+
+void TriplesSameSubject() : { Node s ; } 
 {
   s = VarOrTerm()
-  PropertyListNotEmpty(s)
+  PropertyListNotEmpty(s) 
 |
   // Any of the triple generating syntax elements
   s = TriplesNode()
@@ -375,23 +443,26 @@ void TriplesSameSubject() : { Node s ; }
 |
   ReifiedTripleBlock()
 }
+
 void PropertyList(Node s) : { }
 {
   ( /* TriG template: LOOKAHEAD(2) */
     PropertyListNotEmpty(s)
   ) ?
 }
+
 void PropertyListNotEmpty(Node s) : { Node p = null ; }
 {
     p = Verb()
     ObjectList(s, p)
-  ( <SEMICOLON>
+  ( <SEMICOLON> 
     ( /* TriG template: LOOKAHEAD(2) */
        p = Verb()
       ObjectList(s, p)
-    )?
+    )? 
   )*
 }
+
 Node Verb() : { Node p ;}
 {
 // Blank nodes as predicates
@@ -399,23 +470,27 @@ Node Verb() : { Node p ;}
   ( p = VarOrIri() | <KW_A> { p = nRDFtype ; } )
   { return p ; }
 }
-void ObjectList(Node s, Node p): { Node o ; }
+
+void ObjectList(Node s,  Node p): { Node o ; } 
 {
   Object(s, p)
   ( <COMMA> Object(s, p) )*
 }
+
 void Object(Node s, Node p): { Node o ; }
 {
   o = GraphNode()
   { emitTriple(s, p, o, token.beginLine, token.beginColumn); }
   Annotation(s, p, o)
 }
+
 // -------- BGPs with paths.
 // -------- Entry point: TriplesSameSubjectPath
-void TriplesSameSubjectPath() : { Node s ; }
+
+void TriplesSameSubjectPath() : { Node s ; } 
 {
   s = VarOrTerm()
-  PropertyListPathNotEmpty(s)
+  PropertyListPathNotEmpty(s) 
 |
   // Any of the triple generating syntax elements
   s = TriplesNodePath()
@@ -423,18 +498,21 @@ void TriplesSameSubjectPath() : { Node s ; }
 |
   ReifiedTripleBlockPath()
 }
+
 void PropertyListPath(Node s) : { }
 {
   ( PropertyListPathNotEmpty(s) ) ?
 }
-void PropertyListPathNotEmpty(Node s) :
+
+void PropertyListPathNotEmpty(Node s) : 
     { Path path = null ; Node p = null ; }
 {
   ( path = VerbPath()
   | p = VerbSimple()
   )
+
   ObjectListPath(s, p, path)
-  ( <SEMICOLON>
+  ( <SEMICOLON> 
     { path = null ; p = null ; }
     (
       ( path = VerbPath()
@@ -444,10 +522,12 @@ void PropertyListPathNotEmpty(Node s) :
     )?
   )*
 }
+
 Path VerbPath() : {Node p ; Path path ; }
 {
   path = Path() { return path ; }
 }
+
 Node VerbSimple() : { Node p ; }
 {
   // "a" now allowed in paths.
@@ -455,25 +535,31 @@ Node VerbSimple() : { Node p ; }
   p = Var()
   { return p ; }
 }
-void ObjectListPath(Node s, Node p, Path path): { Node o ; }
+
+void ObjectListPath(Node s, Node p, Path path): { Node o ; } 
 {
   ObjectPath(s, p, path)
   ( <COMMA> ObjectPath(s, p, path) )*
 }
+
 void ObjectPath(Node s, Node p, Path path): { Node o ; }
 {
-  o = GraphNodePath()
+  o = GraphNodePath() 
   { emitTriple(s, p, path, o, token.beginLine, token.beginColumn); }
   AnnotationPath(s, p, path, o)
 }
+
 // End paths stuff.
+
 // -------- Paths
 // Simpified to Sequence  and inverse only.
+
 // // Weakest outermost
 Path Path() : { Path p ; }
 {
   p = PathSequence() { return p ; }
 }
+
 Path PathSequence() : { Path p1 , p2 ; }
 {
     p1 = PathEltOrInverse()
@@ -487,68 +573,79 @@ Path PathSequence() : { Path p1 , p2 ; }
     )*
    { return p1; }
 }
+
 // Path unit element, including inverse.
 Path PathEltOrInverse() : { String str ; Node n ; Path p ; }
-{
-   ( p = PathElt()
+{ 
+   ( p = PathElt() 
    | <CARAT>
      p = PathElt()
      { p = PathFactory.pathInverse(p) ; }
    )
    { return p ; }
 }
+
 // Path unit element, no inverse
 Path PathElt() : { String str ; Node n ; Path p ; }
-{
-   p = PathPrimary()
+{ 
+   p = PathPrimary() 
    //( p = PathMod(p) )?
    { return p ; }
 }
+
 Path PathPrimary() : { String str ; Path p ; Node n ; }
 {
-    (
+    ( 
       str = iri()
        { n = createURI(str, token.beginLine, token.beginColumn) ; p = PathFactory.pathLink(n) ; }
-    | <KW_A>
+    | <KW_A> 
        { p = PathFactory.pathLink(nRDFtype) ; }
     //| <BANG> p = PathNegatedPropertySet()
     | <LPAREN> p = Path() <RPAREN>
     )
    { return p ; }
 }
+
 // -------- Triple expansions
+
 // Anything that can stand in a node slot and which is
 // a number of triples
+
 Node TriplesNode() : { Node n ; }
 {
    n = Collection() { return n ; }
  |
    n = BlankNodePropertyList() { return n ; }
 }
+
 Node BlankNodePropertyList() : { Token t ; }
 {
-  t = <LBRACKET>
+  t = <LBRACKET> 
     { Node n = createBNode( t.beginLine, t.beginColumn) ; }
   PropertyListNotEmpty(n)
   <RBRACKET>
     { return n ; }
 }
+
 Node TriplesNodePath() : { Node n ; }
 {
    n = CollectionPath() { return n ; }
  |
    n = BlankNodePropertyListPath() { return n ; }
 }
+
 Node BlankNodePropertyListPath() : { Token t ; }
 {
-  t = <LBRACKET>
+  t = <LBRACKET> 
     { Node n = createBNode( t.beginLine, t.beginColumn) ; }
   PropertyListPathNotEmpty(n)
   <RBRACKET>
     { return n ; }
 }
+
 // ------- RDF collections
-Node Collection() :
+
+Node Collection() : 
     { Node listHead = nRDFnil ; Node lastCell = null ; Node n ; Token t ; }
 {
   t = <LPAREN>
@@ -569,10 +666,11 @@ Node Collection() :
   // Not * here - "()" is handled separately.
   <RPAREN>
    { if ( lastCell != null )
-       emitTriple(lastCell, nRDFrest, nRDFnil, token.beginLine, token.beginColumn) ;
+       emitTriple(lastCell, nRDFrest,  nRDFnil, token.beginLine, token.beginColumn) ;
      return listHead ; }
 }
-Node CollectionPath() :
+
+Node CollectionPath() : 
     { Node listHead = nRDFnil ; Node lastCell = null ; int mark ; Node n ; Token t ; }
 {
   t = <LPAREN>
@@ -582,7 +680,7 @@ Node CollectionPath() :
       if ( listHead == nRDFnil )
          listHead = cell ;
       if ( lastCell != null )
-          emitTriple(lastCell, nRDFrest, cell, token.beginLine, token.beginColumn) ;
+          emitTriple(lastCell, nRDFrest,  cell, token.beginLine, token.beginColumn) ;
     }
     n = GraphNodePath()
     {
@@ -593,9 +691,10 @@ Node CollectionPath() :
   // Not * here - "()" is handled separately.
   <RPAREN>
    { if ( lastCell != null )
-       emitTriple(lastCell, nRDFrest, nRDFnil, token.beginLine, token.beginColumn) ;
+       emitTriple(lastCell, nRDFrest,  nRDFnil, token.beginLine, token.beginColumn) ;
      return listHead ; }
 }
+
 // ---- RDF-star Annotation Syntax
 // Allow paths. Query graph patterns.
 void AnnotationPath(Node s, Node p, Path path, Node o) : { Node reifId = null ; }
@@ -615,12 +714,14 @@ void AnnotationPath(Node s, Node p, Path path, Node o) : { Node reifId = null ; 
   )*
   { clearReifierId(); }
 }
+
 void AnnotationBlockPath(Node reifId) : { }
 {
    <L_ANN>
       PropertyListPathNotEmpty(reifId)
    <R_ANN>
 }
+
 // ---- RDF-star Annotation Syntax
 // No paths. Construct templates.
 void Annotation(Node s, Node p, Node o) : { Node reifId = null ; }
@@ -628,7 +729,7 @@ void Annotation(Node s, Node p, Node o) : { Node reifId = null ; }
   (
     { p = preConditionReifier(s, p, null, o, token.beginLine, token.beginColumn); }
     reifId = Reifier()
-    { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }
+    { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }    
     { setReifierId(reifId); }
   |
     {
@@ -639,6 +740,7 @@ void Annotation(Node s, Node p, Node o) : { Node reifId = null ; }
     AnnotationBlock(reifId)
   )*
 }
+
 void AnnotationBlock(Node reifId) : { }
 {
    // Roll back into Annotation?
@@ -646,7 +748,9 @@ void AnnotationBlock(Node reifId) : { }
       PropertyListNotEmpty(reifId)
    <R_ANN>
 }
+
 // -------- Nodes in a graph pattern or template
+
 // Object position RDF term, element of a list
 // No paths in TriplesNode
 Node GraphNode() : { Node n ; }
@@ -655,58 +759,49 @@ Node GraphNode() : { Node n ; }
  |
    n = TriplesNode() { return n ; }
  |
-   n = ReifiedTriple() { return n ; }
+   n = ReifiedTriple()  { return n ; }
 }
+
 Node GraphNodePath() : { Node n ; }
 {
   n = VarOrTerm() { return n ; }
 |
   n = TriplesNodePath() { return n ; }
 |
-  n = ReifiedTriple() { return n ; }
+  n = ReifiedTriple()  { return n ; }
 }
+
 Node VarOrTerm() : { Node n = null ; String iri ; }
 {
   ( n = Var()
-  | iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
+  | iri = iri()           { return createURI(iri, token.beginLine, token.beginColumn) ; }
   | n = RDFLiteral()
   | n = NumericLiteral()
   | n = BooleanLiteral()
   | n = BlankNode()
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  | <NIL> { return nRDFnil ; }
-  | n = TripleTerm() { return n; }
+  | <NIL>  { return nRDFnil ; }
+  | n = TripleTerm()      { return n; }
   )
   { return n; }
 }
-Node RDFTerm() : { Node n = null ; String iri ; }
-{
-  ( iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  | <NIL> { return nRDFnil ; }
-  | n = TripleTerm() { return n; }
-  )
-  { return n; }
-}
-Node ReifiedTriple() : { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
+
+Node ReifiedTriple() :  { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
 {
   tok = <LT2>
   s = ReifiedTripleSubject()
   p = Verb()
   o = ReifiedTripleObject()
   (reifId = Reifier())?
-  { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }
+  { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }    
   <GT2>
   { return reifId; }
 }
+
 Node ReifiedTripleSubject() : { Node s; String iri; }
 {
   ( s = Var()
-  | iri = iri() { s = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | iri = iri()           { s = createURI(iri, token.beginLine, token.beginColumn) ; }
   | s = RDFLiteral()
   | s = NumericLiteral()
   | s = BooleanLiteral()
@@ -717,10 +812,11 @@ Node ReifiedTripleSubject() : { Node s; String iri; }
   )
   { return s; }
 }
+
 Node ReifiedTripleObject() : { Node o; String iri; }
 {
   ( o = Var()
-  | iri = iri() { o = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | iri = iri()           { o = createURI(iri, token.beginLine, token.beginColumn) ; }
   | o = RDFLiteral()
   | o = NumericLiteral()
   | o = BooleanLiteral()
@@ -732,6 +828,7 @@ Node ReifiedTripleObject() : { Node o; String iri; }
   )
   { return o; }
 }
+
 Node TripleTerm() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
 {
     openToken = <L_TRIPLE>
@@ -743,10 +840,11 @@ Node TripleTerm() : { Node n = null ; Token openToken ; String iri ; Node s , p 
     <R_TRIPLE>
     { return n ; }
 }
+
 Node TripleTermSubject() : { Node n; String iri; }
 {
   ( n = Var()
-  | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
   | n = RDFLiteral()
   | n = NumericLiteral()
   | n = BooleanLiteral()
@@ -757,21 +855,23 @@ Node TripleTermSubject() : { Node n; String iri; }
   )
   { return n; }
 }
+
 Node TripleTermObject() : { Node n; String iri; }
 {
   ( n = Var()
-  | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
   | n = RDFLiteral()
   | n = NumericLiteral()
   | n = BooleanLiteral()
   | n = BlankNode()
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
   //| <NIL>  { return nRDFnil ; }
-  | n = TripleTerm() { return n; }
+  | n = TripleTerm()      { return n; }
   )
   { return n; }
 }
-Node TripleTermData() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
+
+Node TripleTermData() :  { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
 {
     openToken = <L_TRIPLE>
     // @@ Alt name? ttDataValueTerm
@@ -782,9 +882,10 @@ Node TripleTermData() : { Node n = null ; Token openToken ; String iri ; Node s 
     <R_TRIPLE>
     { return n ; }
 }
+
 Node TripleTermDataSubject() : { Node n = null; String iri; }
 {
- ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+ ( iri = iri()            { n = createURI(iri, token.beginLine, token.beginColumn) ; }
  | n = RDFLiteral()
  | n = NumericLiteral()
  | n = BooleanLiteral()
@@ -792,9 +893,10 @@ Node TripleTermDataSubject() : { Node n = null; String iri; }
  )
  { return n; }
 }
+
 Node TripleTermDataObject() : { Node n = null; String iri; }
 {
- ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+ ( iri = iri()            { n = createURI(iri, token.beginLine, token.beginColumn) ; }
  | n = RDFLiteral()
  | n = NumericLiteral()
  | n = BooleanLiteral()
@@ -802,6 +904,7 @@ Node TripleTermDataObject() : { Node n = null; String iri; }
  )
  { return n; }
 }
+
 // // VarOrTerm except no var, no bnodes
 // // @@ Rename?
 // Node DataValueTerm() : {  Node n = null ; String iri ; Node s , p , o ; }
@@ -812,12 +915,14 @@ Node TripleTermDataObject() : { Node n = null; String iri; }
 // | n = BooleanLiteral()   { return n ; }
 // | n = TripleTermData()   { return n; }
 // }
+
 // e.g. Property (if no bNodes) + DESCRIBE
 Node VarOrIri() : {Node n = null ; String iri ; }
 {
   ( n = Var() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
   { return n ; }
 }
+
 // // e.g. INSERT DATA { GRAPH ... }
 // #ifdef ARQ
 // Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
@@ -826,25 +931,31 @@ Node VarOrIri() : {Node n = null ; String iri ; }
 //   { return n ; }
 // }
 // #endif
+
 Var Var() : { Token t ;}
 {
     ( t = <VAR1> | t = <VAR2> )
     { return createVariable(t.image, t.beginLine, t.beginColumn) ; }
 }
+
 // -------- Constraint syntax
+
 Expr Expression() : { Expr expr ; }
 {
   expr = ConditionalOrExpression()
   { return expr ; }
 }
+
 Expr ConditionalOrExpression() : { Expr expr1, expr2 ; }
 {
-  expr1 = ConditionalAndExpression()
+  expr1 = ConditionalAndExpression() 
   ( <SC_OR> expr2 = ConditionalAndExpression()
-    { expr1 = new E_LogicalOr(expr1, expr2) ; }
+    { expr1 = new E_LogicalOr(expr1, expr2) ; } 
   )*
     { return expr1 ; }
+    
 }
+
 Expr ConditionalAndExpression() : { Expr expr1, expr2 ;}
 {
   expr1 = ValueLogical()
@@ -853,11 +964,13 @@ Expr ConditionalAndExpression() : { Expr expr1, expr2 ;}
   )*
     { return expr1 ; }
 }
+
 Expr ValueLogical() : { Expr expr ; }
 {
   expr = RelationalExpression()
     { return expr ; }
 }
+
 Expr RelationalExpression() : { Expr expr1, expr2 ; ExprList a ; }
 {
   expr1 = NumericExpression()
@@ -881,11 +994,13 @@ Expr RelationalExpression() : { Expr expr1, expr2 ; ExprList a ; }
   )?
     { return expr1 ; }
 }
-Expr NumericExpression () : { Expr expr ; }
+
+Expr NumericExpression ()  : { Expr expr ; }
 {
   expr = AdditiveExpression()
     { return expr ; }
 }
+
 Expr AdditiveExpression() : { Expr expr1, expr2, expr3 ; boolean addition ; Node n ; }
 {
   expr1 = MultiplicativeExpression()
@@ -903,17 +1018,19 @@ Expr AdditiveExpression() : { Expr expr1, expr2, expr3 ; boolean addition ; Node
       }
     |
       n = NumericLiteralNegative()
-     {
+     { 
          n = stripSign(n) ;
          expr2 = asExpr(n) ;
          addition = false ;
      }
      )
+
     (
-      ( <STAR> expr3 = UnaryExpression() { expr2 = new E_Multiply(expr2, expr3) ; } )
+      ( <STAR>  expr3 = UnaryExpression() { expr2 = new E_Multiply(expr2, expr3) ; } )
     |
-      ( <SLASH> expr3 = UnaryExpression() { expr2 = new E_Divide(expr2, expr3) ; } )
+      ( <SLASH>  expr3 = UnaryExpression() { expr2 = new E_Divide(expr2, expr3) ; } )
     )*
+
     { if ( addition )
          expr1 = new E_Add(expr1, expr2) ;
       else
@@ -922,10 +1039,11 @@ Expr AdditiveExpression() : { Expr expr1, expr2, expr3 ; boolean addition ; Node
   )*
   { return expr1 ; }
 }
+
 Expr MultiplicativeExpression() : { Expr expr1, expr2 ; }
 {
   expr1 = UnaryExpression()
-  ( <STAR> expr2 = UnaryExpression()
+  ( <STAR>  expr2 = UnaryExpression()
     { expr1 = new E_Multiply(expr1, expr2) ; }
   | <SLASH> expr2 = UnaryExpression()
     { expr1 = new E_Divide(expr1, expr2) ; }
@@ -938,31 +1056,36 @@ Expr MultiplicativeExpression() : { Expr expr1, expr2 ; }
   )*
     { return expr1 ; }
 }
+
 Expr UnaryExpression() : { Expr expr ; }
 {
   <BANG> expr = PrimaryExpression()
     { return new E_LogicalNot(expr) ; }
-  | <PLUS> expr = PrimaryExpression() { return new E_UnaryPlus(expr) ; }
+  | <PLUS>  expr = PrimaryExpression() { return new E_UnaryPlus(expr) ; }
   | <MINUS> expr = PrimaryExpression() { return new E_UnaryMinus(expr) ; }
   | expr = PrimaryExpression() { return expr ; }
 }
+
 Expr PrimaryExpression() : { Expr expr ; Node n ; }
 {
   ( expr = BrackettedExpression() { return expr ; }
-  | expr = BuiltInCall() { return expr ; }
+  | expr = BuiltInCall()   { return expr ; }  
   | expr = iriOrFunction() { return expr ; }
+  
 // NOT
 // | n = ExprVarOrTerm()    { return asExpr(n) ; }
 // | expr = FunctionCall()
 // See iriOrFunction
+
 // Can't use iri() here - happens in iriOrFunction()
-  | n = RDFLiteral() { return asExpr(n) ; }
-  | n = NumericLiteral() { return asExpr(n) ; }
-  | n = BooleanLiteral() { return asExpr(n) ; }
-  | n = Var() { return asExpr(n) ; }
-  | n = ExprTripleTerm() { return asExpr(n) ; }
+  | n = RDFLiteral()      { return asExpr(n) ; }
+  | n = NumericLiteral()  { return asExpr(n) ; }
+  | n = BooleanLiteral()  { return asExpr(n) ; }
+  | n = Var()             { return asExpr(n) ; }
+  | n = ExprTripleTerm()  { return asExpr(n) ; }
   )
 }
+
 // Node ExprVarOrTerm() : { Node n; String s;}
 // {
 //   ( s = iri() { n = createURI(s, token.beginLine, token.beginColumn); }
@@ -974,6 +1097,7 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
 //   )
 //   { return n; }
 // }
+
 Node ExprTripleTerm() : { Token t ; Node s,p,o,n; }
 {
   t = <L_TRIPLE>
@@ -984,6 +1108,7 @@ Node ExprTripleTerm() : { Token t ; Node s,p,o,n; }
   <R_TRIPLE>
   { return n; }
 }
+
 Node ExprTripleTermSubject() : { Node n; String iri; }
 {
   ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn); }
@@ -995,6 +1120,7 @@ Node ExprTripleTermSubject() : { Node n; String iri; }
   )
   { return n; }
 }
+
 Node ExprTripleTermObject() : { Node n; String iri; }
 {
   ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn); }
@@ -1006,28 +1132,36 @@ Node ExprTripleTermObject() : { Node n; String iri; }
   )
   { return n; }
 }
+
 Expr BrackettedExpression() : { Expr expr ; }
 {
-    <LPAREN> expr = Expression() <RPAREN> { return expr ; }
+    <LPAREN> expr = Expression() <RPAREN>  { return expr ; }
 }
+
 Expr BuiltInCall() : { Expr expr ;
                        Expr expr1 = null ; Expr expr2 = null ; Expr expr3 = null ; Expr expr4 = null ;
                        Node gn ; ExprList a ; }
 {
     <STR> <LPAREN> expr = Expression() <RPAREN>
     { return new E_Str(expr) ; }
+    
   | <LANG> <LPAREN> expr = Expression() <RPAREN>
     { return new E_Lang(expr) ; }
-  | <LANGMATCHES>
+
+  | <LANGMATCHES> 
        <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_LangMatches(expr1, expr2) ; }
-  | <LANGDIR> <LPAREN> expr = Expression() <RPAREN>
+
+  | <LANGDIR>  <LPAREN> expr = Expression() <RPAREN>
     { return new E_LangDir(expr) ; }
+
   | <DTYPE> <LPAREN> expr = Expression() <RPAREN>
     { return new E_Datatype(expr) ; }
+
 // Not in SHACL Rules.
 //   | <BOUND> <LPAREN> gn = Var() <RPAREN>
 //     { return new E_Bound(new ExprVar(gn)) ; }
+
 // #ifdef ARQ
 //     // ARQ extension
 //     // IRI(expr rel:String or IRI)
@@ -1041,63 +1175,91 @@ Expr BuiltInCall() : { Expr expr ;
     // Single argument only for in SPARQL 1.1
   | <IRI> <LPAREN> expr = Expression() <RPAREN>
     { return makeFunction_IRI(expr) ; }
+
   | <URI> <LPAREN> expr = Expression() <RPAREN>
     { return makeFunction_URI(expr) ; }
 // #endif
-  | <BNODE>
+
+  | <BNODE> 
     ( <LPAREN> expr1 = Expression() <RPAREN>
       { return makeFunction_BNode(expr1) ; }
     |
       <NIL> { return makeFunction_BNode() ; }
     )
+
 // Not in SHACL Rules.
 //  | <RAND> <NIL> { return new E_Random() ; }
-  | <ABS> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumAbs(expr1) ; }
+
+  | <ABS>  <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumAbs(expr1) ; }
+    
   | <CEIL> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumCeiling(expr1) ; }
+    
   | <FLOOR> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumFloor(expr1) ; }
+    
   | <ROUND> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumRound(expr1) ; }
+
 // #ifdef ARQ
 //   | <MOD>  <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericMod(expr1, expr2); }
 //   
 //   | <IDIV> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericIntegerDivide(expr1, expr2); }
 // #endif
+    
   | <CONCAT> a = ExpressionList() { return new E_StrConcat(a) ; }
+    
   | <SUBSTR>
-    <LPAREN>
-      expr1 = Expression()
+    <LPAREN> 
+      expr1 = Expression() 
       <COMMA>
       expr2 = Expression()
       ( <COMMA> expr3 = Expression() ) ?
     <RPAREN>
       { return new E_StrSubstring(expr1, expr2, expr3) ; }
+
+
   | <STRLEN> <LPAREN> expr1 = Expression() <RPAREN> { return new E_StrLength(expr1) ; }
+
   | <REPLACE>
-    <LPAREN>
-      expr1 = Expression()
+    <LPAREN> 
+      expr1 = Expression() 
       <COMMA> expr2 = Expression()
       <COMMA> expr3 = Expression()
       ( <COMMA> expr4 = Expression() ) ?
-    <RPAREN>
+    <RPAREN> 
     { return new E_StrReplace(expr1,expr2,expr3,expr4) ; }
+    
   | <UCASE> <LPAREN> expr1 = Expression() <RPAREN> { return new E_StrUpperCase(expr1) ; }
+    
   | <LCASE> <LPAREN> expr1 = Expression() <RPAREN> { return new E_StrLowerCase(expr1) ; }
+    
   | <ENCODE_FOR_URI> <LPAREN> expr1 = Expression() <RPAREN> { return new E_StrEncodeForURI(expr1) ; }
+    
   | <CONTAINS> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrContains(expr1, expr2) ; }
+    
   | <STRSTARTS> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrStartsWith(expr1, expr2) ; }
+    
   | <STRENDS> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrEndsWith(expr1, expr2) ; }
-  | <STRBEFORE> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
+
+  | <STRBEFORE>  <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrBefore(expr1, expr2) ; }
-  | <STRAFTER> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
+
+  | <STRAFTER>    <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrAfter(expr1, expr2) ; }
+
   | <YEAR> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeYear(expr1) ; }
+    
   | <MONTH> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeMonth(expr1) ; }
+    
   | <DAY> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeDay(expr1) ; }
+    
   | <HOURS> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeHours(expr1) ; }
+    
   | <MINUTES> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeMinutes(expr1) ; }
+    
   | <SECONDS> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeSeconds(expr1) ; }
+    
   | <TIMEZONE> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeTimezone(expr1) ; }
   | <TZ> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeTZ(expr1) ; }
 // #ifdef ARQ
@@ -1106,9 +1268,11 @@ Expr BuiltInCall() : { Expr expr ;
 //     <LPAREN> expr1 = Expression() (<COMMA> expr2 = Expression())? <RPAREN>
 //     { return new E_AdjustToTimezone(expr1, expr2) ; }
 // #endif
-  | <NOW> <NIL> { return new E_Now() ; }
-  | <UUID> <NIL> { return new E_UUID() ; }
-  | <STRUUID> <NIL> { return new E_StrUUID() ; }
+  | <NOW> <NIL>   { return new E_Now() ; }
+
+  | <UUID> <NIL>  { return new E_UUID() ; }
+  | <STRUUID> <NIL>  { return new E_StrUUID() ; }
+
 // Not in SHACL Rules.
 // #ifdef 0
 //   | <MD5>         <LPAREN> expr1 = Expression() <RPAREN> { return new E_MD5(expr1) ; }
@@ -1126,9 +1290,11 @@ Expr BuiltInCall() : { Expr expr ;
 // #ifdef ARQ
 //   | <VERSION> <NIL>     { return new E_Version(); }
 // #endif    
+
 // Not in SHACl Rules
 //   | <COALESCE> a = ExpressionList()
 //     { return new E_Coalesce(a) ; }
+    
 // #ifdef ARQ
 //   // Maybe also allow ?func(?a1,?a2,...)
 // //  | <CALL> a = ExpressionList()
@@ -1143,73 +1309,96 @@ Expr BuiltInCall() : { Expr expr ;
 //     <RPAREN>
 //     { return new E_Call(a) ; }
 // #endif
-  | <IF> <LPAREN> expr = Expression() <COMMA>
-                  expr1 = Expression() <COMMA>
+
+  | <IF> <LPAREN> expr = Expression() <COMMA> 
+                  expr1 = Expression() <COMMA> 
                   expr2 = Expression() <RPAREN>
     { return new E_If(expr, expr1, expr2) ; }
+
   | <STRLANG> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrLang(expr1, expr2) ; }
+
   | <STRLANGDIR> <LPAREN> expr1 = Expression() <COMMA>
                           expr2 = Expression() <COMMA>
                           expr3 = Expression() <RPAREN>
     { return new E_StrLangDir(expr1, expr2, expr3) ; }
+
   | <STRDT> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_StrDatatype(expr1, expr2) ; }
+
   | <SAME_TERM> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_SameTerm(expr1, expr2) ; }
+
 // #ifdef ARQ
 //   | <SAME_VALUE> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
 //     { return new E_SameValue(expr1, expr2) ; }
 // #endif
+
   | <IS_IRI> <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsIRI(expr) ; }
+
   | <IS_URI> <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsURI(expr) ; }
+
   | <IS_BLANK> <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsBlank(expr) ; }
+
   | <IS_LITERAL> <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsLiteral(expr) ; }
+
   | <IS_NUMERIC> <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsNumeric(expr) ; }
-  | <HAS_LANG> <LPAREN> expr = Expression() <RPAREN>
+
+  | <HAS_LANG>    <LPAREN> expr = Expression() <RPAREN>
     { return new E_HasLang(expr) ; }
+    
   | <HAS_LANGDIR> <LPAREN> expr = Expression() <RPAREN>
     { return new E_HasLangDir(expr) ; }
+    
   | // Regular expression matcher
-     <REGEX>
-     <LPAREN>
-      expr1 = Expression()
+     <REGEX> 
+     <LPAREN> 
+      expr1 = Expression() 
       <COMMA>
       expr2 = Expression()
       ( <COMMA> expr3 = Expression() ) ?
     <RPAREN>
       { return new E_Regex(expr1, expr2, expr3) ; }
+
 //   | expr = ExistsFunc()      { return expr ; }
 // 
 //   | expr = NotExistsFunc()   { return expr ; }
-  | <IS_TRIPLE> <LPAREN> expr = Expression() <RPAREN>
+
+  | <IS_TRIPLE>  <LPAREN> expr = Expression() <RPAREN>
     { return new E_IsTriple(expr) ; }
-  | <TRIPLE> <LPAREN> expr1 = Expression() <COMMA>
+
+  | <TRIPLE>  <LPAREN> expr1 = Expression() <COMMA>
                        expr2 = Expression() <COMMA>
                        expr3 = Expression() <RPAREN>
     { return new E_TripleFn(expr1, expr2, expr3) ; }
-  | <SUBJECT> <LPAREN> expr = Expression() <RPAREN>
+
+  | <SUBJECT>  <LPAREN> expr = Expression() <RPAREN>
     { return new E_TripleSubject(expr) ; }
-  | <PREDICATE> <LPAREN> expr = Expression() <RPAREN>
+
+  | <PREDICATE>  <LPAREN> expr = Expression() <RPAREN>
     { return new E_TriplePredicate(expr) ; }
-  | <OBJECT> <LPAREN> expr = Expression() <RPAREN>
+
+  | <OBJECT>  <LPAREN> expr = Expression() <RPAREN>
     { return new E_TripleObject(expr) ; }
 }
+
 // See also FunctionCall.
+
 Expr iriOrFunction() : { String iri ; ExprList a = null ; }
 {
   iri = iri()
   (a = ArgList())?
-  { if ( a == null )
+  { if ( a == null ) 
        return asExpr(createURI(iri, token.beginLine, token.beginColumn)) ;
     return new E_Function(iri, a) ;
   }
 }
+
 Node RDFLiteral() : { Token t ; String lex = null ; String uri = null ; }
 {
   lex = String()
@@ -1222,7 +1411,9 @@ Node RDFLiteral() : { Token t ; String lex = null ; String uri = null ; }
      { return createLiteralDT(lex, uri, token.beginLine, token.beginColumn); }
   )?
   { return createLiteralString(lex, token.beginLine, token.beginColumn) ; }
-}
+} 
+
+
 Node NumericLiteral() : { Node n ; }
 {
   (
@@ -1231,31 +1422,37 @@ Node NumericLiteral() : { Node n ; }
   | n = NumericLiteralNegative()
   )
   { return n ; }
+
 }
+
 Node NumericLiteralUnsigned() : { Token t ; }
 {
   t = <INTEGER> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
 | t = <DECIMAL> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DOUBLE> { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DOUBLE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
 }
+
 Node NumericLiteralPositive() : { Token t ; }
 {
   t = <INTEGER_POSITIVE> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
 | t = <DECIMAL_POSITIVE> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DOUBLE_POSITIVE> { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DOUBLE_POSITIVE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
 }
+
 Node NumericLiteralNegative() : { Token t ; }
 {
   t = <INTEGER_NEGATIVE> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
 | t = <DECIMAL_NEGATIVE> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DOUBLE_NEGATIVE> { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DOUBLE_NEGATIVE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
 }
+
 Node BooleanLiteral() : {}
 {
   <TRUE> { return XSD_TRUE ; }
  |
   <FALSE> { return XSD_FALSE ; }
 }
+
 String String() : { Token t ; String lex ; }
 {
   ( t = <STRING_LITERAL1> { lex = stripQuotes(t.image) ; }
@@ -1268,12 +1465,14 @@ String String() : { Token t ; String lex ; }
       return lex ;
     }
 }
+
 String iri() : { String iri ; }
 {
   iri = IRIREF() { return iri ; }
 |
   iri = PrefixedName() { return iri ; }
 }
+
 String PrefixedName() : { Token t ; }
 {
   ( t = <PNAME_LN>
@@ -1283,250 +1482,300 @@ String PrefixedName() : { Token t ; }
     { return resolvePName(t.image, t.beginLine, t.beginColumn) ; }
   )
 }
-Node BlankNode() : { Token t = null ; }
+
+Node BlankNode() :  { Token t = null ; }
 {
   t = <BLANK_NODE_LABEL>
-    { return createBNode(t.image, t.beginLine, t.beginColumn) ; }
+    { return createBNode(t.image, t.beginLine, t.beginColumn) ; }  
 |
 //  <LBRACKET> <RBRACKET> { return createBNode(t.beginLine, t.beginColumn) ; }
   t = <ANON> { return createBNode(t.beginLine, t.beginColumn) ; }
+
 }
+
 String IRIREF() : { Token t ; }
 {
   t = <IRIref>
   { return resolveQuotedIRI(t.image, t.beginLine, t.beginColumn) ; }
 }
+
 // ------------------------------------------
 // Tokens
+
 // Comments and whitespace
+
 SKIP : { " " | "\t" | "\n" | "\r" | "\f" }
+
 SPECIAL_TOKEN :
 { <SINGLE_LINE_COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? > }
-TOKEN: {
+
+TOKEN: { 
   <#WS: " " | "\t" | "\n" | "\r" | "\f">
 |
   // Whitespace or comment.
   <#WSC: <WS> | <SINGLE_LINE_COMMENT> >
 |
-  <BOM: "\uFEFF">
+  <BOM:    "\uFEFF">
 }
+
 TOKEN:
 {
    // Includes # for relative URIs
-   <IRIref: "<"
+   <IRIref:   "<"
                 ( ~[ ">","<", "\"", "{", "}", "^", "\\", "|", "`", "\u0000"-"\u0020"]
                 | <UCHAR>
                 )*
               ">" >
-| <PNAME_NS: (<PN_PREFIX>)? ":" >
-| <PNAME_LN: <PNAME_NS> <PN_LOCAL> >
-| <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)? >
-| <VAR1: "?" <VARNAME> >
-| <VAR2: "$" <VARNAME> >
-| <LANG_DIR: <AT> (<A2Z>)+("-" (<A2ZN>)+)* ( "--" (<A2Z>)* )? >
-| <#A2Z: ["a"-"z","A"-"Z"]>
-| <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
+|  <PNAME_NS: (<PN_PREFIX>)? ":" >
+|  <PNAME_LN: <PNAME_NS> <PN_LOCAL> >
+|  <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)?  >
+|  <VAR1: "?" <VARNAME> >
+|  <VAR2: "$" <VARNAME> >
+|  <LANG_DIR: <AT> (<A2Z>)+("-" (<A2ZN>)+)* ( "--" (<A2Z>)* )? >
+|  <#A2Z: ["a"-"z","A"-"Z"]>
+|  <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
 }
+
 // -------------------------------------------------
 // Keyworks : includes operators that are words and should be
 // before general things like IDENTIFIER which swallow almost
 // anything
-TOKEN : { <KW_A: "a" > }
+
+TOKEN : { <KW_A:  "a" > }
+
 // SHACL
 TOKEN [IGNORE_CASE] :
 {
-   < RULE: "rule" >
-| < THEN: "then" >
-//|  < RULE_INFER:   ":-" >
-| < DATA: "data" >
-| < INFER: "infer" >
-| < TRANSITIVE: "transitive" >
-| < SYMMETRIC: "symmetric" >
-| < INVERSE: "inverse" >
-| < IMPORTS: "imports" >
+   < RULE:         "rule" >
+|  < THEN:         "then" >
+|  < RULE_INFER:   ":-" >
+|  < DATA:         "data" >
+|  < INFER:        "infer" >
+|  < TRANSITIVE:   "transitive" >
+|  < SYMMETRIC:    "symmetric" >
+|  < INVERSE:      "inverse" >
+|  < IMPORTS:      "imports" >
 }
+
 TOKEN [IGNORE_CASE] :
 {
 // Prologue
-   < BASE: "base" >
-| < PREFIX: "prefix" >
-| < VERSION: "version" >
+   < BASE:        "base" >
+|  < PREFIX:      "prefix" >
+|  < VERSION:     "version" >
+
 // Graph pattern operators 
-| < WHERE: "where" >
-| < BIND: "bind" >
-| < AS: "as" >
-| < LET: "let" >
-| < ASSIGN: ":=" >
-| < TRIPLE: "TRIPLE" >
-| < IS_TRIPLE: "isTRIPLE" >
-| < SUBJECT: "SUBJECT" >
-| < PREDICATE: "PREDICATE" >
-| < OBJECT: "OBJECT" >
-| < EXISTS: "EXISTS" >
-| < NOT: "not" >
-| < FILTER: "filter" >
+|  < WHERE:       "where" >
+|  < BIND:        "bind" >
+|  < AS:          "as" >
+
+|  < LET:         "let" >
+|  < ASSIGN:      ":=" >
+
+|  < TRIPLE:      "TRIPLE" >
+|  < IS_TRIPLE:   "isTRIPLE" >
+|  < SUBJECT:     "SUBJECT" >
+|  < PREDICATE:   "PREDICATE" >
+|  < OBJECT:      "OBJECT" >
+
+| < EXISTS:       "EXISTS" >
+
+|  < NOT:         "not" >
+|  < FILTER:      "filter" >
+
 // Expression operators
 //|  < BOUND:       "bound" >
 //|  < COALESCE:    "coalesce" >
-| < IN: "in" >
-| < IF: "if" >
-| < BNODE: "bnode" >
-| < IRI: "iri" >
-| < URI: "uri" >
-| < STR: "str" >
-| < STRLANG: "strlang" >
-| < STRLANGDIR: "strlangdir" >
-| < STRDT: "strdt" >
-| < DTYPE: "datatype" >
-| < LANG: "lang" >
-| < LANGMATCHES: "langmatches" >
-| < LANGDIR: "langdir" >
-| < IS_URI: "isURI" >
-| < IS_IRI: "isIRI" >
-| < IS_BLANK: "isBlank" >
-| < IS_LITERAL: "isLiteral" >
-| < IS_NUMERIC: "isNumeric" >
-| < HAS_LANG: "hasLang" >
-| < HAS_LANGDIR: "hasLangDir" >
-| < REGEX: "regex" >
-| < SAME_TERM: "sameTerm" >
-| < SAME_VALUE: "sameValue" >
+|  < IN:          "in" >
+|  < IF:          "if" >
+|  < BNODE:       "bnode" >
+|  < IRI:         "iri" >
+|  < URI:         "uri" >
+
+|  < STR:         "str" >
+|  < STRLANG:     "strlang" >
+|  < STRLANGDIR:  "strlangdir" >
+
+|  < STRDT:       "strdt" >
+|  < DTYPE:       "datatype" >
+|  < LANG:        "lang" >
+|  < LANGMATCHES: "langmatches" >
+|  < LANGDIR:     "langdir" >
+|  < IS_URI:      "isURI" >
+|  < IS_IRI:      "isIRI" >
+|  < IS_BLANK:    "isBlank" >
+|  < IS_LITERAL:  "isLiteral" >
+|  < IS_NUMERIC:  "isNumeric" >
+|  < HAS_LANG:    "hasLang" >   
+|  < HAS_LANGDIR: "hasLangDir" >   
+|  < REGEX:       "regex" >
+|  < SAME_TERM:   "sameTerm" >
+|  < SAME_VALUE:  "sameValue" >
+
 //|  < RAND:        "RAND" >
-| < ABS: "ABS" >
-| < CEIL: "CEIL" >
-| < FLOOR: "FLOOR" >
-| < ROUND: "ROUND" >
+|  < ABS:         "ABS" >
+|  < CEIL:        "CEIL" >
+|  < FLOOR:       "FLOOR" >
+|  < ROUND:       "ROUND" >
+
 // #ifdef ARQ
 // |  < MOD:         "MOD" >
 // |  < IDIV:        "IDIV" >
 // #endif
-| < CONCAT: "CONCAT" >
-| < SUBSTR: "SUBSTR" >
-| < STRLEN: "STRLEN" >
-| < REPLACE: "REPLACE" >
-| < UCASE: "UCASE" >
-| < LCASE: "LCASE" >
-| < ENCODE_FOR_URI: "ENCODE_FOR_URI" >
-| < CONTAINS: "CONTAINS" >
-| < STRSTARTS: "STRSTARTS" >
-| < STRENDS: "STRENDS" >
-| < STRBEFORE: "STRBEFORE" >
-| < STRAFTER : "STRAFTER" >
-| < YEAR: "YEAR" >
-| < MONTH: "MONTH" >
-| < DAY: "DAY" >
-| < HOURS: "HOURS" >
-| < MINUTES: "MINUTES" >
-| < SECONDS: "SECONDS" >
-| < TIMEZONE: "TIMEZONE" >
-| < TZ: "TZ" >
+
+|  < CONCAT:      "CONCAT" >
+|  < SUBSTR:      "SUBSTR" >
+|  < STRLEN:      "STRLEN" >
+|  < REPLACE:     "REPLACE" >
+|  < UCASE:       "UCASE" >
+|  < LCASE:       "LCASE" >
+|  < ENCODE_FOR_URI:      "ENCODE_FOR_URI" >
+|  < CONTAINS:    "CONTAINS" >
+|  < STRSTARTS:   "STRSTARTS" >
+|  < STRENDS:     "STRENDS" >
+|  < STRBEFORE:   "STRBEFORE" >
+|  < STRAFTER :   "STRAFTER" >
+|  < YEAR:        "YEAR" >
+|  < MONTH:       "MONTH" >
+|  < DAY:         "DAY" >
+|  < HOURS:       "HOURS" >
+|  < MINUTES:     "MINUTES" >
+|  < SECONDS:     "SECONDS" >
+|  < TIMEZONE:    "TIMEZONE" >
+|  < TZ:          "TZ" >
 // #ifdef ARQ
 // |  < ADJUST:      "ADJUST" >
 // #endif
-| < NOW: "NOW" >
-| < UUID: "UUID" >
-| < STRUUID: "STRUUID" >
+|  < NOW:         "NOW" >
+|  < UUID:        "UUID" >
+|  < STRUUID:     "STRUUID" >
+
 // | < MD5:          "MD5" >
 // | < SHA1:         "SHA1" >
 // | < SHA224:       "SHA224" >
 // | < SHA256:       "SHA256" >
 // | < SHA384:       "SHA384" >
 // | < SHA512:       "SHA512" >
-| < TRUE: "true" >
-| < FALSE: "false" >
+
+|  < TRUE:        "true" >
+|  < FALSE:       "false" >
 }
+
 // -------------------------------------------------
+
 TOKEN :
 {
   < #DIGITS: (["0"-"9"])+>
 // MAybee to revert to sign detection
+
 // Need the signed forms so that  1+2  works. 
+
 | < INTEGER: <DIGITS> >
 | < DECIMAL: (<DIGITS>)? "." <DIGITS> >
-| < DOUBLE: (
+| < DOUBLE:  (
         (["0"-"9"])+ "." (["0"-"9"])* <EXPONENT>
         | "." (["0"-"9"])+ (<EXPONENT>)
         | (["0"-"9"])+ <EXPONENT>
       )
       >
+
 | < INTEGER_POSITIVE: <PLUS> <INTEGER> >
 | < DECIMAL_POSITIVE: <PLUS> <DECIMAL> >
-| < DOUBLE_POSITIVE: <PLUS> <DOUBLE> >
+| < DOUBLE_POSITIVE:  <PLUS> <DOUBLE> >
+
 | < INTEGER_NEGATIVE: <MINUS> <INTEGER> >
 | < DECIMAL_NEGATIVE: <MINUS> <DECIMAL> >
-| < DOUBLE_NEGATIVE: <MINUS> <DOUBLE> >
+| < DOUBLE_NEGATIVE:  <MINUS> <DOUBLE> >
+
 | < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 | < #QUOTE_3D: "\"\"\"">
 | < #QUOTE_3S: "'''">
 | < ECHAR: "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
-| < #UCHAR: <UCHAR4> | <UCHAR8> >
-| < #UCHAR4: "\\" "u" <HEX> <HEX> <HEX> <HEX> >
-| < #UCHAR8: "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> >
-| < STRING_LITERAL1:
+| < #UCHAR:      <UCHAR4> | <UCHAR8> >
+| < #UCHAR4:     "\\" "u" <HEX> <HEX> <HEX> <HEX> >
+| < #UCHAR8:     "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> >
+
+| < STRING_LITERAL1: 
       // Single quoted string
-      "'" ( (~["'","\\","\n","\r"]) | <ECHAR> | <UCHAR> )* "'" >
+      "'" ( (~["'","\\","\n","\r"]) | <ECHAR> | <UCHAR> )* "'" > 
 | < STRING_LITERAL2:
     // Double quoted string
       "\"" ( (~["\"","\\","\n","\r"]) | <ECHAR> | <UCHAR> )* "\"" >
 | < STRING_LITERAL_LONG1:
-     <QUOTE_3S>
-      ( ("'" | "''")? (~["'","\\"] | <ECHAR> | <UCHAR> ))*
+     <QUOTE_3S> 
+      ( ("'" | "''")? (~["'","\\"] | <ECHAR>  | <UCHAR> ))*
      <QUOTE_3S> >
-| < STRING_LITERAL_LONG2:
-     <QUOTE_3D>
+
+| < STRING_LITERAL_LONG2: 
+     <QUOTE_3D> 
       ( ("\"" | "\"\"")? (~["\"","\\"] | <ECHAR> | <UCHAR> ))*
      <QUOTE_3D> >
 }
+
 TOKEN :
 {
-  < LPAREN: "(" >
-| < RPAREN: ")" >
+  < LPAREN:    "(" >
+| < RPAREN:    ")" >
+
 // All the stuff for NUL is needed just to make a 
 // single list "() ." as a triple pattern illegal.
 // It leads to a lot of extra work.
 // Similarly [].
+
 | <NIL: <LPAREN> (<WSC>)* <RPAREN> >
-| < LBRACE: "{" >
-| < RBRACE: "}" >
-| < LBRACKET: "[" >
-| < RBRACKET: "]" >
-| < ANON: <LBRACKET> (<WSC>)* <RBRACKET> >
+
+| < LBRACE:    "{" >
+| < RBRACE:    "}" >
+
+| < LBRACKET:  "[" >
+| < RBRACKET:  "]" >
+| < ANON:      <LBRACKET> (<WSC>)* <RBRACKET> >
+
 | < SEMICOLON: ";" >
-| < COMMA: "," >
-| < DOT: "." >
-| < EQ: "=" >
-| < NE: "!=" >
-| < GT: ">" >
-| < LT: "<" >
-| < LE: "<=" > // Maybe: | "=>" >
-| < GE: ">=" > // Maybe: | "=<" >
+| < COMMA:     "," >
+| < DOT:       "." >
+| < EQ:      "=" >
+| < NE:      "!=" >
+| < GT:      ">" >
+| < LT:      "<" >
+| < LE:      "<=" >    // Maybe: | "=>" >
+| < GE:      ">=" >    // Maybe: | "=<" >
+
 | < L_TRIPLE: "<<(" >
 | < R_TRIPLE: ")>>" >
-| < LT2: "<<" >
-| < GT2: ">>" >
-| < L_ANN: "{|" >
-| < R_ANN: "|}" >
-| < TILDE: "~" >
-| < BANG: "!" >
-| < COLON: ":" >
-| < SC_OR: "||" >
-| < SC_AND: "&&" >
-| < PLUS: "+" >
-| < MINUS: "-" >
-| < STAR: "*" >
-| < SLASH: "/" >
+| < LT2:     "<<" >
+| < GT2:     ">>" >
+| < L_ANN:    "{|" >
+| < R_ANN:    "|}" >
+
+| < TILDE:   "~" >
+| < BANG:    "!" >
+| < COLON:   ":" >
+
+| < SC_OR:   "||" >
+| < SC_AND:  "&&" >
+
+| < PLUS:    "+" >
+| < MINUS:   "-" >
+| < STAR:    "*" >
+| < SLASH:   "/" >
+
 //| < REM: "%" >
+
 | < DATATYPE: "^^">
 | < AT: "@">
 // #ifdef ARQ
 // | < ASSIGN:     ":=">
 // #endif
+
 // Path related
 //| < VBAR:     "|" >
-| < CARAT: "^" >
+| < CARAT:    "^" >
 //| < QMARK:    "?" >
 }
+
 // See XML chars.txt for notes
+
 TOKEN:
 {
 // #ifdef ARQ
@@ -1539,7 +1788,7 @@ TOKEN:
           ["\u00C0"-"\u00D6"] | ["\u00D8"-"\u00F6"] | ["\u00F8"-"\u02FF"] |
           ["\u0370"-"\u037D"] | ["\u037F"-"\u1FFF"] |
           ["\u200C"-"\u200D"] | ["\u2070"-"\u218F"] | ["\u2C00"-"\u2FEF"] |
-          ["\u3001"-"\uD7FF"] | ["\uF900"-"\uFFFD"]
+          ["\u3001"-"\uD7FF"] | ["\uF900"-"\uFFFD"] 
           // [#x10000-#xEFFFF]
 // #ifdef ARQ
 //           // Put in surrogate pairs because by the time javacc sees codepoints,
@@ -1555,30 +1804,31 @@ TOKEN:
               ["\u0300"-"\u036F"] | ["\u203F"-"\u2040"] ) >
 |
   // No leading "_", no trailing ".", can have dot inside prefix name.
-  <#PN_PREFIX: <PN_CHARS_BASE> ((<PN_CHARS>|".")* <PN_CHARS>)? >
+  <#PN_PREFIX: <PN_CHARS_BASE> ((<PN_CHARS>|".")* <PN_CHARS>)?  >
 |
   // Local part.
-  <#PN_LOCAL: (<PN_CHARS_U> | ":" | ["0"-"9"] | <PLX> )
-              ( (<PN_CHARS> | "." |":" | <PLX> )*
-                (<PN_CHARS> | ":" | <PLX>) )? >
+  <#PN_LOCAL: (<PN_CHARS_U> | ":" | ["0"-"9"] | <PLX> ) 
+              ( (<PN_CHARS> | "." |":" | <PLX> )* 
+                (<PN_CHARS> | ":" | <PLX>) )?  >
 |
   <#VARNAME: ( <PN_CHARS_U> | ["0"-"9"] )
              ( <PN_CHARS_U> | ["0"-"9"] | "\u00B7" |
                ["\u0300"-"\u036F"] | ["\u203F"-"\u2040"] )* >
 |
   // Align with QueryParseBase unescapePName.
-  < #PN_LOCAL_ESC: "\\"
-          ( "_" |
-            "~" | "." | "-" | "!" | "$" | "&" | "'" |
-           "(" | ")" | "*" | "+" | "," | ";" | "=" |
+  < #PN_LOCAL_ESC: "\\" 
+          ( "_" | 
+            "~" | "." | "-" | "!" | "$" | "&" | "'" | 
+           "(" | ")" | "*" | "+" | "," | ";" | "=" | 
            "/" | "?" | "#" | "@" | "%" ) >
 |
-  <#PLX: <PERCENT> | <PN_LOCAL_ESC> >
+  <#PLX:  <PERCENT> | <PN_LOCAL_ESC> >
 |
   < #HEX: ["0"-"9"] | ["A"-"F"] | ["a"-"f"] >
 |
   < #PERCENT: "%" <HEX> <HEX> >
 }
+
 // Catch-all tokens.  Must be last.  
 // Any non-whitespace.  Causes a parser exception, rather than a
 // token manager error (which hides the line numbers).
@@ -1586,6 +1836,7 @@ TOKEN:
 {
   <#UNKNOWN: (~[" ","\t","\n","\r","\f" ])+ >
 }
+
 /*
 # Local Variables:
 # tab-width: 4

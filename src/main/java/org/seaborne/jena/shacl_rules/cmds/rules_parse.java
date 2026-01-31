@@ -40,7 +40,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
-import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParserBase;
+import org.seaborne.jena.shacl_rules.lang.parser.RulesParserBase;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToGraph;
 import org.seaborne.jena.shacl_rules.sys.P;
@@ -151,7 +151,7 @@ public class rules_parse extends CmdRules {
         }
 
         if ( debug )
-            ShaclRulesParserBase.debug(true);
+            RulesParserBase.debug(true);
 
         if ( ! filesOK )
             throw new CmdException("File(s) not found");

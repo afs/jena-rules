@@ -49,13 +49,13 @@ PARSER_BEGIN(ShaclRulesJavacc)
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.shacl_rules.lang.parser.shacl_rules_12.javacc;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
-import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.ShaclRulesParserBase;
+import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules_12.ShaclRulesParserBase;
 public class ShaclRulesJavacc extends ShaclRulesParserBase
 {}
 PARSER_END(ShaclRulesJavacc)

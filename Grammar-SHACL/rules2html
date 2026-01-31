@@ -7,6 +7,6 @@ echo "Grammar toHTML ($OUT)"
 
 (
     echo "      <!-- GRAMMAR -->"
-    jj2html 'shacl-rules.txt' 'tokens.txt'
+    jj2html 'shacl-rules-12.txt' 'tokens.txt'
     echo "      <!-- GRAMMAR -->"
 ) > $OUT

@@ -6,6 +6,5 @@ OUT='rules-grammar.bnf'
 echo "Grammar to BNF ($OUT)"
 
 (
-    jj2bnf 'shacl-rules.txt' 'tokens.txt'
-    
+    jj2bnf 'shacl-rules-12.txt' 'tokens.txt'
 ) > $OUT

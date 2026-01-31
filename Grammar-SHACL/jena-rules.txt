@@ -29,6 +29,7 @@ TOKENS
 | <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS> | ".")* <PN_CHARS>)?>
 | <VAR1: "?" <VARNAME>>
 | <VAR2: "$" <VARNAME>>
+| <DOLLAR: "$">
 | <LANG_DIR: <AT> (<A2Z>)+ ("-" (<A2ZN>)+)* ("--" (<A2Z>)*)?>
 | <#A2Z: ["a"-"z","A"-"Z"]>
 | <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
@@ -46,6 +47,7 @@ TOKENS
 <DEFAULT> TOKEN [IGNORE_CASE] : {
 <RULE: "rule">
 | <THEN: "then">
+| <TUPLE: "tuple">
 | <DATA: "data">
 | <INFER: "infer">
 | <TRANSITIVE: "transitive">
@@ -253,15 +255,22 @@ NON-TERMINALS
 // ---- Rule body
 	BodyPattern	:=	<LBRACE> BodyPattern1 <RBRACE>
 	BodyPattern1	:=	( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )*
-	BodyNotTriples	:=	( Filter | Negation | Assignment )
+	BodyNotTriples	:=	( Filter | Negation | Assignment | TuplePattern )
 // XXX Matches zero triples
 	BodyTriplesBlock	:=	TriplesBlock
 	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
+// ---- Tuples
+	TuplePattern	:=	TupleWithVars
+	TupleTemplate	:=	TupleWithVars
+	TupleWithVars	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> TupleArg ( <COMMA> TupleArg )* <RPAREN> )
+	TupleArg	:=	RDFTerm
+		|	Var
+	TupleData	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> RDFTerm ( <COMMA> RDFTerm )* <RPAREN> )
 // ---- Triples
 	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
-	TriplesTemplate	:=	TriplesSameSubject ( <DOT> ( TriplesTemplate )? )?
+	TriplesTemplate	:=	( TriplesSameSubject | TupleTemplate ) ( <DOT> ( TriplesTemplate )? )?
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
 	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
 	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath

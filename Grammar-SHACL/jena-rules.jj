@@ -28,7 +28,7 @@ options
 //  DEBUG_PARSER          = true ;
 //  DEBUG_TOKEN_MANAGER   = true ;
 }
-PARSER_BEGIN(ShaclRulesJavacc)
+PARSER_BEGIN(JenaRulesJavacc)
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -49,16 +49,16 @@ PARSER_BEGIN(ShaclRulesJavacc)
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.shacl_rules.lang.parser.jena_rules.javacc;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
-import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.ShaclRulesParserBase;
-public class ShaclRulesJavacc extends ShaclRulesParserBase
+import org.seaborne.jena.shacl_rules.lang.parser.jena_rules.JenaRulesParserBase;
+public class JenaRulesJavacc extends JenaRulesParserBase
 {}
-PARSER_END(ShaclRulesJavacc)
+PARSER_END(JenaRulesJavacc)
 // void RulesUnit(): {}
 // {
 //      ByteOrderMark()
@@ -213,6 +213,7 @@ void BodyNotTriples() : {}
 //    |  NotExists()
    | Negation()
    | Assignment()
+   | TuplePattern()
    )
 }
 // XXX Matches zero triples
@@ -240,6 +241,42 @@ void BodyBasic() : {}
     ( Filter() (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
 }
+// ---- Tuples
+void TuplePattern() : {}
+{
+    TupleWithVars()
+}
+void TupleTemplate() : {}
+{
+    TupleWithVars()
+}
+void TupleWithVars() : {}
+{
+   (<TUPLE>|<DOLLAR>)
+   ( <NIL>
+   |
+     <LPAREN>
+     TupleArg() ( <COMMA> TupleArg())*
+     <RPAREN>
+   )
+}
+Node TupleArg() : { Node n ; Var v; }
+{
+    n = RDFTerm() { return n; }
+  |
+    v = Var() { return v; }
+}
+void TupleData() : {}
+{
+   (<TUPLE>|<DOLLAR>)
+   (
+     <NIL>
+   |
+     <LPAREN>
+     RDFTerm() (<COMMA> RDFTerm() )*
+     <RPAREN>
+   )
+}
 // ---- Triples
 void TriplesTemplateBlock() : { Token t; }
 {
@@ -252,7 +289,7 @@ void TriplesTemplateBlock() : { Token t; }
 void TriplesTemplate() : { }
 {
      // Version for the spec.
-     TriplesSameSubject()
+     ( TriplesSameSubject() | TupleTemplate() )
      (<DOT> (TriplesTemplate())?)?
 // #ifdef 1
 //     // Version for the spec.
@@ -1323,6 +1360,7 @@ TOKEN:
 | <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)? >
 | <VAR1: "?" <VARNAME> >
 | <VAR2: "$" <VARNAME> >
+| <DOLLAR: "$">
 | <LANG_DIR: <AT> (<A2Z>)+("-" (<A2ZN>)+)* ( "--" (<A2Z>)* )? >
 | <#A2Z: ["a"-"z","A"-"Z"]>
 | <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
@@ -1338,6 +1376,7 @@ TOKEN [IGNORE_CASE] :
    < RULE: "rule" >
 | < THEN: "then" >
 //|  < RULE_INFER:   ":-" >
+| < TUPLE: "tuple" >
 | < DATA: "data" >
 | < INFER: "infer" >
 | < TRANSITIVE: "transitive" >

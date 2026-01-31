@@ -5,6 +5,7 @@
 [<THEN>]        ::= 'THEN'
 [<RULE_INFER>]  ::= ':-'
 [<DATA>]        ::= 'DATA'
+[<TUPLE>]       ::= 'TUPLE'
 [<INFER>]       ::= 'INFER'
 [<TRANSITIVE>]  ::= 'TRANSITIVE'
 [<SYMMETRIC>]   ::= 'SYMMETRIC'
