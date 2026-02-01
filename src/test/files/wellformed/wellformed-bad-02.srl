@@ -1,6 +1,6 @@
 PREFIX : <http://example/>
-RULE { ?s ?p ?o }
+RULE { :s :p ?x }
 WHERE {
-    FILTER(?o < 50)
-    ?s ?p ?o
+    BIND(1 AS ?x)
+    BIND(1 AS ?x)
 }

@@ -42,10 +42,7 @@ WHERE {
 }
 EOF
 
-
-
-
-
+## Bad
 
 N=0
 N=$((N+1)) ; testBad $(fname "wellformed-bad-" $N) <<EOF
@@ -54,6 +51,16 @@ RULE { ?s ?p ?o }
 WHERE {
     ?s ?p ?o
     BIND(123 AS ?o)
+}
+EOF
+
+
+N=$((N+1)) ; testBad $(fname "wellformed-bad-" $N) <<EOF
+PREFIX : <http://example/>
+RULE { :s :p ?x }
+WHERE {
+    BIND(1 AS ?x)
+    BIND(1 AS ?x)
 }
 EOF
 
