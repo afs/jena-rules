@@ -77,6 +77,13 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-cmds</artifactId>
+      <classifier>tests</classifier>
+      <version>${ver.jena}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!--
     <dependency>
