@@ -21,15 +21,10 @@
 
 package org.seaborne.jena.shacl_rules.lang.parser.shacl_rules;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
-import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.io.IOX;
-import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.irix.IRIx;
@@ -48,27 +43,13 @@ import org.slf4j.Logger;
 // Class specific parser code
 public class ParserShaclRules extends ParserRules {
 
-    public static RuleSet parseString(String string) {
-        Reader in = new StringReader(string);
-        ShaclRulesJavacc parser = new ShaclRulesJavacc(in);
-        return parse(parser, null);
-    }
-
-    public static RuleSet parseFile(String filename) {
-        String base = IRILib.filenameToIRI(filename);
-        return parseFile(filename, base);
-    }
-
-    public static RuleSet parseFile(String filename, String baseURI) {
-        try (InputStream in = IO.openFileBuffered(filename)) {
-            return parse(in, baseURI);
-        } catch (IOException ex) {
-            throw IOX.exception(ex);
-        }
-    }
-
     public static RuleSet parse(InputStream in , String baseURI) {
         ShaclRulesJavacc parser = new ShaclRulesJavacc(in);
+        return parse(parser, baseURI);
+    }
+
+    public static RuleSet parse(StringReader strReader, String baseURI) {
+        ShaclRulesJavacc parser = new ShaclRulesJavacc(strReader);
         return parse(parser, baseURI);
     }
 
@@ -83,9 +64,8 @@ public class ParserShaclRules extends ParserRules {
         // PrefixMap is managed by the ParserProfile and the sent to the StreamRDF.
         StreamRDF output = StreamRDFLib.sinkNull();
         ErrorHandler errorHandler = new ErrorHandlerRuleParser(parserLogger);
-
-        ParserProfile parserProfile = //RiotLib.dftProfile();
-                RiotLib.createParserProfile(RiotLib.factoryRDF(), errorHandler, true);
+        ParserProfile parserProfile =
+                ParserRules.createParserProfile(RiotLib.factoryRDF(), errorHandler, resolver, true);
 
         parser.setDest(output);
         parser.setProfile(parserProfile);

@@ -23,10 +23,24 @@ package org.seaborne.jena.shacl_rules.lang.parser;
 
 import static org.apache.jena.riot.SysRIOT.fmtMessage;
 
-import org.apache.jena.riot.system.ErrorHandler;
+import org.apache.jena.irix.IRIxResolver;
+import org.apache.jena.riot.RIOT;
+import org.apache.jena.riot.system.*;
+import org.apache.jena.sparql.util.Context;
 import org.slf4j.Logger;
 
 public class ParserRules {
+
+    // c.f. RiotLib.createParserProfile
+    protected static ParserProfile createParserProfile(FactoryRDF factory, ErrorHandler errorHandler, IRIxResolver resolver, boolean checking) {
+        PrefixMap prefixMap = PrefixMapFactory.create();
+        return createParserProfile(factory, errorHandler, resolver, prefixMap, checking);
+    }
+
+    protected static ParserProfile createParserProfile(FactoryRDF factory, ErrorHandler errorHandler, IRIxResolver resolver, PrefixMap prefixMap, boolean checking) {
+        Context context = RIOT.getContext().copy();
+        return new ParserProfileStd(factory, errorHandler, resolver, prefixMap, context, checking, false);
+    }
 
     /** Messages to a logger. Adds line/column information. This is not an ErrorHandler */
     protected static class ErrorLogger {
