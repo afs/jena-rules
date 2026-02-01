@@ -1,0 +1,3 @@
+PREFIX : <http://example/>
+
+RULE { ?x :out ?z } WHERE { ?x :data ?o . BIND( 1/?o AS ?z ) }

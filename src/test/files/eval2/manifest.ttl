@@ -28,6 +28,8 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
     (
         :eval-neg-02a
         :eval-neg-02b
+        :eval-filter-error-1
+        :eval-bind-error-1
     ) .
 
 ## Negation
@@ -53,3 +55,20 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
     mf:result  <eval-negation-02-results.ttl>
     .
 
+:eval-filter-error-1  rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-filter-error-1";
+    mf:action
+         [ srt:ruleset  <eval-filter-error-1.srl> ;
+           srt:data     <data-error-1.ttl> ;
+         ] ;
+    mf:result  <eval-filter-error-1-results.ttl>
+    .
+
+:eval-bind-error-1  rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-bind-error-1";
+    mf:action
+         [ srt:ruleset  <eval-bind-error-1.srl> ;
+           srt:data     <data-error-1.ttl> ;
+         ] ;
+    mf:result  <eval-bind-error-1-results.ttl>
+    .

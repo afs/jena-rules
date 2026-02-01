@@ -31,18 +31,15 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
-import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
-import org.apache.jena.sparql.syntax.ElementGroup;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
@@ -50,7 +47,10 @@ import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
-import org.seaborne.jena.shacl_rules.sys.*;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
+import org.seaborne.jena.shacl_rules.sys.RecursionChecker;
+import org.seaborne.jena.shacl_rules.sys.Stratification;
+import org.seaborne.jena.shacl_rules.sys.WellFormed;
 
 /** Forward execution support */
 class RuleExecLib {
@@ -70,45 +70,16 @@ class RuleExecLib {
     }
 
     public static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, Rule rule) {
+        return buildEvalBody(graph, binding, rule.getBodyElements());
+    }
+
+    private static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, List<RuleElement> ruleElts) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
-
-        for ( RuleElement elt : rule.getBodyElements() ) {
-            switch(elt) {
-                case EltTriplePattern(Triple triplePattern) -> {
-                    chain = Access.accessGraph(chain, graph, triplePattern);
-                }
-                case EltCondition(Expr condition) -> {
-                    Iterator<Binding> chain2 = Iter.filter(chain, solution-> {
-                        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
-                        // ExprNode.isSatisfied converts ExprEvalException to false.
-                        return condition.isSatisfied(solution, functionEnv);
-                    });
-                }
-                case EltAssignment(Var var, Expr expression) -> {
-                    Function<Binding, Binding> mapper = row -> {
-                        FunctionEnv funcEnv = new FunctionEnvBase();
-                        NodeValue nv = expression.eval(row, funcEnv);
-                        return BindingFactory.binding(row, var, nv.asNode());
-                    };
-                    return Iter.map(chain, mapper);
-                }
-
-                case EltNegation(List<RuleElement> innerBody) -> {
-                    // XXX Temp use SPARQL
-                    ElementGroup innerGroup = RuleLib.ruleEltsToElementGroup(innerBody);
-                    Expr expression = new E_NotExists(innerGroup);
-                    DatasetGraph dsg = DatasetGraphFactory.wrap(graph);
-                    Iterator<Binding> chain2 = Iter.filter(chain, solution-> {
-                        // Include the graph.
-                        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext(), graph, dsg);
-                        return expression.isSatisfied(solution, functionEnv);
-                    });
-
-                    chain = chain2;
-                }
-//                case null -> {}
-//                default -> {}
-            }
+        // Extract
+        for ( RuleElement elt : ruleElts ) {
+            Iterator<Binding> chainIn = chain;
+            Iterator<Binding> chainOut = evalOneRuleElement(graph, chainIn, elt);
+            chain = chainOut;
             if ( false ) {
                 FmtLog.info(RuleExecLib.class, "chain: ");
                 chain = Iter.log(System.out, chain);
@@ -116,6 +87,46 @@ class RuleExecLib {
         }
         return chain;
     }
+
+    private static Iterator<Binding> evalOneRuleElement(Graph graph, Iterator<Binding> chainIn, RuleElement elt) {
+        switch(elt) {
+            case EltTriplePattern(Triple triplePattern) -> {
+                return Access.accessGraph(chainIn, graph, triplePattern);
+            }
+            case EltCondition(Expr condition) -> {
+                Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
+                    FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+                    // ExprNode.isSatisfied converts ExprEvalException to false.
+                    return condition.isSatisfied(solution, functionEnv);
+                });
+                return chain2;
+            }
+            case EltAssignment(Var var, Expr expression) -> {
+                Function<Binding, Binding> mapper = row -> {
+                    FunctionEnv funcEnv = new FunctionEnvBase();
+                    try {
+                        NodeValue nv = expression.eval(row, funcEnv);
+                        return BindingFactory.binding(row, var, nv.asNode());
+                    } catch (ExprEvalException ex) {
+                        // Error in evaluation of the expression.
+                        return row;
+                    }
+                };
+                return Iter.map(chainIn, mapper);
+            }
+            case EltNegation(List<RuleElement> innerBody) -> {
+                Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
+                    Iterator<Binding> chainInner = buildEvalBody(graph, solution, innerBody);
+                    boolean innerMatches = chainInner.hasNext();
+                    return !innerMatches;
+                });
+                return chain2;
+            }
+            //                case null -> {}
+            default -> { throw new RulesEvalException(""); }
+        }
+    }
+
 
     public static List<Triple> evalRule(Graph graph, Rule rule) {
         Iterator<Binding> iter = evalBody(graph, rule);
@@ -127,6 +138,7 @@ class RuleExecLib {
     private static void accInstantiateHead(List<Triple> acc,  Rule rule, Binding solution) {
         rule.getTripleTemplates().stream()
                 .map(triple->Substitute.substitute(triple, solution))
+                .filter(Triple::isConcrete)
                 .forEach(acc::add);
     }
 }
