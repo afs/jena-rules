@@ -36,6 +36,19 @@ public class ShaclRulesParser {
 
     private static final ShaclRulesSyntax defaultRuleSyntax = ShaclRulesSyntax.SHACL;
 
+
+//    public static ShaclRulesParser.Builder newBuilder() {
+//        return new Builder();
+//    }
+//
+//    public static class Builder {
+//        Builder() {}
+//
+//
+//        public ShaclRulesParser build() { return null; }
+//    }
+
+
     public static RuleSet parseString(String string) {
         return parseString(string, defaultRuleSyntax);
     }

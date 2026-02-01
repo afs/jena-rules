@@ -30,21 +30,35 @@ public class ShaclRulesWriter {
 
     public enum Style { Flat, MultiLine }
 
+
+//    public static ShaclRulesWriter.Builder newBuilder() {
+//        return new Builder();
+//    }
+//
+//    public static class Builder {
+//        Builder() {}
+//
+//        public ShaclRulesWriter.Builder syntax(ShaclRulesSyntax syntax)
+//        { return this; }
+//
+//        public ShaclRulesWriter build() { return null; }
+//    }
+
     public static void printBasic(RuleSet ruleSet) {
         ruleSet.getRules().forEach(r -> {
-            print(System.out, r, ruleSet.getPrefixMap(), true);
+            write(System.out, r, ruleSet.getPrefixMap(), true);
         });
     }
 
     public static void print(RuleSet ruleSet) {
-        print(System.out, ruleSet, true);
+        write(System.out, ruleSet, true);
     }
 
     public static void print(RuleSet ruleSet, boolean flatMode) {
-        print(System.out, ruleSet, flatMode);
+        write(System.out, ruleSet, flatMode);
     }
 
-    public static void print(OutputStream outStream, RuleSet ruleSet, boolean flatMode) {
+    public static void write(OutputStream outStream, RuleSet ruleSet, boolean flatMode) {
         Style style = flatMode ? Style.Flat : Style.MultiLine;
         IndentedWriter output = new IndentedWriter(outStream);
         RuleSetWriter.write(output, ruleSet, style);
@@ -52,38 +66,38 @@ public class ShaclRulesWriter {
 
     /** Write a rule */
     public static void print(Rule rule) {
-        print(System.out, rule, null, true);
+        write(System.out, rule, null, true);
     }
 
     /** Write a rule using a prefix map (not printed). */
     public static void print(Rule rule, PrefixMap prefixMap) {
-        print(System.out, rule, prefixMap, true);
+        write(System.out, rule, prefixMap, true);
     }
 
     public static String asString(Rule rule, PrefixMap prefixMap) {
        try ( IndentedLineBuffer out = new IndentedLineBuffer() ) {
-           print(out, rule, prefixMap, true);
+           write(out, rule, prefixMap, true);
            return out.asString();
        }
     }
 
     /** Write a rule (no prologue). */
-    public static void print(OutputStream outStream, Rule rule, PrefixMap prefixMap, boolean flatMode) {
+    public static void write(OutputStream outStream, Rule rule, PrefixMap prefixMap, boolean flatMode) {
         IndentedWriter output = new IndentedWriter(outStream);
         try {
-            print(output, rule, prefixMap, flatMode);
+            write(output, rule, prefixMap, flatMode);
             outStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void print(IndentedWriter output, Rule rule, PrefixMap prefixMap, boolean flatMode) {
+    public static void write(IndentedWriter output, Rule rule, PrefixMap prefixMap, boolean flatMode) {
         Style style = flatMode ? Style.Flat : Style.MultiLine;
         RuleSetWriter.write(output, rule, prefixMap, null, style);
     }
 
-    public static void print(IndentedWriter output, Rule rule, boolean flatMode) {
+    public static void write(IndentedWriter output, Rule rule, boolean flatMode) {
         Style style = flatMode ? Style.Flat : Style.MultiLine;
         RuleSetWriter.write(output, rule, null, null, style);
     }

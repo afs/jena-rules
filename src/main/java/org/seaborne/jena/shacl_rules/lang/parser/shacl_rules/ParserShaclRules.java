@@ -102,7 +102,7 @@ public class ParserShaclRules extends ParserRules {
             String declaredBaseURI = parser.getBaseIRI();
             IRIx baseIRI = (declaredBaseURI != null) ? IRIx.create(declaredBaseURI) : null;
 
-            RuleSet ruleSet = new RuleSet(baseIRI, parserProfile.getPrefixMap(), rules, triples);
+            RuleSet ruleSet = RuleSet.create(baseIRI, parserProfile.getPrefixMap(), parser.getImports(), rules, triples);
             return ruleSet;
         }
         catch (ParseException ex) {

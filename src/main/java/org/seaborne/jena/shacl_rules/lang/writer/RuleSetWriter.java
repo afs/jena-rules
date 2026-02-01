@@ -114,6 +114,23 @@ public class RuleSetWriter {
         if ( ( base != null || !prefixMap.isEmpty() ) && !ruleSet.isEmpty() )
             out.println();
 
+        if ( ruleSet.hasImports() ) {
+            for ( var importURI : ruleSet.getImports() ) {
+               out.printf("IMPORT ");
+               if ( prefixMap != null ) {
+                   String x = prefixMap.abbreviate(importURI);
+                   if ( x != null )
+                       out.println(x);
+                   continue;
+               }
+               out.print('<');
+               out.print(importURI);
+               out.print('>');
+               out.println();
+            }
+            out.println();
+        }
+
         writeData(ruleSet);
 
         List<Rule> rules = ruleSet.getRules();

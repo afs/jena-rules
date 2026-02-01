@@ -18,9 +18,7 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Graph;
@@ -39,6 +37,7 @@ public class RuleSet {
     private final List<Rule> rules;
     private final List<Triple> dataTriples;
     private final Graph data;
+    private final Set<String> imports;
 
     /**
      * Are two rule sets1 equivalent for execution purposes?
@@ -90,9 +89,26 @@ public class RuleSet {
         return true;
     }
 
-    public RuleSet(IRIx base, PrefixMap prefixMap, List<Rule> rules, List<Triple> dataTriples) {
+    // Morph in to RulSetParser?
+    private static class Builder {
+        IRIx base;
+        PrefixMap prefixMap;
+        List<Rule> rules;
+        List<Triple> dataTriples;
+    }
+
+    public static RuleSet create(IRIx base,
+                          PrefixMap prefixMap,
+                          Set<String> imports,
+                          List<Rule> rules,
+                          List<Triple> dataTriples) {
+        return new RuleSet(base, prefixMap, imports, rules, dataTriples);
+    }
+
+    private RuleSet(IRIx base, PrefixMap prefixMap, Set<String> imports, List<Rule> rules, List<Triple> dataTriples) {
         this.base = base;
         this.prefixMap = Objects.requireNonNull(prefixMap);
+        this.imports = imports;
         this.rules = Objects.requireNonNull(rules);
         this.dataTriples = dataTriples;
 
@@ -150,6 +166,14 @@ public class RuleSet {
         if ( dataTriples == null )
             return false;
         return ! dataTriples.isEmpty();
+    }
+
+    public boolean hasImports() {
+        return imports != null && ! imports.isEmpty();
+    }
+
+    public Collection<String> getImports() {
+        return imports;
     }
 
     public int numRules() {

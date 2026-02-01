@@ -34,6 +34,7 @@ public class rulestests {
         if ( args.length == 0 )
             args = new String[] {"src/test/files/manifest-rules.ttl"};
         List<String> manifests = Arrays.asList(args);
+        TestMakers.system();
         TestMakers.install(RuleTests::makeRuleTest);
         TextTestRunner.run(manifests);
     }

@@ -21,9 +21,12 @@ package org.seaborne.jena.shacl_rules.lang.parser;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.atlas.lib.Pair;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
@@ -39,15 +42,28 @@ import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.slf4j.Logger;
 
 public class RulesParserBase extends LangParserBase {
 
     private List<Rule> rules = new ArrayList<>();
     private List<Triple> data = new ArrayList<>();
 
+    private LinkedHashSet<String> imports = new LinkedHashSet<>();
+
+    private LinkedHashSet<String> transitiveProperties = new LinkedHashSet<>();
+    private LinkedHashSet<String> symmetricProperties = new LinkedHashSet<>();
+    private LinkedHashSet<Pair<String, String>> inverseProperties = new LinkedHashSet<>();
+
     public List<Rule> getRules() { return rules; }
     public List<Triple> getData() { return data; }
+
+    public Set<String> getImports() { return imports; }
+    public Set<String> getTransitiveProperties() { return transitiveProperties; }
+    public Set<String> getSymmetricProperties() { return symmetricProperties; }
+    public Set<Pair<String, String>> getInverseProperties() { return inverseProperties; }
 
     private boolean seenBaseIRI = false;
     public String getBaseIRI() {
@@ -100,9 +116,21 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void finishRules() {
+        Logger log = ShaclRulesParser.parserLogger;
+
         if ( state != BuildState.OUTER )
             throwInternalStateException("finishRuleSet: Unfinished rule?");
         state = BuildState.NONE;
+
+        if ( !transitiveProperties.isEmpty()) {
+            FmtLog.warn(log, "TRANSITIVE properties declared : %d", transitiveProperties.size());
+        }
+        if ( !symmetricProperties.isEmpty()) {
+            FmtLog.warn(log, "SYMMETRIC properties declared : %d", symmetricProperties.size());
+        }
+        if ( !inverseProperties.isEmpty()) {
+            FmtLog.warn(log, "INVERSE properties declared : %d", inverseProperties.size());
+        }
     }
 
     protected void startRule(int line, int column) {
@@ -300,19 +328,24 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void transitiveProperty(String iriStr) {
-        throw new NotImplemented("TRANSITIVE");
+        // Add once.
+        addOnce(transitiveProperties, iriStr);
     }
 
     protected void symmetricProperty(String iriStr) {
-        throw new NotImplemented("SYMMETRIC");
+        addOnce(symmetricProperties, iriStr);
     }
 
     protected void inverseProperties(String iriStr1, String iriStr2) {
-        throw new NotImplemented("INVERSE");
+        addOnce(inverseProperties, Pair.create(iriStr1,  iriStr2));
+    }
+
+    private <X> void addOnce(LinkedHashSet<X> holder, X item) {
+        holder.add(item);
     }
 
     protected void declareImport(String iri) {
-        throw new NotImplemented("IMPORTS");
+        imports.add(iri);
     }
 
     // --

@@ -117,7 +117,7 @@ public class rules_eval extends CmdRules {
 
         if ( printRuleSet ) {
             System.out.println("## Rules");
-            ShaclRulesWriter.print(System.out, ruleSet, false);
+            ShaclRulesWriter.write(System.out, ruleSet, false);
         }
 
         if ( printBaseGraph ) {

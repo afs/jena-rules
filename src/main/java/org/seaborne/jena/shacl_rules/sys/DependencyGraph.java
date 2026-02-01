@@ -258,7 +258,7 @@ public class DependencyGraph {
                 out.incIndent();
                 for ( Rule r : level0 ) {
                     // Entries with no dependencies.
-                    ShaclRulesWriter.print(out, r, ruleSet.getPrefixMap(), true);
+                    ShaclRulesWriter.write(out, r, ruleSet.getPrefixMap(), true);
                 }
                 out.decIndent();
             }
@@ -266,14 +266,14 @@ public class DependencyGraph {
                 out.println("Edges ");
                 out.incIndent();
                 for ( Rule r : direct.keySet() ) {
-                    ShaclRulesWriter.print(out, r, ruleSet.getPrefixMap(), true);
+                    ShaclRulesWriter.write(out, r, ruleSet.getPrefixMap(), true);
                     out.ensureStartOfLine();
                     Collection<Edge> c = direct.get(r);
                     c.forEach(edge -> {
                         out.incIndent(EdgeOffset);
                         out.print(edge.link.symbol);
                         out.print(" ");
-                        ShaclRulesWriter.print(out, edge.linkedRule, ruleSet.getPrefixMap(), true);
+                        ShaclRulesWriter.write(out, edge.linkedRule, ruleSet.getPrefixMap(), true);
                         out.decIndent(EdgeOffset);
                         out.ensureStartOfLine();
                     });

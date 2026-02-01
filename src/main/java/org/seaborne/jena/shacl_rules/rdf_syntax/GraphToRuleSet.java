@@ -20,6 +20,7 @@ package org.seaborne.jena.shacl_rules.rdf_syntax;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -94,7 +95,8 @@ public class GraphToRuleSet {
                 rules.add(r);
         });
         List<Triple> data = parseData(graph, ruleSetNode);
-        RuleSet ruleSet = new RuleSet(null, PrefixMapFactory.create(graph.getPrefixMapping()), rules, data);
+        Set<String> imports = null;
+        RuleSet ruleSet = RuleSet.create(null, PrefixMapFactory.create(graph.getPrefixMapping()), imports, rules, data);
         return ruleSet;
     }
 
