@@ -43,7 +43,7 @@ import org.apache.jena.sparql.path.Path;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.slf4j.Logger;
 
 public class RulesParserBase extends LangParserBase {
@@ -105,9 +105,9 @@ public class RulesParserBase extends LangParserBase {
     // Used while parsing the head.
     private List<Triple> headAcc = null;
     // Used while parsing the body.
-    private List<RuleElement> bodyAcc = null;
+    private List<RuleBodyElement> bodyAcc = null;
     // Used while parsing a negation or aggregation inner body.
-    private List<RuleElement> innerBodyAcc = null;
+    private List<RuleBodyElement> innerBodyAcc = null;
 
     // ----
 
@@ -236,7 +236,7 @@ public class RulesParserBase extends LangParserBase {
         headAcc.add(tripleTemplate);
     }
 
-    private void addToBody(RuleElement ruleElt) {
+    private void addToBody(RuleBodyElement ruleElt) {
         requireNonNull(ruleElt);
         switch(state) {
             case BODY -> bodyAcc.add(ruleElt);
@@ -251,19 +251,19 @@ public class RulesParserBase extends LangParserBase {
     // Triple pattern.
     private void addRuleElement(Triple triplePattern) {
         requireNonNull(triplePattern);
-        addToBody(new RuleElement.EltTriplePattern(triplePattern));
+        addToBody(new RuleBodyElement.EltTriplePattern(triplePattern));
     }
 
     // Condition
     private void addRuleElement(Expr expression) {
         requireNonNull(expression);
-        addToBody(new RuleElement.EltCondition(expression));
+        addToBody(new RuleBodyElement.EltCondition(expression));
     }
 
     // Negation
-    private void addRuleElement(List<RuleElement> inner) {
+    private void addRuleElement(List<RuleBodyElement> inner) {
         requireNonNull(inner);
-        RuleElement rElt = new RuleElement.EltNegation(inner);
+        RuleBodyElement rElt = new RuleBodyElement.EltNegation(inner);
         addToBody(rElt);
 }
 
@@ -271,7 +271,7 @@ public class RulesParserBase extends LangParserBase {
     private void addRuleElement(Var var, Expr expression) {
         requireNonNull(var);
         requireNonNull(expression);
-        addToBody(new RuleElement.EltAssignment(var, expression));
+        addToBody(new RuleBodyElement.EltAssignment(var, expression));
     }
 
     protected void emitTriple(Node s, Node p, Path path, Node o, int line, int column) {
@@ -367,7 +367,7 @@ public class RulesParserBase extends LangParserBase {
             case INNER -> {
                 Triple triplePattern = Triple.create(s,p,o);
                 requireNonNull(triplePattern);
-                innerBodyAcc.addLast(new RuleElement.EltTriplePattern(triplePattern));
+                innerBodyAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
             }
             case DATA -> {
                 if ( ! triple.isConcrete() )

@@ -23,19 +23,19 @@ import java.util.List;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.syntax.*;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 
 public class RuleLib {
 
     /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */
-    public static ElementGroup ruleEltsToElementGroup(List<RuleElement> ruleElts) {
+    public static ElementGroup ruleEltsToElementGroup(List<RuleBodyElement> ruleElts) {
         ElementGroup group = new ElementGroup();
         ElementTriplesBlock tBlk = null;
-        for ( RuleElement rElt : ruleElts ) {
+        for ( RuleBodyElement rElt : ruleElts ) {
             switch (rElt) {
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
                 case EltCondition(var expr) -> group.addElement(new ElementFilter(expr));
@@ -55,7 +55,7 @@ public class RuleLib {
     }
 
     /** RuleElements (i.e. a rule body) to a SPARQL Query. */
-    public static Query ruleEltsToQuery(List<RuleElement> ruleElts) {
+    public static Query ruleEltsToQuery(List<RuleBodyElement> ruleElts) {
         var eltGroup = ruleEltsToElementGroup(ruleElts);
         Query query = new Query();
         query.setQuerySelectType();

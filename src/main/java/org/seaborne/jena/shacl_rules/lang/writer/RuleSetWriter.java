@@ -38,7 +38,8 @@ import org.apache.jena.sparql.serializer.SerializationContext;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter.Style;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 public class RuleSetWriter {
     private final IndentedWriter out;
@@ -245,10 +246,10 @@ public class RuleSetWriter {
         out.flush();
     }
 
-    private void writeRuleElements(List<RuleElement> bodyElements, Style styleBody) {
+    private void writeRuleElements(List<RuleBodyElement> bodyElements, Style styleBody) {
         // Without braces.
         boolean first = true;
-        for ( RuleElement elt : bodyElements ) {
+        for ( RuleBodyElement elt : bodyElements ) {
             if ( ! first ) {
                 if ( styleBody == Style.MultiLine )
                     out.println();
@@ -258,14 +259,14 @@ public class RuleSetWriter {
             first = false;
 
             switch (elt) {
-                case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                case EltTriplePattern(Triple triplePattern) -> {
                     writeTriple(triplePattern);
                 }
-                case RuleElement.EltCondition(Expr condition) -> {
+                case EltCondition(Expr condition) -> {
                     out.write("FILTER");
                     writeExpr(condition);
                 }
-                case RuleElement.EltNegation(List<RuleElement> inner) -> {
+                case EltNegation(List<RuleBodyElement> inner) -> {
                     out.write("NOT {");
                     out.println();
                     final int indentLevelNegation = 4 ;
@@ -275,7 +276,7 @@ public class RuleSetWriter {
                     out.println();
                     out.write(" }");
                 }
-                case RuleElement.EltAssignment(Var var, Expr expression) -> {
+                case EltAssignment(Var var, Expr expression) -> {
                     out.write("BIND( ");
                     writeExpr(expression);
                     out.write(" AS ");

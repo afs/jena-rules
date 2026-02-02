@@ -32,7 +32,8 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 /**
  * Rules dependency graph. The graph has vertices of rules and links being "depends
@@ -123,10 +124,10 @@ public class DependencyGraph {
         return connections;
     }
 
-    private static void accumulateEdges(List<Edge> accumulator, Rule rule, Link linkType, List<RuleElement> elts, MultiValuedMap<Triple, Rule> providers) {
-        for ( RuleElement elt : elts ) {
+    private static void accumulateEdges(List<Edge> accumulator, Rule rule, Link linkType, List<RuleBodyElement> elts, MultiValuedMap<Triple, Rule> providers) {
+        for ( RuleBodyElement elt : elts ) {
             switch(elt) {
-                case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                case EltTriplePattern(Triple triplePattern) -> {
                     // Using providers.
                     providers.keySet().forEach(tripleTemplate -> {
                         if ( DEBUG_BUILD ) {
@@ -151,15 +152,15 @@ public class DependencyGraph {
                         }
                     });
                 }
-                case RuleElement.EltNegation(List<RuleElement> inner) -> {
+                case EltNegation(List<RuleBodyElement> inner) -> {
                     // Do as a second pass once all the positives are done?
                     // NB Negative overrides positive in stratification.
                     // Anything inside NOT is also "negative"
                     accumulateEdges(accumulator, rule, Link.NEGATIVE, inner, providers);
                 }
                 // These do not cause a dependency relationship.
-//                case RuleElement.EltCondition(Expr condition) -> {}
-//                case RuleElement.EltAssignment(Var var, Expr expression) -> {}
+//                case EltCondition(Expr condition) -> {}
+//                case EltAssignment(Var var, Expr expression) -> {}
 
                 case null -> throw new RulesException("Encountered a null rule element");
 

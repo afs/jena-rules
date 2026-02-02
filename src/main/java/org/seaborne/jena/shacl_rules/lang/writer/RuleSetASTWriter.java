@@ -39,7 +39,8 @@ import org.apache.jena.sparql.sse.Tags;
 import org.apache.jena.sparql.sse.writers.WriterExpr;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 /**
  * Write a ruleset as an abstract syntax tree.
@@ -174,18 +175,18 @@ public class RuleSetASTWriter {
         out.println(")");
     }
 
-    private void writeRuleElements(List<RuleElement> bodyElements) {
+    private void writeRuleElements(List<RuleBodyElement> bodyElements) {
             // Without braces.
             boolean first = true;
-            for ( RuleElement elt : bodyElements ) {
+            for ( RuleBodyElement elt : bodyElements ) {
                 //if ( ! first ) {}
                 first = false;
 
                 switch (elt) {
-                    case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+                    case EltTriplePattern(Triple triplePattern) -> {
                         writeTriple(triplePattern);
                     }
-                    case RuleElement.EltCondition(Expr condition) -> {
+                    case EltCondition(Expr condition) -> {
                         out.print("(");
                         out.print(tagFilter);
                         out.print(" ");
@@ -201,7 +202,7 @@ public class RuleSetASTWriter {
 //                        out.decIndent();
 //                        out.print(")");
                     }
-                    case RuleElement.EltNegation(List<RuleElement> inner) -> {
+                    case EltNegation(List<RuleBodyElement> inner) -> {
                         final int indentLevelNegation = 2 ;
                         out.print("(");
                         out.println(tagNot);
@@ -212,7 +213,7 @@ public class RuleSetASTWriter {
                         out.decIndent(indentLevelNegation);
                         out.print(")");
                     }
-                    case RuleElement.EltAssignment(Var var, Expr expression) -> {
+                    case EltAssignment(Var var, Expr expression) -> {
                         out.print("(");
                         out.print(tagBind);
                         nodeFormatter.format(out, var);

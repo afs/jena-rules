@@ -43,11 +43,11 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RecursionChecker;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
@@ -74,10 +74,10 @@ class RuleExecLib {
         return buildEvalBody(graph, binding, rule.getBodyElements());
     }
 
-    private static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, List<RuleElement> ruleElts) {
+    private static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, List<RuleBodyElement> ruleElts) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
         // Extract
-        for ( RuleElement elt : ruleElts ) {
+        for ( RuleBodyElement elt : ruleElts ) {
             Iterator<Binding> chainIn = chain;
             Iterator<Binding> chainOut = evalOneRuleElement(graph, chainIn, elt);
             chain = chainOut;
@@ -89,7 +89,7 @@ class RuleExecLib {
         return chain;
     }
 
-    private static Iterator<Binding> evalOneRuleElement(Graph graph, Iterator<Binding> chainIn, RuleElement elt) {
+    private static Iterator<Binding> evalOneRuleElement(Graph graph, Iterator<Binding> chainIn, RuleBodyElement elt) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 return Access.accessGraph(chainIn, graph, triplePattern);
@@ -118,7 +118,7 @@ class RuleExecLib {
                 };
                 return Iter.iter(chainIn).map(mapper).removeNulls()/*.get()*/;
             }
-            case EltNegation(List<RuleElement> innerBody) -> {
+            case EltNegation(List<RuleBodyElement> innerBody) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
                     Iterator<Binding> chainInner = buildEvalBody(graph, solution, innerBody);
                     boolean innerMatches = chainInner.hasNext();

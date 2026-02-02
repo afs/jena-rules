@@ -46,11 +46,11 @@ import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RuleDependencies;
 
@@ -257,7 +257,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( TRACE )
             LOG.incIndent();
 
-        for ( RuleElement elt : rule.getBodyElements() ) {
+        for ( RuleBodyElement elt : rule.getBodyElements() ) {
             switch(elt) {
                 case EltTriplePattern(Triple triplePattern) -> {
                     List<Rule> subRules = dependsOn(triplePattern);

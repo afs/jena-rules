@@ -24,18 +24,19 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 
 class RuleBody {
 
-    private final List<RuleElement> body;
+    private final List<RuleBodyElement> body;
 
-    public RuleBody(List<RuleElement> ruleElts) {
+    public RuleBody(List<RuleBodyElement> ruleElts) {
         this.body = ruleElts;
     }
 
     // The triples used in pattern matching.
-    private static List<Triple> ruleGetTriples(List<RuleElement> ruleElts) {
+    private static List<Triple> ruleGetTriples(List<RuleBodyElement> ruleElts) {
         List<Triple> x = ruleElts.stream()
                 .map(RuleBody::patternTripleOrNull)
                 .filter(Objects::nonNull)
@@ -43,25 +44,25 @@ class RuleBody {
         return x;
     }
 
-    private static Triple patternTripleOrNull(RuleElement elt) {
+    private static Triple patternTripleOrNull(RuleBodyElement elt) {
         return switch(elt) {
-            case RuleElement.EltTriplePattern el -> el.triplePattern();
+            case EltTriplePattern el -> el.triplePattern();
             default -> null;
         };
     }
 
-    List<RuleElement> getBodyElements() {
+    List<RuleBodyElement> getBodyElements() {
         return body;
     }
 
-    public void forEach(Consumer<RuleElement> action) {
+    public void forEach(Consumer<RuleBodyElement> action) {
         body.forEach(action);
     }
 
     /**
      * Apply an action to each index and rule, in the order they appear in the body.
      */
-    public void forEach(BiConsumer<Integer, RuleElement> action) {
+    public void forEach(BiConsumer<Integer, RuleBodyElement> action) {
         int N = body.size();
         for ( int i = 0 ; i < N ; i++ ) {
             action.accept(i, body.get(i));
@@ -96,8 +97,8 @@ class RuleBody {
 //        // XXX Unfinished
 //        body.stream()
 //                .map(elt-> switch(elt) {
-//                    case RuleElement.EltTriplePattern el -> el.triplePattern();
-//                    case RuleElement.EltNegation neg -> { }
+//                    case EltTriplePattern el -> el.triplePattern();
+//                    case EltNegation neg -> { }
 //                })
 //                .filter(Objects::nonNull).toList();
 //        return x.toString();

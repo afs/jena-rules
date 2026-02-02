@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 
 public class Rule {
@@ -36,11 +36,11 @@ public class Rule {
     /**
      * Used by the parser and {@link GraphToRuleSet}
      */
-    public static Rule create(List<Triple> triples, List<RuleElement> body) {
+    public static Rule create(List<Triple> triples, List<RuleBodyElement> body) {
         return new Rule(triples, body);
     }
 
-    private Rule(List<Triple> triples, List<RuleElement> body) {
+    private Rule(List<Triple> triples, List<RuleBodyElement> body) {
         this.head = new RuleHead(triples);
         this.body = new RuleBody(body);
         counter++;
@@ -68,11 +68,11 @@ public class Rule {
         return body;
     }
 
-    public List<RuleElement> getBodyElements() {
+    public List<RuleBodyElement> getBodyElements() {
         return getBody().getBodyElements();
     }
 
-    public void forEachBodyElement(Consumer<RuleElement> action) {
+    public void forEachBodyElement(Consumer<RuleBodyElement> action) {
         getBody().getBodyElements().forEach(action);
     }
 

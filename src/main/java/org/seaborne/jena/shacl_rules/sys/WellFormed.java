@@ -30,8 +30,8 @@ import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 /**
  * Rule well-formed conditions.
@@ -75,28 +75,28 @@ public class WellFormed {
         }
     }
 
-    private static void checkRuleElements(VarTracker tracker, List<RuleElement> elts) {
-        for ( RuleElement elt : elts ) {
+    private static void checkRuleElements(VarTracker tracker, List<RuleBodyElement> elts) {
+        for ( RuleBodyElement elt : elts ) {
             checkRuleElement(tracker, elt);
         }
     }
 
-    public static void checkRuleElement(VarTracker tracker, RuleElement elt) {
+    public static void checkRuleElement(VarTracker tracker, RuleBodyElement elt) {
         switch(elt) {
-            case RuleElement.EltTriplePattern(Triple triplePattern) -> {
+            case EltTriplePattern(Triple triplePattern) -> {
                 addVar(tracker.bodyDefined, triplePattern.getSubject());
                 addVar(tracker.bodyDefined, triplePattern.getPredicate());
                 addVar(tracker.bodyDefined, triplePattern.getObject());
             }
-            case RuleElement.EltCondition(Expr condition) -> {
+            case EltCondition(Expr condition) -> {
                 processWellFormedExpr(tracker, condition);
             }
-            case EltNegation(List<RuleElement> innerBody) -> {
+            case EltNegation(List<RuleBodyElement> innerBody) -> {
                 // Isolated tracker.
                 VarTracker negTracker = tracker.copyOf();
                 checkRuleElements(negTracker, innerBody);
             }
-            case RuleElement.EltAssignment(Var var, Expr expression) -> {
+            case EltAssignment(Var var, Expr expression) -> {
                 processWellFormedExpr(tracker, expression);
                 if ( tracker.bodyDefined.contains(var) )
                     throw new NotWellFormedException("Assignment variable already defined: "+var);

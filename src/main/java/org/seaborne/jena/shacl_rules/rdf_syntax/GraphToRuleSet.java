@@ -36,7 +36,8 @@ import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 public class GraphToRuleSet {
@@ -105,7 +106,7 @@ public class GraphToRuleSet {
         Node bodyNode = G.getOneSP(graph, n, V.body);
 
         List<Triple> headTemplate = parseRuleHead(graph, headNode);
-        List<RuleElement> body = parseRuleBody(graph, bodyNode);
+        List<RuleBodyElement> body = parseRuleBody(graph, bodyNode);
         Rule rule = Rule.create(headTemplate, body);
         return rule;
     }
@@ -156,8 +157,8 @@ public class GraphToRuleSet {
         throw new ShaclException("Blank node in pattern or malformed for a variable.");
     }
 
-    private static List<RuleElement> parseRuleBody(Graph graph, Node bodyNode) {
-        List<RuleElement> body = new ArrayList<>();
+    private static List<RuleBodyElement> parseRuleBody(Graph graph, Node bodyNode) {
+        List<RuleBodyElement> body = new ArrayList<>();
         GNode gNode = GNode.create(graph, bodyNode);
         List<Node> x = GraphList.members(gNode);
         // Mutated
@@ -168,14 +169,14 @@ public class GraphToRuleSet {
                 // Deal with both V.expr and V.sparqlExpr
                 Expr expr = SparqlNodeExpressions.rdfToExpr(graph, node);
                 // SparqlNodeExpression.buildExpr controls whether to use ExprNodeExpression or not.
-                body.add(new RuleElement.EltCondition(expr));
+                body.add(new EltCondition(expr));
                 continue;
             }
 
             if ( G.hasProperty(graph, node, V.subject) ) {
                 // Single triple rule.
                 Triple triple = parseTriple(graph, node);
-                body.add(new RuleElement.EltTriplePattern(triple));
+                body.add(new EltTriplePattern(triple));
                 continue;
             }
             if ( G.hasProperty(graph, node, V.sparqlBody) ) {
@@ -185,8 +186,8 @@ public class GraphToRuleSet {
 
             if ( G.hasProperty(graph, node, V.negation) ) {
                 Node nInnerBody = G.getOneSP(graph, node, V.negation);
-                List<RuleElement> innerBody = parseRuleBody(graph, nInnerBody);
-                body.add(new RuleElement.EltNegation(innerBody));
+                List<RuleBodyElement> innerBody = parseRuleBody(graph, nInnerBody);
+                body.add(new EltNegation(innerBody));
                 continue;
             }
 
@@ -197,7 +198,7 @@ public class GraphToRuleSet {
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
                 // Force expr
                 Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
-                body.add(new RuleElement.EltAssignment(var, expr));
+                body.add(new EltAssignment(var, expr));
                 continue;
             }
 

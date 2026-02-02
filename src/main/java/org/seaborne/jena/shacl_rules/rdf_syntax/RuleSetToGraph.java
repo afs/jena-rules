@@ -38,11 +38,11 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.jena.JLib;
-import org.seaborne.jena.shacl_rules.lang.RuleElement;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 import org.seaborne.jena.shacl_rules.sys.V;
 
@@ -105,7 +105,7 @@ public class RuleSetToGraph {
 
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
-        List<RuleElement> bodyElts = rule.getBodyElements();
+        List<RuleBodyElement> bodyElts = rule.getBodyElements();
         Node bodyNode = writeBodyElements(graph, bodyElts);
 
         if ( false ) {
@@ -122,7 +122,7 @@ public class RuleSetToGraph {
         return bodyNode;
     }
 
-    private static Node writeBodyElements(Graph graph, List<RuleElement> bodyElts) {
+    private static Node writeBodyElements(Graph graph, List<RuleBodyElement> bodyElts) {
         List<Node> items = new ArrayList<>();
         bodyElts.forEach(elt->{
             switch(elt) {

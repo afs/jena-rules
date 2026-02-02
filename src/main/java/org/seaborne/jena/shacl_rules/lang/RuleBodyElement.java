@@ -24,10 +24,10 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 
-public sealed interface RuleElement  {
-    public record EltTriplePattern(Triple triplePattern) implements RuleElement {}
-    public record EltNegation(List<RuleElement> inner) implements RuleElement {}
-    public record EltCondition(Expr condition) implements RuleElement {}
-    public record EltAssignment(Var var, Expr expression) implements RuleElement {}
+public sealed interface RuleBodyElement  {
+    public record EltTriplePattern(Triple triplePattern) implements RuleBodyElement {}
+    public record EltNegation(List<RuleBodyElement> inner) implements RuleBodyElement {}
+    public record EltCondition(Expr condition) implements RuleBodyElement {}
+    public record EltAssignment(Var var, Expr expression) implements RuleBodyElement {}
 //    public record EltAggregation(Var var, Expr expression) implements RuleElement {}
 }
