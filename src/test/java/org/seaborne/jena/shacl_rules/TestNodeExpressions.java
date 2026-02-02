@@ -44,7 +44,7 @@ public class TestNodeExpressions {
 
     @Test public void nx_expr_uri() {
         String nxGraph = PREFIXES+"""
-                :nx shr:expr [ sparql:now () ] .
+                :nx srl:expr [ sparql:now () ] .
                 """;
         Node nx = NodeFactory.createURI("http://example/nx");
         Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
@@ -55,7 +55,7 @@ public class TestNodeExpressions {
 
     @Test public void nx_expr_bnode() {
         String nxGraph = PREFIXES+"""
-                [] shr:expr [ sparql:now () ] .
+                [] srl:expr [ sparql:now () ] .
                 """;
         Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
         Node nx = G.getOneSP(graph, null,  V.expr);

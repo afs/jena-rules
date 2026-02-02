@@ -67,7 +67,7 @@ public class P {
 
     //@formatter:on
 
-    public static final String PREFIXES = prefixesAsString(prefixesMap, "rdf", "sh", "shr", "shnex", "sparql", "arq");
+    public static final String PREFIXES = prefixesAsString(prefixesMap, "rdf", "sh", "srl", "shnex", "sparql", "arq");
 
 
     // It would be nice if this were immutable.

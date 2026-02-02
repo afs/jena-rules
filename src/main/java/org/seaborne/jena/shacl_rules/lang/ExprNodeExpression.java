@@ -128,7 +128,7 @@ public class ExprNodeExpression extends ExprNode {
 
         // It's a function
         //  [ function ( args1, args2) ]
-        // or shr:expr.
+        // or shl:expr.
 
         NodeExpressionFunction nExprFn = NX.getRDFExpression(graph, node);
         for ( Node arg : nExprFn.arguments() ) {
