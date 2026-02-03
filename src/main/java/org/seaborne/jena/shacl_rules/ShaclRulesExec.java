@@ -20,12 +20,14 @@ package org.seaborne.jena.shacl_rules;
 
 import org.apache.jena.graph.Graph;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
-import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 
 /** API - evaluation of a {@link RuleSet} over a {@link Graph baseGraph} */
 public class ShaclRulesExec {
+
+    // Pull RulesEngine statics here?
+
     public static RuleSetEvaluation execute(RuleSet ruleSet, Graph baseGraph) {
-        RuleSetEvaluation e = RulesEngineFwdSimple.build(baseGraph, ruleSet).eval();
+        RuleSetEvaluation e = RulesEngine.create(baseGraph, ruleSet).eval();
         return e;
     }
 }

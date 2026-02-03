@@ -23,8 +23,8 @@ package org.seaborne.jena.shacl_rules;
 //   Do each pass with respect to the previous round.
 // Algorithm: Gauss-Seidel
 //   Do each pass with growing inferred graph
+
 public enum EvalAlgorithm {
-    // Default naive (used for tests).
     FWD_NAIVE("Naive")
     , FWD_NAIVE_JACOBI("Naive (Jacobi)")
     , FWD_NAIVE_GUASS_SEIDEL("Naive (GUASS_SEIDEL)")

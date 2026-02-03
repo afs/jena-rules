@@ -50,7 +50,7 @@ public class RulesEngineFwdSimple0 implements RulesEngine {
     }
 
     public static RulesEngineFwdSimple0 build(Graph graph, RuleSet ruleSet) {
-        RuleExecLib.prepare(ruleSet);
+        RulesExecLib.prepare(ruleSet);
         return new RulesEngineFwdSimple0(graph, ruleSet);
     }
 
@@ -203,7 +203,7 @@ public class RulesEngineFwdSimple0 implements RulesEngine {
             System.out.print(rs);
             //System.out.println();
         }
-        List<Triple> triples = RuleExecLib.evalRule(graph, rule);
+        List<Triple> triples = RulesExecLib.evalRule(graph, rule);
         GraphUtil.add(graph, triples);
     }
 }

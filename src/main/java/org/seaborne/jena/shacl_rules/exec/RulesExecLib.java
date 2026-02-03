@@ -54,7 +54,7 @@ import org.seaborne.jena.shacl_rules.sys.Stratification;
 import org.seaborne.jena.shacl_rules.sys.WellFormed;
 
 /** Forward execution support */
-class RuleExecLib {
+class RulesExecLib {
 
     /** Perform checking and setup */
     public static void prepare(RuleSet ruleSet) {
@@ -82,7 +82,7 @@ class RuleExecLib {
             Iterator<Binding> chainOut = evalOneRuleElement(graph, chainIn, elt);
             chain = chainOut;
             if ( false ) {
-                FmtLog.info(RuleExecLib.class, "chain: ");
+                FmtLog.info(RulesExecLib.class, "chain: ");
                 chain = Iter.log(System.out, chain);
             }
         }

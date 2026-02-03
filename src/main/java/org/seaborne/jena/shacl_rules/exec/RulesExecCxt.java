@@ -22,11 +22,52 @@
 package org.seaborne.jena.shacl_rules.exec;
 
 import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.function.FunctionEnv;
+import org.apache.jena.sparql.util.Context;
 
-public class RuleExecCxt {
-    public static RuleExecCxt global = new RuleExecCxt();
+/**
+ * Rule execution environment.
+ * <p>
+ * This includes tracing support and a {@link Context}.
+ */
+public class RulesExecCxt implements FunctionEnv {
+    // FunctionEnv is necessary for function evaluation but
+    // SHACL Rules does not include SPARQL functions that
+    // need the graph or dataset (e.g. EXISTS).
+
+    //public static RuleExecCxt global = new RuleExecCxt();
 
     private IndentedWriter out = IndentedWriter.clone(IndentedWriter.stdout).setFlushOnNewline(true);
+
+    private final Context context;
+
+    public static RulesExecCxt create(Context context) {
+        // Always isolate.
+        // Be careful not to copy too many times!
+        return new RulesExecCxt(context.copy());
+    }
+
+    private RulesExecCxt(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public Graph getActiveGraph() {
+        throw new UnsupportedOperationException("RuleExecCxt.getActiveGraph");
+    }
+
+    @Deprecated
+    @Override
+    public DatasetGraph getDataset() {
+        throw new UnsupportedOperationException("RuleExecCxt.getDataset");
+    }
+
+    @Override
+    public Context getContext() {
+        return context;
+    }
 
     public void start() {}
 
@@ -34,18 +75,15 @@ public class RuleExecCxt {
         out.flush();
     }
 
+    /** Debug rules evaluated. */
     public boolean DEBUG = false;
     /** Development : debug details */
     public boolean debug() { return DEBUG; }
 
     /** Trace rules evaluated. */
     public boolean TRACE = false;
-
-    public RuleExecCxt() {}
-
-    /** Application; trace rule execution */
+    /** Application: trace rule execution */
     public boolean trace() { return TRACE; }
 
     public IndentedWriter out() { return out; }
 }
-

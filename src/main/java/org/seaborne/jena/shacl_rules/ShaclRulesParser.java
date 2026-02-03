@@ -123,6 +123,86 @@ public class ShaclRulesParser {
         throw new RulesException("No source");
     }
 
+    // XXX Packaged convenience functions. May go into a different class.
+
+    /** Parse from a string, and return a {@link RuleSet}
+     * @param string
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parseString(String string) {
+        return fromString(string).parse();
+    }
+
+    /**
+     * Parse from a string and return a {@link RuleSet}
+     * @param string
+     * @param rulesSyntax
+     * @returns RuleSet
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parseString(String string, ShaclRulesSyntax rulesSyntax) {
+        return fromString(string).syntax(rulesSyntax).parse();
+    }
+
+    /**
+     * Parse from a string and return a {@link RuleSet}
+     * @param string
+     * @param baseURI
+     * @param rulesSyntax
+     * @returns RuleSet
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parseString(String string, String baseURI, ShaclRulesSyntax rulesSyntax) {
+        return fromString(string).baseURI(baseURI).syntax(rulesSyntax).parse();
+    }
+
+    /**
+     * Parse a file or web document, and return a {@link RuleSet}
+     * @param filenameOrURI
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parseFile(String filenameOrURI) {
+        return from(filenameOrURI).parse();
+    }
+
+    /**
+     * Parse a file, with given baseURI, and return a {@link RuleSet}.
+     * @param filenameOrURI or URI
+     * @param baseURI
+     * @returns RuleSet
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parseFile(String filenameOrURI, String baseURI) {
+        return from(filenameOrURI).baseURI(baseURI).parse();
+    }
+
+    /**
+     * Parse from file or web document and return a {@link RuleSet}
+     * @param filenameOrURI
+     * @param baseURI
+     * @param rulesSyntax
+     * @returns RuleSet
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parseFile(String filenameOrURI, String baseURI, ShaclRulesSyntax rulesSyntax) {
+        return from(filenameOrURI).baseURI(baseURI).syntax(rulesSyntax).parse();
+    }
+
+    /**
+     * Parse from an {@code InputStream}
+     * @param input
+     * @param baseURI
+     * @returns RuleSet
+     * @throws ShaclRulesParseException
+     */
+    public static RuleSet parse(InputStream input, String baseURI) {
+        return parse(input, baseURI, defaultRulesSyntax);
+    }
+
+    public static RuleSet parse(InputStream in, String baseURI, ShaclRulesSyntax rulesSyntax) {
+        return from(in).baseURI(baseURI).syntax(rulesSyntax).parse();
+    }
+
     private static RuleSet parseJavaReader(StringReader jr, String baseURI, ShaclRulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
             case SHACL->ParserShaclRules.parse(jr, baseURI);
@@ -169,82 +249,5 @@ public class ShaclRulesParser {
 
     // Convenience.
 
-    /** Parse from a string, and return a {@link RuleSet}
-     * @param string
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parseString(String string) {
-        return ShaclRulesParser.fromString(string).parse();
-    }
-
-    /**
-     * Parse from a string and return a {@link RuleSet}
-     * @param string
-     * @param rulesSyntax
-     * @returns RuleSet
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parseString(String string, ShaclRulesSyntax rulesSyntax) {
-        return ShaclRulesParser.fromString(string).syntax(rulesSyntax).parse();
-    }
-
-    /**
-     * Parse from a string and return a {@link RuleSet}
-     * @param string
-     * @param baseURI
-     * @param rulesSyntax
-     * @returns RuleSet
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parseString(String string, String baseURI, ShaclRulesSyntax rulesSyntax) {
-        return ShaclRulesParser.fromString(string).baseURI(baseURI).syntax(rulesSyntax).parse();
-    }
-
-    /**
-     * Parse a file or web document, and return a {@link RuleSet}
-     * @param filenameOrURI
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parseFile(String filenameOrURI) {
-        return ShaclRulesParser.from(filenameOrURI).parse();
-    }
-
-    /**
-     * Parse a file, with given baseURI, and return a {@link RuleSet}.
-     * @param filenameOrURI or URI
-     * @param baseURI
-     * @returns RuleSet
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parseFile(String filenameOrURI, String baseURI) {
-        return ShaclRulesParser.from(filenameOrURI).baseURI(baseURI).parse();
-    }
-
-    /**
-     * Parse from file or web document and return a {@link RuleSet}
-     * @param filenameOrURI
-     * @param baseURI
-     * @param rulesSyntax
-     * @returns RuleSet
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parseFile(String filenameOrURI, String baseURI, ShaclRulesSyntax rulesSyntax) {
-        return ShaclRulesParser.from(filenameOrURI).baseURI(baseURI).syntax(rulesSyntax).parse();
-    }
-
-    /**
-     * Parse from an {@code InputStream}
-     * @param input
-     * @param baseURI
-     * @returns RuleSet
-     * @throws ShaclRulesParseException
-     */
-    public static RuleSet parse(InputStream input, String baseURI) {
-        return parse(input, baseURI, defaultRulesSyntax);
-    }
-
-    public static RuleSet parse(InputStream in, String baseURI, ShaclRulesSyntax rulesSyntax) {
-        return ShaclRulesParser.from(in).baseURI(baseURI).syntax(rulesSyntax).parse();
-    }
 }
 

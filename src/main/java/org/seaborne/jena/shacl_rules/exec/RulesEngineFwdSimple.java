@@ -24,12 +24,13 @@ package org.seaborne.jena.shacl_rules.exec;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
@@ -44,24 +45,41 @@ import org.seaborne.jena.shacl_rules.sys.Stratification;
  */
 public class RulesEngineFwdSimple implements RulesEngine {
 
+    public static final RulesEngineFactory factory = (graph, ruleSet, cxt) -> build(graph, ruleSet, cxt);
+
+//    /**
+//     * Preferred: use {@link RulesEngineRegistry#create}
+//     * and {@link EngineType#SIMPLE}.
+//     */
+//    public static RulesEngineFwdSimple build(Graph graph, RuleSet ruleSet) {
+//        return build(graph, ruleSet, null);
+//    }
+
+    public static RulesEngine build(Graph graph, RuleSet ruleSet, Context cxt) {
+        if ( cxt == null )
+            cxt = ARQ.getContext();
+        // Isolated.
+        cxt = cxt.copy();
+        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
+        RulesExecLib.prepare(ruleSet);
+        return new RulesEngineFwdSimple(graph, ruleSet, rCxt);
+    }
+
+    private final RuleSet ruleSet;
+    private final Graph baseGraph;
+    private final RulesExecCxt rCxt;
+
+    private RulesEngineFwdSimple(Graph baseGraph, RuleSet ruleSet, RulesExecCxt rCxt) {
+        this.baseGraph = baseGraph;
+        this.ruleSet = ruleSet;
+        this.rCxt = rCxt;
+    }
+
     private boolean TRACE = false;
     @Override
     public RulesEngineFwdSimple setTrace(boolean traceSetting) {
         TRACE = traceSetting;
         return this;
-    }
-
-    public static RulesEngineFwdSimple build(Graph graph, RuleSet ruleSet) {
-        RuleExecLib.prepare(ruleSet);
-        return new RulesEngineFwdSimple(graph, ruleSet);
-    }
-
-    private final RuleSet ruleSet;
-    private final Graph baseGraph;
-
-    private RulesEngineFwdSimple(Graph baseGraph, RuleSet ruleSet) {
-        this.baseGraph = baseGraph;
-        this.ruleSet = ruleSet;
     }
 
     @Override
@@ -114,6 +132,11 @@ public class RulesEngineFwdSimple implements RulesEngine {
         Stratification stratification = Stratification.create(ruleSet);
         int N = stratification.maxStratum();
 
+        // NOW()
+        Context.setCurrentDateTime(rCxt.getContext());
+
+        TRACE = rCxt.trace();
+
         // == dataGraph -- base graph + data.
         // The input graph for the algorithm.
         AppendGraph dataGraph = AppendGraph.create(baseGraph);
@@ -129,49 +152,47 @@ public class RulesEngineFwdSimple implements RulesEngine {
         Graph inferred = dataGraph.getAdded();
         inferred.getPrefixMapping().setNsPrefixes(dataGraph.getPrefixMapping());
 
-        IndentedWriter out = IndentedWriter.stdout.clone();
-
         if ( TRACE ) {
-            out.println("Base graph: size = "+baseGraph.size());
-            out.println("Inferred graph: size = "+inferred.size());
-            //out.println("Inferred graph: size = "+inferred.size());
+            rCxt.out().println("Base graph: size = "+baseGraph.size());
+            rCxt.out().println("Inferred graph: size = "+inferred.size());
+            //rCxt.out().println("Inferred graph: size = "+inferred.size());
         }
 
-        try ( out ) {
+        try {
             for ( int i = 0 ; i <= N ; i++ ) {
                 List<Rule> rules = stratification.getLevel(i);
                 if ( TRACE ) {
-                    out.printf("Level %d -- %d rules\n", i, rules.size());
-                    out.incIndent();
+                    rCxt.out().printf("Level %d -- %d rules\n", i, rules.size());
+                    rCxt.out().incIndent();
                 }
-                int rounds = evalStratum(i, rules, dataGraph, out);
+                int rounds = evalStratum(i, rules, dataGraph, rCxt);
 
                 if ( TRACE ) {
-                    out.println("Base graph: size = "+baseGraph.size());
-                    out.println("Inferred graph: size = "+inferred.size());
-                    //out.println("Inferred graph: size = "+inferred.size());
+                    rCxt.out().println("Base graph: size = "+baseGraph.size());
+                    rCxt.out().println("Inferred graph: size = "+inferred.size());
+                    //rCxt.out().println("Inferred graph: size = "+inferred.size());
                 }
 
                 if ( TRACE )
-                    out.decIndent();
+                    rCxt.out().decIndent();
             }
-        } finally { out.flush(); }
+        } finally { rCxt.out().flush(); }
 
         return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph);
     }
 
     /* Return the number of of the last round that causes more triples */
-    private int evalStratum(int stratumNumber, List<Rule> rules, Graph dataGraph, IndentedWriter out) {
+    private int evalStratum(int stratumNumber, List<Rule> rules, Graph dataGraph, RulesExecCxt rCxt) {
 //        if ( TRACE )
-//            out.printf("Eval level -- %d rules\n", rules.size());
+//            rCxt.out().printf("Eval level -- %d rules\n", rules.size());
 
 //        if ( TRACE ) {
-//            out.printf("Level %d\n", stratumNumber);
-//            out.incIndent();
+//            rCxt.out().printf("Level %d\n", stratumNumber);
+//            rCxt.out().incIndent();
 //        }
 
 //        if ( TRACE ) {
-//            out.decIndent();
+//            rCxt.out().decIndent();
 //        }
 
         /*
@@ -208,8 +229,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
             int sizeAtRoundStart = graph1.getAdded().size();
 
             if ( TRACE ) {
-                out.println("Round: "+round);
-                out.incIndent();
+                rCxt.out().println("Round: "+round);
+                rCxt.out().incIndent();
             }
 
             // Evaluate one round.
@@ -217,14 +238,14 @@ public class RulesEngineFwdSimple implements RulesEngine {
             // BY tracking rules that actually cause change, we can get semi-naive.
 
             for (Rule rule : rules ) {
-                executeOneRule(graph1, rule, prefixMap(), out);
+                executeOneRule(graph1, rule, prefixMap());
 
                 if ( TRACE )
-                    out.println("Accumulator: "+graph1.getAdded().size());
+                    rCxt.out().println("Accumulator: "+graph1.getAdded().size());
             }
 
             if ( TRACE )
-                out.decIndent();
+                rCxt.out().decIndent();
 
             int sizeAtRoundEnd = graph1.getAdded().size();
             if ( sizeAtRoundStart == sizeAtRoundEnd ) {
@@ -256,14 +277,14 @@ public class RulesEngineFwdSimple implements RulesEngine {
      * One execution of one rules.
      * The argument graph is updated.
      */
-    private void executeOneRule(Graph graph, Rule rule, PrefixMap pmap, IndentedWriter out) {
+    private void executeOneRule(Graph graph, Rule rule, PrefixMap pmap) {
         if ( TRACE ) {
-            out.print("Rule: ");
+            rCxt.out().print("Rule: ");
             String rs = ShaclRulesWriter.asString(rule, pmap);
-            out.print(rs);
-            //out.println();
+            rCxt.out().print(rs);
+            //rCxt.out().println();
         }
-        List<Triple> triples = RuleExecLib.evalRule(graph, rule);
+        List<Triple> triples = RulesExecLib.evalRule(graph, rule);
         GraphUtil.add(graph, triples);
     }
 }

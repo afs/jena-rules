@@ -16,8 +16,20 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules.cmds;
+package org.seaborne.jena.shacl_rules.exec;
 
-public class RuleExecCxt {
+import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.util.Context;
+import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.RulesEngine;
 
+/**
+ * Create {@link RulesEngine RulesEngines}.
+ * <p>
+ * Unless otherwise noted, a {@code RulesEngine} can execute multiple requests and
+ * supports concurrent use.
+ */
+@FunctionalInterface
+public interface RulesEngineFactory {
+    RulesEngine create(Graph dataGraph, RuleSet ruleSet, Context cxt);
 }

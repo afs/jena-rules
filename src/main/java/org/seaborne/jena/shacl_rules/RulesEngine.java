@@ -21,13 +21,15 @@ package org.seaborne.jena.shacl_rules;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.engine.main.solver.SolverRX3;
+import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
+import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
 
 /**
  * A {@code RulesEngine} is an execution engine for a given {@link RuleSet} and given
@@ -37,6 +39,20 @@ import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
  * supports concurrent use.
  */
 public interface RulesEngine {
+
+    /**
+     * Create a system default rules engine for the graph data and the rule set.
+     */
+    public static RulesEngine create(Graph graph, RuleSet ruleSet) {
+        return create(EngineType.SIMPLE, graph, ruleSet);
+    }
+
+    /**
+     * Create a rules engine for the graph data and the rule set.
+     */
+    public static RulesEngine create(EngineType engineType, Graph graph, RuleSet ruleSet) {
+        return RulesEngineRegistry.get().create(engineType, graph, ruleSet, ARQ.getContext());
+    }
 
     public EvalAlgorithm engineType();
 
@@ -84,17 +100,17 @@ public interface RulesEngine {
 
     public RuleSetEvaluation eval();
 
-    /**
-     * Execute the rule set and enrich the base graph.
-     * The base graph is modified.
-     */
-    public default void execute() {
-        RuleSetEvaluation e = eval();
-        Graph inferredGraph = e.inferredTriples();
-        baseGraph()
-        .getTransactionHandler()
-        .executeAlways( ()-> GraphUtil.addInto(materializedGraph(), inferredGraph) );
-    }
+//    /**
+//     * Execute the rule set and enrich the base graph.
+//     * <em>The base graph is modified.</em>
+//     */
+//    public default void execute() {
+//        RuleSetEvaluation e = eval();
+//        Graph inferredGraph = e.inferredTriples();
+//        baseGraph()
+//            .getTransactionHandler()
+//            .executeAlways( ()-> GraphUtil.addInto( baseGraph(), inferredGraph) );
+//    }
 
     /**
      * For development: enable trace mode for the engine.

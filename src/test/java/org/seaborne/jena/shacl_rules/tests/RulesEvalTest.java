@@ -34,9 +34,10 @@ import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
+import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
-import org.seaborne.jena.shacl_rules.exec.RulesEngineFwdSimple;
 import org.seaborne.jena.shacl_rules.junit.VocabRulesTests;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 
@@ -52,11 +53,16 @@ public class RulesEvalTest implements Runnable {
 
     @Override
     public void run() {
-        Graph graph = testItem.getGraph();
-        String name = testItem.getName();
+        run(EngineType.SIMPLE);
+    }
+
+    public void run(EngineType engineType) {
+
+        Graph itemGraph = testItem.getGraph();
+        String itemName = testItem.getName();
         Node action = testItem.getAction();
 
-        Node nRuleSet = G.getOneSP(graph, action, VocabRulesTests.ruleSet);
+        Node nRuleSet = G.getOneSP(itemGraph, action, VocabRulesTests.ruleSet);
         String testFilename = FileOps.basename(nRuleSet.getURI());
         RuleSet ruleSet;
         try {
@@ -68,12 +74,12 @@ public class RulesEvalTest implements Runnable {
             return;
         }
 
-        Node nData = G.getOneSP(graph, action, VocabRulesTests.data);
+        Node nData = G.getOneSP(itemGraph, action, VocabRulesTests.data);
         Graph input = ( nData == null ) ? GraphZero.instance() : read(nData);
 
         boolean verbose = false;
 
-        RuleSetEvaluation e = RulesEngineFwdSimple.build(input, ruleSet).setTrace(false).eval();
+        RuleSetEvaluation e = RulesEngine.create(engineType, input, ruleSet).setTrace(false).eval();
 
         Graph outcome = e.inferredTriples();
         Node nResult = testItem.getResult();
