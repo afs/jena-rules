@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.riot.system.PrefixMap;
@@ -50,6 +51,8 @@ public class P {
             if ( u != null ) {
                 String line = String.format("PREFIX %-8s <%s>\n", p+":", u);
                 sb.append(line);
+            } else {
+                FmtLog.error(P.class, "No entry for prefix '%s'", p);
             }
         });
         return sb.toString();
@@ -63,11 +66,17 @@ public class P {
                                                             "srl",     SRL,
                                                             "shnex",   SHNEX,
                                                             "sparql",  "http://www.w3.org/ns/sparql#",
-                                                            "arq",     "http://jena.apache.org/ARQ/function#");
+                                                            //"arq",     "http://jena.apache.org/ARQ/function#",
+                                                            //"arqnex",  "http://jena.apache.org/ARQ/nx#",
+                                                            "arqnx",  "http://jena.apache.org/ARQ/nx#"
+                                                            );
 
     //@formatter:on
 
-    public static final String PREFIXES = prefixesAsString(prefixesMap, "rdf", "sh", "srl", "shnex", "sparql", "arq");
+    public static final String PREFIXES = prefixesAsString(prefixesMap, "rdf", "sh", "srl", "shnex","sparql"
+                                                           //, "arqnex"
+                                                           , "arqnx"
+                                                           );
 
 
     // It would be nice if this were immutable.

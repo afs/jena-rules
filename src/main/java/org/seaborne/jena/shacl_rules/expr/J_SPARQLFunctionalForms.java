@@ -20,9 +20,11 @@ package org.seaborne.jena.shacl_rules.expr;
 
 import java.util.List;
 
+import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.expr.nodevalue.XSDFuncOp;
@@ -31,10 +33,21 @@ import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
- * Functional forms.
+ * Functional forms and other special cases.
  */
 public class J_SPARQLFunctionalForms {
     // See also J_SPARQLFuncOp
+
+    //uses the FunctionEnv to get a predetermined "now".
+    static NodeValue sparql_now(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row) {
+        if ( functionEnv == null || functionEnv.getContext() == null )
+            return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString());
+        Node n = functionEnv.getContext().get(ARQConstants.sysCurrentTime);
+        if ( n == null )
+            return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString());
+        NodeValue nv = NodeValue.makeNode(n) ;
+        return nv ;
+    }
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
         Expr expr1 = SparqlNodeExpressions.buildExpr(graph, arg1);
@@ -69,17 +82,16 @@ public class J_SPARQLFunctionalForms {
 
     // SPARQL IF(condition, then, else)
     static NodeValue sparql_if(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node condition, Node thenArg, Node elseArg) {
-        NodeValue nv = NodeExpressions.evalNodeExpression(graph, condition, row);
+        NodeValue nv = NodeExpressions.evalNodeExpression(graph, condition, row, functionEnv);
         boolean b = XSDFuncOp.effectiveBooleanValue(nv);
         if ( b ) {
             if ( thenArg != null )
-                return NodeExpressions.evalNodeExpression(graph, thenArg, row);
+                return NodeExpressions.evalNodeExpression(graph, thenArg, row, functionEnv);
         } else {
             if ( elseArg != null )
-                return NodeExpressions.evalNodeExpression(graph, elseArg, row);
+                return NodeExpressions.evalNodeExpression(graph, elseArg, row, functionEnv);
         }
         return XSDFuncOp.effectiveBooleanValueAsNodeValue(nv);
-
     }
 
     // Arity N
@@ -87,7 +99,7 @@ public class J_SPARQLFunctionalForms {
     static NodeValue sparql_coalesce(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
         for ( Node arg : args ) {
             try {
-                NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row);
+                NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row, functionEnv);
                 if ( nv == null )
                     throw new InternalErrorException("Node expressiom return null");
                 return nv;
@@ -115,10 +127,10 @@ public class J_SPARQLFunctionalForms {
         // Alt - build the Expr and make a E_OneOf to eval.
 
         Node valueNode = args.getFirst();
-        NodeValue value = NodeExpressions.evalNodeExpression(graph, valueNode, row);
+        NodeValue value = NodeExpressions.evalNodeExpression(graph, valueNode, row, functionEnv);
         for ( int i = 1 ; i < args.size(); i++ ) {
             Node arg = args.get(i);
-            NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row);
+            NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row, functionEnv);
             if ( nv == null )
                 throw new InternalErrorException("Node expression return null");
             if ( NodeValue.sameValueAs(value, nv) )

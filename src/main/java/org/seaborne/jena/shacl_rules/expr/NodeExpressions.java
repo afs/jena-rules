@@ -26,7 +26,6 @@ import java.util.Set;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -36,6 +35,7 @@ import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.urifunctions.SPARQLDispatch;
 import org.apache.jena.sparql.function.*;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
 import org.seaborne.jena.shacl_rules.jena.JLib;
@@ -50,67 +50,56 @@ import org.seaborne.jena.shacl_rules.sys.V;
 public class NodeExpressions {
     static { INIT.init(); }
 
+    private static Context emptyContext = Context.emptyContext();
+    private static FunctionEnv blankFunctionEnv = new FunctionEnvBase(emptyContext, null, null);
+    private static Binding emptyBinding = BindingFactory.empty();
+
     private NodeExpressions() {}
 
-    /** Evaluate a function node expression. */
-    private static NodeValue eval(String uri, List<NodeValue>args) {
-        Objects.requireNonNull(uri);
-        Objects.requireNonNull(args);
-        NodeValue[] a = args.toArray(NodeValue[]::new);
-        return eval(uri,a);
-    }
-
-    /** Evaluate a function node expression. */
-    private static NodeValue eval(String uri, NodeValue...args) {
-        Call call = NodeExprTables.getCall(uri);
-        if ( call == null )
-            throw new NodeExprEvalException("No such function: "+uri);
-        return call.exec(args);
-    }
-
-    /**
-     * Node expression evaluation - this function evaluates starting from a root node
-     * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
-     * <p>
-     * See
-     * {@link #evalNodeExpression(Graph, Node, Binding)} for execution of the node
-     * expression itself.
-     * </p>
-     *
-     * @implNote {@code sh:expr} is evaluated as a node expression tree in RDF, not
-     *     by converting to a SPARQL expression.
-     */
-    public static NodeValue evaluate(Graph graph, Node root) {
-        return evaluate(graph, root, BindingFactory.empty());
-    }
-
-    /**
-     * Node expression evaluation - this function evaluates starting from a root node
-     * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
-     * <p>
-     * See
-     * {@link #evalNodeExpression(Graph, Node, Binding)} for execution of the node
-     * expression itself.
-     * </p>
-     *
-     * @implNote {@code sh:expr} is evaluated as a node expression tree in RDF, not
-     *     by converting to a SPARQL expression.
-     */
-    public static NodeValue evaluate(Graph graph, Node root, Binding row) {
-        Node x = getNodeExpression(graph, root);
-        if ( x == null )
-            // Warning?
-            return null;
-        return evalNodeExpression(graph, x, row);
-    }
-
+//    // Better to keep this class simply about node expressions.
+//    /**
+//     * Node expression evaluation - this function evaluates starting from a root node
+//     * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
+//     * <p>
+//     * See
+//     * {@link #evalNodeExpression(Graph, Node, Binding, FunctionEnv)} for execution of the node
+//     * expression itself.
+//     * </p>
+//     *
+//     * @implNote {@code srl:expr} is evaluated as a node expression tree in RDF, not
+//     *     by converting to a SPARQL expression.
+//     */
+//    public static NodeValue evaluate(Graph graph, Node root) {
+//        return evaluate(graph, root, emptyBinding);
+//    }
+//
+//    // Better to keep this class simply about node expressions.
+//    /**
+//     * Node expression evaluation - this function evaluates starting from a root node
+//     * that is the subject of either {@code sh:expr} or {@code sh:sparqlExpr}.
+//     * <p>
+//     * See
+//     * {@link #evalNodeExpression(Graph, Node, Binding, FunctionEnv)} for execution of the node
+//     * expression itself.
+//     * </p>
+//     *
+//     * @implNote {@code sh:expr} is evaluated as a node expression tree in RDF, not
+//     *     by converting to a SPARQL expression.
+//     */
+//    public static NodeValue evaluate(Graph graph, Node root, Binding row) {
+//        Node x = getNodeExpression(graph, root);
+//        if ( x == null )
+//            // Warning?
+//            return null;
+//        return evaluateNX(graph, x, row, blankFunctionEnv);
+//    }
 
     // --- Execution
 
     /**
-     * Get a node expression - either {@code sh:expr} or {@code sh:sparqlExpr}.
+     * Get a node expression root - either {@code srl:expr} or {@code srl:sparqlExpr}.
      */
-    /* package*/ static Node getNodeExpression(Graph graph, Node root) {
+    public static Node getNodeExpression(Graph graph, Node root) {
         Node x1 = getListNodeExpression(graph, root);
         if ( x1 != null )
             return x1;
@@ -121,7 +110,7 @@ public class NodeExpressions {
     }
 
     /**
-     * Get a node expression ({@code sh:expr}), not a ({@code sh:sparqlExpr}).
+     * Get a node expression ({@code srl:expr}), not a ({@code sh:sparqlExpr}).
      */
     /*package*/ static Node getListNodeExpression(Graph graph, Node root) {
         Node expressionNode = G.getZeroOrOneSP(graph, root, V.expr);
@@ -144,26 +133,27 @@ public class NodeExpressions {
 
     /**
      * Execute a node expression in a node expression tree.
-     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #evaluate(Graph, Node, Binding)} for those.
+     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr}.
+     * Use {@link #getNodeExpression(Graph, Node)} to navigate to the node expression root.
      */
-    // List argument execution
     public static NodeValue evalNodeExpression(Graph graph, Node root) {
-        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
-        Binding row = BindingFactory.empty();
-        return execNodeExpression(graph, root, row, functionEnv);
+        return evalNodeExpression(graph, root, emptyBinding, blankFunctionEnv);
+    }
+
+    public static NodeValue evalNodeExpression(Graph graph, Node root, FunctionEnv functionEnv) {
+        return evaluateNX(graph, root, emptyBinding, functionEnv);
+    }
+
+    public static NodeValue evalNodeExpression(Graph graph, Node root, Binding row, FunctionEnv functionEnv) {
+        return evaluateNX(graph, root, row, functionEnv);
     }
 
     /**
-     * Execute a node expression in a node expression tree.
-     * i.e. not {@code sh:expr} or {@code sh:sparqlExpr} - use {@link #evaluate(Graph, Node, Binding)} for those.
+     * Evaluate the expression rooted at {@code root}.
+     * This comes from the object of srl:expr.
+     * This not the subject of srl:expr.
      */
-    // List argument execution
-    public static NodeValue evalNodeExpression(Graph graph, Node root, Binding row) {
-        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
-        return execNodeExpression(graph, root, row, functionEnv);
-    }
-
-    private static NodeValue execNodeExpression(Graph graph, Node root, Binding row, FunctionEnv functionEnv) {
+    private static NodeValue evaluateNX(Graph graph, Node root, Binding row, FunctionEnv functionEnv) {
         if ( ! root.isBlank() )
             return NodeValue.makeNode(root);
 
@@ -182,17 +172,19 @@ public class NodeExpressions {
             return NodeValue.makeNode(x);
         }
 
-        // ---- Functional forms (= special cases)
-        // Things that look like functions but process their argument in a special way.
+        // ---- Dispatch
 
         Triple functionTriple = NX.getFunctionTriple(graph, root);
-        if ( functionTriple == null ) {}
+        if ( functionTriple == null )
+            throw new NodeExprEvalException("Failed to find the function triple");
 
         String uri = functionTriple.getPredicate().getURI();
         Node argsNode = functionTriple.getObject();
+
         // Return array.
         List<Node> args = JLib.asList(graph, argsNode);
 
+        // Things that look like functions but process their argument in a special way.
         NodeExprTables.CallFF callFF = NodeExprTables.getCallFF(uri);
         if ( callFF != null ) {
             /* Functional forms look like functions - a URI and a list of arguments)
@@ -208,19 +200,21 @@ public class NodeExpressions {
 
         // ---- General functions.
         // Evaluate arguments, call function.
-        // XXX [NX] hasn't NodeExprTables been loaded?
+
+
+        // -- Look at Node expressions only registry.
         Function expr = NX.getFunction(uri);
         if ( expr != null ) {
             ExprList exprList = new ExprList();
-            args.stream().map(a->evalNodeExpression(graph, a, row)).forEach(exprList::add);
+            args.stream().map(a->evalNodeExpression(graph, a, row, functionEnv)).forEach(exprList::add);
             return expr.exec(row, exprList, uri, functionEnv);
         }
 
-
+        // -- Look at Node expressions only registry.
         // XXX [NX] Also provide List<NodeValue> forms.
         // XXX [NX] Load registry
 
-        NodeValue[] evalArgs = args.stream().map(a->evalNodeExpression(graph, a, row)).toArray(NodeValue[]::new);
+        NodeValue[] evalArgs = args.stream().map(a->evaluateNX(graph, a, row, functionEnv)).toArray(NodeValue[]::new);
         NodeExprTables.Call call = NodeExprTables.getCall(uri);
         if ( call == null ) {
             // err
@@ -231,13 +225,27 @@ public class NodeExpressions {
 
     // --- Execution
 
-
-
-    // ---- Execution
-
     //sh:if is different ...
     // Named arguments, not list arguments.
     static Set<Node> namedNodeExpressions = Set.of(V.ifCond);
+
+    // ==== URI + args => NodeValue
+
+    /** Evaluate a function node expression. */
+    private static NodeValue eval(String uri, List<NodeValue>args) {
+        Objects.requireNonNull(uri);
+        Objects.requireNonNull(args);
+        NodeValue[] a = args.toArray(NodeValue[]::new);
+        return eval(uri,a);
+    }
+
+    /** Evaluate a function node expression. */
+    private static NodeValue eval(String uri, NodeValue...args) {
+        Call call = NodeExprTables.getCall(uri);
+        if ( call == null )
+            throw new NodeExprEvalException("No such function: "+uri);
+        return call.exec(args);
+    }
 
     // ---- Integration into ARQ function execution
 
@@ -248,6 +256,7 @@ public class NodeExpressions {
             if ( ! initialized ) {
                 initialized = true;
                 // Use NX.functionRegistry() for node expression use only.
+                // NX dispatch look sin there and the SPARQL registry.
                 // Expose to SPARQL queries!
                 init_loadFunctionRegistry(FunctionRegistry.get());
             }
@@ -257,6 +266,7 @@ public class NodeExpressions {
 
         /** Load the SPARQL functions into a {@link FunctionRegistry}. */
         private static void init_loadFunctionRegistry(FunctionRegistry reg) {
+            //NodeExprTables.init();
             Map<String, NodeExprTables.Call> map = NodeExprTables.mapDispatch();
             // Add to the system FunctionRegistry once.
             addToFunctionRegistry(reg, map);

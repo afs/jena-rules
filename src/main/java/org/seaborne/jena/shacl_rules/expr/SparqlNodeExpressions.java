@@ -185,20 +185,24 @@ public class SparqlNodeExpressions {
         if ( list == null )
             throw new NodeExprException("Bad node expression");
 
-        // Registered function
+        // Registered in the node expression-only registry.
         Function function = NX.getFunction(functionURI);
-        if ( NX.isRegistered(functionURI) ) {
+        if ( function != null ) {
+            //if ( NX.isRegistered(functionURI) ) {
             ExprList exprList = new ExprList();
             list.stream().map(n->buildExpr(graph, n)).forEach(exprList::add);
             return new E_Function(functionURI, exprList);
         }
 
-        // NodeExprTables
+        // Registered in the NodeExprTables registry (which is copied into in the SPARQL function registry).
         Build build = NodeExprTables.getBuild(functionURI);
         if ( build == null )
             throw new RuntimeException("Build: "+functionURI);
 
         Expr[] array = list.stream().map(n->buildExpr(graph, n)).toArray(Expr[]::new);
+
+        // XXX Evaluates?
+
         Expr expr = build.build(functionURI, array);
         return expr;
     }

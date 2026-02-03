@@ -23,7 +23,9 @@ import org.apache.jena.sys.JenaSubsystemLifecycle;
 public class InitShaclRules implements JenaSubsystemLifecycle {
 
     @Override
-    public void start() {}
+    public void start() {
+        //NX.init();
+    }
 
     @Override
     public void stop() {}

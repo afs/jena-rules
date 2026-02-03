@@ -50,7 +50,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     /**
-     * Look up an URI to get a build function that will build an {@Expr} instance.
+     * Look up an URI to get a build function that will build a SPARQL {@link Expr} instance.
      */
     static Build getBuild(String uri) {
         return mapBuild().get(uri);
@@ -71,15 +71,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
      */
     /* package */ static Map<String, Call> mapDispatch() { return LazyInit.mapDispatch; }
 
-    // FunctionalForms.
+    // FunctionalForms and specials.
     private static Map<String, CallFF> mapDispatchFF() { return LazyInit.mapDispatchFF; }
 
-    // FunctionalForms.
+    // URI -> a builder of SPARQL Expr
     private static Map<String, Build> mapBuild() { return LazyInit.mapBuild; }
 
+    // SPARQL E_ class to URI.
     private static Map<Class<?>, String> mapFunctionURI() { return LazyInit.mapFunctionURI; }
 
-    static class LazyInit {
+    private static class LazyInit {
         // Function URI to callable
         // Used to load the ARQ function registry
         private static Map<String, Call> mapDispatch = new HashMap<>();
@@ -90,7 +91,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         // Function URI to build function ; Node expression to Expr
         static Map<String, Build> mapBuild = new HashMap<>();
 
-        // Class to URI,
+        // Class to URI. Used for mapping SPARQl E_ to a URI.
         static Map<Class<?>, String> mapFunctionURI = new HashMap<>();
 
         // Lazy initialization
@@ -98,13 +99,19 @@ import org.seaborne.jena.shacl_rules.sys.P;
             NodeExprTables.initTables(mapDispatch, mapDispatchFF, mapBuild, mapFunctionURI);
         }
     }
+
+//    // Too lazy?
+//    static void init() {  LazyInit.init(); }
+
     /**
      * Build the mappings
      */
-    private static void initTables(Map<String, Call> mapDispatch, Map<String, CallFF> mapDispatchFF,
-                                   Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI) {
-
-        // Functional forms (not functions)
+    private static void initTables(Map<String, Call> mapDispatch,
+                                   Map<String, CallFF> mapDispatchFF,
+                                   Map<String, Build> mapBuild,
+                                   Map<Class<?>, String> mapFunctionURI) {
+        // Functional forms and specials (not functions)
+        entryFunctionForm0(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:now", E_Now.class, "NOW", E_Now::new, J_SPARQLFunctionalForms::sparql_now);
 
         entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFunctionalForms::sparql_logical_and);
         entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFunctionalForms::sparql_logical_and);
@@ -146,7 +153,11 @@ import org.seaborne.jena.shacl_rules.sys.P;
         //entryFunctionFormOp(mapDispatchFF, mapDispatch, mapBuild, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, J_FunctionalForms::filter_exists);
         //entryFunctionFormOp(mapDispatchFF, mapDispatch, mapBuild, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, J_FunctionalForms::filter_not_exists);
 
-        // ---- Functions.
+        // ---- NX Functions.
+
+        entryNX0(mapDispatch, mapBuild, mapFunctionURI, "arqnx:now_instant", NX_FuncOp::now_instant);
+
+        // ---- SPARQL Functions.
 
         entry1(mapDispatch, mapBuild, mapFunctionURI, "sparql:iri", E_IRI.class, "IRI", E_IRI::new, J_SPARQLFuncOp::sparql_iri);
 
@@ -178,7 +189,8 @@ import org.seaborne.jena.shacl_rules.sys.P;
         //        entry2(mapDispatch, mapBuild, mapFunctionURI, "arq:function-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFuncOp::arq_function_and);
         //        entry2(mapDispatch, mapBuild, mapFunctionURI, "sparql:function-or", E_LogicalOr.class, "||", E_LogicalOr::new, J_SPARQLFuncOp::arq_function_or);
 
-        entry0(mapDispatch, mapBuild, mapFunctionURI, "sparql:now", E_Now.class, "NOW", E_Now::new, J_SPARQLFuncOp::sparql_now);
+        // As a pure function, not NOW().
+        //entry0(mapDispatch, mapBuild, mapFunctionURI, "sparql:now_instant", E_Now.class, "NOW", E_Now::new, J_SPARQLFuncOp::sparql_now_direct);
 
         // RDF Term related
 
@@ -296,6 +308,26 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // ---- Registration
 
+    private static <X> void entryNX0(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                     String uriName, Function0 function) {
+        String uri = expandName(uriName);
+
+        Build build = (_, exprs) ->{
+            if ( exprs.length != 0 )
+                throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
+            Create0<? extends Expr> makerNX0 = ()->new E_Function(uri, ExprList.emptyList);
+            return makerNX0.create();
+        };
+        Call call = args->{
+            if ( args.length != 0 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+            return function.exec();
+        };
+        mapDispatch.put(uri, call);
+        mapBuild.put(uri, build);
+    }
+
+    // ---- SPARQL Functions.
+
     // Arity 0
     private static <X> void entry0(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
@@ -314,6 +346,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         mapBuild.put(uri, build);
         mapFunctionURI.put(implClass, uri);
     }
+
 
     // Arity 1
     private static <X> void entry1(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
@@ -488,6 +521,29 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // Does not have to be a SPARQL FunctionForm - can be RDF only.
 
+    private static <X extends Expr> void entryFunctionForm0(Map<String, CallFF> mapDispatchFF,
+                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+                                                            String uriName, Class<? extends Expr> implClass, String sparqlName,
+                                                            Create0<X> maker, FunctionalForm0 functionForm0) {
+        String uri = expandName(uriName);
+        if ( maker != null ) {
+            Build build = (_, exprs) ->{
+                if ( exprs.length != 1 )
+                    throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
+                return maker.create();
+            };
+            mapBuild.put(uri, build);
+        }
+        CallFF call = (graph, node, env, row, args) -> {
+            if ( args.length == 0 )
+                return functionForm0.exec(graph, node, env, row);
+            throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+        };
+        mapDispatchFF.put(uri, call);
+        if ( implClass != null )
+            mapFunctionURI.put(implClass, uri);
+   }
+
     private static <X extends Expr> void entryFunctionForm1(Map<String, CallFF> mapDispatchFF,
                                                             Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                                             String uriName, Class<? extends Expr> implClass, String sparqlName,
@@ -583,6 +639,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         return new SPARQLEvalException(msg);
     }
 
+    // used to construct SPARQL Expr.
     interface Build { Expr build(String uri, Expr... expr);}
 
     interface Create0<X> { X create(); }
@@ -593,6 +650,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
     interface CreateN<X> { X create(ExprList exprs); }
 
     // Dispatch function
+    // Used for native node expession calling.
     interface Call { NodeValue exec(NodeValue... nv); }
     interface Function0 { NodeValue exec(); }
     interface Function1 { NodeValue exec(NodeValue nv); }
@@ -601,7 +659,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
     interface Function4 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3, NodeValue nv4); }
     interface FunctionN { NodeValue exec(List<NodeValue> nvList); }
 
-    // Dispatch functional form
+    // Dispatch functional form or special needing FunctionEnv
     interface CallFF { NodeValue execFF(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
     interface FunctionalForm0 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row); }
     interface FunctionalForm1 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1); }

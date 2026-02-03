@@ -46,19 +46,21 @@ public class TestNodeExpressions {
         String nxGraph = PREFIXES+"""
                 :nx srl:expr [ sparql:now () ] .
                 """;
-        Node nx = NodeFactory.createURI("http://example/nx");
+        Node nxs = NodeFactory.createURI("http://example/nx");
         Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
 
+        Node nx = NodeExpressions.getNodeExpression(graph, nxs);
         NodeValue nv = NodeExpressions.evalNodeExpression(graph, nx);
         assertNotNull(nv);
     }
 
     @Test public void nx_expr_bnode() {
         String nxGraph = PREFIXES+"""
-                [] srl:expr [ sparql:now () ] .
+                :x srl:expr [ sparql:now () ] .
                 """;
         Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
-        Node nx = G.getOneSP(graph, null,  V.expr);
+        // The object
+        Node nx = G.getOneSP(graph,null, V.expr);
 
         NodeExpressionFunction nef = NX.getRDFExpression(graph, nx);
         assertNotNull(nef);
@@ -68,6 +70,4 @@ public class TestNodeExpressions {
         NodeValue nv = NodeExpressions.evalNodeExpression(graph, nx);
         assertNotNull(nv);
     }
-
-    // Define a test function.
 }

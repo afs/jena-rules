@@ -35,9 +35,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
 /**
  * Helper functions for working with node expressions.
+ * This class is not API.
  * @see NodeExpressions for the main API including evaluation.
  */
 public class NX {
+
+//    public static void init() {
+//        // It should be self initializing.
+//        // NodeExprTables using an inner static to class to delay building tables until first use.
+//        //NodeExpressions.init();
+//    }
 
     public static final String SHNEX = P.SHNEX;
 
@@ -129,15 +136,10 @@ public class NX {
         return new NodeExpressionFunction(pFunction.getURI(), list);
     }
 
+    // --- Node expressions only (not in the SPARQL function registry).
+    // NodeExprTables register system wide, not here.
+
     // XXX [NX] to sys package?
-    // XXX [NX] Do we need FunctionRegistry2? Or just have "custom additions?"
-
-//    private static FunctionRegistry theRulesSystemFunctionRegistry = FunctionRegistry2.create(FunctionRegistry.get());
-//
-//    public static void registerFunctionFactory(String uri, FunctionFactory functionFactory) {
-//        theRulesSystemFunctionRegistry.put(uri, functionFactory);
-//    }
-
     private static FunctionRegistry theRulesSystemFunctionRegistry = new FunctionRegistry();
 
     public static void registerFunctionFactory(String uri, FunctionFactory functionFactory) {
@@ -149,7 +151,7 @@ public class NX {
         return functionRegistry().isRegistered(uri);
     }
 
-    /** The NodeExpressions {@link FunctionRegistry}. */
+    /** Look in the node expressions specific {@link FunctionRegistry}. */
     public static Function getFunction(String uri) {
         return functionRegistry().getFunction(uri);
     }

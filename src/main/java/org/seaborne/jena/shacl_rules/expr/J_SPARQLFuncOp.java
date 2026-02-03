@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
-import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.RandomLib;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.expr.E_Regex;
@@ -44,8 +43,7 @@ import org.apache.jena.sparql.function.library.triple.TripleTermOps;
 public class J_SPARQLFuncOp {
 
     // Stand-in for org.apache.jena.sparql.expr.urifunctions.SPARQLFuncOp
-    // See also J_SPARQLFunctionalForms
-
+    // See also J_SPARQLFunctionalForms for specials e.g. now().
     // ----
 
     private static boolean strict() {
@@ -69,7 +67,6 @@ public class J_SPARQLFuncOp {
     public static NodeValue sparql_multiply(NodeValue nv1, NodeValue nv2) {
         if ( strict() )
             return XSDFuncOp.numMultiply(nv1, nv2);
-
         return NodeValueOps.multiplicationNV(nv1, nv2);
     }
 
@@ -264,7 +261,9 @@ public class J_SPARQLFuncOp {
     }
 
     // Warning : not scoped to evaluation.
-    public static NodeValue sparql_now() { return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString()); }
+    // Special : see J_SPARQLFunctionForms for evaluation scoped form.
+    // See NX_FuncOps.now_instant
+    //public static NodeValue sparql_now_direct() { return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString()); }
 
     public static NodeValue sparql_year(NodeValue nv)       { return XSDFuncOp.getYear(nv); }
     public static NodeValue sparql_month(NodeValue nv)      { return XSDFuncOp.getMonth(nv); }

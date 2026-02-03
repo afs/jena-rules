@@ -147,7 +147,7 @@ public class ExprNodeExpression extends ExprNode {
 
     @Override
     public NodeValue eval(Binding binding, FunctionEnv env) {
-        return NodeExpressions.evalNodeExpression(graph, exprNode, binding);
+        return NodeExpressions.evalNodeExpression(graph, exprNode, binding, env);
     }
 
     @Override
