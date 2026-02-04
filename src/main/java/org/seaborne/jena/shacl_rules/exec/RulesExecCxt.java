@@ -46,7 +46,9 @@ public class RulesExecCxt implements FunctionEnv {
     public static RulesExecCxt create(Context context) {
         // Always isolate.
         // Be careful not to copy too many times!
-        return new RulesExecCxt(context.copy());
+        Context context1 = context.copy();
+        Context.setCurrentDateTime(context1);
+        return new RulesExecCxt(context1);
     }
 
     private RulesExecCxt(Context context) {

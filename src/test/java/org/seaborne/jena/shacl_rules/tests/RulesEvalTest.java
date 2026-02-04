@@ -65,6 +65,7 @@ public class RulesEvalTest implements Runnable {
         Node nRuleSet = G.getOneSP(itemGraph, action, VocabRulesTests.ruleSet);
         String testFilename = FileOps.basename(nRuleSet.getURI());
         RuleSet ruleSet;
+
         try {
             ruleSet = ShaclRulesParser.parseFile(nRuleSet.getURI());
         } catch ( ShaclRulesParseException parseEx) {

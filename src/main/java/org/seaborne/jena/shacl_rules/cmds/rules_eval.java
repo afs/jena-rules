@@ -29,7 +29,6 @@ import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.cmd.CmdException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFWriter;
@@ -43,10 +42,7 @@ import org.apache.jena.util.PrefixMappingUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
-import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.RulesEngine;
-import org.seaborne.jena.shacl_rules.ShaclRulesParser;
-import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
@@ -99,7 +95,7 @@ public class rules_eval extends CmdRules {
 
     private static RulesEngine defaultRulesEngine(Graph data, RuleSet ruleSet) {
         RulesEngine engine = RulesEngineRegistry.get()
-                .create(EngineType.SIMPLE, data, ruleSet, ARQ.getContext());
+                .create(EngineType.SIMPLE, data, ruleSet, Rules.getContext());
         return engine;
     }
 

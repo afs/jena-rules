@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.jena.shacl_rules;
+package org.seaborne.jena.shacl_rules.sys;
 
 
 import static org.junit.jupiter.api.Assertions.assertFalse;

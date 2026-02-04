@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.engine.main.solver.SolverRX3;
@@ -51,7 +50,7 @@ public interface RulesEngine {
      * Create a rules engine for the graph data and the rule set.
      */
     public static RulesEngine create(EngineType engineType, Graph graph, RuleSet ruleSet) {
-        return RulesEngineRegistry.get().create(engineType, graph, ruleSet, ARQ.getContext());
+        return RulesEngineRegistry.get().create(engineType, graph, ruleSet, Rules.getContext());
     }
 
     public EvalAlgorithm engineType();

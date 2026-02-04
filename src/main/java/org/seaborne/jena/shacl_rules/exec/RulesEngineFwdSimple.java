@@ -28,7 +28,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.*;
@@ -47,21 +46,13 @@ public class RulesEngineFwdSimple implements RulesEngine {
 
     public static final RulesEngineFactory factory = (graph, ruleSet, cxt) -> build(graph, ruleSet, cxt);
 
-//    /**
-//     * Preferred: use {@link RulesEngineRegistry#create}
-//     * and {@link EngineType#SIMPLE}.
-//     */
-//    public static RulesEngineFwdSimple build(Graph graph, RuleSet ruleSet) {
-//        return build(graph, ruleSet, null);
-//    }
-
+    /**
+     * Preferred: use {@link RulesEngine#create(EngineType, Graph, RuleSet)}
+     * with {@link EngineType#SIMPLE}.
+     */
     public static RulesEngine build(Graph graph, RuleSet ruleSet, Context cxt) {
-        if ( cxt == null )
-            cxt = ARQ.getContext();
-        // Isolated.
-        cxt = cxt.copy();
-        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
-        RulesExecLib.prepare(ruleSet);
+        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
+        RulesExecLib.prepare(ruleSet, rCxt);
         return new RulesEngineFwdSimple(graph, ruleSet, rCxt);
     }
 
@@ -190,7 +181,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
 //            rCxt.out().printf("Level %d\n", stratumNumber);
 //            rCxt.out().incIndent();
 //        }
-
+// ...
 //        if ( TRACE ) {
 //            rCxt.out().decIndent();
 //        }
@@ -284,7 +275,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
             rCxt.out().print(rs);
             //rCxt.out().println();
         }
-        List<Triple> triples = RulesExecLib.evalRule(graph, rule);
+        List<Triple> triples = RulesExecLib.evalRule(graph, rule, rCxt);
         GraphUtil.add(graph, triples);
     }
 }

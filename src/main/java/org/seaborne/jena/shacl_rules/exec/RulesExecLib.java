@@ -30,7 +30,6 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.core.Var;
@@ -40,9 +39,10 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
-import org.apache.jena.sparql.function.FunctionEnvBase;
+import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.Rules;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
@@ -53,11 +53,14 @@ import org.seaborne.jena.shacl_rules.sys.RecursionChecker;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
 import org.seaborne.jena.shacl_rules.sys.WellFormed;
 
-/** Forward execution support */
+/**
+ * Forward execution support.
+ * This class is not API.
+ */
 class RulesExecLib {
 
     /** Perform checking and setup */
-    public static void prepare(RuleSet ruleSet) {
+    public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt ) {
         WellFormed.checkWellFormed(ruleSet);
         // XXX Ought to do this once as a "prepare" step and keep in the RuleSet.
         DependencyGraph depGraph = DependencyGraph.create(ruleSet);
@@ -65,21 +68,25 @@ class RulesExecLib {
         Stratification.create(ruleSet, depGraph);
     }
 
-    public static Iterator<Binding> evalBody(Graph graph, Rule rule) {
+    public static List<Triple> evalRule(Graph graph, Rule rule, RulesExecCxt rCxt) {
+        Iterator<Binding> iter = evalBody(graph, rule, rCxt);
+        List<Triple> x = new ArrayList<>();
+        Iter.forEach(iter, solution->accInstantiateHead(x, rule, solution));
+        return x;
+    }
+
+    private static Iterator<Binding> evalBody(Graph graph, Rule rule, RulesExecCxt rCxt) {
         Binding binding = BindingFactory.binding();
-        return buildEvalBody(graph, binding, rule);
+        // XXX RulesExecCxt rCxt
+        return buildEvalBody(graph, binding, rule.getBodyElements(), rCxt);
     }
 
-    public static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, Rule rule) {
-        return buildEvalBody(graph, binding, rule.getBodyElements());
-    }
-
-    private static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, List<RuleBodyElement> ruleElts) {
+    private static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, List<RuleBodyElement> ruleElts, RulesExecCxt rCxt) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
         // Extract
         for ( RuleBodyElement elt : ruleElts ) {
             Iterator<Binding> chainIn = chain;
-            Iterator<Binding> chainOut = evalOneRuleElement(graph, chainIn, elt);
+            Iterator<Binding> chainOut = evalOneRuleElement(graph, chainIn, elt, rCxt);
             chain = chainOut;
             if ( false ) {
                 FmtLog.info(RulesExecLib.class, "chain: ");
@@ -89,14 +96,14 @@ class RulesExecLib {
         return chain;
     }
 
-    private static Iterator<Binding> evalOneRuleElement(Graph graph, Iterator<Binding> chainIn, RuleBodyElement elt) {
+    private static Iterator<Binding> evalOneRuleElement(Graph graph, Iterator<Binding> chainIn, RuleBodyElement elt, RulesExecCxt rCxt) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 return Access.accessGraph(chainIn, graph, triplePattern);
             }
             case EltCondition(Expr condition) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
-                    FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+                    FunctionEnv functionEnv = rCxt;
                     // ExprNode.isSatisfied converts ExprEvalException to false.
                     return condition.isSatisfied(solution, functionEnv);
                 });
@@ -104,7 +111,7 @@ class RulesExecLib {
             }
             case EltAssignment(Var var, Expr expression) -> {
                 Function<Binding, Binding> mapper = row -> {
-                    FunctionEnv funcEnv = new FunctionEnvBase();
+                    FunctionEnv funcEnv = rCxt;
                     try {
                         NodeValue nv = expression.eval(row, funcEnv);
                         return BindingFactory.binding(row, var, nv.asNode());
@@ -120,7 +127,7 @@ class RulesExecLib {
             }
             case EltNegation(List<RuleBodyElement> innerBody) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
-                    Iterator<Binding> chainInner = buildEvalBody(graph, solution, innerBody);
+                    Iterator<Binding> chainInner = buildEvalBody(graph, solution, innerBody, rCxt);
                     boolean innerMatches = chainInner.hasNext();
                     return !innerMatches;
                 });
@@ -132,12 +139,6 @@ class RulesExecLib {
     }
 
 
-    public static List<Triple> evalRule(Graph graph, Rule rule) {
-        Iterator<Binding> iter = evalBody(graph, rule);
-        List<Triple> x = new ArrayList<>();
-        Iter.forEach(iter, solution->accInstantiateHead(x, rule, solution));
-        return x;
-    }
 
     private static void accInstantiateHead(List<Triple> acc,  Rule rule, Binding solution) {
         // Choose one!
@@ -191,5 +192,19 @@ class RulesExecLib {
             acc.addAll(acc1);
         }
         throw new RulesEvalException("No template instantiation step defined");
+    }
+
+    /**
+     * Create a {@link RulesExecCxt} from a {@link Context}.
+     * The argument context is copied - the caller does not need to provide
+     * a safe copy.
+     */
+    public static RulesExecCxt rulesExecCxt(Context cxt) {
+        if ( cxt == null )
+            cxt = Rules.getContext();
+        // Isolated.
+        cxt = cxt.copy();
+        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
+        return rCxt;
     }
 }

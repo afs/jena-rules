@@ -29,6 +29,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 
+/** This class is not API */
 public class RuleLib {
 
     /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */

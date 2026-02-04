@@ -31,7 +31,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
@@ -70,7 +69,8 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     public static IndentedWriter LOG = IndentedWriter.stdout.clone().setFlushOnNewline(true).setLinePrefix("R: ");
 
     public static RulesEngineBkdNonRecursive build(Graph graph, RuleSet ruleSet) {
-        RulesExecLib.prepare(ruleSet);
+        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(Rules.getContext());
+        RulesExecLib.prepare(ruleSet, rCxt);
         return new RulesEngineBkdNonRecursive(graph, ruleSet);
     }
 
@@ -269,7 +269,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 }
                 case EltCondition(Expr condition) -> {
                     chain = Iter.filter(chain, solution-> {
-                        FunctionEnv functionEnv = new FunctionEnvBase(ARQ.getContext());
+                        FunctionEnv functionEnv = new FunctionEnvBase(Rules.getContext());
                         // ExprNode.isSatisfied converts ExprEvalException to false.
                         return condition.isSatisfied(solution, functionEnv);
                     });

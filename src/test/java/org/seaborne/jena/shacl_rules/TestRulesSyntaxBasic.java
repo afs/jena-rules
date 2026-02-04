@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
  * Basic rule testing.
  * The manifest-driven tests are more comprehensive.
  */
-public class TestRuleSyntaxBasic {
+public class TestRulesSyntaxBasic {
     @Test public void synatx_01() { parse("") ; }
     @Test public void synatx_02() { parse("RULE {} WHERE {}") ; }
 

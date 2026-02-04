@@ -21,17 +21,19 @@ package org.seaborne.jena.shacl_rules;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
+import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
+
 @Suite
 @SelectClasses({
     // Infrastructure
     TestAppendGraph.class,
 
-
     // NodeExpressions
     TestNodeExpressions.class,
 
-//    TestRulesWellFormed.class,
-//    TestRuleSyntaxBasic.class,
+    TestRulesWellFormed.class,
+    TestRulesSyntaxBasic.class,
+    TestRulesEval.class,
 
     Scripts_RuleSyntax.class,
     Scripts_Wellformed.class,

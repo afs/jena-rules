@@ -18,7 +18,15 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import org.apache.jena.query.ARQ;
+import org.apache.jena.sparql.util.Context;
+
 public class Rules {
+
+    public static Context getContext() {
+        return ARQ.getContext();
+    }
+
     /**
      * Rule equivalence is defined as two rules being the same for execution.
      * but they may be different by object identity and serialization (speciifcally, order in the head and body).
