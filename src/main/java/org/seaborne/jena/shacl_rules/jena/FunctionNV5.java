@@ -27,9 +27,7 @@ import org.apache.jena.sparql.function.FunctionBase5;
 import org.apache.jena.sparql.function.FunctionFactory;
 
 /**
- * Take a {@link java.util.function.Function} and provide it for
- * ARQ expression execution.
- *
+ * Take a object with an {@code exec} operation and present it as ARQ expression.
  */
 public class FunctionNV5 extends FunctionBase5 implements FunctionFactory {
 

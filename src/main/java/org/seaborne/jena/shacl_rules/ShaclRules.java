@@ -28,7 +28,6 @@ import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 
-// General API??
 /**
  * Common operations.
  * <p>

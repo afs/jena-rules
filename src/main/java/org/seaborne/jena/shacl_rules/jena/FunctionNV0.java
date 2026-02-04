@@ -21,18 +21,20 @@
 
 package org.seaborne.jena.shacl_rules.jena;
 
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprFunction0;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.Function;
 import org.apache.jena.sparql.function.FunctionBase0;
+import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionFactory;
 
 /**
- * Take a {@link java.util.function.Function} and provide it for
- * ARQ expression execution.
- *
+ * Take a object with an {@code exec} operation and present it as ARQ function.
  */
 public class FunctionNV0 extends FunctionBase0 implements FunctionFactory {
 
+    @FunctionalInterface
     public interface Impl { NodeValue exec(); }
 
     private final Impl function;
@@ -50,5 +52,15 @@ public class FunctionNV0 extends FunctionBase0 implements FunctionFactory {
     public Function create(String uri) {
         // FunctionFactory entry. The function is stateless so can be reused.
         return this;
+    }
+
+    public Expr asExpr(String uri) {
+        return new ExprFunction0(uri) {
+            @Override
+            public NodeValue eval(FunctionEnv env) {
+                return function.exec();
+            }
+            @Override public final Expr copy() { return this; }
+        };
     }
 }

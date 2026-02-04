@@ -21,31 +21,14 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import org.junit.platform.suite.api.SelectClasses;
-import org.junit.platform.suite.api.Suite;
+import org.junit.jupiter.api.Test;
 
-import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
+public class TestRulesStratification {
+    enum Stratification { VALID, INVALID }
 
-@Suite
-@SelectClasses({
-    // Infrastructure
-    TestAppendGraph.class,
+    @Test public void stratification_01() { stratification("") ; }
 
-    // NodeExpressions
-    TestNodeExpressions.class,
+    private static void stratification(String string) { }
 
-    TestRulesStratification.class,
-    TestRulesWellFormed.class,
-    TestRulesSyntaxBasic.class,
-    TestRulesEval.class,
 
-    Scripts_RuleSyntax.class,
-    Scripts_Wellformed.class,
-    Scripts_Stratification.class,
-    Scripts_RuleEval.class,
-
-    // Or combined
-    //Scripts_RuleTests.class
-})
-public class TS_JenaRules {}
-
+}

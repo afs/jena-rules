@@ -642,9 +642,9 @@ import org.seaborne.jena.shacl_rules.sys.P;
         return new SPARQLEvalException(msg);
     }
 
-    // used to construct SPARQL Expr.
+    // Used to construct SPARQL Expr - ARQ expression syntax objects.
+    // Usually, though not required, constructors.
     interface Build { Expr build(String uri, Expr... expr);}
-
     interface Create0<X> { X create(); }
     interface Create1<X> { X create(Expr expr); }
     interface Create2<X> { X create(Expr expr1, Expr expr2); }
@@ -653,7 +653,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
     interface CreateN<X> { X create(ExprList exprs); }
 
     // Dispatch function
-    // Used for native node expession calling.
+    // Used for native node expression calling.
     interface Call { NodeValue exec(NodeValue... nv); }
     interface Function0 { NodeValue exec(); }
     interface Function1 { NodeValue exec(NodeValue nv); }

@@ -33,7 +33,6 @@ public class ShaclRulesWriter {
 
     public enum Style { Flat, MultiLine }
 
-
 //    public static ShaclRulesWriter.Builder newBuilder() {
 //        return new Builder();
 //    }
@@ -43,6 +42,10 @@ public class ShaclRulesWriter {
 //
 //        public ShaclRulesWriter.Builder syntax(ShaclRulesSyntax syntax)
 //        { return this; }
+//
+//        public ShaclRulesWriter.Builder style(Style style)
+//        { return this; }
+//        public void output(OutputStream outputStream) {}
 //
 //        public ShaclRulesWriter build() { return null; }
 //    }
