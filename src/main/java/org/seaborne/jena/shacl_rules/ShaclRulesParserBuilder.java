@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.file.Path;
 
+import org.apache.jena.riot.system.ErrorHandler;
 import org.apache.jena.riot.system.streammgr.StreamManager;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.lang.ShaclRulesSyntax;
@@ -37,6 +38,7 @@ import org.seaborne.jena.shacl_rules.lang.ShaclRulesSyntax;
     private InputStream         inputStream = null;
     private StringReader        javaReader = null;
     private StreamManager       streamManager = null;
+    private ErrorHandler        errorHandler = null;
     private String baseURI = null;
     private ShaclRulesSyntax rulesSyntax = null;
     private Context context = null;
@@ -57,22 +59,33 @@ import org.seaborne.jena.shacl_rules.lang.ShaclRulesSyntax;
      * @return this
      */
     public ShaclRulesParserBuilder streamManager(StreamManager streamManager) {
-        //this.streamManager = streamManager;
+        this.streamManager = streamManager;
         return this;
     }
 
+    public ShaclRulesParserBuilder errorHandler(ErrorHandler errorhandler) {
+        this.errorHandler = errorhandler;
+        return this;
+    }
 
-    public ShaclRulesParserBuilder baseURI(String baseURI) { this.baseURI = baseURI ; return this; }
-    public ShaclRulesParserBuilder syntax(ShaclRulesSyntax rulesSyntax) { this.rulesSyntax = rulesSyntax; return this; }
+    public ShaclRulesParserBuilder baseURI(String baseURI) {
+        this.baseURI = baseURI;
+        return this;
+    }
+
+    public ShaclRulesParserBuilder syntax(ShaclRulesSyntax rulesSyntax) {
+        this.rulesSyntax = rulesSyntax;
+        return this;
+    }
 
     public ShaclRulesParser build() {
-        //One of.
-
         ShaclRulesSyntax syntax = this.rulesSyntax;
         if ( syntax == null )
             syntax = ShaclRulesParser.defaultRulesSyntax;
 
-        return new ShaclRulesParser(filenameOrURI, filePath, stringToParse, inputStream, javaReader, streamManager, baseURI, syntax, context);
+        return new ShaclRulesParser(filenameOrURI, filePath, stringToParse,
+                                    inputStream, javaReader, streamManager,
+                                    baseURI, errorHandler, syntax, context);
     }
 
     public RuleSet parse() { return build().parse(); }

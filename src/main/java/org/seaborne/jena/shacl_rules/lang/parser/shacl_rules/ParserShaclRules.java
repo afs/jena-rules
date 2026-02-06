@@ -43,27 +43,26 @@ import org.slf4j.Logger;
 // Class specific parser code
 public class ParserShaclRules extends ParserRules {
 
-    public static RuleSet parse(InputStream in , String baseURI) {
+    public static RuleSet parse(InputStream in, String baseURI, ErrorHandler errorHandler) {
         ShaclRulesJavacc parser = new ShaclRulesJavacc(in);
-        return parse(parser, baseURI);
+        return parse(parser, baseURI, errorHandler);
     }
 
-    public static RuleSet parse(StringReader strReader, String baseURI) {
+    public static RuleSet parse(StringReader strReader, String baseURI, ErrorHandler errorHandler) {
         ShaclRulesJavacc parser = new ShaclRulesJavacc(strReader);
-        return parse(parser, baseURI);
+        return parse(parser, baseURI, errorHandler);
     }
 
      private final static Logger parserLogger = ShaclRulesParser.parserLogger;
 
     // Parser to RuleSet
-    private static RuleSet parse(ShaclRulesJavacc parser, String baseURI) {
+    private static RuleSet parse(ShaclRulesJavacc parser, String baseURI, ErrorHandler errorHandler) {
         IRIxResolver resolver =
                 (baseURI == null) ? IRIs.stdResolver().clone() : IRIs.resolver(baseURI);
 
         // The rules parsing catches the triples by context.
         // PrefixMap is managed by the ParserProfile and the sent to the StreamRDF.
         StreamRDF output = StreamRDFLib.sinkNull();
-        ErrorHandler errorHandler = new ErrorHandlerRuleParser(parserLogger);
         ParserProfile parserProfile =
                 ParserRules.createParserProfile(RiotLib.factoryRDF(), errorHandler, resolver, true);
 
