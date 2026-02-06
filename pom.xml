@@ -81,6 +81,9 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
     </dependency>
+
+    <!-- Needed for rdftests; but artifacts not produced. -->
+    <!--
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
@@ -88,6 +91,7 @@
       <version>${ver.jena}</version>
       <scope>test</scope>
     </dependency>
+    -->
 
     <!--
     <dependency>
@@ -302,6 +306,9 @@
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.6.0</version>
         <configuration>
+
+          <!-- Currently skipped -->
+          <skip>true</skip>
 
           <!-- Add to the target directory, not replace artifact -->
           <shadedArtifactAttached>true</shadedArtifactAttached>

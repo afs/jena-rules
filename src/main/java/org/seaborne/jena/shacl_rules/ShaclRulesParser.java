@@ -137,7 +137,7 @@ public class ShaclRulesParser {
      * Parse from a string and return a {@link RuleSet}
      * @param string
      * @param rulesSyntax
-     * @returns RuleSet
+     * @return RuleSet
      * @throws ShaclRulesParseException
      */
     public static RuleSet parseString(String string, ShaclRulesSyntax rulesSyntax) {
@@ -149,7 +149,7 @@ public class ShaclRulesParser {
      * @param string
      * @param baseURI
      * @param rulesSyntax
-     * @returns RuleSet
+     * @return RuleSet
      * @throws ShaclRulesParseException
      */
     public static RuleSet parseString(String string, String baseURI, ShaclRulesSyntax rulesSyntax) {
@@ -169,7 +169,7 @@ public class ShaclRulesParser {
      * Parse a file, with given baseURI, and return a {@link RuleSet}.
      * @param filenameOrURI or URI
      * @param baseURI
-     * @returns RuleSet
+     * @return RuleSet
      * @throws ShaclRulesParseException
      */
     public static RuleSet parseFile(String filenameOrURI, String baseURI) {
@@ -181,7 +181,7 @@ public class ShaclRulesParser {
      * @param filenameOrURI
      * @param baseURI
      * @param rulesSyntax
-     * @returns RuleSet
+     * @return RuleSet
      * @throws ShaclRulesParseException
      */
     public static RuleSet parseFile(String filenameOrURI, String baseURI, ShaclRulesSyntax rulesSyntax) {
@@ -192,7 +192,7 @@ public class ShaclRulesParser {
      * Parse from an {@code InputStream}
      * @param input
      * @param baseURI
-     * @returns RuleSet
+     * @return RuleSet
      * @throws ShaclRulesParseException
      */
     public static RuleSet parse(InputStream input, String baseURI) {
