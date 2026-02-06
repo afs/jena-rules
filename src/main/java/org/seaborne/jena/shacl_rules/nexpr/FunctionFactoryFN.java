@@ -19,10 +19,21 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
-import org.apache.jena.shared.JenaException;
+import java.util.Objects;
 
-class NodeExprException extends JenaException {
-    NodeExprException(String msg) { super(msg); }
+import org.apache.jena.sparql.function.Function;
+import org.apache.jena.sparql.function.FunctionFactory;
+
+public class FunctionFactoryFN implements FunctionFactory {
+
+    private final Function function;
+
+    public FunctionFactoryFN(Function function) { this.function = Objects.requireNonNull(function); }
+
+    @Override
+    public Function create(String uri) {
+        return function;
+    }
 }

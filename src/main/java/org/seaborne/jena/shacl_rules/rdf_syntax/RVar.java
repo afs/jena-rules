@@ -26,7 +26,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.system.G;
-import org.seaborne.jena.shacl_rules.expr.NX;
+import org.seaborne.jena.shacl_rules.nexpr.NX;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 /**

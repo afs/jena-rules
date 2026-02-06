@@ -21,14 +21,41 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
+import org.seaborne.jena.shacl_rules.sys.Stratification;
+import org.seaborne.jena.shacl_rules.sys.Stratification.StratificationException;
+
 public class TestRulesStratification {
-    enum Stratification { VALID, INVALID }
 
-    @Test public void stratification_01() { stratification("") ; }
+    @Test public void stratification_01() { stratificationGood("") ; }
 
-    private static void stratification(String string) { }
+    @Test public void stratification_bad_01() {
+        stratificationBad("""
+                PREFIX : <http://example/>
+                RULE { ?s :p ?o } WHERE { NOT { ?s :p ?o } }
+                """);
+    }
 
+    @Test public void stratification_bad_02() {
+        stratificationBad("""
+                PREFIX : <http://example/>
+                RULE { :s :q :o } WHERE { NOT { :s :p :o } }
+                RULE { :s :p :o } WHERE { NOT { :s :q :o } }
+                """);
+    }
 
+    private static void stratificationGood(String string) {
+        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        Stratification s = Stratification.create(ruleSet);
+        assertNotNull(s);
+    }
+
+    private static void stratificationBad(String string) {
+        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        assertThrows(StratificationException.class, ()->Stratification.create(ruleSet));
+    }
 }

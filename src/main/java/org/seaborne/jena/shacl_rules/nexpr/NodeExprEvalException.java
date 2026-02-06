@@ -19,8 +19,8 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
-class SPARQLEvalException extends NodeExprEvalException {
-    SPARQLEvalException(String msg) { super(msg); }
+class NodeExprEvalException extends NodeExprException {
+    NodeExprEvalException(String msg) { super(msg); }
 }

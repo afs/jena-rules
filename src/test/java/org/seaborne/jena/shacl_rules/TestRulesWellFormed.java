@@ -21,14 +21,26 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
+import org.seaborne.jena.shacl_rules.sys.WellFormed;
+
 public class TestRulesWellFormed {
-    enum WellFormed { WELLFORMED, NOT_WELLFORMED }
+    enum WellFormedResult { WELLFORMED, NOT_WELLFORMED }
 
-    @Test public void wellformed_01() { wellFormed("") ; }
+    @Test public void wellformed_01() { wellFormedGood("") ; }
 
-    private static void wellFormed(String string) { }
+    @Test public void wellformed_bad_01() { wellFormedBad("RULE { ?x ?y ?z } WHERE {}") ; }
 
+    private static void wellFormedGood(String string) {
+        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        WellFormed.checkWellFormed(ruleSet);
+    }
 
+    private static void wellFormedBad(String string) {
+        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        assertThrows(WellFormed.NotWellFormedException.class, ()->WellFormed.checkWellFormed(ruleSet));
+    }
 }

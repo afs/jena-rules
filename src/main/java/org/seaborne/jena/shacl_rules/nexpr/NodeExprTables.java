@@ -19,7 +19,7 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +80,9 @@ import org.seaborne.jena.shacl_rules.sys.P;
     // URI -> a builder of SPARQL Expr
     private static Map<String, Build> mapBuild() { return LazyInit.mapBuild; }
 
-    // SPARQL E_ class to URI.
+    // SPARQL syntax class (E_*) to URI.
+    // Null indicates that the syntax is E_Function, i.e. {@code <uri>(expr1, expr2, )}
+
     private static Map<Class<?>, String> mapFunctionURI() { return LazyInit.mapFunctionURI; }
 
     private static class LazyInit {
@@ -113,7 +115,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
                                    Map<String, CallFF> mapDispatchFF,
                                    Map<String, Build> mapBuild,
                                    Map<Class<?>, String> mapFunctionURI) {
-        // Functional forms and specials (not functions)
+        // Functional forms (not functions)
         entryFunctionForm0(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:now", E_Now.class, "NOW", E_Now::new, J_SPARQLFunctionalForms::sparql_now);
 
         entryFunctionForm2(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:logical-and", E_LogicalAnd.class, "&&", E_LogicalAnd::new, J_SPARQLFunctionalForms::sparql_logical_and);
@@ -156,8 +158,9 @@ import org.seaborne.jena.shacl_rules.sys.P;
         //entryFunctionFormOp(mapDispatchFF, mapDispatch, mapBuild, "sparql:filter-exists", E_Exists.class, "EXISTS", E_Exists::new, J_FunctionalForms::filter_exists);
         //entryFunctionFormOp(mapDispatchFF, mapDispatch, mapBuild, "sparql:filter-not-exists", E_NotExists.class, "NOT EXISTS", E_NotExists::new, J_FunctionalForms::filter_not_exists);
 
-        // ---- NX Functions.
+        // ---- NX Functions. Not SPARQL syntax form.
 
+        // Special - needs access to the FunctionEnv.
         entryNX0(mapDispatch, mapBuild, mapFunctionURI, "arqnx:now_instant", NX_FuncOp::now_instant);
 
         // ---- SPARQL Functions.

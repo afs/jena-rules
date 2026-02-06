@@ -28,9 +28,14 @@ EOF
 ## Bad
 
 N=0
+
+N=$((N+1)) ; testBad $(fname "stratification-bad-" $N) <<EOF
+PREFIX : <http://example>
+RULE { ?s :p "abc" } WHERE { NOT { ?s :p "abc" } }
+EOF
+
 N=$((N+1)) ; testBad $(fname "stratification-bad-" $N) <<EOF
 PREFIX : <http://example>
 RULE { ?s :p "abc" } WHERE { NOT { ?s :p "ABC" } ?s :data "" }
 RULE { :s :p "ABC" } WHERE { NOT { ?x :p "abc" } ?s :data "" }
-
 EOF

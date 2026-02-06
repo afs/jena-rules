@@ -19,7 +19,7 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
 import java.util.List;
 import java.util.Map;
@@ -40,8 +40,8 @@ import org.apache.jena.sparql.expr.urifunctions.SPARQLDispatch;
 import org.apache.jena.sparql.function.*;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.system.G;
-import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Call;
-import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.jena.JenaLib;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.Call;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
@@ -185,7 +185,7 @@ public class NodeExpressions {
         Node argsNode = functionTriple.getObject();
 
         // Return array.
-        List<Node> args = JLib.asList(graph, argsNode);
+        List<Node> args = JenaLib.getList(graph, argsNode);
 
         // Things that look like functions but process their argument in a special way.
         NodeExprTables.CallFF callFF = NodeExprTables.getCallFF(uri);

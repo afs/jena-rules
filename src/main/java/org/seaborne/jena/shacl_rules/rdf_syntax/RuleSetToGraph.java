@@ -39,13 +39,13 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
-import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 import org.seaborne.jena.shacl_rules.sys.V;
 
@@ -95,7 +95,7 @@ public class RuleSetToGraph {
                 return;
         List<Triple> triples = ruleSet.getDataTriples();
         List<Node> tripleTerms = Iter.iter(triples).map(triple->NodeFactory.createTripleTerm(triple)).toList();
-        Node x = JLib.addList(graph, tripleTerms);
+        Node x = JenaLib.createList(graph, tripleTerms);
         graph.add(ruleSetNode, V.data, x);
     }
 

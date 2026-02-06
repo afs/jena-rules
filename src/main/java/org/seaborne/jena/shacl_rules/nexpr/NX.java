@@ -19,7 +19,7 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
 import java.util.List;
 

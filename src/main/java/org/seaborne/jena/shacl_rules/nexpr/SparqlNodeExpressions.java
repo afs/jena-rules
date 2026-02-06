@@ -19,7 +19,7 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
 import static java.lang.String.format;
 
@@ -37,9 +37,9 @@ import org.apache.jena.sparql.function.Function;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.apache.jena.system.G;
 import org.apache.jena.system.buffering.BufferingGraph;
-import org.seaborne.jena.shacl_rules.expr.NodeExprTables.Build;
-import org.seaborne.jena.shacl_rules.jena.JLib;
+import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.Build;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
@@ -272,7 +272,7 @@ public class SparqlNodeExpressions {
                 List<Expr> args = exf.getArgs();
                 // Recursive step : arguments to RDF.
                 List<Node> argNodes = args.stream().map(e->exprAsRDF(graph,e)).toList();
-                Node argNodeList = JLib.addList(graph, argNodes);
+                Node argNodeList = JenaLib.createList(graph, argNodes);
                 Node uri = exprFunctionURI(exf, argNodes.size());
                 Node x = NodeFactory.createBlankNode();
                 graph.add(x, uri, argNodeList);

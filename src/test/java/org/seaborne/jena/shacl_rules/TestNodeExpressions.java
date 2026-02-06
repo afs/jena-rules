@@ -32,9 +32,9 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.system.G;
-import org.seaborne.jena.shacl_rules.expr.NX;
-import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
-import org.seaborne.jena.shacl_rules.expr.NodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.NX;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExpressionFunction;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.P;
 import org.seaborne.jena.shacl_rules.sys.V;
 

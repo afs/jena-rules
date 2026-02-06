@@ -31,18 +31,18 @@ import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 
-public class JLib {
+public class JenaLib {
     private static Node NIL = RDF.Nodes.nil;
     private static Node CAR = RDF.Nodes.first;
     private static Node CDR = RDF.Nodes.rest;
     private static Node TYPE = RDF.Nodes.type;
 
-    // XXX----GraphList
+    // ==== "GraphList"
 
     /**
      * Extract the elements of a list.
      */
-    public static List<Node> asList(Graph graph, Node headNode) {
+    public static List<Node> getList(Graph graph, Node headNode) {
         Objects.requireNonNull(graph);
         Objects.requireNonNull(headNode);
         List<Triple> triples = new ArrayList<>();
@@ -51,7 +51,7 @@ public class JLib {
         return x;
     }
 
-    public static Node[] asArray(Graph graph, Node headNode) {
+    public static Node[] getArray(Graph graph, Node headNode) {
         Objects.requireNonNull(graph);
         Objects.requireNonNull(headNode);
         List<Triple> triples = new ArrayList<>();
@@ -64,15 +64,17 @@ public class JLib {
      * Build an RDF Collection (RDF list) in a graph based on the java list of nodes.
      * Return the head of the list.
      */
-    public static Node addList(Graph graph, List<Node> elements) {
+    public static Node createList(Graph graph, List<Node> elements) {
         Objects.requireNonNull(graph);
         Objects.requireNonNull(elements);
         ListIterator<Node> iter = elements.listIterator(elements.size());
         Node x = NIL;
 
+        // At in reverse order at end of the list which makes the
+        // fwd pointers in rdf:rest work.
         while(iter.hasPrevious()) {
-            Node cell = NodeFactory.createBlankNode();
             Node elt = iter.previous();
+            Node cell = NodeFactory.createBlankNode();
             graph.add(cell, CAR, elt);
             graph.add(cell, CDR, x);
             x = cell;
@@ -80,12 +82,25 @@ public class JLib {
         return x;
     }
 
-    // XXX----G
+    public static Node createList(Graph graph, Node... elements) {
+        Objects.requireNonNull(graph);
+        Objects.requireNonNull(elements);
+        Node x = NIL;
+
+        for ( int i = elements.length-1; i >= 0; i--) {
+            Node elt = elements[i];
+            Node cell = NodeFactory.createBlankNode();
+            graph.add(cell, CAR, elt);
+            graph.add(cell, CDR, x);
+            x = cell;
+        }
+        return x;
+    }
+
+    //==== G
 
     /**
      * Return all the subjects of a predicate in a graph (no duplicates)
-     * <p>
-     * Use {@code iterPO(predicate, null)} for "with duplicates."
      */
     public static Set<Node> subjectsOfPredicateAsSet(Graph graph, Node predicate) {
         Objects.requireNonNull(graph, "graph");
@@ -95,8 +110,6 @@ public class JLib {
 
     /**
      * Return all the the objects in a graph (no duplicates)
-     * <p>
-     * Use {@code iterSP(null, predicate)} for "with duplicates."
      */
     public static Set<Node> objectsOfPredicateAsSet(Graph graph, Node predicate) {
         Objects.requireNonNull(graph, "graph");
@@ -105,7 +118,9 @@ public class JLib {
     }
 
     /**
-     * Clone a graph - includes the prefixes.
+     * Clone a graph, included the prefixes.
+     * The changing one of the argument graph
+     * and cloned graph after this call has no effect on the other.
      */
     public static Graph cloneGraph(Graph graph) {
         Graph copyGraph = GraphFactory.createGraphMem();

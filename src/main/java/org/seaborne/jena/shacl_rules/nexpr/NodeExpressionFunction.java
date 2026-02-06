@@ -19,21 +19,16 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
-import java.util.Objects;
+import java.util.List;
 
-import org.apache.jena.sparql.function.Function;
-import org.apache.jena.sparql.function.FunctionFactory;
+import org.apache.jena.graph.Node;
 
-public class FunctionFactoryFN implements FunctionFactory {
-
-    private final Function function;
-
-    public FunctionFactoryFN(Function function) { this.function = Objects.requireNonNull(function); }
-
-    @Override
-    public Function create(String uri) {
-        return function;
-    }
-}
+/**
+ * A list-argument Node Expression, including the zero argument case.
+ *
+ * <a href="https://www.w3.org/TR/shacl12-node-expr/">SHACL Node Expressions</a>.
+ *
+ *  */
+public record NodeExpressionFunction(String uri, List<Node> arguments) {}

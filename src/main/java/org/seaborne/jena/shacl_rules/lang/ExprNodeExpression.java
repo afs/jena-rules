@@ -34,11 +34,10 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.graph.NodeTransform;
-import org.seaborne.jena.shacl_rules.expr.NX;
-import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
-//import org.seaborne.jena.shacl_rules.expr.NodeExpressionFunction;
-import org.seaborne.jena.shacl_rules.expr.NodeExpressions;
-import org.seaborne.jena.shacl_rules.expr.SparqlNodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.NX;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExpressionFunction;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**

@@ -19,15 +19,8 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
-import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.apache.jena.sparql.expr.NodeValue;
-
-public class NX_FuncOp {
-    // Node expressions, with no SPARQL equivalent
-
-    /** A version of NOW that returns the current instant. */
-    public static NodeValue now_instant() { return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString()); }
-
+class SPARQLEvalException extends NodeExprEvalException {
+    SPARQLEvalException(String msg) { super(msg); }
 }

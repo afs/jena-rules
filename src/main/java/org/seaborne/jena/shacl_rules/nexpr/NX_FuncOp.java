@@ -19,16 +19,15 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.expr;
+package org.seaborne.jena.shacl_rules.nexpr;
 
-import java.util.List;
+import org.apache.jena.atlas.lib.DateTimeUtils;
+import org.apache.jena.sparql.expr.NodeValue;
 
-import org.apache.jena.graph.Node;
+public class NX_FuncOp {
+    // Node expressions, with no SPARQL equivalent
 
-/**
- * A list-argument Node Expression, including the zero argument case.
- *
- * <a href="https://www.w3.org/TR/shacl12-node-expr/">SHACL Node Expressions</a>.
- *
- *  */
-public record NodeExpressionFunction(String uri, List<Node> arguments) {}
+    /** A version of NOW that returns the current instant. */
+    public static NodeValue now_instant() { return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString()); }
+
+}
