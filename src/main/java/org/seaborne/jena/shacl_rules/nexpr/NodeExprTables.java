@@ -41,21 +41,21 @@ import org.seaborne.jena.shacl_rules.sys.P;
     /**
      * Look up an URI to get a callable object.
      */
-    static Call getCall(String uri) {
+    static ExprCall getCall(String uri) {
         return mapDispatch().get(uri);
     }
 
     /**
      * Look up an URI to get a callable functional form object.
      */
-    static CallFF getCallFF(String uri) {
+    static ExprCallFF getCallFF(String uri) {
         return mapDispatchFF().get(uri);
     }
 
     /**
      * Look up an URI to get a build function that will build a SPARQL {@link Expr} instance.
      */
-    static Build getBuild(String uri) {
+    static BuildSyntax getBuild(String uri) {
         return mapBuild().get(uri);
     }
 
@@ -72,13 +72,13 @@ import org.seaborne.jena.shacl_rules.sys.P;
     /**
      * Used to load the ARQ function registry.
      */
-    /* package */ static Map<String, Call> mapDispatch() { return LazyInit.mapDispatch; }
+    /* package */ static Map<String, ExprCall> mapDispatch() { return LazyInit.mapDispatch; }
 
     // FunctionalForms and specials.
-    private static Map<String, CallFF> mapDispatchFF() { return LazyInit.mapDispatchFF; }
+    private static Map<String, ExprCallFF> mapDispatchFF() { return LazyInit.mapDispatchFF; }
 
     // URI -> a builder of SPARQL Expr
-    private static Map<String, Build> mapBuild() { return LazyInit.mapBuild; }
+    private static Map<String, BuildSyntax> mapBuild() { return LazyInit.mapBuild; }
 
     // SPARQL syntax class (E_*) to URI.
     // Null indicates that the syntax is E_Function, i.e. {@code <uri>(expr1, expr2, )}
@@ -88,13 +88,13 @@ import org.seaborne.jena.shacl_rules.sys.P;
     private static class LazyInit {
         // Function URI to callable
         // Used to load the ARQ function registry
-        private static Map<String, Call> mapDispatch = new HashMap<>();
+        private static Map<String, ExprCall> mapDispatch = new HashMap<>();
 
         // Function URI to callable for functional forms.
-        private static Map<String, CallFF> mapDispatchFF = new HashMap<>();
+        private static Map<String, ExprCallFF> mapDispatchFF = new HashMap<>();
 
         // Function URI to build function ; Node expression to Expr
-        static Map<String, Build> mapBuild = new HashMap<>();
+        static Map<String, BuildSyntax> mapBuild = new HashMap<>();
 
         // Class to URI. Used for mapping SPARQl E_ to a URI.
         static Map<Class<?>, String> mapFunctionURI = new HashMap<>();
@@ -111,9 +111,9 @@ import org.seaborne.jena.shacl_rules.sys.P;
     /**
      * Build the mappings
      */
-    private static void initTables(Map<String, Call> mapDispatch,
-                                   Map<String, CallFF> mapDispatchFF,
-                                   Map<String, Build> mapBuild,
+    private static void initTables(Map<String, ExprCall> mapDispatch,
+                                   Map<String, ExprCallFF> mapDispatchFF,
+                                   Map<String, BuildSyntax> mapBuild,
                                    Map<Class<?>, String> mapFunctionURI) {
         // Functional forms (not functions)
         entryFunctionForm0(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:now", E_Now.class, "NOW", E_Now::new, J_SPARQLFunctionalForms::sparql_now);
@@ -134,13 +134,13 @@ import org.seaborne.jena.shacl_rules.sys.P;
         entryFunctionFormN(mapDispatchFF, mapBuild, mapFunctionURI, "sparql:coalesce", E_Coalesce.class, "COALESCE", E_Coalesce::new, J_SPARQLFunctionalForms::sparql_coalesce);
 
         // Adjust for the constructor which is E_OneOf(Expr, ExporList) and same of E_NotOneOf
-        CreateN<Expr> makeOneOf = exprList -> {
+        BuildSyntaxN makeOneOf = exprList -> {
             if ( exprList.size() < 1) {}
             Expr expr = exprList.get(0);
             ExprList exprList2 = exprList.tail(1);
             return new E_OneOf(expr, exprList2);
         };
-        CreateN<Expr> makeNotOneOf = exprList -> {
+        BuildSyntaxN makeNotOneOf = exprList -> {
             if ( exprList.size() < 1) {}
             Expr expr = exprList.get(0);
             ExprList exprList2 = exprList.tail(1);
@@ -314,17 +314,17 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // ---- Registration
 
-    private static <X> void entryNX0(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entryNX0(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                      String uriName, Function0 function) {
         String uri = expandName(uriName);
 
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 0 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
-            Create0<? extends Expr> makerNX0 = ()->new E_Function(uri, ExprList.emptyList);
-            return makerNX0.create();
+            BuildSyntax0 makerNX0 = ()->new E_Function(uri, ExprList.emptyList);
+            return makerNX0.build();
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length != 0 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
             return function.exec();
         };
@@ -335,16 +335,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
     // ---- SPARQL Functions.
 
     // Arity 0
-    private static <X> void entry0(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry0(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                   Create0<? extends Expr> maker, Function0 function) {
+                                   BuildSyntax0 maker, Function0 function) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 0 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
-            return maker.create();
+            return maker.build();
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length != 0 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
             return function.exec();
         };
@@ -355,16 +355,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
 
     // Arity 1
-    private static <X> void entry1(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry1(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                   Create1<? extends Expr> maker, Function1 function) {
+                                   BuildSyntax1 maker, Function1 function) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 1 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
-            return maker.create(exprs[0]);
+            return maker.build(exprs[0]);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length != 1 ) throw exception("%s: Expected one arguments. Got %d", uri, args.length);
             return function.exec(args[0]);
         };
@@ -374,19 +374,19 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     // Arity 1/2
-    private static <X> void entry12(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry12(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                     String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                    Create1<? extends Expr> maker1, Function1 function1,
-                                    Create2<? extends Expr> maker2, Function2 function2) {
+                                    BuildSyntax1 maker1, Function1 function1,
+                                    BuildSyntax2 maker2, Function2 function2) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length == 1 )
-                return maker1.create(exprs[0]);
+                return maker1.build(exprs[0]);
             if ( exprs.length == 2 )
-                return maker2.create(exprs[0], exprs[1]);
+                return maker2.build(exprs[0], exprs[1]);
             throw new ShaclException("Wrong number of argum ents expressions: expected 1 or 2, got "+exprs.length);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length == 1 )
                 return function1.exec(args[0]);
             if ( args.length == 2 )
@@ -399,16 +399,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     // Arity 2
-    private static <X> void entry2(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry2(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                   Create2<? extends Expr> maker, Function2 function) {
+                                   BuildSyntax2 maker, Function2 function) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 2 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
-            return maker.create(exprs[0], exprs[1]);
+            return maker.build(exprs[0], exprs[1]);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length != 2 ) throw exception("%s: Expected two arguments. Got %d", uri, args.length);
             return function.exec(args[0], args[1]);
         };
@@ -418,19 +418,19 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     // Arity 2 or 3 - switch by arity
-    private static <X> void entry23(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry23(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                     String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                    Create2<? extends Expr> maker2, Function2 function2,
-                                    Create3<? extends Expr> maker3, Function3 function3) {
+                                    BuildSyntax2 maker2, Function2 function2,
+                                    BuildSyntax3 maker3, Function3 function3) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length == 2)
-                return maker2.create(exprs[0], exprs[1]);
+                return maker2.build(exprs[0], exprs[1]);
             if ( exprs.length == 3 )
-                return maker3.create(exprs[0], exprs[1], exprs[2]);
+                return maker3.build(exprs[0], exprs[1], exprs[2]);
             throw new ShaclException("Wrong number of arguments expressions: expected 2 or 3, got "+exprs.length);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length == 2 )
                 return function2.exec(args[0], args[1]);
             if ( args.length == 3 )
@@ -443,16 +443,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     // Arity 3
-    private static <X> void entry3(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry3(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                   Create3<? extends Expr> maker, Function3 function) {
+                                   BuildSyntax3 maker, Function3 function) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 3 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
-            return maker.create(exprs[0], exprs[1], exprs[2]);
+            return maker.build(exprs[0], exprs[1], exprs[2]);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length != 1 ) throw exception("%s: Expected three arguments. Got %d", uri, args.length);
             return function.exec(args[0], args[1], args[2]);
         };
@@ -462,19 +462,19 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     // Arity 3 or 4, extends 3 to 4 by a null argument
-    private static <X> void entry34(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry34(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                     String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                    Create3<? extends Expr> maker3, Function3 function3,
-                                    Create4<? extends Expr> maker4, Function4 function4) {
+                                    BuildSyntax3 maker3, Function3 function3,
+                                    BuildSyntax4 maker4, Function4 function4) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length == 3)
-                return maker4.create(exprs[0], exprs[1], exprs[2],null);
+                return maker4.build(exprs[0], exprs[1], exprs[2],null);
             if ( exprs.length == 4 )
-                return maker4.create(exprs[0], exprs[1], exprs[3], exprs[4]);
+                return maker4.build(exprs[0], exprs[1], exprs[3], exprs[4]);
             throw new ShaclException("Wrong number of arguments expressions: expected 3 or 4, got "+exprs.length);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length == 3 )
                 return function3.exec(args[0], args[1], args[2]);
             if ( args.length == 4 )
@@ -486,16 +486,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
         mapFunctionURI.put(implClass, uri);
     }
 
-    private static <X> void entry4(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entry4(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                   Create4<? extends Expr> maker, Function4 function) {
+                                   BuildSyntax4 maker, Function4 function) {
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 4 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
-            return maker.create(exprs[0], exprs[1], exprs[2], exprs[3]);
+            return maker.build(exprs[0], exprs[1], exprs[2], exprs[3]);
         };
-        Call call = args->{
+        ExprCall call = args->{
             if ( args.length != 4 )
                 throw exception("%s: Expected four arguments. Got %d", uri, args.length);
             return function.exec(args[0], args[1], args[2], args[3]);
@@ -506,18 +506,18 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     // N-ary
-    private static <X> void entryN(Map<String, Call> mapDispatch, Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X> void entryN(Map<String, ExprCall> mapDispatch, Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                    String uriName, Class<? extends Expr> implClass,
-                                   String sparqlName, CreateN<? extends Expr> maker, FunctionN function) {
+                                   String sparqlName, BuildSyntaxN maker, FunctionN function) {
 
         String uri = expandName(uriName);
-        Build build = (_, exprs) ->{
+        BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 4 )
                 throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             ExprList exprList = ExprList.create(exprs);
-            return maker.create(exprList);
+            return maker.build(exprList);
         };
-        Call call = args->{
+        ExprCall call = args->{
             return function.exec(List.of(args));
         };
         mapDispatch.put(uri, call);
@@ -527,20 +527,20 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // Does not have to be a SPARQL FunctionForm - can be RDF only.
 
-    private static <X extends Expr> void entryFunctionForm0(Map<String, CallFF> mapDispatchFF,
-                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X extends Expr> void entryFunctionForm0(Map<String, ExprCallFF> mapDispatchFF,
+                                                            Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                                             String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                            Create0<X> maker, FunctionalForm0 functionForm0) {
+                                                            BuildSyntax0 maker, FunctionalForm0 functionForm0) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (_, exprs) ->{
+            BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 1 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
-                return maker.create();
+                return maker.build();
             };
             mapBuild.put(uri, build);
         }
-        CallFF call = (graph, node, env, row, args) -> {
+        ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 0 )
                 return functionForm0.exec(graph, node, env, row);
             throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
@@ -550,20 +550,20 @@ import org.seaborne.jena.shacl_rules.sys.P;
             mapFunctionURI.put(implClass, uri);
    }
 
-    private static <X extends Expr> void entryFunctionForm1(Map<String, CallFF> mapDispatchFF,
-                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X extends Expr> void entryFunctionForm1(Map<String, ExprCallFF> mapDispatchFF,
+                                                            Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                                             String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                            Create1<X> maker, FunctionalForm1 functionForm1) {
+                                                            BuildSyntax1 maker, FunctionalForm1 functionForm1) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (_, exprs) ->{
+            BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 2 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
-                return maker.create(exprs[0]);
+                return maker.build(exprs[0]);
             };
             mapBuild.put(uri, build);
         }
-        CallFF call = (graph, node, env, row, args) -> {
+        ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 1 )
                 return functionForm1.exec(graph, node, env, row, args[0]);
             throw exception("%s: Expected one argument. Got %d", uri, args.length);
@@ -573,20 +573,20 @@ import org.seaborne.jena.shacl_rules.sys.P;
             mapFunctionURI.put(implClass, uri);
     }
 
-    private static <X extends Expr> void entryFunctionForm2(Map<String, CallFF> mapDispatchFF,
-                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X extends Expr> void entryFunctionForm2(Map<String, ExprCallFF> mapDispatchFF,
+                                                            Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                                             String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                            Create2<X> maker, FunctionalForm2 functionForm2) {
+                                                            BuildSyntax2 maker, FunctionalForm2 functionForm2) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (_, exprs) ->{
+            BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 2 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
-                return maker.create(exprs[0], exprs[1]);
+                return maker.build(exprs[0], exprs[1]);
             };
             mapBuild.put(uri, build);
         }
-        CallFF call = (graph, node, env, row, args) -> {
+        ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 2 )
                 return functionForm2.exec(graph, node, env, row, args[0], args[1]);
             throw exception("%s: Expected two arguments. Got %d", uri, args.length);
@@ -596,20 +596,20 @@ import org.seaborne.jena.shacl_rules.sys.P;
             mapFunctionURI.put(implClass, uri);
     }
 
-    private static <X extends Expr> void entryFunctionForm3(Map<String, CallFF> mapDispatchFF,
-                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X extends Expr> void entryFunctionForm3(Map<String, ExprCallFF> mapDispatchFF,
+                                                            Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                                             String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                            Create3<X> maker, FunctionalForm3 functionForm3) {
+                                                            BuildSyntax3 maker, FunctionalForm3 functionForm3) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (_, exprs) ->{
+            BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 3 )
                     throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
-                return maker.create(exprs[0], exprs[1], exprs[2]);
+                return maker.build(exprs[0], exprs[1], exprs[2]);
             };
             mapBuild.put(uri, build);
         }
-        CallFF call = (graph, node, env, row, args) -> {
+        ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 3 )
                 return functionForm3.exec(graph, node, env, row, args[0], args[1], args[2]);
             throw exception("%s: Expected three arguments. Got %d", uri, args.length);
@@ -619,19 +619,19 @@ import org.seaborne.jena.shacl_rules.sys.P;
             mapFunctionURI.put(implClass, uri);
     }
 
-    private static <X extends Expr> void entryFunctionFormN(Map<String, CallFF> mapDispatchFF,
-                                                            Map<String, Build> mapBuild, Map<Class<?>, String> mapFunctionURI,
+    private static <X extends Expr> void entryFunctionFormN(Map<String, ExprCallFF> mapDispatchFF,
+                                                            Map<String, BuildSyntax> mapBuild, Map<Class<?>, String> mapFunctionURI,
                                                             String uriName, Class<? extends Expr> implClass, String sparqlName,
-                                                            CreateN<X> maker, FunctionalFormN functionFormN) {
+                                                            BuildSyntaxN maker, FunctionalFormN functionFormN) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            Build build = (_, exprs) ->{
+            BuildSyntax build = (_, exprs) ->{
                 ExprList exprList = ExprList.create(exprs);
-                return maker.create(exprList);
+                return maker.build(exprList);
             };
             mapBuild.put(uri, build);
         }
-        CallFF call = (graph, node, env, row, args) -> {
+        ExprCallFF call = (graph, node, env, row, args) -> {
             List<Node> listArgs = List.of(args);
             return functionFormN.exec(graph, node, env, row, listArgs);
         };
@@ -647,30 +647,30 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // Used to construct SPARQL Expr - ARQ expression syntax objects.
     // Usually, though not required, constructors.
-    interface Build { Expr build(String uri, Expr... expr);}
-    interface Create0<X> { X create(); }
-    interface Create1<X> { X create(Expr expr); }
-    interface Create2<X> { X create(Expr expr1, Expr expr2); }
-    interface Create3<X> { X create(Expr expr1, Expr expr2, Expr expr3); }
-    interface Create4<X> { X create(Expr expr1, Expr expr2, Expr expr3, Expr expr4); }
-    interface CreateN<X> { X create(ExprList exprs); }
+    interface BuildSyntax { Expr build(String uri, Expr... expr);}
+    private interface BuildSyntax0 { Expr build(); }
+    private interface BuildSyntax1 { Expr build(Expr expr); }
+    private interface BuildSyntax2 { Expr build(Expr expr1, Expr expr2); }
+    private interface BuildSyntax3 { Expr build(Expr expr1, Expr expr2, Expr expr3); }
+    private interface BuildSyntax4 { Expr build(Expr expr1, Expr expr2, Expr expr3, Expr expr4); }
+    private interface BuildSyntaxN { Expr build(ExprList exprs); }
 
     // Dispatch function
     // Used for native node expression calling.
-    interface Call { NodeValue exec(NodeValue... nv); }
-    interface Function0 { NodeValue exec(); }
-    interface Function1 { NodeValue exec(NodeValue nv); }
-    interface Function2 { NodeValue exec(NodeValue nv1, NodeValue nv2); }
-    interface Function3 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3); }
-    interface Function4 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3, NodeValue nv4); }
-    interface FunctionN { NodeValue exec(List<NodeValue> nvList); }
+    interface ExprCall { NodeValue exec(NodeValue... nv); }
+    private interface Function0 { NodeValue exec(); }
+    private interface Function1 { NodeValue exec(NodeValue nv); }
+    private interface Function2 { NodeValue exec(NodeValue nv1, NodeValue nv2); }
+    private interface Function3 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3); }
+    private interface Function4 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3, NodeValue nv4); }
+    private interface FunctionN { NodeValue exec(List<NodeValue> nvList); }
 
     // Dispatch functional form or special needing FunctionEnv
-    interface CallFF { NodeValue execFF(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
-    interface FunctionalForm0 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row); }
-    interface FunctionalForm1 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1); }
-    interface FunctionalForm2 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2); }
-    interface FunctionalForm3 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3); }
-    interface FunctionalForm4 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3, Node arg4); }
-    interface FunctionalFormN { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, List<Node> args); }
+    interface ExprCallFF { NodeValue execFF(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
+    private interface FunctionalForm0 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row); }
+    private interface FunctionalForm1 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1); }
+    private interface FunctionalForm2 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2); }
+    private interface FunctionalForm3 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3); }
+    private interface FunctionalForm4 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1, Node arg2, Node arg3, Node arg4); }
+    private interface FunctionalFormN { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, List<Node> args); }
 }

@@ -39,7 +39,7 @@ import org.apache.jena.system.G;
 import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
-import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.Build;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.BuildSyntax;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
@@ -198,7 +198,7 @@ public class SparqlNodeExpressions {
         }
 
         // Registered in the NodeExprTables registry (which is copied into in the SPARQL function registry).
-        Build build = NodeExprTables.getBuild(functionURI);
+        BuildSyntax build = NodeExprTables.getBuild(functionURI);
         if ( build == null )
             throw new RuntimeException("Build: "+functionURI);
 

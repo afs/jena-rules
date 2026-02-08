@@ -41,7 +41,7 @@ import org.apache.jena.sparql.function.*;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.jena.JenaLib;
-import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.Call;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.ExprCall;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
@@ -188,7 +188,7 @@ public class NodeExpressions {
         List<Node> args = JenaLib.getList(graph, argsNode);
 
         // Things that look like functions but process their argument in a special way.
-        NodeExprTables.CallFF callFF = NodeExprTables.getCallFF(uri);
+        NodeExprTables.ExprCallFF callFF = NodeExprTables.getCallFF(uri);
         if ( callFF != null ) {
             /* Functional forms look like functions - a URI and a list of arguments)
              * but aren't. Examples include {@code sh:if}, {@code sparql:coalesce},
@@ -218,7 +218,7 @@ public class NodeExpressions {
         // XXX [NX] Load registry
 
         NodeValue[] evalArgs = args.stream().map(a->evaluateNX(graph, a, row, functionEnv)).toArray(NodeValue[]::new);
-        NodeExprTables.Call call = NodeExprTables.getCall(uri);
+        ExprCall call = NodeExprTables.getCall(uri);
         if ( call == null ) {
             // err
             throw new NodeExprEvalException("Failed to find a call: <"+uri+">");
@@ -244,7 +244,7 @@ public class NodeExpressions {
 
     /** Evaluate a function node expression. */
     private static NodeValue eval(String uri, NodeValue...args) {
-        Call call = NodeExprTables.getCall(uri);
+        ExprCall call = NodeExprTables.getCall(uri);
         if ( call == null )
             throw new NodeExprEvalException("No such function: "+uri);
         return call.exec(args);
@@ -270,12 +270,12 @@ public class NodeExpressions {
         /** Load the SPARQL functions into a {@link FunctionRegistry}. */
         private static void init_loadFunctionRegistry(FunctionRegistry reg) {
             //NodeExprTables.init();
-            Map<String, NodeExprTables.Call> map = NodeExprTables.mapDispatch();
+            Map<String, ExprCall> map = NodeExprTables.mapDispatch();
             // Add to the system FunctionRegistry once.
             addToFunctionRegistry(reg, map);
         }
 
-        private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, Call> map) {
+        private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, ExprCall> map) {
             FunctionFactory ff = createFunctionFactory();
             map.forEach((uri,_) -> reg.put(uri, ff));
         }
