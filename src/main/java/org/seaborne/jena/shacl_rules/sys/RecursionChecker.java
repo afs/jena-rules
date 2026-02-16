@@ -28,8 +28,8 @@ import java.util.Deque;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
-import org.seaborne.jena.shacl_rules.sys.DependencyGraph.Edge;
-import org.seaborne.jena.shacl_rules.sys.DependencyGraph.Link;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DepEdgeType;
 
 /**
  * Checking for illegal recursion - a recursive path that goes through a negation (NOT).
@@ -100,14 +100,14 @@ public class RecursionChecker {
 
     // topRule is the overall rule we are testing. */
     private static IsRecursive checkRecursionStep(DependencyGraph depGraph, Rule topRule, PathIncludesNegation seenNegation, Rule visitRule, Deque<Rule> visited) {
-        Collection<Edge> providedBy = depGraph.directDependencies(visitRule);
+        Collection<DependencyEdge> providedBy = depGraph.directDependencies(visitRule);
         if ( providedBy.isEmpty() )
             return IsRecursive.NO;
 
         boolean recursion = false;
-        for( Edge edge : providedBy ) {
+        for( DependencyEdge edge : providedBy ) {
             PathIncludesNegation seen = seenNegation;
-            if ( edge.link() == Link.NEGATIVE )
+            if ( edge.link() == DepEdgeType.NEGATIVE )
                 seen = PathIncludesNegation.YES;
             IsRecursive stepIsRecursive = checkRecursion(depGraph, topRule, seen, edge.linkedRule(), visited);
             if ( stepIsRecursive == IsRecursive.YES )

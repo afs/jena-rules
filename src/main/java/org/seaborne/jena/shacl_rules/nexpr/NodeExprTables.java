@@ -647,7 +647,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // Used to construct SPARQL Expr - ARQ expression syntax objects.
     // Usually, though not required, constructors.
-    interface BuildSyntax { Expr build(String uri, Expr... expr);}
+    interface BuildSyntax { Expr build(String uri, Expr... exprs);}
     private interface BuildSyntax0 { Expr build(); }
     private interface BuildSyntax1 { Expr build(Expr expr); }
     private interface BuildSyntax2 { Expr build(Expr expr1, Expr expr2); }
@@ -657,7 +657,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     // Dispatch function
     // Used for native node expression calling.
-    interface ExprCall { NodeValue exec(NodeValue... nv); }
+    interface ExprCall { NodeValue exec( NodeValue... args); }
     private interface Function0 { NodeValue exec(); }
     private interface Function1 { NodeValue exec(NodeValue nv); }
     private interface Function2 { NodeValue exec(NodeValue nv1, NodeValue nv2); }
@@ -665,7 +665,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
     private interface Function4 { NodeValue exec(NodeValue nv1, NodeValue nv2, NodeValue nv3, NodeValue nv4); }
     private interface FunctionN { NodeValue exec(List<NodeValue> nvList); }
 
-    // Dispatch functional form or special needing FunctionEnv
+    // Dispatch functional form.  or a special function needing FunctionEnv.
     interface ExprCallFF { NodeValue execFF(Graph graph, Node node, FunctionEnv env, Binding row, Node...args); }
     private interface FunctionalForm0 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row); }
     private interface FunctionalForm1 { NodeValue exec(Graph graph, Node node, FunctionEnv env, Binding row, Node arg1); }

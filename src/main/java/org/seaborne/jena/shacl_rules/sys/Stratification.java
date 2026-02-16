@@ -34,7 +34,7 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
-import org.seaborne.jena.shacl_rules.sys.DependencyGraph.Edge;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
 
 /**
  * A stratification of a rule set.
@@ -53,18 +53,18 @@ public class Stratification {
     final private int maxStratum;
     final private ListValuedMap<Integer, Rule> stratumLevels;
 
-    // Setting to one separates data rules (no dependencies) from rule with rule dependencies.
+    // Setting used to have data rules (no dependencies) and from rule with rule dependencies in level 0.
     static Integer dataStratum = Integer.valueOf(0);
-    // Setting to one separates data rules (no dependencies) from rule with rule dependencies.
+    // Setting uses to have separate data rules (no dependencies) from rule with rule dependencies.
     static Integer minDependentStratum = Integer.valueOf(1);
 
     public static Stratification create(RuleSet ruleSet) throws StratificationException {
         DependencyGraph depGraph = DependencyGraph.create(ruleSet);
-        return createStratificationFunction(dataStratum, ruleSet, depGraph);
+        return functionCreateStratification(dataStratum, ruleSet, depGraph);
     }
 
     public static Stratification create(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
-        return createStratificationFunction(dataStratum, ruleSet, depGraph);
+        return functionCreateStratification(dataStratum, ruleSet, depGraph);
     }
 
     private Stratification(int minStratum, int maxStratum,  ListValuedMap<Integer, Rule> stratumLevels) {
@@ -101,7 +101,9 @@ public class Stratification {
 
     // ----
 
-    private static Stratification createStratificationFunction(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph)
+    // XXX Equality - for testing.
+
+    private static Stratification functionCreateStratification(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph)
         throws StratificationException {
         // The results.
         Map<Rule, Integer> stratumMap = new HashMap<>();
@@ -131,7 +133,7 @@ public class Stratification {
 
         while(changed) {
             changed = false;
-            for ( Edge e : depGraph.edges() ) {
+            for ( DependencyEdge e : depGraph.edges() ) {
 
                 // Edge from p to q of type sign
                 Rule pRule = e.rule();

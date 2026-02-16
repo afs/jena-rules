@@ -190,13 +190,15 @@ public class NodeExpressions {
         // Things that look like functions but process their argument in a special way.
         NodeExprTables.ExprCallFF callFF = NodeExprTables.getCallFF(uri);
         if ( callFF != null ) {
-            /* Functional forms look like functions - a URI and a list of arguments)
-             * but aren't. Examples include {@code sh:if}, {@code sparql:coalesce},
-             * {@code sparql:logical-and} which control the evaluation of their arguments,
-             * and {@code sparql:bound} which tests a variables.
+            /*
+             * Functional forms look like functions - a URI and a list of arguments)
+             * but aren't. Examples include
+             * {@code shnex:if},
+             * {@code sparql:coalesce} (which is not in SRL)
+             * {@code sparql:logical-and} which control the evaluation of their arguments.
              */
-            // sh:if is different. looks like a named function.
-            // XXX for now, three argument sh:if
+            // shnex:if is different. It looks like a named function.
+            // XXX for now, three argument shnex:if
             Node[] a = args.toArray(Node[]::new);
             return callFF.execFF(graph, root, functionEnv, row, a);
         }
@@ -213,16 +215,12 @@ public class NodeExpressions {
             return expr.exec(row, exprList, uri, functionEnv);
         }
 
-        // -- Look at Node expressions only registry.
-        // XXX [NX] Also provide List<NodeValue> forms.
-        // XXX [NX] Load registry
-
-        NodeValue[] evalArgs = args.stream().map(a->evaluateNX(graph, a, row, functionEnv)).toArray(NodeValue[]::new);
+        // -- Look at in the system NodeExprTables.
         ExprCall call = NodeExprTables.getCall(uri);
         if ( call == null ) {
-            // err
             throw new NodeExprEvalException("Failed to find a call: <"+uri+">");
         }
+        NodeValue[] evalArgs = args.stream().map(a->evaluateNX(graph, a, row, functionEnv)).toArray(NodeValue[]::new);
         return call.exec(evalArgs);
     }
 

@@ -54,29 +54,17 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 public class DependencyGraph {
 
-    // Edge type.
-    public enum Link {
+    public enum DepEdgeType {
         POSITIVE("+"), NEGATIVE("-"), AGGREGATE("A");
         public final String symbol;
-        Link(String symbol) { this.symbol = symbol; }
+        DepEdgeType(String symbol) { this.symbol = symbol; }
     }
 
-    // XXX Rename as "DependencyEdge"?
-    public record Edge(Rule rule, Link link, Rule linkedRule ) {
-        //public boolean edgeToBase() { return linkedRule == null; }
-    }
+    public record DependencyEdge(Rule rule, DepEdgeType link, Rule linkedRule ) {}
 
     // Rule -> other rules it directly depends on (no path traversal).
     // See also level0 for rules that only depend on the base graph.
-    private ListValuedMap<Rule, Edge> direct = MultiMapUtils.newListValuedHashMap();
-
-//    // TEMP
-//    // Convenience - does not record whether a positive or a negative edge.
-//    private MultiValuedMap<Rule, Rule> directRuleMaker() {
-//        MultiValuedMap<Rule, Rule> x = MultiMapUtils.newListValuedHashMap();
-//        direct.entries().forEach(entry->x.put(entry.getKey(), entry.getValue().linkedRule));
-//        return x;
-//    }
+    private ListValuedMap<Rule, DependencyEdge> direct = MultiMapUtils.newListValuedHashMap();
 
     // Rules without any dependent rules (the rule is satisfied by the data directly)
     private Set<Rule> level0 = new HashSet<>();
@@ -101,7 +89,7 @@ public class DependencyGraph {
 
         // For each rule, connect to its positive and negative dependencies.
         ruleSet.getRules().forEach(rule->{
-            Collection<Edge> connections = edges(rule, providers);
+            Collection<DependencyEdge> connections = edges(rule, providers);
             if ( connections.isEmpty() ) {
                 // Alternative is have a "no edge" distinguished edge.
                 // May be necessary for positive and negative flavours.
@@ -117,17 +105,17 @@ public class DependencyGraph {
     private static final boolean DEBUG_BUILD = false;
 
     // Entry point to calculate the direct edge set.
-    static Collection<Edge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers) {
+    static Collection<DependencyEdge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers) {
         if ( DEBUG_BUILD )
             ShaclRulesWriter.print(rule);
-        List<Edge> connections = new ArrayList<>();
-        accumulateEdges(connections, rule, Link.POSITIVE, rule.getBodyElements(), providers);
+        List<DependencyEdge> connections = new ArrayList<>();
+        accumulateEdges(connections, rule, DepEdgeType.POSITIVE, rule.getBodyElements(), providers);
         if ( DEBUG_BUILD )
             System.out.println(connections.size()+" :: put:"+connections);
         return connections;
     }
 
-    private static void accumulateEdges(List<Edge> accumulator, Rule rule, Link linkType, List<RuleBodyElement> elts, MultiValuedMap<Triple, Rule> providers) {
+    private static void accumulateEdges(List<DependencyEdge> accumulator, Rule rule, DepEdgeType linkType, List<RuleBodyElement> elts, MultiValuedMap<Triple, Rule> providers) {
         for ( RuleBodyElement elt : elts ) {
             switch(elt) {
                 case EltTriplePattern(Triple triplePattern) -> {
@@ -150,7 +138,7 @@ public class DependencyGraph {
                             providers.get(tripleTemplate).forEach(r -> {
                                 // Check for duplicates.
                                 if ( freshEdge(accumulator, rule, linkType, r) )
-                                    accumulator.add(new Edge(rule, linkType, r));
+                                    accumulator.add(new DependencyEdge(rule, linkType, r));
                             });
                         }
                     });
@@ -159,7 +147,7 @@ public class DependencyGraph {
                     // Do as a second pass once all the positives are done?
                     // NB Negative overrides positive in stratification.
                     // Anything inside NOT is also "negative"
-                    accumulateEdges(accumulator, rule, Link.NEGATIVE, inner, providers);
+                    accumulateEdges(accumulator, rule, DepEdgeType.NEGATIVE, inner, providers);
                 }
                 // These do not cause a dependency relationship.
 //                case EltCondition(Expr condition) -> {}
@@ -174,8 +162,8 @@ public class DependencyGraph {
 
     // Checked whether an edge is already in the collection.
     // XXX id per edge may be sensible.
-    private static boolean freshEdge(List<Edge> array, Rule rule, Link linkType, Rule r) {
-        for ( Edge e : array ) {
+    private static boolean freshEdge(List<DependencyEdge> array, Rule rule, DepEdgeType linkType, Rule r) {
+        for ( DependencyEdge e : array ) {
             if ( e.rule.id == rule.id &&
                  e.link == linkType &&
                  e.linkedRule.id == r.id )
@@ -194,7 +182,7 @@ public class DependencyGraph {
      * and this method returns an empty collection for a rule that only
      * depends on the base graph.
      */
-    public Collection<Edge> directDependencies(Rule rule) {
+    public Collection<DependencyEdge> directDependencies(Rule rule) {
         if ( level0.contains(rule) )
             return List.of();
         return direct.get(rule);
@@ -208,8 +196,7 @@ public class DependencyGraph {
         return level0.contains(rule);
     }
 
-
-    public Collection<Edge> edges() {
+    public Collection<DependencyEdge> edges() {
         return direct.values();
     }
 
@@ -239,8 +226,8 @@ public class DependencyGraph {
 
     /** Walk from a rule using the direct connections. */
     private void walkStep(Rule rule, Consumer<Rule> action, Set<Rule> visited, Deque<Rule> pathVisited) {
-        Collection<Edge> others = direct.get(rule);
-        for ( Edge edge : others ) {
+        Collection<DependencyEdge> others = direct.get(rule);
+        for ( DependencyEdge edge : others ) {
             walk$(edge.linkedRule, action, visited, pathVisited);
         }
     }
@@ -272,7 +259,7 @@ public class DependencyGraph {
                 for ( Rule r : direct.keySet() ) {
                     ShaclRulesWriter.write(out, r, ruleSet.getPrefixMap(), true);
                     out.ensureStartOfLine();
-                    Collection<Edge> c = direct.get(r);
+                    Collection<DependencyEdge> c = direct.get(r);
                     c.forEach(edge -> {
                         out.incIndent(EdgeOffset);
                         out.print(edge.link.symbol);
