@@ -46,12 +46,10 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RuleDependencies;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /*
  * A simple backwards chaining rule engine.
@@ -266,6 +264,9 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                         sub.forEach(workingGraph::add);
                     }
                     chain = Access.accessGraph(chain, workingGraph, triplePattern);
+                }
+                case EltTuplePattern(Tuple tuplePattern) -> {
+                    throw new NotImplemented();
                 }
                 case EltCondition(Expr condition) -> {
                     chain = Iter.filter(chain, solution-> {

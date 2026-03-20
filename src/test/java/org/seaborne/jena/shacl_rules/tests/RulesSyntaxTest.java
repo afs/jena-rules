@@ -31,6 +31,7 @@ import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.shared.NotFoundException;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
+import org.seaborne.jena.shacl_rules.lang.ShaclRulesSyntax;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 
 public class RulesSyntaxTest implements Runnable {
@@ -40,12 +41,14 @@ public class RulesSyntaxTest implements Runnable {
     final private String testBase;
     //final private Lang lang;
     final private String filename;
+    private ShaclRulesSyntax rulesSyntax;
 
-    public RulesSyntaxTest(ManifestEntry entry, String base, boolean positiveTest) {
+    public RulesSyntaxTest(ManifestEntry entry, String base, ShaclRulesSyntax syntax, boolean positiveTest) {
         this.testEntry = entry;
         this.testBase = base;
         this.expectLegalSyntax = positiveTest;
         this.filename = entry.getAction().getURI();
+        this.rulesSyntax = syntax;
         // RDF vs SHACL-R
         //this.lang = lang;
     }
@@ -66,7 +69,7 @@ public class RulesSyntaxTest implements Runnable {
         boolean allowWarnings = false;
 
         try {
-            parseForTest(filename, base, allowWarnings, expectLegalSyntax);
+            parseForTest(filename, base, rulesSyntax, allowWarnings, expectLegalSyntax);
             if (! expectLegalSyntax ) {
                 printFile(filename);
                 fail("Parsing succeeded in a bad syntax test");
@@ -87,9 +90,9 @@ public class RulesSyntaxTest implements Runnable {
         System.err.print(s);
     }
 
-    private static void parseForTest(String filename, String base, boolean allowWarnings, boolean expectLegalSyntax) {
+    private static void parseForTest(String filename, String base, ShaclRulesSyntax rulesSyntax, boolean allowWarnings, boolean expectLegalSyntax) {
         if ( expectLegalSyntax ) {
-            ShaclRulesParser.parseFile(filename);
+            ShaclRulesParser.parseFile(filename, base, rulesSyntax);
             return;
         }
 
@@ -97,7 +100,7 @@ public class RulesSyntaxTest implements Runnable {
         LogCtl.setLevel(ShaclRulesParser.parserLogger, "FATAL");
         try {
             // Expect errors - so don't log them.
-            ShaclRulesParser.parseFile(filename);
+            ShaclRulesParser.parseFile(filename, base, rulesSyntax);
         } finally {
             LogCtl.setLevel(ShaclRulesParser.parserLogger, level);
         }

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
@@ -35,6 +36,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
  * Rule well-formed conditions.
@@ -90,6 +92,9 @@ public class WellFormed {
                 addVar(tracker.bodyDefined, triplePattern.getSubject());
                 addVar(tracker.bodyDefined, triplePattern.getPredicate());
                 addVar(tracker.bodyDefined, triplePattern.getObject());
+            }
+            case EltTuplePattern(Tuple tuplePattern) -> {
+                throw new NotImplemented();
             }
             case EltCondition(Expr condition) -> {
                 processWellFormedExpr(tracker, condition);

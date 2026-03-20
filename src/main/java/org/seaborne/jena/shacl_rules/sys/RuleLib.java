@@ -23,14 +23,12 @@ package org.seaborne.jena.shacl_rules.sys;
 
 import java.util.List;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.syntax.*;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 /** This class is not API */
 public class RuleLib {
@@ -42,6 +40,7 @@ public class RuleLib {
         for ( RuleBodyElement rElt : ruleElts ) {
             switch (rElt) {
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
+                case EltTuplePattern(var tuple) -> { throw new NotImplemented(); }
                 case EltCondition(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody) -> {
                     ElementGroup innerGroup = ruleEltsToElementGroup(innerBody);

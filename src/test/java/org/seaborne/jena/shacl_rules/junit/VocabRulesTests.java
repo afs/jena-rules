@@ -27,25 +27,27 @@ import org.apache.jena.graph.NodeFactory;
 public class VocabRulesTests {
     public static final String SRT =  "http://www.w3.org/ns/shacl-rules-test#";
 
-    public static final Node TestPositiveSyntaxRules    = uri("RulesPositiveSyntaxTest");
-    public static final Node TestNegativeSyntaxRules    = uri("RulesNegativeSyntaxTest");
+    public static final Node TestPositiveSyntaxRules      = uri("RulesPositiveSyntaxTest");
+    public static final Node TestNegativeSyntaxRules      = uri("RulesNegativeSyntaxTest");
 
-    public static final Node TestPositiveWellFormedness = uri("RulesPositiveWellFormednessTest");
-    public static final Node TestNegativeWellFormedness = uri("RulesNegativeWellFormednessTest");
+    public static final Node TestPositiveWellFormedness   = uri("RulesPositiveWellFormednessTest");
+    public static final Node TestNegativeWellFormedness   = uri("RulesNegativeWellFormednessTest");
 
-    public static final Node TestPositiveStratification = uri("RulesPositiveStratificationTest");
-    public static final Node TestNegativeStratification = uri("RulesNegativeStratificationTest");
+    public static final Node TestPositiveStratification   = uri("RulesPositiveStratificationTest");
+    public static final Node TestNegativeStratification   = uri("RulesNegativeStratificationTest");
 
+    public static final Node TestPositiveSyntaxJenaRules  = uri("JenaRulesPositiveSyntaxTest");
+    public static final Node TestNegativeSyntaxJenaRules  = uri("JenaRulesNegativeSyntaxTest");
 
-    //public static final Node TestPositiveEvalRules      = uri("RulesPositiveEvalTest");
-    public static final Node TestPositiveEvalRules      = uri("RulesEvalTest");
-    public static final Node TestNegativeEvalRules      = uri("RulesNegativeEvalTest");
+    //public static final Node TestPositiveEvalRules        = uri("RulesPositiveEvalTest");
+    public static final Node TestPositiveEvalRules        = uri("RulesEvalTest");
+    public static final Node TestNegativeEvalRules        = uri("RulesNegativeEvalTest");
 
-    public static final Node TestSurpressed             = uri("Test");
+    public static final Node TestSurpressed               = uri("Test");
 
     // The evaluation action has a ruleSet and (optionally) a data graph.
-    public static final Node ruleSet                    = uri("ruleset");
-    public static final Node data                       = uri("data");
+    public static final Node ruleSet                      = uri("ruleset");
+    public static final Node data                         = uri("data");
 
     private static Node uri(String localName) { return uri(SRT, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }

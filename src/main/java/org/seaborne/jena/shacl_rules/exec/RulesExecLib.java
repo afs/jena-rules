@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -44,14 +45,12 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.Rules;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RecursionChecker;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
 import org.seaborne.jena.shacl_rules.sys.WellFormed;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
  * Forward execution support.
@@ -101,6 +100,7 @@ class RulesExecLib {
             case EltTriplePattern(Triple triplePattern) -> {
                 return Access.accessGraph(chainIn, graph, triplePattern);
             }
+            case EltTuplePattern(Tuple tuplePattern) -> { throw new NotImplemented(); }
             case EltCondition(Expr condition) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
                     FunctionEnv functionEnv = rCxt;
@@ -133,12 +133,8 @@ class RulesExecLib {
                 });
                 return chain2;
             }
-            //                case null -> {}
-            default -> { throw new RulesEvalException(""); }
         }
     }
-
-
 
     private static void accInstantiateHead(List<Triple> acc,  Rule rule, Binding solution) {
         // Choose one!

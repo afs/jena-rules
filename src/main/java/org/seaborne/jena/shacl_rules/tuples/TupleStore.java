@@ -19,36 +19,36 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules;
+package org.seaborne.jena.shacl_rules.tuples;
 
-import org.junit.platform.suite.api.SelectClasses;
-import org.junit.platform.suite.api.Suite;
+import java.util.Iterator;
 
-import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
+public interface TupleStore {
 
-@Suite
-@SelectClasses({
+    public static TupleStore create() {
+        return new TupleStoreSimple();
+    }
 
-    TestTupleStore.class,
+    /** Test for a concrete occurence of tuple (no patterns) */
+    public boolean contains(Tuple tuple);
 
-    // Infrastructure
-    TestAppendGraph.class,
+    public long size();
 
-    TestNodeExpressions.class,
+    public void add (Tuple tuple);
 
-    TestRulesSyntaxBasic.class,
-    TestRulesWellFormed.class,
-    TestDependencyGraph.class,
-    TestRulesStratification.class,
-    TestRulesEval.class,
+    /** Delete one occurrence of Tuple. */
+    public void delete (Tuple tuple);
 
-    Scripts_RuleSyntax.class,
-    Scripts_Wellformed.class,
-    Scripts_Stratification.class,
-    Scripts_RuleEval.class,
+    /** Delete all occurrences of Tuple. */
+    public void deleteAll (Tuple tuple);
 
-    // Or combined
-    //Scripts_RuleTests.class
-})
-public class TS_JenaRules {}
+    public Iterator<Tuple> find(Tuple pattern);
 
+
+//    public Iterator<Tuple> find(Node node1);
+//    public Iterator<Tuple> find(Node node1, Node node2);
+//    public Iterator<Tuple> find(Node node1, Node node2, Node node3);
+//    public Iterator<Tuple> find(Node... nodes);
+
+
+}
