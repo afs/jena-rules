@@ -250,15 +250,19 @@ void TupleTemplate() : {}
 {
     TupleWithVars()
 }
-void TupleWithVars() : {}
+void TupleWithVars() : { Token t = null ; Node n; }
 {
-   (<TUPLE>|<DOLLAR>)
+   (t = <TUPLE>| t = <DOLLAR>)
+   { startTuple(t.beginLine, t.beginColumn); }
    ( <NIL>
    |
      <LPAREN>
-     TupleArg() ( <COMMA> TupleArg())*
+     n = TupleArg()
+     { tupleArg(n); }
+     ( <COMMA> n = TupleArg() { tupleArg(n); } )*
      <RPAREN>
    )
+   { finishTuple(t.beginLine, t.beginColumn); }
 }
 Node TupleArg() : { Node n ; Var v; }
 {

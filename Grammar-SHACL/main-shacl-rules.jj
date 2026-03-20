@@ -234,7 +234,7 @@ void HeadTemplate() : { Token t ; }
 {
     { t = token; }
     { startHead(t.beginLine, t.beginColumn); }
-    (TriplesTemplateBlock())
+    (TemplateBlock())
     { finishHead(t.beginLine, t.beginColumn); }
 }
 
@@ -311,16 +311,21 @@ void TupleTemplate() : {}
     TupleWithVars()
 }
 
-void TupleWithVars() : {}
+void TupleWithVars() : { Token t = null ; Node n; }
 {
-   (<TUPLE>|<DOLLAR>)
+   (t = <TUPLE>| t = <DOLLAR>)
+   { startTuple(t.beginLine, t.beginColumn); }
    ( <NIL>
    |
      <LPAREN>
-     TupleArg() ( <COMMA> TupleArg())*
+     n = TupleArg()
+     { tupleArg(n); }
+     ( <COMMA> n = TupleArg() { tupleArg(n); } )*
      <RPAREN>
    )
+   { finishTuple(t.beginLine, t.beginColumn); }
 }
+
 
 Node TupleArg() : { Node n ; Var v; }
 {
@@ -345,7 +350,7 @@ void TupleData() : {}
 
 // ---- Triples
 
-void TriplesTemplateBlock() : { Token t; }
+void TemplateBlock() : { Token t; }
 {
    t = <LBRACE>
    { startTriplesTemplate(t.beginLine, t.beginColumn); }
@@ -374,7 +379,7 @@ void TriplesTemplate() : { }
 
 void TriplesOrTuples() : {}
 {
-    TriplesSameSubject() | TupleTemplate()
+    TriplesSameSubject() | TuplePattern()
 }
 #endif
 

@@ -41,6 +41,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter.Style;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class RuleSetWriter {
     private final IndentedWriter out;
@@ -263,6 +264,10 @@ public class RuleSetWriter {
                 case EltTriplePattern(Triple triplePattern) -> {
                     writeTriple(triplePattern);
                 }
+                case EltTuplePattern(Tuple tuplePattern) -> {
+                    writeTuple(tuplePattern);
+                }
+
                 case EltCondition(Expr condition) -> {
                     out.write("FILTER");
                     writeExpr(condition);
@@ -299,6 +304,17 @@ public class RuleSetWriter {
         out.print(" ");
         nodeFormatter.format(out, triple.getObject());
         out.print(" .");
+    }
+
+    private void writeTuple(Tuple tuple) {
+        out.print(" $(");
+        boolean first = true;
+        for ( int i = 0 ; i < tuple.size() ; i++ ) {
+            if ( ! first )
+                out.print(", ");
+            nodeFormatter.format(out, tuple.get(i));
+        }
+        out.print(")");
     }
 
     private void writeExpr(Expr expr) {

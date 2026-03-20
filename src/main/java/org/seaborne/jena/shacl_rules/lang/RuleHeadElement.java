@@ -21,19 +21,10 @@
 
 package org.seaborne.jena.shacl_rules.lang;
 
-import java.util.List;
-
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
-public sealed interface RuleBodyElement  {
-    public record EltTriplePattern(Triple triplePattern) implements RuleBodyElement {}
-    public record EltTuplePattern(Tuple tuplePattern) implements RuleBodyElement {}
-    public record EltNegation(List<RuleBodyElement> inner) implements RuleBodyElement {}
-    public record EltCondition(Expr condition) implements RuleBodyElement {}
-    public record EltAssignment(Var var, Expr expression) implements RuleBodyElement {}
-//    public record EltAggregation(Var var, Expr expression) implements RuleElement {}
-
+public sealed interface RuleHeadElement  {
+    public record EltTripleTemplate(Triple tripleTemplate) implements RuleHeadElement {}
+    public record EltTupleTemplate(Tuple tupleTemplate) implements RuleHeadElement {}
 }

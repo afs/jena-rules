@@ -42,6 +42,7 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
  * Write a ruleset as an abstract syntax tree.
@@ -187,6 +188,10 @@ public class RuleSetASTWriter {
                     case EltTriplePattern(Triple triplePattern) -> {
                         writeTriple(triplePattern);
                     }
+                    case EltTuplePattern(Tuple tuplePattern) -> {
+                        writeTuple(tuplePattern);
+                    }
+
                     case EltCondition(Expr condition) -> {
                         out.print("(");
                         out.print(tagFilter);
@@ -294,6 +299,17 @@ public class RuleSetASTWriter {
         out.print(" ");
         nodeFormatter.format(out, triple.getObject());
         out.print(" .");
+    }
+
+    private void writeTuple(Tuple tuple) {
+        out.print(" $(");
+        boolean first = true;
+        for ( int i = 0 ; i < tuple.size() ; i++ ) {
+            if ( ! first )
+                out.print(", ");
+        nodeFormatter.format(out, tuple.get(i));
+        }
+        out.print(")");
     }
 
     private void writeExpr(Expr expr) {

@@ -47,6 +47,8 @@ import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 import org.slf4j.Logger;
 
 public class RulesParserBase extends LangParserBase {
@@ -105,12 +107,17 @@ public class RulesParserBase extends LangParserBase {
     enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY, INNER };
     protected BuildState state = BuildState.OUTER;
 
+    // These are allocate then handed over to the AST object.
+    private List<RuleHeadElement> headAcc2 = null;
     // Used while parsing the head.
     private List<Triple> headAcc = null;
     // Used while parsing the body.
     private List<RuleBodyElement> bodyAcc = null;
     // Used while parsing a negation or aggregation inner body.
     private List<RuleBodyElement> innerBodyAcc = null;
+
+    // Used to accumulate nodes for a tuple.
+    private final List<Node> tupleArgs = new ArrayList<>();
 
     // ----
 
@@ -137,12 +144,15 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void startRule(int line, int column) {
+        if ( state != BuildState.OUTER )
+            throwInternalStateException("startHead: Already in a rule");
         if ( bodyAcc != null )
             throwInternalStateException("startHead: Already in a rule");
         if ( headAcc != null )
             throwInternalStateException("startHead: Already in a rule");
 
         headAcc = new ArrayList<>();
+        headAcc2 = new ArrayList<>();
         bodyAcc = new ArrayList<>();
         state = BuildState.RULE;
     }
@@ -156,6 +166,7 @@ public class RulesParserBase extends LangParserBase {
         Rule rule = Rule.create(headAcc, bodyAcc);
 
         headAcc = null;
+        headAcc2.clear();
         bodyAcc = null;
         rules.add(rule);
         // Data is accumulative through the parser run.
@@ -212,6 +223,23 @@ public class RulesParserBase extends LangParserBase {
         // finishHead did the work.
     }
 
+    // ---- Tuples
+
+    protected void startTuple(int line, int column) {
+        debug("startTuple", line, column);
+    }
+    protected void tupleArg(Node n) { tupleArgs.add(n); }
+
+
+    protected void finishTuple(int line, int column) {
+        debug("finishTuple", line, column);
+        Tuple tuple = Tuple.create(tupleArgs);
+        emitTuple(tuple, line, column);
+        tupleArgs.clear();
+    }
+
+    // ---- Tuples
+
     // No variables, no paths
     protected void startData(int line, int column) {
         debug("startTriplesTemplate", line, column);
@@ -239,6 +267,12 @@ public class RulesParserBase extends LangParserBase {
         headAcc.add(tripleTemplate);
     }
 
+    private void addToHead(Tuple tuple) {
+        requireNonNull(tuple);
+        headAcc2.add(new RuleHeadElement.EltTupleTemplate(tuple));
+        System.err.println("Not implemented: head tuples");
+    }
+
     private void addToBody(RuleBodyElement ruleElt) {
         requireNonNull(ruleElt);
         switch(state) {
@@ -250,11 +284,16 @@ public class RulesParserBase extends LangParserBase {
     }
 
     // XXX Rename to the specific element type.
-
     // Triple pattern.
     private void addRuleElement(Triple triplePattern) {
         requireNonNull(triplePattern);
         addToBody(new RuleBodyElement.EltTriplePattern(triplePattern));
+    }
+
+    // Triple pattern.
+    private void addRuleElement(Tuple tuplePattern) {
+        requireNonNull(tuplePattern);
+        addToBody(new RuleBodyElement.EltTuplePattern(tuplePattern));
     }
 
     // Condition
@@ -294,6 +333,18 @@ public class RulesParserBase extends LangParserBase {
     protected void emitTriple(Node s, Node p, Node o, int line, int column) {
         debug("emitDataTriple", line, column);
         accTriple(s, p, o, line, column);
+    }
+
+    protected void emitTuple(Tuple tuple, int line, int column) {
+        debug("emitTuple", line, column);
+        switch(state) {
+            case HEAD -> { addToHead(tuple); }
+            case BODY -> { addRuleElement(tuple); }
+            case INNER -> {
+                //innerBodyAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
+            }
+            default -> throw new IllegalArgumentException("Unexpected value: " + state);
+        }
     }
 
     protected void emitNegation(int line, int column) {
@@ -369,7 +420,6 @@ public class RulesParserBase extends LangParserBase {
             case BODY -> { addRuleElement(Triple.create(s,p,o)); }
             case INNER -> {
                 Triple triplePattern = Triple.create(s,p,o);
-                requireNonNull(triplePattern);
                 innerBodyAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
             }
             case DATA -> {
