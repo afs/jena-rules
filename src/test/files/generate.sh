@@ -49,3 +49,15 @@ function setup_dir {
     source $HERE/tests-stratification.sh
     createManifest "SHACL Rules - Stratification" '<manifest#>'
 )
+
+(
+    DIR="syntax-jena"
+    POSTIVE_SYNTAX="srt:JenaRulesPositiveSyntaxTest"
+    NEGATIVE_SYNTAX="srt:JenaRulesNegativeSyntaxTest"
+
+    setup_dir $DIR
+    cd $DIR
+    clean
+    source $HERE/tests-syntax-ext.sh
+    createManifest "SHACL Rules - Syntax - Jena" '<manifest#>'
+)

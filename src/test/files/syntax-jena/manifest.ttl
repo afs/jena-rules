@@ -1,0 +1,44 @@
+## [1] https://www.w3.org/Consortium/Legal/2008/04-testsuite-license
+## [2] https://www.w3.org/Consortium/Legal/2008/03-bsd-license
+
+PREFIX :       <manifest#>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
+PREFIX srl:    <http://www.w3.org/ns/shacl-rules#>
+PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "SHACL Rules - Syntax - Jena" ;
+    mf:entries (
+        :test_1
+        :test_2
+        :test_3
+        :test_4
+        :test_5
+    ) .
+
+:test_1 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-01.srl" ;
+   mf:action  <syntax-ext-tuples-01.srl> ;
+   .
+
+:test_2 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-02.srl" ;
+   mf:action  <syntax-ext-tuples-02.srl> ;
+   .
+
+:test_3 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-03.srl" ;
+   mf:action  <syntax-ext-tuples-03.srl> ;
+   .
+
+:test_4 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-04.srl" ;
+   mf:action  <syntax-ext-tuples-04.srl> ;
+   .
+
+:test_5 rdf:type   srt:JenaRulesNegativeSyntaxTest ;
+   mf:name    "syntax-ext-tuples-bad-01.srl" ;
+   mf:action  <syntax-ext-tuples-bad-01.srl> ;
+   .

@@ -1,0 +1,1 @@
+RULE { TUPLE("num", 123)  } WHERE { }

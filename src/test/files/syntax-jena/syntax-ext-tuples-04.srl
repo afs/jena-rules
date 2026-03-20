@@ -1,0 +1,1 @@
+RULE { $("num", 123) } WHERE { }
