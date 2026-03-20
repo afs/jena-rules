@@ -354,29 +354,29 @@ void TriplesTemplateBlock() : { Token t; }
    <RBRACE>
 }
 
+#ifdef STD
 void TriplesTemplate() : { }
 {
-     // Version for the spec.
-#ifdef STD     
-     TriplesSameSubject()
-#endif
-#ifdef JENA
-     ( TriplesSameSubject() | TupleTemplate() )
-#endif
-     (<DOT> (TriplesTemplate())?)?
-
-// #ifdef 1
-//     // Version for the spec.
-//     TriplesSameSubject()
-//     (<DOT> (TriplesTemplateTriples())?)?
-// #endif
-// #ifdef JENA
-//     // Rewrite for no recursion - grammar is not LL(1)
-//     TriplesSameSubject()
-//     (LOOKAHEAD(2) (<DOT>) TriplesSameSubject())*
-//     (<DOT>)?
-// #endif
+    // Version for the spec.
+    TriplesSameSubject()
+    (<DOT> (TriplesTemplate())?)?
 }
+#endif
+
+#ifdef JENA
+void TriplesTemplate() : { }
+{
+    ( TriplesOrTuples() )
+    // Rewrite for no recursion - grammar is not LL(1)
+    (LOOKAHEAD(2) <DOT> TriplesOrTuples())*
+    (<DOT>)?
+}
+
+void TriplesOrTuples() : {}
+{
+    TriplesSameSubject() | TupleTemplate()
+}
+#endif
 
 void TriplesBlock() : { }
 {
@@ -1119,11 +1119,12 @@ Expr MultiplicativeExpression() : { Expr expr1, expr2 ; }
     { expr1 = new E_Multiply(expr1, expr2) ; }
   | <SLASH> expr2 = UnaryExpression()
     { expr1 = new E_Divide(expr1, expr2) ; }
-// #ifdef ARQ
-//   | <MOD>   expr2 = UnaryExpression()
+// #ifdef JENA
+//        // As operators.
+//   | <MOD> expr2 = UnaryExpression()
 //     { expr1 = new E_OpNumericMod(expr1, expr2) ; }
 //   | <IDIV>  expr2 = UnaryExpression()
-//     { expr1 = new E_OpNumericIntegerDivide(expr1, expr2) ; }
+//      { expr1 = new E_OpNumericIntegerDivide(expr1, expr2) ; }
 // #endif
   )*
     { return expr1 ; }
@@ -1270,11 +1271,12 @@ Expr BuiltInCall() : { Expr expr ;
     
   | <ROUND> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumRound(expr1) ; }
 
-// #ifdef ARQ
-//   | <MOD>  <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericMod(expr1, expr2); }
-//   
-//   | <IDIV> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericIntegerDivide(expr1, expr2); }
-// #endif
+#ifdef ARQ
+       // As functions
+  | <MOD>  <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericMod(expr1, expr2); }
+  
+  | <IDIV> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericIntegerDivide(expr1, expr2); }
+#endif
     
   | <CONCAT> a = ExpressionList() { return new E_StrConcat(a) ; }
     

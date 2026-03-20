@@ -288,20 +288,14 @@ void TriplesTemplateBlock() : { Token t; }
 }
 void TriplesTemplate() : { }
 {
-     // Version for the spec.
-     ( TriplesSameSubject() | TupleTemplate() )
-     (<DOT> (TriplesTemplate())?)?
-// #ifdef 1
-//     // Version for the spec.
-//     TriplesSameSubject()
-//     (<DOT> (TriplesTemplateTriples())?)?
-// #endif
-// #ifdef JENA
-//     // Rewrite for no recursion - grammar is not LL(1)
-//     TriplesSameSubject()
-//     (LOOKAHEAD(2) (<DOT>) TriplesSameSubject())*
-//     (<DOT>)?
-// #endif
+    ( TriplesOrTuples() )
+    // Rewrite for no recursion - grammar is not LL(1)
+    (LOOKAHEAD(2) <DOT> TriplesOrTuples())*
+    (<DOT>)?
+}
+void TriplesOrTuples() : {}
+{
+    TriplesSameSubject() | TupleTemplate()
 }
 void TriplesBlock() : { }
 {
@@ -966,11 +960,12 @@ Expr MultiplicativeExpression() : { Expr expr1, expr2 ; }
     { expr1 = new E_Multiply(expr1, expr2) ; }
   | <SLASH> expr2 = UnaryExpression()
     { expr1 = new E_Divide(expr1, expr2) ; }
-// #ifdef ARQ
-//   | <MOD>   expr2 = UnaryExpression()
+// #ifdef JENA
+//        // As operators.
+//   | <MOD> expr2 = UnaryExpression()
 //     { expr1 = new E_OpNumericMod(expr1, expr2) ; }
 //   | <IDIV>  expr2 = UnaryExpression()
-//     { expr1 = new E_OpNumericIntegerDivide(expr1, expr2) ; }
+//      { expr1 = new E_OpNumericIntegerDivide(expr1, expr2) ; }
 // #endif
   )*
     { return expr1 ; }
@@ -1093,11 +1088,6 @@ Expr BuiltInCall() : { Expr expr ;
   | <CEIL> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumCeiling(expr1) ; }
   | <FLOOR> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumFloor(expr1) ; }
   | <ROUND> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumRound(expr1) ; }
-// #ifdef ARQ
-//   | <MOD>  <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericMod(expr1, expr2); }
-//   
-//   | <IDIV> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericIntegerDivide(expr1, expr2); }
-// #endif
   | <CONCAT> a = ExpressionList() { return new E_StrConcat(a) ; }
   | <SUBSTR>
     <LPAREN>

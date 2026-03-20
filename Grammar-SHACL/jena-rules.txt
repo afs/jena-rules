@@ -270,7 +270,9 @@ NON-TERMINALS
 	TupleData	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> RDFTerm ( <COMMA> RDFTerm )* <RPAREN> )
 // ---- Triples
 	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
-	TriplesTemplate	:=	( TriplesSameSubject | TupleTemplate ) ( <DOT> ( TriplesTemplate )? )?
+	TriplesTemplate	:=	( TriplesOrTuples ) ( <DOT> TriplesOrTuples )* ( <DOT> )?
+	TriplesOrTuples	:=	TriplesSameSubject
+		|	TupleTemplate
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
 	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
 	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
