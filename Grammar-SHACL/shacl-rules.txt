@@ -221,7 +221,8 @@ NON-TERMINALS
 //    (<BOM>)?
 // }
 	RuleSet	:=	RuleOrDataBlock <EOF>
-	RuleOrDataBlock	:=	Prologue ( ( Rule | Data )+ ( Prologue1 ( Rule | Data )? )* )?
+	RuleOrDataBlock	:=	Prologue ( ( RuleOrData )+ ( Prologue1 ( RuleOrData )? )* )?
+	RuleOrData	:=	( Rule | Data )
 // ---- Prologue
 	Prologue	:=	( Prologue1 )*
 	Prologue1	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )
@@ -247,21 +248,19 @@ NON-TERMINALS
 //    { finishRule(t.beginLine, t.beginColumn); }
 // }
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
-	Data	:=	<DATA> TriplesTemplateBlock
+	Data	:=	<DATA> <LBRACE> ( TriplesDataBlock )? <RBRACE>
+	TriplesDataBlock	:=	TriplesSameSubject ( <DOT> ( TriplesDataBlock )? )?
 // ---- Rule head
-	HeadTemplate	:=	( TriplesTemplateBlock )
+	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? <RBRACE>
 // ---- Rule body
-	BodyPattern	:=	<LBRACE> BodyPattern1 <RBRACE>
-	BodyPattern1	:=	( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )*
+	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )* <RBRACE>
 	BodyNotTriples	:=	( Filter | Negation | Assignment )
-// XXX Matches zero triples
 	BodyTriplesBlock	:=	TriplesBlock
 	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
 // ---- Triples
-	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
-	TriplesTemplate	:=	TriplesSameSubject ( <DOT> ( TriplesTemplate )? )?
+	HeadTemplateBlock	:=	TriplesBlock
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
 	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
 	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath

@@ -48,6 +48,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.RuleLib;
 import org.seaborne.jena.shacl_rules.sys.V;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class RuleSetToGraph {
 
@@ -87,6 +88,7 @@ public class RuleSetToGraph {
         graph.add(ruleSetNode, V.rules, rulesList);
 
         writeData(graph, ruleSet, ruleSetNode);
+        writeTupleData(graph, ruleSet, ruleSetNode);
     }
 
     // Write data ("Axiomatic triple")
@@ -99,8 +101,25 @@ public class RuleSetToGraph {
         graph.add(ruleSetNode, V.data, x);
     }
 
+    private static void writeTupleData(Graph graph, RuleSet ruleSet, Node ruleSetNode) {
+        List<Tuple> tuples = ruleSet.getDataTuples();
+        List<Node> tupleData = new ArrayList<>();
+
+        // For each tuple
+
+        tuples.forEach(tuple->{
+            Node tx = JenaLib.createList(graph, tuple.terms());
+            tupleData.add(tx);
+        });
+
+        Node x = JenaLib.createList(graph, tupleData);
+        graph.add(ruleSetNode, V.dataTuples, x);
+    }
+
     private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {
-        List<Triple> head = rule.getTripleTemplates();
+        //List<Triple> head = rule.getHeadElements();
+        // XXX Tuples
+        List<Triple> head = rule.getHeadTriples();
         List<Node> x = triplesAsList(graph, head);
         Node bgpNode = list(graph, x);
         return bgpNode;

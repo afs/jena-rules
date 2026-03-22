@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -46,11 +46,14 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.Rules;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RecursionChecker;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
 import org.seaborne.jena.shacl_rules.sys.WellFormed;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
+import org.seaborne.jena.shacl_rules.tuples.Tuples;
 
 /**
  * Forward execution support.
@@ -59,7 +62,7 @@ import org.seaborne.jena.shacl_rules.tuples.Tuple;
 class RulesExecLib {
 
     /** Perform checking and setup */
-    public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt ) {
+    public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt) {
         WellFormed.checkWellFormed(ruleSet);
         // XXX Ought to do this once as a "prepare" step and keep in the RuleSet.
         DependencyGraph depGraph = DependencyGraph.create(ruleSet);
@@ -67,25 +70,27 @@ class RulesExecLib {
         Stratification.create(ruleSet, depGraph);
     }
 
-    public static List<Triple> evalRule(Graph graph, Rule rule, RulesExecCxt rCxt) {
-        Iterator<Binding> iter = evalBody(graph, rule, rCxt);
-        List<Triple> x = new ArrayList<>();
-        Iter.forEach(iter, solution->accInstantiateHead(x, rule, solution));
-        return x;
+    public static RuleEval evalRule(Graph graph, TupleStore tupleStore, Rule rule, RulesExecCxt rCxt) {
+        Iterator<Binding> iter = evalBody(graph, tupleStore, rule, rCxt);
+        // XXX Do better - avoid creating arrays that aren't used.
+        // XXX Do better - pass around accumulators?
+        List<Triple> accTriple = new ArrayList<>();
+        List<Tuple> accTuple = new ArrayList<>();
+        Iter.forEach(iter, solution->accInstantiateHead(accTriple, accTuple, rule, solution));
+        return new RuleEval(accTriple, accTuple);
     }
 
-    private static Iterator<Binding> evalBody(Graph graph, Rule rule, RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalBody(Graph graph, TupleStore tupleStore, Rule rule, RulesExecCxt rCxt) {
         Binding binding = BindingFactory.binding();
-        // XXX RulesExecCxt rCxt
-        return buildEvalBody(graph, binding, rule.getBodyElements(), rCxt);
+        return buildEvalBody(graph, tupleStore, binding, rule.getBodyElements(), rCxt);
     }
 
-    private static Iterator<Binding> buildEvalBody(Graph graph, Binding binding, List<RuleBodyElement> ruleElts, RulesExecCxt rCxt) {
+    private static Iterator<Binding> buildEvalBody(Graph graph, TupleStore tupleStore, Binding binding, List<RuleBodyElement> ruleElts, RulesExecCxt rCxt) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
         // Extract
         for ( RuleBodyElement elt : ruleElts ) {
             Iterator<Binding> chainIn = chain;
-            Iterator<Binding> chainOut = evalOneRuleElement(graph, chainIn, elt, rCxt);
+            Iterator<Binding> chainOut = evalOneRuleElement(graph, tupleStore, chainIn, elt, rCxt);
             chain = chainOut;
             if ( false ) {
                 FmtLog.info(RulesExecLib.class, "chain: ");
@@ -95,12 +100,14 @@ class RulesExecLib {
         return chain;
     }
 
-    private static Iterator<Binding> evalOneRuleElement(Graph graph, Iterator<Binding> chainIn, RuleBodyElement elt, RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalOneRuleElement(Graph graph, TupleStore tupleStore, Iterator<Binding> chainIn, RuleBodyElement elt, RulesExecCxt rCxt) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 return Access.accessGraph(chainIn, graph, triplePattern);
             }
-            case EltTuplePattern(Tuple tuplePattern) -> { throw new NotImplemented(); }
+            case EltTuplePattern(Tuple tuplePattern) -> {
+                return AccessTuples.accessTupleStore(chainIn, tupleStore, tuplePattern, rCxt);
+            }
             case EltCondition(Expr condition) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
                     FunctionEnv functionEnv = rCxt;
@@ -127,7 +134,7 @@ class RulesExecLib {
             }
             case EltNegation(List<RuleBodyElement> innerBody) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution-> {
-                    Iterator<Binding> chainInner = buildEvalBody(graph, solution, innerBody, rCxt);
+                    Iterator<Binding> chainInner = buildEvalBody(graph, tupleStore, solution, innerBody, rCxt);
                     boolean innerMatches = chainInner.hasNext();
                     return !innerMatches;
                 });
@@ -136,58 +143,28 @@ class RulesExecLib {
         }
     }
 
-    private static void accInstantiateHead(List<Triple> acc,  Rule rule, Binding solution) {
-        // Choose one!
-        // In all cases, only the head template instantiation for this one
-        // solution is affected.
-
-        if ( true ) {
-            // Unbound variables can't happen.
-            // Matches "return null" in EltAssignment handling.
-            // BIND failing should have caused the solution not to be generated.
-            rule.getTripleTemplates().stream()
-            .map(tripleTemplate->Substitute.substitute(tripleTemplate, solution))
-            // ---- Consistency checking - no necessary
-            .map(triple->{
-                if ( ! triple.isConcrete() )
-                    throw new RulesEvalException("Triple is not grounded: "+NodeFmtLib.displayStr(triple) );
-                return triple;
-            })
-            // ----
-            .forEach(acc::add);
-            return;
-        }
-
-        // If solutions without the necessary variables are allowed by pattern matching:
-
-        if ( false ) {
-            // If skip just the triples with an unbound variables.
-            // Other triple template substitutions succeed.
-            rule.getTripleTemplates().stream()
-                .map(tripleTemplate->Substitute.substitute(tripleTemplate, solution))
-                .filter(Triple::isConcrete)
-                .forEach(acc::add);
-            return;
-        }
-
-        if ( false ) {
-            // Skip all triples generated by a head template if there is a a template template that fails.
-            // Could pre-process to know which variables are need and check the solution,
-            // then add directly to the accumulator.
-
-            // Collect into a temporary place in case we need to back out.
-            List<Triple> acc1 = new ArrayList<>();
-            for ( Triple tripleTemplate : rule.getTripleTemplates() ) {
-                Triple t = Substitute.substitute(tripleTemplate, solution);
-                if ( ! t.isConcrete() ) {
-                    // Skip this whole head.
-                    return;
+    private static void accInstantiateHead(List<Triple> accTriples,  List<Tuple> accTuples, Rule rule, Binding solution) {
+        // Unbound variables shoudln't happen.
+        // Matches "return null" in EltAssignment handling.
+        // BIND failing :: issue https://github.com/w3c/data-shapes/issues/753
+        rule.getHeadElements().stream().forEach(headElt->{
+            switch(headElt) {
+                case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
+                    Triple triple = Substitute.substitute(tripleTemplate, solution);
+                    if ( ! triple.isConcrete() )
+                        throw new RulesEvalException("Triple is not grounded: "+NodeFmtLib.displayStr(triple) );
+                    accTriples.add(triple);
                 }
-                acc1.add(t);
+                case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {
+                    Tuple tuple = Tuples.substitute(tupleTemplate, solution);
+                    if ( ! tuple.isConcrete() )
+                        throw new RulesEvalException("Tuple is not grounded: "+Tuples.displayStr(tuple) );
+                    accTuples.add(tuple);
+                }
+                case null -> throw new InternalErrorException("null head element");
             }
-            acc.addAll(acc1);
-        }
-        throw new RulesEvalException("No template instantiation step defined");
+        });
+
     }
 
     /**

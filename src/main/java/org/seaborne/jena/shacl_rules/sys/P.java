@@ -45,6 +45,8 @@ public class P {
     public static final String SRL = "http://www.w3.org/ns/shacl-rules#";
     public static final String SHNEX = "http://www.w3.org/ns/shacl-node-expr#";
 
+    public static final String JenaRulesNS = "http://jena.apache.org/shacl-rules#";
+    public static final String JenaRulesSymbolsNS = "http://jena.apache.org/symbols-rules#";
 
     /** Build a PREFIXes block for SRL/Turtle/SPARQL syntax. */
     private static String prefixesAsString(Map<String, String> map, String...includes) {

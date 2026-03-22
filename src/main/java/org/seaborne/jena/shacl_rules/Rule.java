@@ -26,7 +26,9 @@ import java.util.function.Consumer;
 
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class Rule {
 
@@ -39,13 +41,13 @@ public class Rule {
     /**
      * Used by the parser and {@link GraphToRuleSet}
      */
-    public static Rule create(List<Triple> triples, List<RuleBodyElement> body) {
-        return new Rule(triples, body);
+    public static Rule create(List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
+        return new Rule(headElts, bodyElts);
     }
 
-    private Rule(List<Triple> triples, List<RuleBodyElement> body) {
-        this.head = new RuleHead(triples);
-        this.body = new RuleBody(body);
+    private Rule(List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
+        this.head = new RuleHead(headElts);
+        this.body = new RuleBody(bodyElts);
         counter++;
         id = ""+counter;
     }
@@ -56,12 +58,27 @@ public class Rule {
         return head;
     }
 
+    // XXX This should go away!
+    public List<Triple> getHeadTriples() {
+        return getHead().getHeadTriples();
+    }
+
+    // XXX This should go away!
+    public List<Tuple> getHeadTuples() {
+        return getHead().getHeadTuples();
+    }
+
+
     /**
      * Return the triple templates that used to generate triples.
      * The triples in the list may contain named variables.
      */
-    public List<Triple> getTripleTemplates() {
-        return getHead().getTripleTemplates();
+    public List<RuleHeadElement> getHeadElements() {
+        return getHead().getHeadElements();
+    }
+
+    public void forEachHeadElement(Consumer<RuleHeadElement> action) {
+        getHead().getHeadElements().forEach(action);
     }
 
     // -- Body

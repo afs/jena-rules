@@ -24,9 +24,12 @@ package org.seaborne.jena.shacl_rules;
 import java.io.InputStream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.SystemARQ;
+import org.apache.jena.sparql.util.Symbol;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.shacl_rules.sys.P;
 
 /**
  * Common operations.
@@ -37,6 +40,12 @@ import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
  */
 
 public class ShaclRules {
+
+    // XXX Check name.
+    public static String mtShapeRuleLanguage = "application/shape-rules";
+
+    public static String symbolNS = P.JenaRulesSymbolsNS;;
+    public static Symbol symStrict = SystemARQ.allocSymbol(symbolNS, "strict");
 
     // -- Execute
 

@@ -48,6 +48,7 @@ TOKENS
 <RULE: "rule">
 | <THEN: "then">
 | <TUPLE: "tuple">
+| <TUPLES: "tuples">
 | <DATA: "data">
 | <INFER: "infer">
 | <TRANSITIVE: "transitive">
@@ -223,7 +224,8 @@ NON-TERMINALS
 //    (<BOM>)?
 // }
 	RuleSet	:=	RuleOrDataBlock <EOF>
-	RuleOrDataBlock	:=	Prologue ( ( Rule | Data )+ ( Prologue1 ( Rule | Data )? )* )?
+	RuleOrDataBlock	:=	Prologue ( ( RuleOrData )+ ( Prologue1 ( RuleOrData )? )* )?
+	RuleOrData	:=	( Rule | Data | TupleData )
 // ---- Prologue
 	Prologue	:=	( Prologue1 )*
 	Prologue1	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )
@@ -249,33 +251,32 @@ NON-TERMINALS
 //    { finishRule(t.beginLine, t.beginColumn); }
 // }
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
-	Data	:=	<DATA> TriplesTemplateBlock
+	Data	:=	<DATA> <LBRACE> ( TriplesDataBlock )? <RBRACE>
+	TriplesDataBlock	:=	TriplesSameSubject ( <DOT> ( TriplesDataBlock )? )?
+	TupleData	:=	<TUPLES> <LBRACE> ( TuplesDataBlock )? <RBRACE>
+	TuplesDataBlock	:=	( DataTuple ( <DOT> )? )+
 // ---- Rule head
-	HeadTemplate	:=	( TriplesTemplateBlock )
+	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? ( HeadNotTriples ( HeadTemplateBlock )? )* <RBRACE>
 // ---- Rule body
-	BodyPattern	:=	<LBRACE> BodyPattern1 <RBRACE>
-	BodyPattern1	:=	( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )*
+	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )* <RBRACE>
 	BodyNotTriples	:=	( Filter | Negation | Assignment | TuplePattern )
-// XXX Matches zero triples
 	BodyTriplesBlock	:=	TriplesBlock
 	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
+// ---- Triples
+	HeadTemplateBlock	:=	TriplesBlock
+	HeadNotTriples	:=	TupleTemplate
+	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
+	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
+	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
 // ---- Tuples
 	TuplePattern	:=	TupleWithVars
 	TupleTemplate	:=	TupleWithVars
 	TupleWithVars	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> TupleArg ( <COMMA> TupleArg )* <RPAREN> )
 	TupleArg	:=	RDFTerm
 		|	Var
-	TupleData	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> RDFTerm ( <COMMA> RDFTerm )* <RPAREN> )
-// ---- Triples
-	TriplesTemplateBlock	:=	<LBRACE> ( TriplesTemplate )? <RBRACE>
-	TriplesTemplate	:=	( TriplesOrTuples ) ( <DOT> TriplesOrTuples )* ( <DOT> )?
-	TriplesOrTuples	:=	TriplesSameSubject
-		|	TupleTemplate
-	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
-	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
-	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
+	DataTuple	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> RDFTerm ( <COMMA> RDFTerm )* <RPAREN> )
 	Assignment	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
 // Element Let() : { Var v ; Expr expr ; }
 // {

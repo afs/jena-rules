@@ -80,11 +80,18 @@ void RuleOrDataBlock(): { }
 {
   Prologue()
   (
-    ( Rule() | Data() )+
-//    RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
+    (RuleOrData())+
+//  RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
     // Better - not recursive.
-    (Prologue1() ( Rule() | Data() )?)*
+    (Prologue1() ( RuleOrData() )? )*
   )?
+}
+void RuleOrData() : {}
+{
+    ( Rule()
+    | Data()
+    | TupleData()
+    )
 }
 // ---- Prologue
 void Prologue() : {}
@@ -179,16 +186,38 @@ void Declaration() : { Token t; String iriStr ; }
 void Data() : { Token t; }
 {
     t = <DATA>
+    <LBRACE>
     { startData(t.beginLine, t.beginColumn); }
-    TriplesTemplateBlock()
+    (TriplesDataBlock())?
+    <RBRACE>
     { finishData(t.beginLine, t.beginColumn); }
+}
+void TriplesDataBlock() : {}
+{
+    TriplesSameSubject()
+    (<DOT> (TriplesDataBlock())?)?
+}
+void TupleData() : { Token t; }
+{
+    t = <TUPLES>
+    <LBRACE>
+    { startTupleDataBlock(t.beginLine, t.beginColumn); }
+    (TuplesDataBlock())?
+    <RBRACE>
+    { finishTupleDataBlock(t.beginLine, t.beginColumn); }
+}
+void TuplesDataBlock() : {}
+{
+   (DataTuple() (<DOT>)? )+
 }
 // ---- Rule head
 void HeadTemplate() : { Token t ; }
 {
-    { t = token; }
+    t = <LBRACE>
     { startHead(t.beginLine, t.beginColumn); }
-    (TriplesTemplateBlock())
+    (HeadTemplateBlock())?
+    (HeadNotTriples() (HeadTemplateBlock())?)*
+    <RBRACE>
     { finishHead(t.beginLine, t.beginColumn); }
 }
 // ---- Rule body
@@ -196,27 +225,20 @@ void BodyPattern() : { Token t ; }
 {
     t = <LBRACE>
     { startBody(t.beginLine, t.beginColumn); }
-    BodyPattern1()
+    // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
+    (BodyTriplesBlock())?
+    ( BodyNotTriples() (BodyTriplesBlock())? )*
     <RBRACE>
     { finishBody(t.beginLine, t.beginColumn); }
-}
-void BodyPattern1() : { }
-{
-   // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
-   (BodyTriplesBlock())?
-   ( BodyNotTriples() (BodyTriplesBlock())? )*
 }
 void BodyNotTriples() : {}
 {
    ( Filter()
-//    |  Exists()
-//    |  NotExists()
    | Negation()
    | Assignment()
    | TuplePattern()
    )
 }
-// XXX Matches zero triples
 void BodyTriplesBlock() : { }
 {
    { startTriplesBlock(token.beginLine, token.beginColumn) ; }
@@ -240,6 +262,34 @@ void BodyBasic() : {}
     (BodyTriplesBlock())?
     ( Filter() (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
+}
+// ---- Triples
+void HeadTemplateBlock() : { }
+{
+   { startTriplesTemplate(token.beginLine, token.beginColumn); }
+   TriplesBlock()
+   { finishTriplesTemplate(token.beginLine, token.beginColumn); }
+}
+void HeadNotTriples() : {}
+{
+     TupleTemplate()
+}
+void TriplesBlock() : { }
+{
+    TriplesSameSubjectPath()
+    ( <DOT> (TriplesBlock())? )?
+}
+Node ReifiedTripleBlock() : { Node reifId ; }
+{
+    reifId = ReifiedTriple()
+    PropertyList(reifId) // May be empty
+    { return reifId ; }
+}
+Node ReifiedTripleBlockPath() : { Node reifId ; }
+{
+    reifId = ReifiedTriple()
+    PropertyListPath(reifId) // May be empty
+    { return reifId ; }
 }
 // ---- Tuples
 void TuplePattern() : {}
@@ -270,53 +320,19 @@ Node TupleArg() : { Node n ; Var v; }
   |
     v = Var() { return v; }
 }
-void TupleData() : {}
+void DataTuple() : { Token t; Node n; }
 {
-   (<TUPLE>|<DOLLAR>)
+   ( t = <TUPLE> | t = <DOLLAR> )
+   { startDataTuple(t.beginLine, t.beginColumn); }
    (
      <NIL>
    |
      <LPAREN>
-     RDFTerm() (<COMMA> RDFTerm() )*
+     n = RDFTerm() { tupleArg(n); }
+     (<COMMA> n = RDFTerm() { tupleArg(n); } )*
      <RPAREN>
    )
-}
-// ---- Triples
-void TriplesTemplateBlock() : { Token t; }
-{
-   t = <LBRACE>
-   { startTriplesTemplate(t.beginLine, t.beginColumn); }
-   ( TriplesTemplate() )?
-   { finishTriplesTemplate(t.beginLine, t.beginColumn); }
-   <RBRACE>
-}
-void TriplesTemplate() : { }
-{
-    ( TriplesOrTuples() )
-    // Rewrite for no recursion - grammar is not LL(1)
-    (LOOKAHEAD(2) <DOT> TriplesOrTuples())*
-    (<DOT>)?
-}
-void TriplesOrTuples() : {}
-{
-    TriplesSameSubject() | TupleTemplate()
-}
-void TriplesBlock() : { }
-{
-    TriplesSameSubjectPath()
-    ( <DOT> (TriplesBlock())? )?
-}
-Node ReifiedTripleBlock() : { Node reifId ; }
-{
-    reifId = ReifiedTriple()
-    PropertyList(reifId) // May be empty
-    { return reifId ; }
-}
-Node ReifiedTripleBlockPath() : { Node reifId ; }
-{
-    reifId = ReifiedTriple()
-    PropertyListPath(reifId) // May be empty
-    { return reifId ; }
+   { finishDataTuple(t.beginLine, t.beginColumn); }
 }
 void Assignment() : { Var v ; Expr expr ; }
 {
@@ -1371,6 +1387,7 @@ TOKEN [IGNORE_CASE] :
 | < THEN: "then" >
 //|  < RULE_INFER:   ":-" >
 | < TUPLE: "tuple" >
+| < TUPLES: "tuples" >
 | < DATA: "data" >
 | < INFER: "infer" >
 | < TRANSITIVE: "transitive" >

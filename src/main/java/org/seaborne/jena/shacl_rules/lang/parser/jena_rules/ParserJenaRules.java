@@ -38,6 +38,7 @@ import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.lang.parser.jena_rules.javacc.JenaRulesJavacc;
 import org.seaborne.jena.shacl_rules.lang.parser.jena_rules.javacc.ParseException;
 import org.seaborne.jena.shacl_rules.lang.parser.jena_rules.javacc.TokenMgrError;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 import org.slf4j.Logger;
 
 // Class specific parser code
@@ -76,12 +77,13 @@ public class ParserJenaRules extends ParserRules {
 
             List<Rule> rules = parser.getRules();
             List<Triple> triples = parser.getData();
+            List<Tuple> tuples = parser.getTupleData();
 
             // Last seen
             String declaredBaseURI = parser.getBaseIRI();
             IRIx baseIRI = (declaredBaseURI != null) ? IRIx.create(declaredBaseURI) : null;
 
-            RuleSet ruleSet = RuleSet.create(baseIRI, parserProfile.getPrefixMap(), parser.getImports(), rules, triples);
+            RuleSet ruleSet = RuleSet.create(baseIRI, parserProfile.getPrefixMap(), parser.getImports(), rules, triples, tuples);
             return ruleSet;
         }
         catch (ParseException ex) {

@@ -53,10 +53,13 @@ class V {
     // Property connecting to the rule sequence of a rule set.
     public static final Node rules = uri("rules");
     public static final Node data = uri("data");
+    public static final Node dataTuples = uri("tuples");
 
     public static final Node subject = uri("subject");
     public static final Node predicate = uri("predicate");
     public static final Node object = uri("object");
+
+    public static final Node tuple = uri("tuple");
 
     public static final Node negation = uri("not");
     public static final Node assign = uri("assign");

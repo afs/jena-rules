@@ -33,6 +33,7 @@ import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /**
  * A simple rules engine that can be easily understood.
@@ -44,25 +45,27 @@ import org.seaborne.jena.shacl_rules.sys.Stratification;
  */
 public class RulesEngineFwdSimple implements RulesEngine {
 
-    public static final RulesEngineFactory factory = (graph, ruleSet, cxt) -> build(graph, ruleSet, cxt);
+    public static final RulesEngineFactory factory = RulesEngineFwdSimple::build;
 
     /**
-     * Preferred: use {@link RulesEngine#create(EngineType, Graph, RuleSet)}
+     * Preferred: use {@link RulesEngine#create(EngineType, Graph, TupleStore, RuleSet)}
      * with {@link EngineType#SIMPLE}.
      */
-    public static RulesEngine build(Graph graph, RuleSet ruleSet, Context cxt) {
+    public static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
         RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
         RulesExecLib.prepare(ruleSet, rCxt);
-        return new RulesEngineFwdSimple(graph, ruleSet, rCxt);
+        return new RulesEngineFwdSimple(graph, tupleStore, ruleSet, rCxt);
     }
 
     private final RuleSet ruleSet;
     private final Graph baseGraph;
+    private final TupleStore baseTupleStore;
     private final RulesExecCxt rCxt;
 
-    private RulesEngineFwdSimple(Graph baseGraph, RuleSet ruleSet, RulesExecCxt rCxt) {
+    private RulesEngineFwdSimple(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
         this.baseGraph = baseGraph;
         this.ruleSet = ruleSet;
+        this.baseTupleStore = tupleStore;
         this.rCxt = rCxt;
     }
 
@@ -137,6 +140,15 @@ public class RulesEngineFwdSimple implements RulesEngine {
             GraphUtil.addInto(dataGraph, ruleSetData);
         }
 
+        // rCxt.strict
+        TupleStore tupleStore = TupleStore.create();
+        if ( ruleSet.hasTupleData() || baseTupleStore != null ) {
+            if ( ruleSet.hasTupleData() )
+                tupleStore.addAll(ruleSet.getDataTuples());
+            if ( baseTupleStore != null )
+                tupleStore.addAll(baseTupleStore);
+        }
+
         // Prefixes for the inferred graph.
         // === Graph of new triples.
         // Initially, the DATA triples.
@@ -156,7 +168,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
                     rCxt.out().printf("Level %d -- %d rules\n", i, rules.size());
                     rCxt.out().incIndent();
                 }
-                int rounds = evalStratum(i, rules, dataGraph, rCxt);
+                int rounds = evalStratum(i, rules, dataGraph, tupleStore, rCxt);
 
                 if ( TRACE ) {
                     rCxt.out().println("Base graph: size = "+baseGraph.size());
@@ -169,11 +181,11 @@ public class RulesEngineFwdSimple implements RulesEngine {
             }
         } finally { rCxt.out().flush(); }
 
-        return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph);
+        return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);
     }
 
     /* Return the number of of the last round that causes more triples */
-    private int evalStratum(int stratumNumber, List<Rule> rules, Graph dataGraph, RulesExecCxt rCxt) {
+    private int evalStratum(int stratumNumber, List<Rule> rules, Graph dataGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
 //        if ( TRACE )
 //            rCxt.out().printf("Eval level -- %d rules\n", rules.size());
 
@@ -217,7 +229,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
         // == Rules
         while(true) {
             round++;
-            int sizeAtRoundStart = graph1.getAdded().size();
+            int sizeAtRoundStart = graph1.getAdded().size() + evalTupleStore.size();
 
             if ( TRACE ) {
                 rCxt.out().println("Round: "+round);
@@ -226,10 +238,10 @@ public class RulesEngineFwdSimple implements RulesEngine {
 
             // Evaluate one round.
             // This is the "naive" algorithm.
-            // BY tracking rules that actually cause change, we can get semi-naive.
+            // By tracking rules that actually cause change, we can get semi-naive.
 
             for (Rule rule : rules ) {
-                executeOneRule(graph1, rule, prefixMap());
+                executeOneRule(graph1, evalTupleStore, rule, prefixMap());
 
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
@@ -238,7 +250,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
             if ( TRACE )
                 rCxt.out().decIndent();
 
-            int sizeAtRoundEnd = graph1.getAdded().size();
+            int sizeAtRoundEnd = graph1.getAdded().size() + evalTupleStore.size();
             if ( sizeAtRoundStart == sizeAtRoundEnd ) {
                 // No new triples this round.
                 --round;
@@ -268,14 +280,18 @@ public class RulesEngineFwdSimple implements RulesEngine {
      * One execution of one rules.
      * The argument graph is updated.
      */
-    private void executeOneRule(Graph graph, Rule rule, PrefixMap pmap) {
+    private void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, PrefixMap pmap) {
         if ( TRACE ) {
             rCxt.out().print("Rule: ");
             String rs = ShaclRulesWriter.asString(rule, pmap);
             rCxt.out().print(rs);
             //rCxt.out().println();
         }
-        List<Triple> triples = RulesExecLib.evalRule(graph, rule, rCxt);
+        RuleEval rEval = RulesExecLib.evalRule(graph, evalTupleStore, rule, rCxt);
+        // XXX rCxt.isStrict()
+        if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() )
+            evalTupleStore.addAll(rEval.tuples());
+        List<Triple> triples = rEval.triples();
         GraphUtil.add(graph, triples);
     }
 }

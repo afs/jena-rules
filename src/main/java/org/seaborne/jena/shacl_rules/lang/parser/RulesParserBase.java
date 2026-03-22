@@ -55,6 +55,7 @@ public class RulesParserBase extends LangParserBase {
 
     private List<Rule> rules = new ArrayList<>();
     private List<Triple> data = new ArrayList<>();
+    private List<Tuple> tupleData = new ArrayList<>();
 
     private LinkedHashSet<String> imports = new LinkedHashSet<>();
 
@@ -64,6 +65,7 @@ public class RulesParserBase extends LangParserBase {
 
     public List<Rule> getRules() { return rules; }
     public List<Triple> getData() { return data; }
+    public List<Tuple> getTupleData() { return tupleData; }
 
     public Set<String> getImports() { return imports; }
     public Set<String> getTransitiveProperties() { return transitiveProperties; }
@@ -103,14 +105,11 @@ public class RulesParserBase extends LangParserBase {
     // ---- Parser state.
 
     // INNER is the restricted body pattern for NOT.
-    // Better name? POSITIVE?
-    enum BuildState { NONE, OUTER, DATA, RULE, HEAD, BODY, INNER };
+    enum BuildState { NONE, OUTER, DATA, TUPLE_DATA, RULE, HEAD, BODY, INNER };
     protected BuildState state = BuildState.OUTER;
 
-    // These are allocate then handed over to the AST object.
-    private List<RuleHeadElement> headAcc2 = null;
-    // Used while parsing the head.
-    private List<Triple> headAcc = null;
+    // These 2 accumulators are allocated then handed over to the AST object.
+    private List<RuleHeadElement> headAcc = null;
     // Used while parsing the body.
     private List<RuleBodyElement> bodyAcc = null;
     // Used while parsing a negation or aggregation inner body.
@@ -118,6 +117,19 @@ public class RulesParserBase extends LangParserBase {
 
     // Used to accumulate nodes for a tuple.
     private final List<Node> tupleArgs = new ArrayList<>();
+
+    private boolean hasNegation;
+    private boolean hasAssignment;
+    private boolean hasAggregation;
+
+    private void clearState() {
+        headAcc = null;
+        bodyAcc = null;
+        hasNegation = false;
+        hasAssignment = false;
+        hasAggregation = false;
+    }
+
 
     // ----
 
@@ -152,7 +164,6 @@ public class RulesParserBase extends LangParserBase {
             throwInternalStateException("startHead: Already in a rule");
 
         headAcc = new ArrayList<>();
-        headAcc2 = new ArrayList<>();
         bodyAcc = new ArrayList<>();
         state = BuildState.RULE;
     }
@@ -164,11 +175,8 @@ public class RulesParserBase extends LangParserBase {
             throwInternalStateException("Null body");
 
         Rule rule = Rule.create(headAcc, bodyAcc);
-
-        headAcc = null;
-        headAcc2.clear();
-        bodyAcc = null;
         rules.add(rule);
+        clearState();
         // Data is accumulative through the parser run.
         state = BuildState.OUTER;
     }
@@ -242,18 +250,42 @@ public class RulesParserBase extends LangParserBase {
 
     // No variables, no paths
     protected void startData(int line, int column) {
-        debug("startTriplesTemplate", line, column);
+        debug("startData", line, column);
         state = BuildState.DATA;
     }
 
     protected void finishData(int line, int column) {
-        debug("startTriplesTemplate", line, column);
+        debug("finishData", line, column);
         state = BuildState.OUTER;
+    }
+
+    protected void startTupleDataBlock(int line, int column) {
+        debug("startTupleData", line, column);
+        state = BuildState.TUPLE_DATA;
+    }
+
+    protected void finishTupleDataBlock(int line, int column) {
+        debug("finishTupleData", line, column);
+        state = BuildState.OUTER;
+    }
+
+    protected void startDataTuple(int line, int column) {
+        debug("startDataTuple", line, column);
+        if ( state != BuildState.TUPLE_DATA )
+            throwInternalStateException("Data tuples when in state "+state);
+    }
+
+    protected void finishDataTuple(int line, int column) {
+        debug("finishDataTuple", line, column);
+        Tuple tuple = Tuple.create(tupleArgs);
+        emitDataTuple(tuple, line, column);
+        tupleArgs.clear();
     }
 
     protected void startNegation(int line, int column) {
         debug("startNegation", line, column);
         state = BuildState.INNER;
+        hasNegation = true;
         innerBodyAcc = new ArrayList<>();
     }
 
@@ -264,13 +296,12 @@ public class RulesParserBase extends LangParserBase {
 
     private void addToHead(Triple tripleTemplate) {
         requireNonNull(tripleTemplate);
-        headAcc.add(tripleTemplate);
+        headAcc.add(new RuleHeadElement.EltTripleTemplate(tripleTemplate));
     }
 
     private void addToHead(Tuple tuple) {
         requireNonNull(tuple);
-        headAcc2.add(new RuleHeadElement.EltTupleTemplate(tuple));
-        System.err.println("Not implemented: head tuples");
+        headAcc.add(new RuleHeadElement.EltTupleTemplate(tuple));
     }
 
     private void addToBody(RuleBodyElement ruleElt) {
@@ -314,6 +345,7 @@ public class RulesParserBase extends LangParserBase {
         requireNonNull(var);
         requireNonNull(expression);
         addToBody(new RuleBodyElement.EltAssignment(var, expression));
+        hasAssignment = true;
     }
 
     protected void emitTriple(Node s, Node p, Path path, Node o, int line, int column) {
@@ -341,10 +373,15 @@ public class RulesParserBase extends LangParserBase {
             case HEAD -> { addToHead(tuple); }
             case BODY -> { addRuleElement(tuple); }
             case INNER -> {
-                //innerBodyAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
+                innerBodyAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
             }
             default -> throw new IllegalArgumentException("Unexpected value: " + state);
         }
+    }
+
+    protected void emitDataTuple(Tuple tuple, int line, int column) {
+        debug("emitDataTuple", line, column);
+        accDataTuple(tuple, line, column);
     }
 
     protected void emitNegation(int line, int column) {
@@ -414,7 +451,6 @@ public class RulesParserBase extends LangParserBase {
 
     private void accTriple(Node s, Node p , Node o, int line, int column) {
         Triple triple = Triple.create(s, p, o);
-
         switch(state) {
             case HEAD -> { addToHead(triple); }
             case BODY -> { addRuleElement(Triple.create(s,p,o)); }
@@ -431,6 +467,10 @@ public class RulesParserBase extends LangParserBase {
                 throwInternalStateException("Triple emitted in state "+state);
             }
         }
+    }
+
+    private void accDataTuple(Tuple tuple, int line, int column) {
+        tupleData.add(tuple);
     }
 
     // To LangParseBase?

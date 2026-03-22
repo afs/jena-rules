@@ -28,6 +28,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesEngine;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 public class RulesEngineRegistry {
 
@@ -48,11 +49,11 @@ public class RulesEngineRegistry {
     }
 
     /** Create a RulesEngine */
-    public RulesEngine create(EngineType engineType, Graph dataGraph, RuleSet ruleSet, Context context) {
+    public RulesEngine create(EngineType engineType, Graph dataGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
         RulesEngineFactory f = registry.get(engineType);
         if (f == null)
             return null;
-        return f.create(dataGraph, ruleSet, context.copy());
+        return f.create(dataGraph, tupleStore, ruleSet, context.copy());
     }
 
 }

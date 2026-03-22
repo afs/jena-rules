@@ -32,6 +32,7 @@ import org.apache.jena.sparql.engine.main.solver.SolverRX3;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /**
  * A {@code RulesEngine} is an execution engine for a given {@link RuleSet} and given
@@ -53,7 +54,14 @@ public interface RulesEngine {
      * Create a rules engine for the graph data and the rule set.
      */
     public static RulesEngine create(EngineType engineType, Graph graph, RuleSet ruleSet) {
-        return RulesEngineRegistry.get().create(engineType, graph, ruleSet, Rules.getContext());
+        return RulesEngineRegistry.get().create(engineType, graph, null, ruleSet, Rules.getContext());
+    }
+
+    /**
+     * Create a rules engine for the graph data, tuple data, and the rule set.
+     */
+    public static RulesEngine create(EngineType engineType, Graph graph, TupleStore tupleData, RuleSet ruleSet) {
+        return RulesEngineRegistry.get().create(engineType, graph, tupleData, ruleSet, Rules.getContext());
     }
 
     public EvalAlgorithm engineType();

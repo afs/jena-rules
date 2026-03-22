@@ -25,20 +25,36 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class RuleDependencies {
 
     // See DependencyGraph.edges
     /**
-     * Does {@code triple} provide (generate triples) for {@code triple2}?
+     * Does {@code triple} provide (generate triples) for {@code rule}?
      * <p>
      * Triple ?s :p ?o "mayProvide" for triple ?s :p 123, or :s ?Q ?Z.
      * <p>In other words, can triple1, as a pattern, generate a concrete triple that triple2 matches?
      *
      */
     public static boolean dependsOn(Triple triple, Rule rule) {
-        for(Triple headTriple : rule.getTripleTemplates() ) {
+        for(Triple headTriple : rule.getHeadTriples() ) {
             if ( dependsOn(triple, headTriple) )
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Does {@code tuple} provide (generate tuples) for {@code triple2}?
+     * <p>
+     * Triple ?s :p ?o "mayProvide" for triple ?s :p 123, or :s ?Q ?Z.
+     * <p>In other words, can triple1, as a pattern, generate a concrete triple that triple2 matches?
+     *
+     */
+    public static boolean dependsOn(Tuple tuple, Rule rule) {
+        for(Tuple headTuple : rule.getHeadTuples() ) {
+            if ( dependsOn(tuple, headTuple) )
                 return true;
         }
         return false;
@@ -59,6 +75,18 @@ public class RuleDependencies {
         return matches(triplePattern.getPredicate(), tripleTemplate.getPredicate()) &&
                matches(triplePattern.getSubject(), tripleTemplate.getSubject()) &&
                matches(triplePattern.getObject(), tripleTemplate.getObject());
+    }
+
+    public // Used by RuleEngineBkdNonRecursions
+    /*package*/ static boolean dependsOn(Tuple tuplePattern, Tuple tupleTemplate) {
+        if ( tuplePattern.size() != tupleTemplate.size() )
+            return false;
+
+        for ( int i = 0 ; i < tuplePattern.size(); i++ ) {
+            if ( ! matches(tuplePattern.get(i), tupleTemplate.get(i)) )
+                return false;
+        }
+        return true;
     }
 
     /**

@@ -21,10 +21,7 @@
 
 package org.seaborne.jena.shacl_rules.tuples;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import org.apache.jena.graph.Node;
 
@@ -32,7 +29,13 @@ import org.apache.jena.graph.Node;
 public class TupleStoreSimple implements TupleStore {
 
     // Split by arity.
-    private List<Tuple> tuples = new ArrayList<>();
+    private final Set<Tuple> tupleSet = new LinkedHashSet<>();
+
+    public TupleStoreSimple() {}
+
+    public TupleStoreSimple(Collection<Tuple> tuples) {
+        tupleSet.addAll(tuples);
+    }
 
     @Override
     public boolean contains(Tuple tuple) {
@@ -41,31 +44,47 @@ public class TupleStoreSimple implements TupleStore {
     }
 
     @Override
-    public long size() {
-        return tuples.size();
+    public int size() {
+        return tupleSet.size();
     }
 
     @Override
     public void add(Tuple tuple) {
         checkConcrete(tuple);
-        tuples.add(tuple);
+        tupleSet.add(tuple);
+    }
+
+    @Override
+    public void addAll(Collection<Tuple> tuples) {
+        // Via checking.
+        tuples.forEach(this::add);
+    }
+
+    @Override
+    public void addAll(TupleStore other) {
+        other.all().forEachRemaining(this::add);
     }
 
     @Override
     public void delete(Tuple tuple) {
         checkConcrete(tuple);
-        tuples.remove(tuple);
+        tupleSet.remove(tuple);
     }
 
     @Override
     public Iterator<Tuple> find(Tuple pattern) {
         Objects.requireNonNull(pattern);
         List<Tuple> results = new ArrayList<>();
-        for ( Tuple tuple : tuples ) {
+        for ( Tuple tuple : tupleSet ) {
             if ( match(pattern, tuple) )
                 results.add(tuple);
         }
         return results.iterator();
+    }
+
+    @Override
+    public Iterator<Tuple> all() {
+        return tupleSet.iterator();
     }
 
     private boolean match(Tuple pattern, Tuple tuple) {
@@ -86,15 +105,19 @@ public class TupleStoreSimple implements TupleStore {
         return node1.sameTermAs(node2);
     }
 
-    @Override
-    public void deleteAll(Tuple tuple) {
-        while(tuples.remove(tuple)) {}
-    }
-
     private static void checkConcrete(Tuple tuple) {
         if ( tuple == null )
             throw new NullPointerException("Tuple");
+        noNulls(tuple);
         if ( ! tuple.isConcrete() )
             throw new IllegalArgumentException("Tuple not concrete");
+    }
+
+    private static void noNulls(Tuple tuple) {
+        for ( int i = 0 ; i < tuple.size() ; i++ ) {
+            Node x = tuple.get(i);
+            if ( x == null )
+                throw new NullPointerException("Tuple term");
+        }
     }
 }

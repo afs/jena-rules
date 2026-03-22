@@ -42,6 +42,8 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTupleTemplate;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
@@ -156,8 +158,11 @@ public class RuleSetASTWriter {
         out.println(tagHead);
         out.incIndent();
 
-        rule.getTripleTemplates().forEach(triple -> {
-            writeTriple(triple);
+        rule.getHeadElements().forEach(elt -> {
+            switch(elt) {
+                case EltTripleTemplate(Triple triple) -> { writeTriple(triple); }
+                case EltTupleTemplate(Tuple tuple) -> { writeTuple(tuple); }
+            }
             out.println();
         });
 

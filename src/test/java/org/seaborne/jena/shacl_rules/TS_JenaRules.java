@@ -29,6 +29,7 @@ import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
 @Suite
 @SelectClasses({
 
+    TestTuples.class,
     TestTupleStore.class,
 
     // Infrastructure

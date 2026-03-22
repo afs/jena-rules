@@ -109,11 +109,21 @@ void RuleOrDataBlock(): { }
 {
   Prologue()
   (
-    ( Rule() | Data() )+
-//    RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
+    (RuleOrData())+
+//  RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
     // Better - not recursive.
-    (Prologue1() ( Rule() | Data() )?)*
+    (Prologue1() ( RuleOrData() )? )*
   )?
+}
+
+void RuleOrData() : {}
+{
+    ( Rule()
+    | Data()
+#ifdef JENA    
+    | TupleData()
+#endif
+    )
 }
 
 // ---- Prologue
@@ -223,18 +233,47 @@ void Declaration() : { Token t; String iriStr ; }
 void Data() : { Token t; }
 {
     t = <DATA>
+    <LBRACE>
     { startData(t.beginLine, t.beginColumn); }
-    TriplesTemplateBlock()
+    (TriplesDataBlock())?
+    <RBRACE>
     { finishData(t.beginLine, t.beginColumn); }
 }
+
+void TriplesDataBlock() : {}
+{
+    TriplesSameSubject()
+    (<DOT> (TriplesDataBlock())?)?
+}
+
+#ifdef JENA
+void TupleData() : { Token t; }
+{
+    t = <TUPLES>
+    <LBRACE>
+    { startTupleDataBlock(t.beginLine, t.beginColumn); }
+    (TuplesDataBlock())?
+    <RBRACE>
+    { finishTupleDataBlock(t.beginLine, t.beginColumn); }
+}
+
+void TuplesDataBlock() : {}
+{
+   (DataTuple() (<DOT>)? )+
+}
+#endif
 
 // ---- Rule head
 
 void HeadTemplate() : { Token t ; }
 {
-    { t = token; }
+    t = <LBRACE>
     { startHead(t.beginLine, t.beginColumn); }
-    (TemplateBlock())
+    (HeadTemplateBlock())?
+#ifdef JENA
+    (HeadNotTriples() (HeadTemplateBlock())?)*
+#endif
+    <RBRACE>
     { finishHead(t.beginLine, t.beginColumn); }
 }
 
@@ -244,23 +283,16 @@ void BodyPattern() : { Token t ; }
 {
     t = <LBRACE>
     { startBody(t.beginLine, t.beginColumn); }
-    BodyPattern1()
+    // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
+    (BodyTriplesBlock())?
+    ( BodyNotTriples() (BodyTriplesBlock())? )*
     <RBRACE>
     { finishBody(t.beginLine, t.beginColumn); }
 }
 
-void BodyPattern1() : { }
-{
-   // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
-   (BodyTriplesBlock())?
-   ( BodyNotTriples() (BodyTriplesBlock())? )*
-}
-
 void BodyNotTriples() : {}
 {
-   (  Filter()
-//    |  Exists()
-//    |  NotExists()
+   ( Filter()
    | Negation()
    | Assignment()
 #ifdef JENA   
@@ -269,7 +301,6 @@ void BodyNotTriples() : {}
    )
 }
 
-// XXX Matches zero triples
 void BodyTriplesBlock() : { }
 {
    { startTriplesBlock(token.beginLine, token.beginColumn) ; }
@@ -295,6 +326,42 @@ void BodyBasic() : {}
     (BodyTriplesBlock())?
     ( Filter() (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
+}
+
+// ---- Triples
+
+void HeadTemplateBlock() : { }
+{
+   { startTriplesTemplate(token.beginLine, token.beginColumn); }
+   TriplesBlock()
+   { finishTriplesTemplate(token.beginLine, token.beginColumn); }
+}
+
+#ifdef JENA
+void HeadNotTriples() : {}
+{
+     TupleTemplate()
+}
+#endif
+
+void TriplesBlock() : { }
+{
+    TriplesSameSubjectPath()
+    ( <DOT> (TriplesBlock())? )?
+}
+
+Node ReifiedTripleBlock() : { Node reifId ; }
+{
+    reifId = ReifiedTriple()
+    PropertyList(reifId)   // May be empty
+    { return reifId ; }
+}
+
+Node ReifiedTripleBlockPath() : { Node reifId ; }
+{
+    reifId = ReifiedTriple()
+    PropertyListPath(reifId)   // May be empty
+    { return reifId ; }
 }
 
 #ifdef JENA
@@ -334,74 +401,22 @@ Node TupleArg() : { Node n ; Var v; }
     v = Var() { return v; }
 }
 
-void TupleData() : {}
+void DataTuple() : { Token t; Node n; }
 {
-   (<TUPLE>|<DOLLAR>)
+   ( t = <TUPLE> | t = <DOLLAR> )
+   { startDataTuple(t.beginLine, t.beginColumn); }
    (
      <NIL>
    |
      <LPAREN>
-     RDFTerm() (<COMMA> RDFTerm() )*
+     n = RDFTerm()  { tupleArg(n); }
+     (<COMMA> n = RDFTerm()  { tupleArg(n); } )*
      <RPAREN>
    )
+   { finishDataTuple(t.beginLine, t.beginColumn); }
 }
 
 #endif
-
-// ---- Triples
-
-void TemplateBlock() : { Token t; }
-{
-   t = <LBRACE>
-   { startTriplesTemplate(t.beginLine, t.beginColumn); }
-   ( TriplesTemplate() )?
-   { finishTriplesTemplate(t.beginLine, t.beginColumn); }
-   <RBRACE>
-}
-
-#ifdef STD
-void TriplesTemplate() : { }
-{
-    // Version for the spec.
-    TriplesSameSubject()
-    (<DOT> (TriplesTemplate())?)?
-}
-#endif
-
-#ifdef JENA
-void TriplesTemplate() : { }
-{
-    ( TriplesOrTuples() )
-    // Rewrite for no recursion - grammar is not LL(1)
-    (LOOKAHEAD(2) <DOT> TriplesOrTuples())*
-    (<DOT>)?
-}
-
-void TriplesOrTuples() : {}
-{
-    TriplesSameSubject() | TuplePattern()
-}
-#endif
-
-void TriplesBlock() : { }
-{
-    TriplesSameSubjectPath()
-    ( <DOT> (TriplesBlock())? )?
-}
-
-Node ReifiedTripleBlock() : { Node reifId ; }
-{
-    reifId = ReifiedTriple()
-    PropertyList(reifId)   // May be empty
-    { return reifId ; }
-}
-
-Node ReifiedTripleBlockPath() : { Node reifId ; }
-{
-    reifId = ReifiedTriple()
-    PropertyListPath(reifId)   // May be empty
-    { return reifId ; }
-}
 
 void Assignment() : {  Var v ; Expr expr ; }
 {
@@ -1633,6 +1648,7 @@ TOKEN [IGNORE_CASE] :
 //|  < RULE_INFER:   ":-" >
 #ifdef JENA
 |  < TUPLE:        "tuple" >
+|  < TUPLES:       "tuples" >
 #endif
 |  < DATA:         "data" >
 |  < INFER:        "infer" >

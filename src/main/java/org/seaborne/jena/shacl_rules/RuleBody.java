@@ -26,11 +26,9 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 
-class RuleBody {
+class RuleBody { //implements Iterable<RuleBodyElement>{
 
     private final List<RuleBodyElement> body;
 
@@ -38,21 +36,22 @@ class RuleBody {
         this.body = ruleElts;
     }
 
-    // The triples used in pattern matching.
-    private static List<Triple> ruleGetTriples(List<RuleBodyElement> ruleElts) {
-        List<Triple> x = ruleElts.stream()
-                .map(RuleBody::patternTripleOrNull)
-                .filter(Objects::nonNull)
-                .toList();
-        return x;
-    }
-
-    private static Triple patternTripleOrNull(RuleBodyElement elt) {
-        return switch(elt) {
-            case EltTriplePattern el -> el.triplePattern();
-            default -> null;
-        };
-    }
+    // XXX No longer needed?
+//    // The triples used in pattern matching.
+//    private static List<Triple> ruleGetTriples(List<RuleBodyElement> ruleElts) {
+//        List<Triple> x = ruleElts.stream()
+//                .map(RuleBody::patternTripleOrNull)
+//                .filter(Objects::nonNull)
+//                .toList();
+//        return x;
+//    }
+//
+//    private static Triple patternTripleOrNull(RuleBodyElement elt) {
+//        return switch(elt) {
+//            case EltTriplePattern el -> el.triplePattern();
+//            default -> null;
+//        };
+//    }
 
     List<RuleBodyElement> getBodyElements() {
         return body;

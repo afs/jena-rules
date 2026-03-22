@@ -23,5 +23,6 @@ package org.seaborne.jena.shacl_rules.exec;
 
 import org.apache.jena.graph.Graph;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
-record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph) implements RuleSetEvaluation {}
+record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph, TupleStore tupleStore) implements RuleSetEvaluation {}

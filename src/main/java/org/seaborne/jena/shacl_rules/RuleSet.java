@@ -24,14 +24,18 @@ package org.seaborne.jena.shacl_rules;
 import java.util.*;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.atlas.lib.tuple.TupleFactory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIx;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.IsoMatcher;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 public class RuleSet {
 
@@ -39,7 +43,9 @@ public class RuleSet {
     private final PrefixMap prefixMap;
     private final List<Rule> rules;
     private final List<Triple> dataTriples;
+    private final List<Tuple> dataTuples;
     private final Graph data;
+    private final TupleStore tuples;
     private final Set<String> imports;
 
     /**
@@ -89,6 +95,22 @@ public class RuleSet {
             return false;
         if ( ! IsoMatcher.isomorphic(d1, d2) )
             return false;
+
+        // Now check tuples data.
+        if ( ruleSet1.hasTupleData() != ruleSet2.hasTupleData() )
+            return false;
+
+        if ( ruleSet1.hasTupleData() && ruleSet2.hasTupleData() ) {
+            List<Tuple> tuples1 = ruleSet1.getDataTuples();
+            List<Tuple> tuples2 = ruleSet1.getDataTuples();
+
+            // Convert to general tuples.
+
+            List<org.apache.jena.atlas.lib.tuple.Tuple<Node>> x1 = tuples1.stream().map(t->TupleFactory.create(t.terms())).toList();
+            List<org.apache.jena.atlas.lib.tuple.Tuple<Node>> x2 = tuples2.stream().map(t->TupleFactory.create(t.terms())).toList();
+           if ( ! IsoMatcher.isomorphicTuples(x1, x2) )
+               return false;
+        }
         return true;
     }
 
@@ -98,22 +120,24 @@ public class RuleSet {
         PrefixMap prefixMap;
         List<Rule> rules;
         List<Triple> dataTriples;
+        List<Tuple> dataTuples;
     }
 
     public static RuleSet create(IRIx base,
                           PrefixMap prefixMap,
                           Set<String> imports,
                           List<Rule> rules,
-                          List<Triple> dataTriples) {
-        return new RuleSet(base, prefixMap, imports, rules, dataTriples);
+                          List<Triple> dataTriples, List<Tuple> dataTuples) {
+        return new RuleSet(base, prefixMap, imports, rules, dataTriples, dataTuples);
     }
 
-    private RuleSet(IRIx base, PrefixMap prefixMap, Set<String> imports, List<Rule> rules, List<Triple> dataTriples) {
+    private RuleSet(IRIx base, PrefixMap prefixMap, Set<String> imports, List<Rule> rules, List<Triple> dataTriples, List<Tuple> dataTuples) {
         this.base = base;
         this.prefixMap = Objects.requireNonNull(prefixMap);
         this.imports = imports;
         this.rules = Objects.requireNonNull(rules);
         this.dataTriples = dataTriples;
+        this.dataTuples = dataTuples;
 
         Graph graph = null;
         if ( dataTriples != null && ! dataTriples.isEmpty() ) {
@@ -124,6 +148,14 @@ public class RuleSet {
             }
         }
         this.data = graph;
+
+        TupleStore tupleStore = null ;
+
+        if ( dataTuples != null && ! dataTuples.isEmpty() ) {
+            tupleStore = TupleStore.create();
+            tupleStore.addAll(dataTuples);
+        }
+        tuples = tupleStore;
     }
 
     public PrefixMap getPrefixMap() {
@@ -161,14 +193,28 @@ public class RuleSet {
         return data;
     }
 
+    public TupleStore getTuplesData() {
+        return tuples;
+    }
+
     public List<Triple> getDataTriples() {
         return dataTriples;
+    }
+
+    public List<Tuple> getDataTuples() {
+        return dataTuples;
     }
 
     public boolean hasData() {
         if ( dataTriples == null )
             return false;
         return ! dataTriples.isEmpty();
+    }
+
+    public boolean hasTupleData() {
+        if ( dataTuples == null )
+            return false;
+        return ! dataTuples.isEmpty();
     }
 
     public boolean hasImports() {

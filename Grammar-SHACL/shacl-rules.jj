@@ -80,11 +80,17 @@ void RuleOrDataBlock(): { }
 {
   Prologue()
   (
-    ( Rule() | Data() )+
-//    RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
+    (RuleOrData())+
+//  RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
     // Better - not recursive.
-    (Prologue1() ( Rule() | Data() )?)*
+    (Prologue1() ( RuleOrData() )? )*
   )?
+}
+void RuleOrData() : {}
+{
+    ( Rule()
+    | Data()
+    )
 }
 // ---- Prologue
 void Prologue() : {}
@@ -179,16 +185,24 @@ void Declaration() : { Token t; String iriStr ; }
 void Data() : { Token t; }
 {
     t = <DATA>
+    <LBRACE>
     { startData(t.beginLine, t.beginColumn); }
-    TriplesTemplateBlock()
+    (TriplesDataBlock())?
+    <RBRACE>
     { finishData(t.beginLine, t.beginColumn); }
+}
+void TriplesDataBlock() : {}
+{
+    TriplesSameSubject()
+    (<DOT> (TriplesDataBlock())?)?
 }
 // ---- Rule head
 void HeadTemplate() : { Token t ; }
 {
-    { t = token; }
+    t = <LBRACE>
     { startHead(t.beginLine, t.beginColumn); }
-    (TriplesTemplateBlock())
+    (HeadTemplateBlock())?
+    <RBRACE>
     { finishHead(t.beginLine, t.beginColumn); }
 }
 // ---- Rule body
@@ -196,26 +210,19 @@ void BodyPattern() : { Token t ; }
 {
     t = <LBRACE>
     { startBody(t.beginLine, t.beginColumn); }
-    BodyPattern1()
+    // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
+    (BodyTriplesBlock())?
+    ( BodyNotTriples() (BodyTriplesBlock())? )*
     <RBRACE>
     { finishBody(t.beginLine, t.beginColumn); }
-}
-void BodyPattern1() : { }
-{
-   // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
-   (BodyTriplesBlock())?
-   ( BodyNotTriples() (BodyTriplesBlock())? )*
 }
 void BodyNotTriples() : {}
 {
    ( Filter()
-//    |  Exists()
-//    |  NotExists()
    | Negation()
    | Assignment()
    )
 }
-// XXX Matches zero triples
 void BodyTriplesBlock() : { }
 {
    { startTriplesBlock(token.beginLine, token.beginColumn) ; }
@@ -241,19 +248,11 @@ void BodyBasic() : {}
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
 }
 // ---- Triples
-void TriplesTemplateBlock() : { Token t; }
+void HeadTemplateBlock() : { }
 {
-   t = <LBRACE>
-   { startTriplesTemplate(t.beginLine, t.beginColumn); }
-   ( TriplesTemplate() )?
-   { finishTriplesTemplate(t.beginLine, t.beginColumn); }
-   <RBRACE>
-}
-void TriplesTemplate() : { }
-{
-    // Version for the spec.
-    TriplesSameSubject()
-    (<DOT> (TriplesTemplate())?)?
+   { startTriplesTemplate(token.beginLine, token.beginColumn); }
+   TriplesBlock()
+   { finishTriplesTemplate(token.beginLine, token.beginColumn); }
 }
 void TriplesBlock() : { }
 {

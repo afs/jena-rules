@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
+import org.seaborne.jena.shacl_rules.tuples.Tuples;
 import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 public class TestTupleStore {
@@ -47,7 +48,7 @@ public class TestTupleStore {
     }
 
     @Test public void tupleStore_02() {
-        Tuple tuple1 = Tuple.create(":x");
+        Tuple tuple1 = Tuples.createTuple(":x");
         TupleStore store = store();
         store.add(tuple1);
         assertEquals(1, store.size());
@@ -56,10 +57,10 @@ public class TestTupleStore {
     }
 
     @Test public void tupleStore_03() {
-        Tuple tuple1 = Tuple.create(":x");
-        Tuple tuple2 = Tuple.create(":y");
-        Tuple pattern1 = Tuple.create(":x");
-        Tuple pattern2 = Tuple.create("_");
+        Tuple tuple1 = Tuples.createTuple(":x");
+        Tuple tuple2 = Tuples.createTuple(":y");
+        Tuple pattern1 = Tuples.createTuple(":x");
+        Tuple pattern2 = Tuples.createTuple("_");
 
         TupleStore store = store();
         store.add(tuple1);

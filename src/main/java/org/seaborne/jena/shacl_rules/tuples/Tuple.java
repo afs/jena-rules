@@ -21,32 +21,20 @@
 
 package org.seaborne.jena.shacl_rules.tuples;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
-import java.util.function.Consumer;
+import java.util.*;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.sse.SSE;
 
-public class Tuple {
+public class Tuple implements Iterable<Node> {
 
+    @SafeVarargs
     public static Tuple create(Node...terms) {
         return new Tuple(terms);
     }
 
     public static Tuple create(List<Node> terms) {
-        return new Tuple(terms);
-    }
-
-    public static Tuple create(String...strings) {
-        Node[] terms = new Node[strings.length];
-        for ( int i = 0 ; i < strings.length ; i++ ) {
-            terms[i] = SSE.parseNode(strings[i]);
-        }
         return new Tuple(terms);
     }
 
@@ -66,8 +54,13 @@ public class Tuple {
         return items.size();
     }
 
-    public void forEach(Consumer<Node> action) {
-        items.forEach(action);
+    public List<Node> terms() {
+        return items;
+    }
+
+    @Override
+    public Iterator<Node> iterator() {
+        return items.iterator();
     }
 
     public Node get(int i) {
@@ -86,7 +79,7 @@ public class Tuple {
 
     @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner(", ", "[", "]");
+        StringJoiner sj = new StringJoiner(", ", "$(", ")");
         for ( Node n : items ) {
             sj.add(NodeFmtLib.displayStr(n));
         }

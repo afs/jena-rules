@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shacl.ShaclException;
@@ -73,10 +72,15 @@ public class WellFormed {
         checkRuleElements(tracker, rule.getBodyElements());
 
         // Head
-        for ( Triple tripleTemplate : rule.getTripleTemplates() ) {
+        for ( Triple tripleTemplate : rule.getHeadTriples() ) {
             checkDefined(tracker, tripleTemplate.getSubject());
             checkDefined(tracker, tripleTemplate.getPredicate());
             checkDefined(tracker, tripleTemplate.getObject());
+        }
+        for ( Tuple tupleTemplate : rule.getHeadTuples() ) {
+            for ( int i = 0 ; i < tupleTemplate.size() ; i++ ) {
+                checkDefined(tracker, tupleTemplate.get(i));
+            }
         }
     }
 
@@ -94,7 +98,9 @@ public class WellFormed {
                 addVar(tracker.bodyDefined, triplePattern.getObject());
             }
             case EltTuplePattern(Tuple tuplePattern) -> {
-                throw new NotImplemented();
+                for ( int i = 0 ; i < tuplePattern.size(); i++ ) {
+                    addVar(tracker.bodyDefined, tuplePattern.get(i));
+                }
             }
             case EltCondition(Expr condition) -> {
                 processWellFormedExpr(tracker, condition);

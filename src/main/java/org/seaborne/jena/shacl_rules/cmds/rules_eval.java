@@ -98,7 +98,7 @@ public class rules_eval extends CmdRules {
 
     private static RulesEngine defaultRulesEngine(Graph data, RuleSet ruleSet) {
         RulesEngine engine = RulesEngineRegistry.get()
-                .create(EngineType.SIMPLE, data, ruleSet, Rules.getContext());
+                .create(EngineType.SIMPLE, data, null, ruleSet, Rules.getContext());
         return engine;
     }
 

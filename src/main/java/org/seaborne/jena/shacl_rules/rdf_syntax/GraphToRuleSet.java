@@ -39,9 +39,14 @@ import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.V;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class GraphToRuleSet {
 
@@ -67,7 +72,6 @@ public class GraphToRuleSet {
         // Shape:
         // X rdf:Type sh:RuleSet ;
         //   sh:ruleSet ( ... rules ... )
-        //   sh:data ( <<(...)>> ....)
 
 //        // Find by type.
 //        List<Node> ruleSetNodes = G.listPO(graph, V.TYPE, V.classRuleSet);
@@ -98,9 +102,11 @@ public class GraphToRuleSet {
             if ( r != null )
                 rules.add(r);
         });
+
         List<Triple> data = parseData(graph, ruleSetNode);
+        List<Tuple> tupleData = parseTupleData(graph, ruleSetNode);
         Set<String> imports = null;
-        RuleSet ruleSet = RuleSet.create(null, PrefixMapFactory.create(graph.getPrefixMapping()), imports, rules, data);
+        RuleSet ruleSet = RuleSet.create(null, PrefixMapFactory.create(graph.getPrefixMapping()), imports, rules, data, tupleData);
         return ruleSet;
     }
 
@@ -108,19 +114,20 @@ public class GraphToRuleSet {
         Node headNode = G.getOneSP(graph, n, V.head);
         Node bodyNode = G.getOneSP(graph, n, V.body);
 
-        List<Triple> headTemplate = parseRuleHead(graph, headNode);
+        List<RuleHeadElement> headTemplate = parseRuleHead(graph, headNode);
         List<RuleBodyElement> body = parseRuleBody(graph, bodyNode);
         Rule rule = Rule.create(headTemplate, body);
         return rule;
     }
 
-    private static List<Triple> parseRuleHead(Graph graph, Node headNode) {
-        List<Triple> headTemplate = new ArrayList<>();
+    private static List<RuleHeadElement> parseRuleHead(Graph graph, Node headNode) {
+        List<RuleHeadElement> headTemplate = new ArrayList<>();
         GNode gNode = GNode.create(graph, headNode);
         List<Node> x = GraphList.members(gNode);
         x.forEach(node->{
             Triple t = parseTriple(graph, node);
-            headTemplate.add(t);
+            RuleHeadElement headElt = new RuleHeadElement.EltTripleTemplate(t);
+            headTemplate.add(headElt);
         });
         return headTemplate;
     }
@@ -211,9 +218,9 @@ public class GraphToRuleSet {
     }
 
     private static List<Triple> parseData(Graph graph, Node ruleSetNode) {
-        // [] sh:data ( <<( )>> .... )
+        // [] srl:data ( <<( )>> .... )
         // or
-        // [] sh:data <<( )>>; sh:data <<( )>>; ... .
+        // [] srl:data <<( )>>; sh:data <<( )>>; ... .
         // Or named graph
 
         if ( ! G.hasProperty(graph, ruleSetNode, V.data) )
@@ -225,5 +232,29 @@ public class GraphToRuleSet {
         List<Triple> triples = new ArrayList<>();
         tripleTerms.forEach(tt-> triples.add(tt.getTriple()));
         return triples;
+    }
+
+
+    // List of lists
+    // [] srl:tuples ( ( t1 t2 ) (t3) )
+    private static List<Tuple> parseTupleData(Graph graph, Node ruleSetNode) {
+        if ( ! G.hasProperty(graph, ruleSetNode, V.dataTuples) )
+            return null;
+        Node list = G.getOneSP(graph, ruleSetNode, V.dataTuples);
+        GNode gnode = GNode.create(graph, list);
+        List<Node> tuples = GraphList.members(gnode);
+        List<Tuple> tupleData = new ArrayList<>();
+        tuples.forEach(tupleNode-> {
+            Tuple tuple = parseTuple(graph, tupleNode);
+            tupleData.add(tuple);
+        });
+        return tupleData;
+    }
+
+    private static Tuple parseTuple(Graph graph, Node tupleNode) {
+        GNode gnode = GNode.create(graph, tupleNode);
+        List<Node> tupleArgTerms = GraphList.members(gnode);
+        Tuple tuple = Tuple.create(tupleArgTerms);
+        return tuple;
     }
 }

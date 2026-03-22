@@ -25,6 +25,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesEngine;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /**
  * Create {@link RulesEngine RulesEngines}.
@@ -34,5 +35,5 @@ import org.seaborne.jena.shacl_rules.RulesEngine;
  */
 @FunctionalInterface
 public interface RulesEngineFactory {
-    RulesEngine create(Graph dataGraph, RuleSet ruleSet, Context cxt);
+    RulesEngine create(Graph dataGraph, TupleStore dataTuples, RuleSet ruleSet, Context cxt);
 }

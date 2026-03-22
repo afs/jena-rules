@@ -135,6 +135,7 @@ public class RuleSetWriter {
         }
 
         writeData(ruleSet);
+        writeTupleData(ruleSet);
 
         List<Rule> rules = ruleSet.getRules();
         boolean blankLine = ruleSet.hasData();
@@ -173,6 +174,31 @@ public class RuleSetWriter {
         out.println();
     }
 
+    private void writeTupleData(RuleSet ruleSet) {
+        if ( ! ruleSet.hasTupleData() )
+            return;
+        List<Tuple> tuples = ruleSet.getDataTuples();
+        out.print("TUPLES {");
+        //if ( styleRuleSet == Style.Flat || tuples.size() == 1 ) {
+        if ( tuples.size() == 1 ) {
+            tuples.forEach(tuple->{
+                out.print(" ");
+                writeTuple(tuple);
+            });
+            out.println(" }");
+            return;
+        }
+        out.println();
+        out.incIndent();
+        tuples.forEach(tuple->{
+            writeTuple(tuple);
+            out.println();
+        });
+        out.decIndent();
+        out.println("}");
+        out.println();
+    }
+
     public void writeRule(Rule rule) {
         Style styleHead = this.styleRuleSet;
         Style styleBody = rule.getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
@@ -188,9 +214,13 @@ public class RuleSetWriter {
 
     private void writeHead(Rule rule, Style styleRule) {
         out.print("{");
-        rule.getTripleTemplates().forEach(triple -> {
+        rule.getHeadTriples().forEach(triple -> {
             out.print(" ");
             writeTriple(triple);
+        });
+        rule.getHeadTuples().forEach(tuple -> {
+            out.print(" ");
+            writeTuple(tuple);
         });
         out.print(" }");
     }
@@ -213,7 +243,6 @@ public class RuleSetWriter {
         }
     }
 
-    // XXX Rename - not "Inner"
     private void writeBodyBlock(Rule rule, Style styleBody) {
         int indent = 2;
 
@@ -307,11 +336,13 @@ public class RuleSetWriter {
     }
 
     private void writeTuple(Tuple tuple) {
-        out.print(" $(");
+        out.print("$(");
         boolean first = true;
         for ( int i = 0 ; i < tuple.size() ; i++ ) {
             if ( ! first )
                 out.print(", ");
+            else
+                first = false;
             nodeFormatter.format(out, tuple.get(i));
         }
         out.print(")");

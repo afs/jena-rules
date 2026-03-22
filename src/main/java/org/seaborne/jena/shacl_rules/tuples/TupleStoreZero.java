@@ -21,42 +21,44 @@
 
 package org.seaborne.jena.shacl_rules.tuples;
 
-import java.util.Collection;
 import java.util.Iterator;
 
-/**
- * A Set of tuples.
- */
-public interface TupleStore {
+import org.apache.jena.atlas.iterator.Iter;
+import org.seaborne.jena.shacl_rules.RulesException;
 
-    public static TupleStore create() {
-        return new TupleStoreSimple();
+public class TupleStoreZero implements TupleStore {
+
+    public static TupleStoreZero create() {
+        return new TupleStoreZero();
     }
 
-    /** Test for a concrete occurrence of tuple (no patterns) */
-    public boolean contains(Tuple tuple);
-
-    public int size();
-
-    public void add(Tuple tuple);
-
-    public default void addAll(Collection<Tuple> tuples) {
-        tuples.forEach(this::add);
+    @Override
+    public boolean contains(Tuple tuple) {
+        return false;
     }
 
-    public default void addAll(TupleStore other) {
-        other.all().forEachRemaining(this::add);
+    @Override
+    public int size() {
+        return 0;
     }
 
-    /** Delete one occurrence of Tuple. */
-    public void delete (Tuple tuple);
+    @Override
+    public void add(Tuple tuple) {
+        throw new RulesException("Can't add tuple to "+this.getClass().getSimpleName());
+    }
 
-    public Iterator<Tuple> find(Tuple pattern);
+    @Override
+    public void delete(Tuple tuple) {
+        throw new RulesException("Can't delete tuple to "+this.getClass().getSimpleName());
+    }
 
-    public Iterator<Tuple> all();
+    @Override
+    public Iterator<Tuple> find(Tuple pattern) {
+        return Iter.nullIterator();
+    }
 
-//    public Iterator<Tuple> find(Node node1);
-//    public Iterator<Tuple> find(Node node1, Node node2);
-//    public Iterator<Tuple> find(Node node1, Node node2, Node node3);
-//    public Iterator<Tuple> find(Node... nodes);
+    @Override
+    public Iterator<Tuple> all() {
+        return Iter.nullIterator();
+    }
 }

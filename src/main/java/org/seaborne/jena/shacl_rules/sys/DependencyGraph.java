@@ -35,8 +35,12 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTuplePattern;
+import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
  * Rules dependency graph. The graph has vertices of rules and links being "depends
@@ -83,13 +87,19 @@ public class DependencyGraph {
         // Head triple template to rule.
         // Keep?
         MultiValuedMap<Triple, Rule> providers = MultiMapUtils.newListValuedHashMap();
+        MultiValuedMap<Tuple, Rule> providers2 = MultiMapUtils.newListValuedHashMap();
         ruleSet.getRules().forEach(rule->{
-            rule.getTripleTemplates().forEach(t->providers.put(t, rule));
+            rule.getHeadElements().forEach(elt->{
+                switch(elt) {
+                    case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> providers.put(tripleTemplate, rule);
+                    case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> providers2.put(tupleTemplate, rule);
+                }
+            });
         });
 
         // For each rule, connect to its positive and negative dependencies.
         ruleSet.getRules().forEach(rule->{
-            Collection<DependencyEdge> connections = edges(rule, providers);
+            Collection<DependencyEdge> connections = edges(rule, providers, providers2);
             if ( connections.isEmpty() ) {
                 // Alternative is have a "no edge" distinguished edge.
                 // May be necessary for positive and negative flavours.
@@ -105,17 +115,18 @@ public class DependencyGraph {
     private static final boolean DEBUG_BUILD = false;
 
     // Entry point to calculate the direct edge set.
-    static Collection<DependencyEdge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers) {
+    static Collection<DependencyEdge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers, MultiValuedMap<Tuple, Rule> providers2) {
         if ( DEBUG_BUILD )
             ShaclRulesWriter.print(rule);
         List<DependencyEdge> connections = new ArrayList<>();
-        accumulateEdges(connections, rule, DepEdgeType.POSITIVE, rule.getBodyElements(), providers);
+        accumulateEdges(connections, rule, DepEdgeType.POSITIVE, rule.getBodyElements(), providers, providers2);
         if ( DEBUG_BUILD )
             System.out.println(connections.size()+" :: put:"+connections);
         return connections;
     }
 
-    private static void accumulateEdges(List<DependencyEdge> accumulator, Rule rule, DepEdgeType linkType, List<RuleBodyElement> elts, MultiValuedMap<Triple, Rule> providers) {
+    private static void accumulateEdges(List<DependencyEdge> accumulator, Rule rule, DepEdgeType linkType, List<RuleBodyElement> elts,
+                                        MultiValuedMap<Triple, Rule> providers, MultiValuedMap<Tuple, Rule> providers2) {
         for ( RuleBodyElement elt : elts ) {
             switch(elt) {
                 case EltTriplePattern(Triple triplePattern) -> {
@@ -129,9 +140,8 @@ public class DependencyGraph {
                         }
 
                         // Possible improvement.
-                        // Find triple templtaes that match riple patterns using e.g. index by predicate.
-                        // rather then a ruleset scan?
-                        // ie. a better Triple template to rule lookup.
+                        // Find triple templats that match triple patterns using e.g. index by predicate. rather then a ruleset scan?
+                        // i.e. a better Triple template to rule lookup.
                         //  TriplePattern -> Possible (Triple templates, rule)
 
                         if ( RuleDependencies.dependsOn(triplePattern, tripleTemplate) ) {
@@ -143,11 +153,28 @@ public class DependencyGraph {
                         }
                     });
                 }
+                case EltTuplePattern(Tuple tuplePattern) -> {
+                    providers2.keySet().forEach(tupleTemplate -> {
+//                        if ( DEBUG_BUILD ) {
+//                            System.out.println("Link type: "+linkType);
+//                            System.out.println("Pattern:   "+NodeFmtLib.displayStr(tupleTemplate));
+//                            System.out.println("Template:  "+NodeFmtLib.displayStr(tupleTemplate));
+//                            System.out.println(RuleDependencies.dependsOn(tuplePattern, tupleTemplate));
+//                        }
+                        if ( RuleDependencies.dependsOn(tuplePattern, tupleTemplate) ) {
+                            providers2.get(tupleTemplate).forEach(r -> {
+                                if ( freshEdge(accumulator, rule, linkType, r) )
+                                    accumulator.add(new DependencyEdge(rule, linkType, r));
+                            });
+                        }
+                    });
+                }
+
                 case EltNegation(List<RuleBodyElement> inner) -> {
                     // Do as a second pass once all the positives are done?
                     // NB Negative overrides positive in stratification.
                     // Anything inside NOT is also "negative"
-                    accumulateEdges(accumulator, rule, DepEdgeType.NEGATIVE, inner, providers);
+                    accumulateEdges(accumulator, rule, DepEdgeType.NEGATIVE, inner, providers, providers2);
                 }
                 // These do not cause a dependency relationship.
 //                case EltCondition(Expr condition) -> {}

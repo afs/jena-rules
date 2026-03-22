@@ -57,7 +57,7 @@ public class ShaclRulesWriter {
     }
 
     public static void print(RuleSet ruleSet) {
-        write(System.out, ruleSet, true);
+        write(System.out, ruleSet, false);
     }
 
     public static void print(RuleSet ruleSet, boolean flatMode) {

@@ -26,6 +26,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.util.Context;
+import org.seaborne.jena.shacl_rules.ShaclRules;
 
 /**
  * Rule execution environment.
@@ -42,6 +43,7 @@ public class RulesExecCxt implements FunctionEnv {
     private IndentedWriter out = IndentedWriter.clone(IndentedWriter.stdout).setFlushOnNewline(true);
 
     private final Context context;
+    private final boolean strict;
 
     public static RulesExecCxt create(Context context) {
         // Always isolate.
@@ -53,6 +55,11 @@ public class RulesExecCxt implements FunctionEnv {
 
     private RulesExecCxt(Context context) {
         this.context = context;
+        this.strict = context.isTrue(ShaclRules.symStrict);
+    }
+
+    public boolean isStrict() {
+        return strict;
     }
 
     @Override

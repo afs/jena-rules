@@ -50,6 +50,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RuleDependencies;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /*
  * A simple backwards chaining rule engine.
@@ -114,9 +115,6 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     public Stream<Triple> solve(Triple queryTriple) {
         if ( TRACE )
             LOG.printf("<< query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
-        // Do better! Query subClass of Rule.
-        Rule query = Rule.create(List.of(queryTriple), List.of());
-
         // Collects all inferred triples from rules touched during the evaluation.
         // Filter inferred triples to find the ones we want.
         Evaluation e = solveTop(queryTriple);
@@ -220,11 +218,11 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( ruleSet.hasData() )
             GraphUtil.addInto(output, ruleSet.getData());
 
-        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, output);
+        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, null, output);
         return e;
     }
 
-    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, Graph outputGraph)  implements RuleSetEvaluation {}
+    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, TupleStore tupleStore, Graph outputGraph)  implements RuleSetEvaluation {}
 
     // XXX DependencyGraph
     private List<Rule> dependsOn(Triple queryTriple)  {
@@ -299,9 +297,15 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( TRACE )
             LOG.decIndent();
 
+        // XXX
+//        if ( rule.getHead().hasTuples() ) {
+//            LOG.println("Warning: rulke has tuples in teh rule head - tuples ignored");
+//        }
+
         // Instantiate the head and store in working graph. (new graph? XXX)
-        List<Triple> head = rule.getTripleTemplates();
-        BasicPattern bgp = BasicPattern.wrap(head);
+        //List<RuleHeadElement> head = rule.getHeadElements();
+        List<Triple> headTriples = rule.getHeadTriples();
+        BasicPattern bgp = BasicPattern.wrap(headTriples);
         List<Triple> result = new ArrayList<>();
         while(chain.hasNext()) {
             Binding row = chain.next();
@@ -370,7 +374,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 //    @SuppressWarnings("removal")
 //    private static String str(Rule rule, PrefixMap prefixMap) {
 //        // XXX No negation.
-//        return str(rule.getTripleTemplates(), prefixMap) + " :- " +         str(rule.getDependentTriples(), prefixMap);
+//        return str(rule.getHeadElements(), prefixMap) + " :- " +         str(rule.getDependentTriples(), prefixMap);
 //    }
 //
 //    private static String str(List<Triple> triples, PrefixMap prefixMap) {
@@ -388,7 +392,8 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
     }
 
     private boolean mayGenerate(Triple queryTriple, Rule r) {
-        for ( Triple headTriple : r.getTripleTemplates() ) {
+        for ( Triple headTriple : r.getHeadTriples() ) {
+        //for ( Triple headTriple : r.getHeadElements() ) {
             if ( RuleDependencies.dependsOn(headTriple, queryTriple) ) {
                 return true;
             }
