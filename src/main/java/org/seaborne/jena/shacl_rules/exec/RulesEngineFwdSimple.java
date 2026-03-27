@@ -288,9 +288,9 @@ public class RulesEngineFwdSimple implements RulesEngine {
             //rCxt.out().println();
         }
         RuleEval rEval = RulesExecLib.evalRule(graph, evalTupleStore, rule, rCxt);
-        // XXX rCxt.isStrict()
-        if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() )
+        if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() ) {
             evalTupleStore.addAll(rEval.tuples());
+        }
         List<Triple> triples = rEval.triples();
         GraphUtil.add(graph, triples);
     }

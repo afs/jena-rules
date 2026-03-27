@@ -122,9 +122,10 @@ public class RuleSetWriter {
                out.printf("IMPORT ");
                if ( prefixMap != null ) {
                    String x = prefixMap.abbreviate(importURI);
-                   if ( x != null )
+                   if ( x != null ) {
                        out.println(x);
-                   continue;
+                       continue;
+                   }
                }
                out.print('<');
                out.print(importURI);

@@ -1,0 +1,10 @@
+
+PREFIX : <http://example/>
+PREFIX ex: <http://example/ex#>
+
+IMPORTS <rs1.srl>
+
+DATA {
+   ex:x :q "rs3" .
+   ex:x :p [] .
+}

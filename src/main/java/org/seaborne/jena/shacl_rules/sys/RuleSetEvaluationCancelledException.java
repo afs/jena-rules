@@ -19,39 +19,11 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules;
+package org.seaborne.jena.shacl_rules.sys;
 
-import org.junit.platform.suite.api.SelectClasses;
-import org.junit.platform.suite.api.Suite;
+import org.seaborne.jena.shacl_rules.RulesException;
 
-import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
-
-@Suite
-@SelectClasses({
-
-    TestTuples.class,
-    TestTupleStore.class,
-
-    // Infrastructure
-    TestAppendGraph.class,
-
-    TestNodeExpressions.class,
-
-    TestRulesSyntaxBasic.class,
-    TestRulesWellFormed.class,
-    TestDependencyGraph.class,
-    TestRulesStratification.class,
-    TestRulesEval.class,
-
-    TestImports.class,
-
-    Scripts_RuleSyntax.class,
-    Scripts_Wellformed.class,
-    Scripts_Stratification.class,
-    Scripts_RuleEval.class,
-
-    // Or combined
-    //Scripts_RuleTests.class
-})
-public class TS_JenaRules {}
-
+public class RuleSetEvaluationCancelledException extends RulesException {
+    public RuleSetEvaluationCancelledException() { super("Rules evaluation cancelled"); }
+    public RuleSetEvaluationCancelledException(Throwable cause) { super("Rules evaluation cancelled", cause) ; }
+}

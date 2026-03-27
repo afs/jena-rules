@@ -40,6 +40,7 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
+import org.apache.jena.sparql.modify.TemplateLib;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
@@ -144,28 +145,105 @@ class RulesExecLib {
     }
 
     private static void accInstantiateHead(List<Triple> accTriples,  List<Tuple> accTuples, Rule rule, Binding solution) {
-        // Unbound variables shoudln't happen.
+        // Unbound variables shouldn't happen.
         // Matches "return null" in EltAssignment handling.
         // BIND failing :: issue https://github.com/w3c/data-shapes/issues/753
-        rule.getHeadElements().stream().forEach(headElt->{
-            switch(headElt) {
-                case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
-                    Triple triple = Substitute.substitute(tripleTemplate, solution);
-                    if ( ! triple.isConcrete() )
-                        throw new RulesEvalException("Triple is not grounded: "+NodeFmtLib.displayStr(triple) );
-                    accTriples.add(triple);
-                }
-                case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {
-                    Tuple tuple = Tuples.substitute(tupleTemplate, solution);
-                    if ( ! tuple.isConcrete() )
-                        throw new RulesEvalException("Tuple is not grounded: "+Tuples.displayStr(tuple) );
-                    accTuples.add(tuple);
-                }
-                case null -> throw new InternalErrorException("null head element");
-            }
-        });
 
+        // Rewrite for blank nodes.
+
+        if ( false ) {
+            rule.getHeadElements().stream().forEach(headElt->{
+                switch(headElt) {
+                    case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
+                        Triple triple = Substitute.substitute(tripleTemplate, solution);
+                        if ( ! triple.isConcrete() )
+                            throw new RulesEvalException("Triple is not grounded: "+NodeFmtLib.displayStr(triple) );
+                        accTriples.add(triple);
+                    }
+                    case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {
+                        Tuple tuple = Tuples.substitute(tupleTemplate, solution);
+                        if ( ! tuple.isConcrete() )
+                            throw new RulesEvalException("Tuple is not grounded: "+Tuples.displayStr(tuple) );
+                        accTuples.add(tuple);
+                    }
+                    case null -> throw new InternalErrorException("null head element");
+                }
+            });
+        }
+
+        // Make it CONSTRUICT-like (but needs conditions to enable termination)
+        Iterator<Triple> iter = templateInstantiation(rule.getHeadTriples(), solution);
+        iter.forEachRemaining(accTriples::add);
     }
+
+    // No tuples.
+    private static Iterator<Triple> templateInstantiation(List<Triple> headElements, Binding binding) {
+        return TemplateLib.calcTriples(headElements, Iter.singletonIterator(binding));
+    }
+
+    // From TemplateLib.calcTriples
+
+//    private static List<Triple> rewriteForBlankNodes(List<RuleHeadElement> headElements) {
+//        /** Substitute into triple patterns */
+//        public static Iterator<Triple> calcTriples(final List<Triple> triples, Iterator<Binding> bindings) {
+//            Function<Binding, Iterator<Triple>> mapper = new Function<>() {
+//                Map<Node, Node> bNodeMap = new HashMap<>();
+//
+//                @Override
+//                public Iterator<Triple> apply(final Binding b) {
+//                    // Iteration is a new mapping of bnodes.
+//                    bNodeMap.clear();
+//
+//                    List<Triple> tripleList = new ArrayList<>(triples.size());
+//                    for ( Triple triple : triples ) {
+//                        Triple q = subst(triple, b, bNodeMap);
+//                        if ( !q.isConcrete() || ! NodeUtils.isValidAsRDF(q.getSubject(), q.getPredicate(), q.getObject()) ) {
+//                            // Log.warn(TemplateLib.class, "Unbound quad:
+//                            // "+FmtUtils.stringForQuad(quad)) ;
+//                            continue;
+//                        }
+//                        tripleList.add(q);
+//                    }
+//                    return tripleList.iterator();
+//                }
+//            };
+//            return Iter.flatMap(bindings, mapper);
+//        }
+//    }
+//
+//    /** Substitute into a triple, with rewriting of bNodes */
+//    public static Triple subst(Triple triple, Binding b, Map<Node, Node> bNodeMap) {
+//        Node s = triple.getSubject();
+//        Node p = triple.getPredicate();
+//        Node o = triple.getObject();
+//
+//        Node s1 = s;
+//        Node p1 = p;
+//        Node o1 = o;
+//
+//        if ( s1.isBlank() || Var.isBlankNodeVar(s1) )
+//            s1 = newBlank(s1, bNodeMap);
+//
+//        if ( p1.isBlank() || Var.isBlankNodeVar(p1) )
+//            p1 = newBlank(p1, bNodeMap);
+//
+//        if ( o1.isBlank() || Var.isBlankNodeVar(o1) )
+//            o1 = newBlank(o1, bNodeMap);
+//
+//        Triple t = triple;
+//        if ( s1 != s || p1 != p || o1 != o )
+//            t = Triple.create(s1, p1, o1);
+//        Triple t2 = Substitute.substitute(t, b);
+//        return t2;
+//    }
+//
+//    /** generate a blank node consistently */
+//    private static Node newBlank(Node n, Map<Node, Node> bNodeMap) {
+//        if ( !bNodeMap.containsKey(n) )
+//            bNodeMap.put(n, NodeFactory.createBlankNode());
+//        return bNodeMap.get(n);
+//    }
+
 
     /**
      * Create a {@link RulesExecCxt} from a {@link Context}.

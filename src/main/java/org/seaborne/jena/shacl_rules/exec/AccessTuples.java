@@ -22,6 +22,8 @@
 package org.seaborne.jena.shacl_rules.exec;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.apache.jena.atlas.iterator.Iter;
@@ -30,6 +32,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.main.solver.SolverLib;
+import org.seaborne.jena.shacl_rules.sys.RuleSetEvaluationCancelledException;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
@@ -57,20 +60,20 @@ public class AccessTuples {
 
         Tuple groundedPattern =  substituteFlat(pattern, binding) ;
         BindingBuilder resultsBuilder = Binding.builder(binding);
-        Iterator<Tuple> tuplesIter = store.find(groundedPattern);
+        Iterator<Tuple> tupleStoreIter = store.find(groundedPattern);
 
-//            // Add cancel.
-//            AtomicBoolean cancelSignal = execCxt.getCancelSignal();
-//            if (cancelSignal != null) {
-//                graphIter = graphIter.mapWith(x -> {
-//                    if (cancelSignal.get()) {
-//                        throw new QueryCancelledException();
-//                    }
-//                    return x;
-//                });
-//            }
-
-        Iterator<Binding> iter = Iter.mapRemove(tuplesIter, dataTuple -> mapper(resultsBuilder, groundedPattern, dataTuple));
+        Iterator<Binding> tuplesIter = Iter.mapRemove(tupleStoreIter, dataTuple -> mapper(resultsBuilder, groundedPattern, dataTuple));
+        // Add cancel.
+        AtomicBoolean cancelSignal = ruleExecCxt.getCancelSignal();
+        Iterator<Binding> iter = tuplesIter;
+        if ( cancelSignal != null ) {
+            Function<Binding, Binding> cancelTest = (row)->{
+                if (cancelSignal.get())
+                    throw new RuleSetEvaluationCancelledException();
+                return row;
+            };
+            iter = Iter.map(iter, cancelTest);
+        }
         return iter;
     }
 

@@ -24,6 +24,7 @@ package org.seaborne.jena.shacl_rules;
 import java.io.InputStream;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.irix.IRIs;
 import org.apache.jena.sparql.SystemARQ;
 import org.apache.jena.sparql.util.Symbol;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
@@ -110,7 +111,8 @@ public class ShaclRules {
      * @throws ShaclRulesParseException
      */
     public static RuleSet parseFile(String filenameOrURI) {
-        return ShaclRulesParser.from(filenameOrURI).parse();
+        String base = IRIs.resolve(filenameOrURI);
+        return ShaclRulesParser.from(filenameOrURI).baseURI(base).parse();
     }
 
     /**

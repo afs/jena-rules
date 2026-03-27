@@ -1,0 +1,10 @@
+IMPORTS <rs3.srl>
+
+PREFIX : <http://example/>
+PREFIX ex: <http://example/ex#>
+
+DATA {
+   ex:x :q "rs2"
+}
+
+RULE {} WHERE {:s :p 2 }

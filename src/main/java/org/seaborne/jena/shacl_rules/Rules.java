@@ -32,7 +32,7 @@ public class Rules {
 
     /**
      * Rule equivalence is defined as two rules being the same for execution.
-     * but they may be different by object identity and serialization (speciifcally, order in the head and body).
+     * but they may be different by object identity and serialization (specifically, order in the head and body).
      * In java terms, {@code rule1 != rule2}.
      */
     public static boolean sameAs(Rule rule1, Rule rule2) {

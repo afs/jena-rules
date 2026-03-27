@@ -21,37 +21,28 @@
 
 package org.seaborne.jena.shacl_rules;
 
-import org.junit.platform.suite.api.SelectClasses;
-import org.junit.platform.suite.api.Suite;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
+import org.junit.jupiter.api.Test;
 
-@Suite
-@SelectClasses({
+import org.seaborne.jena.shacl_rules.sys.ImportsProcessor;
 
-    TestTuples.class,
-    TestTupleStore.class,
 
-    // Infrastructure
-    TestAppendGraph.class,
 
-    TestNodeExpressions.class,
+public class TestImports {
+    // Convert to manifest
 
-    TestRulesSyntaxBasic.class,
-    TestRulesWellFormed.class,
-    TestDependencyGraph.class,
-    TestRulesStratification.class,
-    TestRulesEval.class,
+    @Test public void imports_01() {
+        RuleSet rs1 = ShaclRules.parseFile("src/test/files/imports/rs1.srl");
 
-    TestImports.class,
+        assertTrue(rs1.hasImports());
+        assertEquals(2, rs1.getImports().size());
 
-    Scripts_RuleSyntax.class,
-    Scripts_Wellformed.class,
-    Scripts_Stratification.class,
-    Scripts_RuleEval.class,
+        RuleSet rsx = ImportsProcessor.mergeClosure(rs1);
 
-    // Or combined
-    //Scripts_RuleTests.class
-})
-public class TS_JenaRules {}
+        assertEquals(4, rsx.getData().size());
+        assertEquals(3, rsx.getRules().size());
+    }
 
+}

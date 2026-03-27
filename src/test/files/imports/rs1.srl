@@ -1,0 +1,11 @@
+IMPORTS <rs2.srl>
+IMPORTS <rs3.srl>
+
+PREFIX : <http://example/>
+
+DATA {
+   :x :q "rs1"
+}
+
+RULE {} WHERE {:s :p 1 }
+

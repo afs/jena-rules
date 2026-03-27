@@ -21,6 +21,8 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -44,18 +46,21 @@ public class RulesExecCxt implements FunctionEnv {
 
     private final Context context;
     private final boolean strict;
+    private final AtomicBoolean cancelSignal;
 
     public static RulesExecCxt create(Context context) {
         // Always isolate.
         // Be careful not to copy too many times!
         Context context1 = context.copy();
         Context.setCurrentDateTime(context1);
-        return new RulesExecCxt(context1);
+        AtomicBoolean cancelSignal = new AtomicBoolean(false);
+        return new RulesExecCxt(context1, cancelSignal);
     }
 
-    private RulesExecCxt(Context context) {
+    private RulesExecCxt(Context context, AtomicBoolean cancelSignal) {
         this.context = context;
         this.strict = context.isTrue(ShaclRules.symStrict);
+        this.cancelSignal = cancelSignal;
     }
 
     public boolean isStrict() {
@@ -76,6 +81,10 @@ public class RulesExecCxt implements FunctionEnv {
     @Override
     public Context getContext() {
         return context;
+    }
+
+    public AtomicBoolean getCancelSignal() {
+        return cancelSignal;
     }
 
     public void start() {}
