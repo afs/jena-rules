@@ -69,7 +69,7 @@ public class AppendGraph extends Graph2 implements BufferingCtl {
         return create(graph, true);
     }
 
-    public static AppendGraph create(Graph graph,boolean checkOnUpdate) {
+    public static AppendGraph create(Graph graph, boolean checkOnUpdate) {
 //        if ( graph instanceof AppendGraph )
 //            Log.warn(AppendGraph.class, "Creating a AppendGraph over an AppendGraph");
         return new AppendGraph(graph, checkOnUpdate, false);

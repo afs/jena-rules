@@ -50,6 +50,11 @@ public class Rule {
         this.body = new RuleBody(bodyElts);
         counter++;
         id = ""+counter;
+
+        boolean hasAssignment;
+        boolean hasNegation;
+        boolean hasAggregation;
+        boolean hasHeadBNodes;
     }
 
     // -- Head

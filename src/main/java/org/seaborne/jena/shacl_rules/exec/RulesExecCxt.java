@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.util.Context;
@@ -47,6 +48,10 @@ public class RulesExecCxt implements FunctionEnv {
     private final Context context;
     private final boolean strict;
     private final AtomicBoolean cancelSignal;
+
+    public static RulesExecCxt create() {
+        return create(ARQ.getContext());
+    }
 
     public static RulesExecCxt create(Context context) {
         // Always isolate.

@@ -252,7 +252,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
 
             int sizeAtRoundEnd = graph1.getAdded().size() + evalTupleStore.size();
             if ( sizeAtRoundStart == sizeAtRoundEnd ) {
-                // No new triples this round.
+                // No new triples or tuples this round.
                 --round;
                 // Finished.
                 break;
@@ -277,7 +277,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     }
 
     /**
-     * One execution of one rules.
+     * One execution of one rule.
      * The argument graph is updated.
      */
     private void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, PrefixMap pmap) {
@@ -287,11 +287,12 @@ public class RulesEngineFwdSimple implements RulesEngine {
             rCxt.out().print(rs);
             //rCxt.out().println();
         }
-        RuleEval rEval = RulesExecLib.evalRule(graph, evalTupleStore, rule, rCxt);
+        RuleEval rEval = RulesExecLib.evalRule(rule, graph, evalTupleStore, rCxt);
         if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() ) {
             evalTupleStore.addAll(rEval.tuples());
         }
         List<Triple> triples = rEval.triples();
-        GraphUtil.add(graph, triples);
+        if ( ! triples.isEmpty() )
+            GraphUtil.add(graph, triples);
     }
 }

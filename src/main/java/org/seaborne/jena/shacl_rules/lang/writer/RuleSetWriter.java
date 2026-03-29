@@ -28,10 +28,11 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIx;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.out.NodeFormatter;
-import org.apache.jena.riot.out.NodeFormatterTTL_MultiLine;
 import org.apache.jena.riot.system.*;
 import org.apache.jena.riot.writer.DirectiveStyle;
+import org.apache.jena.riot.writer.TurtleShell;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.serializer.FmtExprSPARQL;
@@ -102,9 +103,11 @@ public class RuleSetWriter {
         this.out = Objects.requireNonNull(output);
         this.prefixMap = prefixMap;
         this.base = baseIRI;
-        String baseStr = (baseIRI == null) ?null : baseIRI.str();
+        String baseStr = (baseIRI == null) ? null : baseIRI.str();
 
-        this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
+        //this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
+        // Quick fix: Every bnode is short but a different label across rules.
+        this.nodeFormatter = TurtleShell.createNodeFormatter(prefixMap, baseStr, ARQ.getContext());
         this.styleRuleSet = Objects.requireNonNull(style);
     }
 
@@ -141,12 +144,15 @@ public class RuleSetWriter {
         List<Rule> rules = ruleSet.getRules();
         boolean blankLine = ruleSet.hasData();
 
-        for ( Rule rule : rules ) {
-            if ( blankLine ) {
-                out.println();
+        if ( ! rules.isEmpty() ) {
+            for ( Rule rule : rules ) {
+                if ( blankLine ) {
+                    out.println();
+                }
+                blankLine = true;
+                writeRule(rule);
             }
-            blankLine = true;
-            writeRule(rule);
+            System.out.println();
         }
     }
 
@@ -172,7 +178,6 @@ public class RuleSetWriter {
         });
         out.decIndent();
         out.println("}");
-        out.println();
     }
 
     private void writeTupleData(RuleSet ruleSet) {

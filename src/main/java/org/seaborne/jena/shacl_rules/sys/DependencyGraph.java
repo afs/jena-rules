@@ -119,6 +119,7 @@ public class DependencyGraph {
         if ( DEBUG_BUILD )
             ShaclRulesWriter.print(rule);
         List<DependencyEdge> connections = new ArrayList<>();
+
         accumulateEdges(connections, rule, DepEdgeType.POSITIVE, rule.getBodyElements(), providers, providers2);
         if ( DEBUG_BUILD )
             System.out.println(connections.size()+" :: put:"+connections);
@@ -171,11 +172,9 @@ public class DependencyGraph {
                 }
 
                 case EltNegation(List<RuleBodyElement> inner) -> {
-                    // Do as a second pass once all the positives are done?
-                    // NB Negative overrides positive in stratification.
-                    // Anything inside NOT is also "negative"
                     accumulateEdges(accumulator, rule, DepEdgeType.NEGATIVE, inner, providers, providers2);
                 }
+
                 // These do not cause a dependency relationship.
 //                case EltCondition(Expr condition) -> {}
 //                case EltAssignment(Var var, Expr expression) -> {}

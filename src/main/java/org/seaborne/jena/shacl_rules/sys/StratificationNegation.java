@@ -40,7 +40,7 @@ import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
 /**
  * A stratification of a rule set.
  */
-public class Stratification {
+public class StratificationNegation {
     // See also RecursionChecker
     // Stratification that the recursion check has been done.
     // The code is defensive against a recursion-negation but does not yield a stratification.
@@ -62,16 +62,16 @@ public class Stratification {
     // Setting uses to have separate data rules (no dependencies) from rule with rule dependencies.
     static Integer minDependentStratum = Integer.valueOf(1);
 
-    public static Stratification create(RuleSet ruleSet) throws StratificationException {
+    public static StratificationNegation create(RuleSet ruleSet) throws StratificationException {
         DependencyGraph depGraph = DependencyGraph.create(ruleSet);
         return create(ruleSet, depGraph);
     }
 
-    public static Stratification create(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
+    public static StratificationNegation create(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
         return functionCreateStratification(dataStratum, ruleSet, depGraph);
     }
 
-    private Stratification(int minStratum, int maxStratum,  ListValuedMap<Integer, Rule> stratumLevels) {
+    private StratificationNegation(int minStratum, int maxStratum,  ListValuedMap<Integer, Rule> stratumLevels) {
         this.minStratum = minStratum;
         this.maxStratum = maxStratum;
         this.stratumLevels = stratumLevels;
@@ -107,12 +107,12 @@ public class Stratification {
 
     // XXX Equality - for testing.
 
-    private static Stratification functionCreateStratification(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph)
+    private static StratificationNegation functionCreateStratification(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph)
             throws StratificationException {
         return functionCreateStratification(dataStratum, ruleSet.getRules(), ruleSet.getPrefixMap(), depGraph);
     }
 
-    private static Stratification functionCreateStratification(Integer dataStratum, List<Rule> rules, PrefixMap prefixMap, DependencyGraph depGraph)
+    private static StratificationNegation functionCreateStratification(Integer dataStratum, List<Rule> rules, PrefixMap prefixMap, DependencyGraph depGraph)
         throws StratificationException {
         // The results.
         Map<Rule, Integer> stratumMap = new HashMap<>();
@@ -198,6 +198,6 @@ public class Stratification {
                 });
             }
         }
-        return new Stratification(dataStratum, maxStratum, stratumLevels);
+        return new StratificationNegation(dataStratum, maxStratum, stratumLevels);
     }
 }

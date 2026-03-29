@@ -95,7 +95,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
     @Override
     public Graph materializedGraph() {
-        Evaluation e = solveTop(queryTripleAll);
+        EvaluationBkw e = solveTop(queryTripleAll);
         return e.outputGraph;
     }
 
@@ -117,7 +117,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             LOG.printf("<< query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
         // Collects all inferred triples from rules touched during the evaluation.
         // Filter inferred triples to find the ones we want.
-        Evaluation e = solveTop(queryTriple);
+        EvaluationBkw e = solveTop(queryTriple);
         Stream<Triple> x = e.outputGraph.stream(queryTriple.getSubject(), queryTriple.getPredicate(), queryTriple.getObject());
         if ( TRACE ) {
             LOG.printf(">> query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
@@ -133,7 +133,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
     @Override
     public Graph infer() {
-        Evaluation e = solveTop(queryTripleAll);
+        EvaluationBkw e = solveTop(queryTripleAll);
 
         Graph graph = e.inferredTriples;
         graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
@@ -150,7 +150,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
      * Solver. Non-recursive rules.
      * Top of evaluation.
      */
-    Evaluation solveTop(Triple queryTriple) {
+    EvaluationBkw solveTop(Triple queryTriple) {
         if ( TRACE ) {
             LOG.printf("solve(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
             LOG.incIndent();
@@ -218,11 +218,11 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( ruleSet.hasData() )
             GraphUtil.addInto(output, ruleSet.getData());
 
-        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, null, output);
+        EvaluationBkw e = new EvaluationBkw(workingGraph.get(), ruleSet, inferred, null, output);
         return e;
     }
 
-    public record Evaluation(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, TupleStore tupleStore, Graph outputGraph)  implements RuleSetEvaluation {}
+    public record EvaluationBkw(Graph baseGraph, RuleSet ruleSet, Graph inferredTriples, TupleStore tupleStore, Graph outputGraph)  implements RuleSetEvaluation {}
 
     // XXX DependencyGraph
     private List<Rule> dependsOn(Triple queryTriple)  {

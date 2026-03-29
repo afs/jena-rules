@@ -32,16 +32,12 @@ import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.cmd.CmdException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
-import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterTTL;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.Prefixes;
+import org.apache.jena.riot.system.*;
 import org.apache.jena.shacl.vocabulary.SHACL;
 import org.apache.jena.sys.JenaSystem;
-import org.apache.jena.util.PrefixMappingUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
@@ -156,8 +152,13 @@ public class rules_eval extends CmdRules {
      * Print a graph.
      */
     public static void print(OutputStream out, Graph graph) {
-        Graph graph2 = PrefixMappingUtils.graphInUsePrefixMapping(graph);
-        RDFWriter.source(graph2).format(RDFFormat.TURTLE_BLOCKS).output(System.out);
+        IndentedWriter iOut = IndentedWriter.clone(IndentedWriter.stdout);
+        iOut.incIndent(2);
+//        Graph graph2 = PrefixMappingUtils.graphInUsePrefixMapping(graph);
+//        RDFWriter.source(graph2).format(RDFFormat.TURTLE_FLAT).output(System.out);
+
+        StreamRDF stream = new PrintingStreamRDF(iOut, Prefixes.adapt(graph.getPrefixMapping()));
+        StreamRDFOps.sendTriplesToStream(graph, stream);
     }
 
     /**
