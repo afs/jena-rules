@@ -21,6 +21,7 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -185,7 +186,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     }
 
     /* Return the number of of the last round that causes more triples */
-    private int evalStratum(int stratumNumber, List<Rule> rules, Graph dataGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
+    private int evalStratum(int stratumNumber, List<Rule> stratumRules, Graph dataGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
 //        if ( TRACE )
 //            rCxt.out().printf("Eval level -- %d rules\n", rules.size());
 
@@ -210,6 +211,16 @@ public class RulesEngineFwdSimple implements RulesEngine {
          * otherwise accumulate over each round.
          */
 
+        // XXX [RunOnce]
+        List<Rule> runOnceRules = new ArrayList<>();
+        List<Rule> rules = new ArrayList<>();
+        for ( Rule rule : stratumRules ) {
+            if ( rule.isRunOnceRule() )
+                runOnceRules.add(rule);
+            else
+                rules.add(rule);
+        }
+
         AppendGraph graph1 = AppendGraph.create(dataGraph);
 
 //        /*
@@ -221,9 +232,30 @@ public class RulesEngineFwdSimple implements RulesEngine {
 //        Graph accumulationGraph = GraphFactory.createGraphMem();
 //        accumulationGraph.getPrefixMapping().setNsPrefixes(dataGraph.getPrefixMapping());
 
+
+        if ( ! runOnceRules.isEmpty() ) {
+            if ( TRACE ) {
+                rCxt.out().println("Run once: "+runOnceRules.size());
+                rCxt.out().incIndent();
+            }
+
+            for ( Rule rule : runOnceRules ) {
+                if ( TRACE )
+                    System.out.printf("Eval(once): %s\n", rule);
+                executeOneRule(graph1, evalTupleStore, rule, prefixMap());
+                if ( TRACE )
+                    rCxt.out().println("Accumulator: "+graph1.getAdded().size());
+            }
+            flush(graph1);
+
+            if ( TRACE )
+                rCxt.out().decIndent();
+        }
+
         // One or the other must be true in order to expose the stratum changes.
         final boolean flushAfterEachRound = true;
         final boolean flushAfterEachLevel = false;
+
         int round = 0;
 
         // == Rules
@@ -241,6 +273,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
             // By tracking rules that actually cause change, we can get semi-naive.
 
             for (Rule rule : rules ) {
+                if ( TRACE )
+                    System.out.printf("Eval: %d : %s\n", round, rule);
                 executeOneRule(graph1, evalTupleStore, rule, prefixMap());
 
                 if ( TRACE )

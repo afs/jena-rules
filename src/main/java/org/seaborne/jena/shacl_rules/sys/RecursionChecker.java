@@ -71,6 +71,10 @@ public class RecursionChecker {
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph) {
         for ( Rule rule : depGraph.getRuleSet().getRules()) {
+            // XXX [RunOnce]
+            if ( rule.isRunOnceRule() )
+                // Does not apply.
+                continue;
             // Throws an exception on an illegal recursion.
             /*IsRecursive isRecursive = */RecursionChecker.checkRecursion(depGraph, rule);
         }

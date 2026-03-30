@@ -32,6 +32,10 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
         :eval-data-01
         :eval-data-02
 
+        :eval-bnodes-01
+        :eval-bnodes-02
+        :eval-bnodes-03
+
         :eval-neg-01
 
         :eval-rdfs-subclass-1
@@ -42,7 +46,7 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
         :eval-rdfs-range-2
     ) .
 
-## Basic (positve datalog)
+## Basic (positive datalog)
 
 :eval-basic-01 rdf:type srt:RulesEvalTest ;
     mf:name "Eval-basic-01";
@@ -77,6 +81,40 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
            srt:data     <data-empty.ttl> ] ;
     mf:result  <eval-data-02-results.ttl> ;
     .
+
+## Blank nodes.
+
+:eval-bnodes-01 rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-bnodes-01";
+    mf:action
+         [ srt:ruleset  <eval-bnodes-01.srl> ;
+           srt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-bnodes-01-results.ttl> ;
+    .
+
+:eval-bnodes-02 rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-bnodes-02";
+    mf:action
+         [ srt:ruleset  <eval-bnodes-02.srl> ;
+           srt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-bnodes-02-results.ttl> ;
+    .
+
+:eval-bnodes-03 rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-bnodes-03";
+    mf:action
+         [ srt:ruleset  <eval-bnodes-03.srl> ;
+           srt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-bnodes-03-results.ttl> ;
+    .
+
+## :eval-bnodes-04 rdf:type srt:RulesEvalTest ;
+##     mf:name "Eval-bnodes-04";
+##     mf:action
+##          [ srt:ruleset  <eval-bnodes-04.srl> ;
+##            srt:data     <data-empty.ttl> ] ;
+##     mf:result  <eval-bnodes-04-results.ttl> ;
+##     .
 
 ## Negation
 

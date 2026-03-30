@@ -53,6 +53,8 @@ public class Stratification {
 //        public NotWellFormed(String message, Throwable cause)   { super(message, cause) ; }
     }
 
+
+    final private static boolean TRACE = false;
     final private int minStratum;
     final private int maxStratum;
     final private ListValuedMap<Integer, Rule> stratumLevels;
@@ -116,7 +118,6 @@ public class Stratification {
         throws StratificationException {
         // The results.
         Map<Rule, Integer> stratumMap = new HashMap<>();
-        ListValuedMap<Integer, Rule> stratumLevels = MultiMapUtils.newListValuedHashMap();
         int maxStratum = 0;
 
         // ---- StratumMap
@@ -128,6 +129,13 @@ public class Stratification {
             else
                 stratumMap.put(rule, minDependentStratum);
         });
+
+
+        if ( TRACE ) {
+            stratumMap.forEach((rule, integer) -> {
+                System.out.printf("%d : %s\n", integer, rule);
+            });
+        }
 
         // Bad recursion would cause this to go on forever.
         boolean changed = true;
@@ -142,11 +150,18 @@ public class Stratification {
 
         while(changed) {
             changed = false;
+            if ( TRACE )
+                System.out.println();
             for ( DependencyEdge e : depGraph.edges() ) {
 
                 // Edge from p to q of type sign
                 Rule pRule = e.rule();
                 Rule qRule = e.linkedRule();
+
+                if ( TRACE ) {
+                    System.out.println("pRule: "+pRule.id+" :: "+pRule);
+                    System.out.println("qRule: "+qRule.id+" :: "+qRule);
+                }
 
                 switch(e.link()) {
                     case POSITIVE -> {
@@ -156,6 +171,8 @@ public class Stratification {
                         }
                     }
                     case NEGATIVE -> {
+
+  //                      System.out.printf("(%s, p=%s, %s q=%s)\n", pRule.id, stratumMap.get(pRule), qRule.id, stratumMap.get(qRule));
                         if ( stratumMap.get(pRule) <= stratumMap.get(qRule) ) {
                             int xStratum = 1 + stratumMap.get(qRule);
                             if ( xStratum > limit )
@@ -170,29 +187,41 @@ public class Stratification {
             }
         }
 
+        if ( TRACE ) {
+            stratumMap.forEach((rule, integer) -> {
+                System.out.printf("%d : %s\n", integer, rule);
+            });
+        }
+
+
         // ---- Levels : reindex as level number -> list of rules.
         // Record the maximum stratum seen.
+
+        ListValuedMap<Integer, Rule> stratumLevels = MultiMapUtils.newListValuedHashMap();
 
         for ( Entry<Rule, Integer> entry : stratumMap.entrySet() ) {
             Rule rule = entry.getKey();
             Integer stratumNum = entry.getValue();
-            maxStratum = Math.max(maxStratum, stratumNum);
+            if ( false )
+                System.out.printf("for: %d : %s\n", stratumNum, rule);
             stratumLevels.put(stratumNum, rule);
+
+            maxStratum = Math.max(maxStratum, stratumNum);
         }
 
-        if ( false ) {
+        if ( TRACE ) {
             // Development.
             System.out.println();
             System.out.println("==== Strata");
             System.out.printf("====   max = %d\n", maxStratum);
-            for ( int i = 0 ; i < maxStratum ; i++ ) {
+            for ( int i = 0 ; i <= maxStratum ; i++ ) {
                 List<Rule> stratumRules = stratumLevels.get(i);
                 if ( stratumRules == null || stratumRules.isEmpty() ) {
                     System.err.printf("No rules at level %d\n", i);
                     continue;
                 }
                 System.out.printf("Level %d\n", i);
-                rules.forEach(rule-> {
+                stratumRules.forEach(rule-> {
                     System.out.print("  ");
                     ShaclRulesWriter.print(rule, prefixMap);
                 });

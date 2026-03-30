@@ -94,15 +94,18 @@ class RuleBody { //implements Iterable<RuleBodyElement>{
         return Objects.equals(body, other.body);
     }
 
-//    @Override
-//    public String toString() {
-//        // XXX Unfinished
-//        body.stream()
-//                .map(elt-> switch(elt) {
-//                    case EltTriplePattern el -> el.triplePattern();
-//                    case EltNegation neg -> { }
-//                })
-//                .filter(Objects::nonNull).toList();
-//        return x.toString();
-//    }
+    @Override
+    public String toString() {
+        // XXX Unfinished
+        List<String> x =
+            body.stream()
+//                    .map(elt-> { switch(elt) {
+//                        case RuleBodyElement.EltTriplePattern el -> el.triplePattern().toString();
+//                        case RuleBodyElement.EltNegation neg -> { }
+//                        default -> elt.toString();
+//                    }; })
+                .map(elt-> elt.toString())
+                .filter(Objects::nonNull).toList();
+        return x.toString();
+    }
 }

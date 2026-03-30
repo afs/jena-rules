@@ -1,9 +1,0 @@
-#!/bin/bash
-
-CMD=$(basename $0)
-
-R="$HOME/ASF/Rules/jena-rules"
-
-export CP="$R/target/classes:$R/target/test-classes"
-
-jena "rdftests" "$@"

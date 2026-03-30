@@ -24,8 +24,12 @@ package org.seaborne.jena.shacl_rules;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
@@ -37,6 +41,11 @@ public class Rule {
     // Debug!
     private static int counter = 0;
     public final String id;
+
+    final boolean hasAssignment;
+    final boolean hasNegation;
+    //boolean final hasAggregation;
+    final boolean hasHeadBNodes;
 
     /**
      * Used by the parser and {@link GraphToRuleSet}
@@ -51,10 +60,60 @@ public class Rule {
         counter++;
         id = ""+counter;
 
-        boolean hasAssignment;
-        boolean hasNegation;
-        boolean hasAggregation;
-        boolean hasHeadBNodes;
+        boolean _hasAssignment = false;
+        boolean _hasNegation = false;
+        //boolean final hasAggregation;
+
+        for ( RuleBodyElement elt : bodyElts ) {
+            switch (elt) {
+                //case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {}
+                //case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
+                case RuleBodyElement.EltNegation(List<RuleBodyElement> inner) -> { _hasNegation = true; }
+                //case RuleBodyElement.EltCondition(Expr condition) -> {}
+                case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
+                case null -> {}
+                default -> {}
+            };
+        }
+
+        boolean _hasHeadBNodes = false;
+        for ( RuleHeadElement elt : headElts ) {
+            switch (elt) {
+                case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
+                    if ( blankNodePresent(tripleTemplate ) )
+                        _hasHeadBNodes = true;
+                }
+                case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {}
+                case null -> {}
+                default -> {}
+            }
+        }
+
+       this.hasAssignment = _hasAssignment;
+       this.hasNegation = _hasNegation;
+//        //boolean final hasAggregation;
+       this.hasHeadBNodes = _hasHeadBNodes;
+    }
+
+    private boolean blankNodePresent(Triple triple) {
+        if ( blankNodePresent(triple.getSubject()) )
+            return true;
+        //if ( containsBNode(triple.getPredicate()) ) {}
+        if ( blankNodePresent(triple.getObject()) )
+            return true;
+        return false;
+    }
+
+    private boolean blankNodePresent(Node node) {
+        if ( node.isTripleTerm() ) {
+            return blankNodePresent(node.getTriple());
+        }
+        return node.isBlank();
+    }
+
+    // XXX Where should this go?
+    public boolean isRunOnceRule() {
+        return hasAssignment || hasHeadBNodes;
     }
 
     // -- Head

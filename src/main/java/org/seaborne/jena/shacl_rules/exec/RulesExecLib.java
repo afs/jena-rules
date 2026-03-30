@@ -63,8 +63,8 @@ import org.seaborne.jena.shacl_rules.tuples.Tuples;
  */
 public class RulesExecLib {
 
-    // XXX Fixme!!!
-    public static boolean rewriteBlankNodes = false;
+    // XXX [RunOnce]
+    public static boolean rewriteBlankNodes = true;
 
     /** Perform checking and setup */
     public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt) {

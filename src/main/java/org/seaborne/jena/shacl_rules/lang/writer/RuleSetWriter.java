@@ -72,6 +72,12 @@ public class RuleSetWriter {
     /** Write a rule set */
     public static void write(IndentedWriter output, RuleSet ruleSet, PrefixMap prefixMap, IRIx baseIRI, Style style) {
         RuleSetWriter srw = new RuleSetWriter(output, prefixMap, baseIRI, style);
+
+        //output.setLinePrefix("X:");
+        output.setLineNumbers(true);
+        output.setFlushOnNewline(true);
+
+
         srw.writeRuleSet(ruleSet);
     }
 //
@@ -113,16 +119,26 @@ public class RuleSetWriter {
 
     public void writeRuleSet(RuleSet ruleSet) {
         Objects.requireNonNull(ruleSet);
-        if ( base != null )
+
+        boolean hasBeenOutput = false;
+        if ( base != null ) {
             RiotLib.writeBase(out, base.str(), DirectiveStyle.KEYWORD);
-        if ( prefixMap != null )
+            hasBeenOutput = true;
+        }
+        if ( prefixMap != null ) {
             RiotLib.writePrefixes(out, prefixMap, DirectiveStyle.KEYWORD);
-        if ( ( base != null || !prefixMap.isEmpty() ) && !ruleSet.isEmpty() )
-            out.println();
+            hasBeenOutput |= ! prefixMap.isEmpty();
+        }
+
+        out.flush();
+
+//        if ( hasBeenOutput )
+//            out.println();
 
         if ( ruleSet.hasImports() ) {
             for ( var importURI : ruleSet.getImports() ) {
                out.printf("IMPORT ");
+
                if ( prefixMap != null ) {
                    String x = prefixMap.abbreviate(importURI);
                    if ( x != null ) {
@@ -135,14 +151,13 @@ public class RuleSetWriter {
                out.print('>');
                out.println();
             }
-            out.println();
         }
 
-        writeData(ruleSet);
-        writeTupleData(ruleSet);
+        hasBeenOutput |= writeData(ruleSet);
+        hasBeenOutput |= writeTupleData(ruleSet);
 
         List<Rule> rules = ruleSet.getRules();
-        boolean blankLine = ruleSet.hasData();
+        boolean blankLine = hasBeenOutput;
 
         if ( ! rules.isEmpty() ) {
             for ( Rule rule : rules ) {
@@ -152,13 +167,12 @@ public class RuleSetWriter {
                 blankLine = true;
                 writeRule(rule);
             }
-            System.out.println();
         }
     }
 
-    private void writeData(RuleSet ruleSet) {
+    private boolean writeData(RuleSet ruleSet) {
         if ( ! ruleSet.hasData() )
-            return;
+            return false;
         List<Triple> data = ruleSet.getDataTriples();
 
         out.print("DATA {");
@@ -168,7 +182,7 @@ public class RuleSetWriter {
                 writeTriple(triple);
             });
             out.println(" }");
-            return;
+            return true;
         }
         out.println();
         out.incIndent();
@@ -178,11 +192,12 @@ public class RuleSetWriter {
         });
         out.decIndent();
         out.println("}");
+        return true;
     }
 
-    private void writeTupleData(RuleSet ruleSet) {
+    private boolean writeTupleData(RuleSet ruleSet) {
         if ( ! ruleSet.hasTupleData() )
-            return;
+            return false;
         List<Tuple> tuples = ruleSet.getDataTuples();
         out.print("TUPLES {");
         //if ( styleRuleSet == Style.Flat || tuples.size() == 1 ) {
@@ -192,7 +207,7 @@ public class RuleSetWriter {
                 writeTuple(tuple);
             });
             out.println(" }");
-            return;
+            return true;
         }
         out.println();
         out.incIndent();
@@ -202,7 +217,7 @@ public class RuleSetWriter {
         });
         out.decIndent();
         out.println("}");
-        out.println();
+        return true;
     }
 
     public void writeRule(Rule rule) {
