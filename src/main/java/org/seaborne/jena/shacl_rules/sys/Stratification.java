@@ -21,16 +21,12 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 import org.apache.commons.collections4.ListValuedMap;
-import org.apache.commons.collections4.MapIterator;
 import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
@@ -43,25 +39,27 @@ import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
 public class Stratification {
     // See also RecursionChecker
     // Stratification that the recursion check has been done.
-    // The code is defensive against a recursion-negation but does not yield a stratification.
+    // The code is defensive against a recursion-negation but does not yield a
+    // stratification.
 
     // Later - combine with "Connected components" and SCCs
 
     public static class StratificationException extends RulesException {
-        public StratificationException(String message)                    { super(message); }
-//        public NotWellFormed(Throwable cause)                   { super(cause) ; }
-//        public NotWellFormed(String message, Throwable cause)   { super(message, cause) ; }
+        public StratificationException(String message) {
+            super(message);
+        }
     }
-
 
     final private static boolean TRACE = false;
     final private int minStratum;
     final private int maxStratum;
-    final private ListValuedMap<Integer, Rule> stratumLevels;
+    final private List<Stratum> stratumLevels;
 
-    // Setting used to have data rules (no dependencies) and from rule with rule dependencies in level 0.
+    // Setting used to have data rules (no dependencies)
+    // separate rules with rule dependencies in level 0.
     static Integer dataStratum = Integer.valueOf(0);
-    // Setting uses to have separate data rules (no dependencies) from rule with rule dependencies.
+    // Setting uses to have separate data rules (no dependencies)
+    // from rule with rule dependencies.
     static Integer minDependentStratum = Integer.valueOf(1);
 
     public static Stratification create(RuleSet ruleSet) throws StratificationException {
@@ -70,21 +68,23 @@ public class Stratification {
     }
 
     public static Stratification create(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
-        return functionCreateStratification(dataStratum, ruleSet, depGraph);
+        return functionCreateStratification(ruleSet, depGraph);
     }
 
-    private Stratification(int minStratum, int maxStratum,  ListValuedMap<Integer, Rule> stratumLevels) {
+    private Stratification(int minStratum, int maxStratum,  List<Stratum> stratumLevels, RuleSet ruleSet) {
+        if ( minStratum < 0 )
+            throw new IllegalArgumentException("Negative minStratum");
         this.minStratum = minStratum;
         this.maxStratum = maxStratum;
         this.stratumLevels = stratumLevels;
     }
 
-    public List<Rule> getLevel(int i) {
-        return stratumLevels.get(i);
+    public Stratum getLevel(int i) {
+        return stratumLevels.get(i - minStratum);
     }
 
-    public List<Rule> getLevel(Integer i) {
-        return stratumLevels.get(i);
+    public Stratum getLevel(Integer i) {
+        return stratumLevels.get(i - minStratum);
     }
 
     public int minStratum() {
@@ -98,67 +98,80 @@ public class Stratification {
     /**
      * Apply an action to each (stratum, rule) pair.
      */
-    public void forEach(BiConsumer<Integer, Rule> action) {
-        MapIterator<Integer, Rule> iter = stratumLevels.mapIterator();
-        while(iter.hasNext()) {
-            action.accept(iter.next(), iter.getValue());
+    public void forEach(BiConsumer<Integer, Stratum> action) {
+        for ( int i = 0 ; i < stratumLevels.size() ; i++ ) {
+            Stratum stratum = stratumLevels.get(i);
+            action.accept(i, stratum);
         }
     }
 
     // ----
 
-    // XXX Equality - for testing.
+    private static Stratification functionCreateStratification(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
+        List<Rule> rules = ruleSet.getRules();
 
-    private static Stratification functionCreateStratification(Integer dataStratum, RuleSet ruleSet, DependencyGraph depGraph)
-            throws StratificationException {
-        return functionCreateStratification(dataStratum, ruleSet.getRules(), ruleSet.getPrefixMap(), depGraph);
-    }
+        if ( rules.isEmpty() )
+            return new Stratification(0, -1, List.of(), ruleSet);
 
-    private static Stratification functionCreateStratification(Integer dataStratum, List<Rule> rules, PrefixMap prefixMap, DependencyGraph depGraph)
-        throws StratificationException {
-        // The results.
         Map<Rule, Integer> stratumMap = new HashMap<>();
+        int minStratum = dataStratum;
         int maxStratum = 0;
 
         // ---- StratumMap
+        // Step 1, for each rule, calculate it's stratum
 
-        // Initialize all rules to stratum zero.
-        rules.forEach(rule-> {
+        // The data layer is rules that only depend on the data and so have no edges in the dependency graph.
+        // Initialize all rules to stratum data or lowest with-dependencies stratum
+
+        boolean seenDataLayer = false;
+
+        for ( Rule rule : rules ) {
             if ( depGraph.isDataRule(rule) )
-                stratumMap.put(rule, dataStratum);
-            else
-                stratumMap.put(rule, minDependentStratum);
-        });
+                seenDataLayer = true;
+            Integer initValue = depGraph.isDataRule(rule) ? dataStratum : minDependentStratum;
+            stratumMap.put(rule, initValue);
+        }
 
+//        // The data layer may be empty.
+//        if ( ! seenDataLayer ) {
+//            minStratum = minDependentStratum;
+//            // And reduce maxStratum.
+//        }
+
+        // We do need the strata to start at zero because of storing in a Java list.
+        // We could move everything down!
+        // For now, have a potential empty 0-stratum.
 
         if ( TRACE ) {
             stratumMap.forEach((rule, integer) -> {
-                System.out.printf("%d : %s\n", integer, rule);
+                System.out.printf("StratumMap input %d : %s\n", integer, rule);
             });
+            if ( ! stratumMap.isEmpty() )
+                System.out.println();
         }
 
         // Bad recursion would cause this to go on forever.
         boolean changed = true;
 
-        // Upper bound on the number of strata.
+        // This is an upper bound on the number of strata.
         // Only the dataStraum can have zero rules.
-        // Otherwise, each stratum has at least one rule and
-        // level numbering has no gaps.
-        // So if every stratum is filled with one rule, there can be less that this many strata:
+        // Otherwise, each stratum has at least one rule and level numbering has no gaps.
+        // So if every stratum is filled with one rule, there would be this limit number of strata.
         // (+1 is for the data stratum)
         final int limit = rules.size()+1;
 
+        final boolean TRACE_RULE_LOOP = false && TRACE; // Development only - verbose
+
         while(changed) {
             changed = false;
-            if ( TRACE )
+            if ( TRACE_RULE_LOOP )
                 System.out.println();
             for ( DependencyEdge e : depGraph.edges() ) {
-
                 // Edge from p to q of type sign
                 Rule pRule = e.rule();
                 Rule qRule = e.linkedRule();
 
-                if ( TRACE ) {
+                if ( false && TRACE_RULE_LOOP ) {
                     System.out.println("pRule: "+pRule.id+" :: "+pRule);
                     System.out.println("qRule: "+qRule.id+" :: "+qRule);
                 }
@@ -171,8 +184,6 @@ public class Stratification {
                         }
                     }
                     case NEGATIVE -> {
-
-  //                      System.out.printf("(%s, p=%s, %s q=%s)\n", pRule.id, stratumMap.get(pRule), qRule.id, stratumMap.get(qRule));
                         if ( stratumMap.get(pRule) <= stratumMap.get(qRule) ) {
                             int xStratum = 1 + stratumMap.get(qRule);
                             if ( xStratum > limit )
@@ -181,52 +192,76 @@ public class Stratification {
                             changed = true;
                         }
                     }
-                    //case AGGREGATE->{}
-                    default -> {}
+                    // case AGGREGATE->{}
+                    default -> {
+                        throw new StratificationException("Stratification error: unknowmn link type: " + e.link());
+                    }
                 }
             }
         }
 
         if ( TRACE ) {
             stratumMap.forEach((rule, integer) -> {
-                System.out.printf("%d : %s\n", integer, rule);
+                System.out.printf("StratumMap layer %d : %s\n", integer, rule);
             });
+            if ( ! stratumMap.isEmpty() )
+                System.out.println();
         }
 
+        // ---- Levels : Collect rules into strata.
+        // -- Divide into runOnce and runAll, then setup the layers list.
 
-        // ---- Levels : reindex as level number -> list of rules.
-        // Record the maximum stratum seen.
-
-        ListValuedMap<Integer, Rule> stratumLevels = MultiMapUtils.newListValuedHashMap();
+        ListValuedMap<Integer, Rule> stratumRunOnce = MultiMapUtils.newListValuedHashMap();
+        ListValuedMap<Integer, Rule> stratumRunAll = MultiMapUtils.newListValuedHashMap();
 
         for ( Entry<Rule, Integer> entry : stratumMap.entrySet() ) {
             Rule rule = entry.getKey();
             Integer stratumNum = entry.getValue();
-            if ( false )
-                System.out.printf("for: %d : %s\n", stratumNum, rule);
-            stratumLevels.put(stratumNum, rule);
-
+            if ( rule.isRunOnceRule() )
+                stratumRunOnce.put(stratumNum, rule);
+            else
+                stratumRunAll.put(stratumNum, rule);
             maxStratum = Math.max(maxStratum, stratumNum);
+        }
+
+        List<Stratum> layers = new ArrayList<>(maxStratum);
+        for ( int i = minStratum ; i <= maxStratum ; i++ ) {
+            // ListValuedMap.get(i) returns an empty collection if there is no such key.
+            Stratum stratum = new Stratum(stratumRunOnce.get(i), stratumRunAll.get(i));
+            // Looses minStratum, maxStratum.
+            layers.add(stratum);
         }
 
         if ( TRACE ) {
             // Development.
             System.out.println();
-            System.out.println("==== Strata");
-            System.out.printf("====   max = %d\n", maxStratum);
+            System.out.printf("==== Strata (max = %d)\n", maxStratum);
             for ( int i = 0 ; i <= maxStratum ; i++ ) {
-                List<Rule> stratumRules = stratumLevels.get(i);
-                if ( stratumRules == null || stratumRules.isEmpty() ) {
+                System.out.printf("== Layer %d\n", i);
+                Stratum layer = layers.get(i);
+
+                Collection<Rule> stratumOnce = layer.runOnce();
+                Collection<Rule> stratumAll = layer.runAll();
+
+                if ( stratumOnce.isEmpty() && stratumAll.isEmpty() ) {
                     System.err.printf("No rules at level %d\n", i);
                     continue;
                 }
+
                 System.out.printf("Level %d\n", i);
-                stratumRules.forEach(rule-> {
+                stratumOnce.forEach(rule-> {
                     System.out.print("  ");
-                    ShaclRulesWriter.print(rule, prefixMap);
+                    ShaclRulesWriter.print(rule, ruleSet.getPrefixMap());
+                });
+                stratumAll.forEach(rule-> {
+                    System.out.print("  ");
+                    ShaclRulesWriter.print(rule, ruleSet.getPrefixMap());
                 });
             }
         }
-        return new Stratification(dataStratum, maxStratum, stratumLevels);
+        int m = maxStratum;
+//        if ( ! seenDataLayer )
+//            m = m - (minDependentStratum-dataStratum);
+        return new Stratification(dataStratum, m, layers, ruleSet);
     }
 }
