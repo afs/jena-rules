@@ -35,6 +35,8 @@ public class rulestests {
             args = new String[] {"src/test/files/manifest-rules.ttl"};
         List<String> manifests = Arrays.asList(args);
         TestMakers.install(RuleTests::makeRuleTest);
+//        List<TestMaker> next = List.of(SparqlTests::makeSPARQLTest, RiotTests::makeRIOTTest, RiotTests::makeRIOTTest);
+//        TestMakers.set(next);
         TextTestRunner.run(manifests);
     }
 }

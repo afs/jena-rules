@@ -53,13 +53,13 @@ public class RecursionChecker {
     // Handle shared DAGs by caching at the ruleset level.
 
     public enum IsRecursive { YES, NO }
-    enum PathIncludesNegation { YES, NO }
+    enum PathIncludesNegation { YES, NO_NEG }
 
     public static class RecursionException extends RulesException {
         private final Deque<Rule> path;
 
         public RecursionException(String msg, Deque<Rule> path) {
-            super("RecursionException");
+            super(msg);
             this.path = path;
         }
         public Deque<Rule> getPath() { return path; }
@@ -71,20 +71,16 @@ public class RecursionChecker {
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph) {
         for ( Rule rule : depGraph.getRuleSet().getRules()) {
-            // XXX [RunOnce]
-            if ( rule.isRunOnceRule() )
-                // Does not apply.
-                continue;
             // Throws an exception on an illegal recursion.
-            /*IsRecursive isRecursive = */RecursionChecker.checkRecursion(depGraph, rule);
+            /*IsRecursive isRecursive = */ RecursionChecker.checkRecursion(depGraph, rule);
         }
     }
 
-    // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecurive.NO} if not recursive, and
+    // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecursive.NO} if not recursive, and
     // throw exception if recursion includes a negation (illegal).
     public static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
         Deque<Rule> path = new ArrayDeque<>();
-        IsRecursive isRecursive = RecursionChecker.checkRecursion(depGraph, rule, PathIncludesNegation.NO, rule, path);
+        IsRecursive isRecursive = RecursionChecker.checkRecursion(depGraph, rule, PathIncludesNegation.NO_NEG, rule, path);
         return isRecursive;
     }
 

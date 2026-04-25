@@ -68,6 +68,7 @@ public class RulesExecLib {
 
     /** Perform checking and setup */
     public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt) {
+        //XXX [RunOnce] Do this in "rules parser ..."
         WellFormed.checkWellFormed(ruleSet);
         // XXX Ought to do this once as a "prepare" step and keep in the RuleSet.
         DependencyGraph depGraph = DependencyGraph.create(ruleSet);

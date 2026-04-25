@@ -222,6 +222,7 @@ public class GraphToRuleSet {
         // or
         // [] srl:data <<( )>>; sh:data <<( )>>; ... .
         // Or named graph
+        // Or a srl:subject/srl:predicate/srl:object
 
         if ( ! G.hasProperty(graph, ruleSetNode, V.data) )
             return null;
@@ -234,6 +235,14 @@ public class GraphToRuleSet {
         return triples;
     }
 
+    private static Triple parseDataTriple(Graph graph, Node node) {
+        if ( node.isTripleTerm() )
+            return node.getTriple();
+        // srl:subject etc. Where else is this?
+
+        // XXX FIXME for [ srl:subject ; srl:predciate ; srl:object ] form
+        return node.getTriple();
+    }
 
     // List of lists
     // [] srl:tuples ( ( t1 t2 ) (t3) )

@@ -83,11 +83,14 @@ public class RulesSyntaxTest implements Runnable {
         }
     }
 
+    // XXX De-duplicate
     private static void printFile(String filename) {
         String fn = IRILib.IRIToFilename(filename);
         String s = IO.readWholeFileAsUTF8(fn);
         System.err.println("== "+filename);
         System.err.print(s);
+        if ( ! s.endsWith("\n") )
+            System.err.print("\n");
     }
 
     private static void parseForTest(String filename, String base, ShaclRulesSyntax rulesSyntax, boolean allowWarnings, boolean expectLegalSyntax) {

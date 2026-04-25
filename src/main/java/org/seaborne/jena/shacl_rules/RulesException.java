@@ -25,7 +25,13 @@ import org.apache.jena.shared.JenaException;
 
 public class RulesException extends JenaException {
     //public RulesException()                                  { super(); }
-    public RulesException(String message)                    { super(message); }
+    public RulesException(String message)                    { super(clean(message)); }
     public RulesException(Throwable cause)                   { super(cause) ; }
-    public RulesException(String message, Throwable cause)   { super(message, cause) ; }
+    public RulesException(String message, Throwable cause)   { super(clean(message), cause) ; }
+
+    private static String clean(String message) {
+        if ( message == null )
+            return message;
+        return message.stripTrailing();
+    }
 }
