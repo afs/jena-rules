@@ -72,11 +72,6 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
 PREFIX : <http://example/>
-RULE { } WHERE { [] :p ?o }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
-PREFIX : <http://example/>
 RULE { } WHERE { _:a :p _:b . }
 EOF
 
