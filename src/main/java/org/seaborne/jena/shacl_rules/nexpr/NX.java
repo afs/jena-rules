@@ -35,6 +35,7 @@ import org.apache.jena.sparql.function.FunctionRegistry;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.P;
+import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
  * Helper functions for working with node expressions.
@@ -49,12 +50,17 @@ public class NX {
 //        //NodeExpressions.init();
 //    }
 
-    public static final String SHNEX = P.SHNEX;
+    //@formatter:off
+    public static final String SHNEX    = P.SHNEX;
 
-    public static final Node var = uri("var");
+    public static final Node var        = uri("var");
+    public static final Node ifCond     = uri("if");
+    public static final Node ifThen     = uri("then");
+    public static final Node ifElse     = uri("else");
 
     private static Node uri(String localName) { return uri(SHNEX, localName); }
     private static Node uri(String namespace, String localName) { return NodeFactory.createURI(namespace+localName); }
+    //@formatter:on
 
     /**
      * Return the name of the variable at the given node.
@@ -92,12 +98,23 @@ public class NX {
     /**
      * Update the graph to put in a variable as
      * {@code [ sh:var "varName" ]}.
-     * Return the block node created for the variable.
+     * Return the blank node created for the variable.
      */
     public static Node addVar(Graph graph, String varName) {
         Node x = NodeFactory.createBlankNode();
+        return addVar(graph, x, varName);
+    }
+
+    /**
+     * Update the graph to put in a variable at the supplied location.
+     * {@code x sh:var "varName" }.
+     * Return the location.
+     */
+    public static Node addVar(Graph graph, Node node, String varName) {
+        Node x = NodeFactory.createBlankNode();
         Node str = NodeFactory.createLiteralString(varName);
-        graph.add(x, NX.var, str);
+        //graph.add(x, NX.var, str);
+        graph.add(x, V.varName, str);
         return x;
     }
 

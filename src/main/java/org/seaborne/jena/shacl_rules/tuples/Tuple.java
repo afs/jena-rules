@@ -29,6 +29,8 @@ import org.apache.jena.sparql.core.Var;
 
 public class Tuple implements Iterable<Node> {
 
+    // Tuple0, Tuple, Tuple2, Tuple3, Tuple4, TupleN
+
     @SafeVarargs
     public static Tuple create(Node...terms) {
         return new Tuple(terms);

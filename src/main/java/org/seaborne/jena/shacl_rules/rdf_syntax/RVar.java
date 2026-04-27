@@ -32,16 +32,16 @@ import org.seaborne.jena.shacl_rules.sys.V;
 /**
  * RDF-encoing of variables - from a rule perspective.
  * <p>
- * {@code shr:varName} is synonym for {@code shnex:var}
+ * {@code srl:varName} is synonym for {@code shnex:var}
  * <p>
- * Accept both when reading; write {@code shr:varName} in triple patterns and
+ * Accept both when reading; write {@code srl:varName} in triple patterns and
  * templates, where it is not node expression evaluation
  * (e.g. there is no "scope"),
  * but write {@code shnex:var} with node expressions (e.g conditions)
  */
 public class RVar {
     // Accept both, write one.
-    // Write shr:varName in triple patterns and templates
+    // Write srl:varName in triple patterns and templates
     // Write shnex:var in node expressions
 
     private static Node predicateSHR = V.varName;
@@ -58,7 +58,7 @@ public class RVar {
     /**
      * Return the name of the variable at the given node.
      * Return null for "not a variable".
-     * Accepts either {@code shr:varName} or {@code shnex:var}.
+     * Accepts either {@code srl:varName} or {@code shnex:var}.
      */
     public static String getVarName(Graph graph, Node node) {
         // Am I a variable?
@@ -75,7 +75,7 @@ public class RVar {
     /**
      * Return the name of the variable at the given node.
      * Return null for "not a variable".
-     * Accepts either {@code shr:varName} or {@code shnex:var}.
+     * Accepts either {@code srl:varName} or {@code shnex:var}.
      */
     public static Var getVar(Graph graph, Node node) {
         String vName = getVarName(graph, node);

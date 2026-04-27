@@ -46,7 +46,6 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
-import org.seaborne.jena.shacl_rules.sys.RuleLib;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
@@ -91,18 +90,34 @@ public class RuleSetToGraph {
         writeTupleData(graph, ruleSet, ruleSetNode);
     }
 
+
+    private static boolean WriteAsTripleTerms = false;
+
     // Write data ("Axiomatic triple")
     private static void writeData(Graph graph, RuleSet ruleSet, Node ruleSetNode) {
         if ( ! ruleSet.hasData() )
                 return;
-        List<Triple> triples = ruleSet.getDataTriples();
-        List<Node> tripleTerms = Iter.iter(triples).map(triple->NodeFactory.createTripleTerm(triple)).toList();
-        Node x = JenaLib.createList(graph, tripleTerms);
-        graph.add(ruleSetNode, V.data, x);
-    }
+            List<Triple> triples = ruleSet.getDataTriples();
+            if ( WriteAsTripleTerms ) {
+                // <<( ... )>>
+                List<Node> tripleTerms = Iter.iter(triples).map(triple -> NodeFactory.createTripleTerm(triple)).toList();
+                Node x = JenaLib.createList(graph, tripleTerms);
+                graph.add(ruleSetNode, V.data, x);
+
+            } else {
+                // [ srl;subject ? ; srl:predicate ? ; srl:object ? ]
+                List<Node> triplesNodes = Iter.iter(triples).map(triple -> encodeTriple(graph, triple)).toList();
+                Node x = JenaLib.createList(graph, triplesNodes);
+                graph.add(ruleSetNode, V.data, x);
+            }
+        }
 
     private static void writeTupleData(Graph graph, RuleSet ruleSet, Node ruleSetNode) {
         List<Tuple> tuples = ruleSet.getDataTuples();
+        if ( tuples.isEmpty() )
+            // No tuples? Nothing added the the graph
+            return;
+
         List<Node> tupleData = new ArrayList<>();
 
         // For each tuple
@@ -122,6 +137,8 @@ public class RuleSetToGraph {
         List<Triple> head = rule.getHeadTriples();
         List<Node> x = triplesAsList(graph, head);
         Node bgpNode = list(graph, x);
+        if ( ! rule.getHeadTuples().isEmpty() )
+            System.err.println("Skipping tuples in the head");
         return bgpNode;
     }
 
@@ -129,18 +146,6 @@ public class RuleSetToGraph {
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
         List<RuleBodyElement> bodyElts = rule.getBodyElements();
         Node bodyNode = writeBodyElements(graph, bodyElts);
-
-        if ( false ) {
-            // Put in the SPARQL form.
-            String qs = RuleLib.ruleEltsToElementGroup(bodyElts).toString();
-            Node nSparqlForm = NodeFactory.createBlankNode();
-            Node nQueryString = NodeFactory.createLiteralString(qs);
-            graph.add(ruleNode, V.sparqlBody, nQueryString);
-
-            // Or add to body:
-            //graph.add(nSparqlForm, V.sparqlBody, nQueryString);
-            //items.addLast(nSparqlForm);
-        }
         return bodyNode;
     }
 
@@ -152,8 +157,10 @@ public class RuleSetToGraph {
                    items.add(encodeTriple(graph, triplePattern));
                 }
                 case EltCondition(Expr condition) -> {
+                    Node x1 = NodeFactory.createBlankNode();
                     Node nExpr = expression(graph, condition);
-                    items.add(nExpr);
+                    graph.add(x1, V.filter, nExpr);
+                    items.add(x1);
                 }
                 case EltNegation(var innerBody) ->{
                     Node nInnerBody = writeBodyElements(graph, innerBody);
@@ -185,8 +192,9 @@ public class RuleSetToGraph {
         return bodyNode;
     }
 
+    // Expr to nod expression, no srl:expr
     private static Node expression(Graph graph, Expr expr) {
-        Node x = SparqlNodeExpressions.exprToRDF(graph, expr);
+        Node x = SparqlNodeExpressions.exprAsRDF(graph, expr);
 
         // Direct as sh:sparqlExpr
 //      Node x = NodeFactory.createBlankNode();

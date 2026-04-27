@@ -24,7 +24,7 @@ package org.seaborne.jena.shacl_rules.sys;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
-import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
+import org.seaborne.jena.shacl_rules.nexpr.NX;
 
 /**
  * Vocabulary relating to SHALC rules, including importing terms from elsewhere.
@@ -42,56 +42,40 @@ class V {
 
     // ---- RDF Rules syntax
 
-    public static final Node classRule = uri("Rule");
-    public static final Node head = uri("head");
-    public static final Node body = uri("body");
-
-    public static final Node rule = uri("rule");
-
-    public static final Node classRuleSet = uri("RuleSet");
+    //@formatter:off
+    public static final Node classRuleSet   = uri("RuleSet");
     //public static final Node ruleSet = uri("ruleSet");
     // Property connecting to the rule sequence of a rule set.
-    public static final Node rules = uri("rules");
-    public static final Node data = uri("data");
-    public static final Node dataTuples = uri("tuples");
+    public static final Node rules          = uri("rules");
 
-    public static final Node subject = uri("subject");
-    public static final Node predicate = uri("predicate");
-    public static final Node object = uri("object");
+    public static final Node classRule      = uri("Rule");
+    public static final Node head           = uri("head");
+    public static final Node body           = uri("body");
+    public static final Node data           = uri("data");
 
-    public static final Node tuple = uri("tuple");
+    public static final Node rule           = uri("rule");
 
-    public static final Node negation = uri("not");
-    public static final Node assign = uri("assign");
-    public static final Node assignVar = uri("assignVar");
-    public static final Node assignValue = uri("assignValue");
+    public static final Node dataTuples     = uri("tuples");
+//    public static final Node tuple          = uri("tuple");
 
-    /**
-     * The property that gives a resource (usually a blank node) a variable name.
-     * In application code, prefer using {@link RVar#getVar}/{@link RVar#addVar}/{@link RVar#getVarName}
-     * over accessing the graph using V.var.
-     */
+    public static final Node subject        = uri("subject");
+    public static final Node predicate      = uri("predicate");
+    public static final Node object         = uri("object");
 
-    // Node expressions
-    // Synonym for shnex:var
-//    public static final Node varName = uri(SHNEX, "var");
-//    public static final Node varName = NX.var;
-    public static final Node varName = uri("varName");
+    public static final Node filter         = uri("filter");
+    public static final Node negation       = uri("not");
+    public static final Node assign         = uri("assign");
+    public static final Node assignVar      = uri("assignVar");
+    public static final Node assignValue    = uri("assignValue");
 
-    public static final Node ifCond = uri("if");
-    public static final Node ifThen = uri("then");
-    public static final Node ifElse = uri("else");
+    public static final Node varName        = uri("varName");
+    public static final Node varNameAlt     = NX.var;
+    // Optional property for node expressions
+    public static final Node expr           = uri("expr");
 
-    // Bad name? Use type instead?
-    public static final Node sparqlExpr = uri("sparqlExpr");
-    public static final Node expr = uri("expr");
-
-    // Temp?
-    public static final Node sparqlBody = uri("sparqlBody");
-
-//    /** Class for list argument node expressions */
-//    public static final Node exprClass = uri("Expression");
-
-    /** Class for node expressions that are SPARQL expressions. */
-    public static final Node classSparqlExpr = uri("SPARQLExpr");
+    // These are the SPARQL IF-THEN-ELSE special form, not shnex named parameter node expression.
+    public static final Node ifCond     = uri("if");
+    public static final Node ifThen     = uri("then");
+    public static final Node ifElse     = uri("else");
+    //@formatter:on
 }

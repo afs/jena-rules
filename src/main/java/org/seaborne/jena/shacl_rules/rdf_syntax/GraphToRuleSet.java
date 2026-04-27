@@ -174,23 +174,17 @@ public class GraphToRuleSet {
         // Mutated
         List<Triple> currentTriples = new ArrayList<>();
         for ( Node node : x ) {
-            // Two forms:
-            if ( G.hasProperty(graph, node, V.expr) || G.hasProperty(graph, node, V.sparqlExpr) ) {
-                // Deal with both V.expr and V.sparqlExpr
-                Expr expr = SparqlNodeExpressions.rdfToExpr(graph, node);
-                // SparqlNodeExpression.buildExpr controls whether to use ExprNodeExpression or not.
-                body.add(new EltCondition(expr));
-                continue;
-            }
-
             if ( G.hasProperty(graph, node, V.subject) ) {
                 // Single triple rule.
                 Triple triple = parseTriple(graph, node);
                 body.add(new EltTriplePattern(triple));
                 continue;
             }
-            if ( G.hasProperty(graph, node, V.sparqlBody) ) {
-                // Ignore
+            if ( G.hasProperty(graph, node, V.filter) ) {
+                // XXX [RDF syntax] Deal with both V.expr
+                Node exprNode = G.getOneSP(graph, node, V.filter) ;
+                Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+                body.add(new EltCondition(expr));
                 continue;
             }
 
@@ -207,6 +201,7 @@ public class GraphToRuleSet {
                 Var var = RVar.getVar(graph, varNode);
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
                 // Force expr
+                //Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
                 Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
                 body.add(new EltAssignment(var, expr));
                 continue;

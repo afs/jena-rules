@@ -21,18 +21,14 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.riot.out.NodeFmtLib;
-import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
@@ -48,7 +44,6 @@ import org.seaborne.jena.shacl_rules.Rules;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
-import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph;
 import org.seaborne.jena.shacl_rules.sys.RecursionChecker;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
@@ -62,9 +57,6 @@ import org.seaborne.jena.shacl_rules.tuples.Tuples;
  * Forward execution support. This class is not API.
  */
 public class RulesExecLib {
-
-    // XXX [RunOnce]
-    public static boolean rewriteBlankNodes = true;
 
     /** Perform checking and setup */
     public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt) {
@@ -194,107 +186,42 @@ public class RulesExecLib {
 
     private static void accInstantiateHead(List<Triple> accTriples, List<Tuple> accTuples, Rule rule, Binding solution) {
         // Unbound variables shouldn't happen.
-        // BIND failing needs addressing :: issue
-        // https://github.com/w3c/data-shapes/issues/753
+        // Make it CONSTRUCT-like (but needs conditions to enable termination)
+        Iterator<Triple> iter = templateInstantiationTriples(rule.getHeadTriples(), solution);
+        iter.forEachRemaining(accTriples::add);
 
-        // Should rewrite for blank nodes but that causes non-termination.
-
-        // XXX Update for proper blank node handling in the rule head.
-        if ( !rewriteBlankNodes ) {
-            rule.getHeadElements().stream().forEach(headElt -> {
-                switch (headElt) {
-                    case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
-                        Triple triple = Substitute.substitute(tripleTemplate, solution);
-                        if ( !triple.isConcrete() )
-                            throw new RulesEvalException("Triple is not grounded: " + NodeFmtLib.displayStr(triple));
-                        accTriples.add(triple);
-                    }
-                    case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {
-                        Tuple tuple = Tuples.substitute(tupleTemplate, solution);
-                        if ( !tuple.isConcrete() )
-                            throw new RulesEvalException("Tuple is not grounded: " + Tuples.displayStr(tuple));
-                        accTuples.add(tuple);
-                    }
-                    case null -> throw new InternalErrorException("null head element");
-                }
-            });
-        } else {
-            // Make it CONSTRUCT-like (but needs conditions to enable termination)
-            Iterator<Triple> iter = templateInstantiation(rule.getHeadTriples(), solution);
-            iter.forEachRemaining(accTriples::add);
-        }
+        Iterator<Tuple> iter2 = templateInstantiationTuples(rule.getHeadTuples(), solution);
+        iter2.forEachRemaining(accTuples::add);
     }
 
-    // No tuples.
-    private static Iterator<Triple> templateInstantiation(List<Triple> headElements, Binding binding) {
+    private static Iterator<Triple> templateInstantiationTriples(List<Triple> headElements, Binding binding) {
         return TemplateLib.calcTriples(headElements, Iter.singletonIterator(binding));
     }
 
-    // From TemplateLib.calcTriples
+    private static Iterator<Tuple> templateInstantiationTuples(List<Tuple> headElements, Binding binding) {
+        return calcTuples(headElements, Iter.singletonIterator(binding));
+    }
 
-// private static List<Triple> rewriteForBlankNodes(List<RuleHeadElement>
-// headElements) {
-// /** Substitute into triple patterns */
-// public static Iterator<Triple> calcTriples(final List<Triple> triples,
-// Iterator<Binding> bindings) {
-// Function<Binding, Iterator<Triple>> mapper = new Function<>() {
-// Map<Node, Node> bNodeMap = new HashMap<>();
-//
-// @Override
-// public Iterator<Triple> apply(final Binding b) {
-// // Iteration is a new mapping of bnodes.
-// bNodeMap.clear();
-//
-// List<Triple> tripleList = new ArrayList<>(triples.size());
-// for ( Triple triple : triples ) {
-// Triple q = subst(triple, b, bNodeMap);
-// if ( !q.isConcrete() || ! NodeUtils.isValidAsRDF(q.getSubject(), q.getPredicate(),
-// q.getObject()) ) {
-// // Log.warn(TemplateLib.class, "Unbound quad:
-// // "+FmtUtils.stringForQuad(quad)) ;
-// continue;
-// }
-// tripleList.add(q);
-// }
-// return tripleList.iterator();
-// }
-// };
-// return Iter.flatMap(bindings, mapper);
-// }
-// }
-//
-// /** Substitute into a triple, with rewriting of bNodes */
-// public static Triple subst(Triple triple, Binding b, Map<Node, Node> bNodeMap) {
-// Node s = triple.getSubject();
-// Node p = triple.getPredicate();
-// Node o = triple.getObject();
-//
-// Node s1 = s;
-// Node p1 = p;
-// Node o1 = o;
-//
-// if ( s1.isBlank() || Var.isBlankNodeVar(s1) )
-// s1 = newBlank(s1, bNodeMap);
-//
-// if ( p1.isBlank() || Var.isBlankNodeVar(p1) )
-// p1 = newBlank(p1, bNodeMap);
-//
-// if ( o1.isBlank() || Var.isBlankNodeVar(o1) )
-// o1 = newBlank(o1, bNodeMap);
-//
-// Triple t = triple;
-// if ( s1 != s || p1 != p || o1 != o )
-// t = Triple.create(s1, p1, o1);
-// Triple t2 = Substitute.substitute(t, b);
-// return t2;
-// }
-//
-// /** generate a blank node consistently */
-// private static Node newBlank(Node n, Map<Node, Node> bNodeMap) {
-// if ( !bNodeMap.containsKey(n) )
-// bNodeMap.put(n, NodeFactory.createBlankNode());
-// return bNodeMap.get(n);
-// }
+    /** Substitute into tuple patterns */
+    public static Iterator<Tuple> calcTuples(List<Tuple> tuples, Iterator<Binding> binding) {
+        Function<Binding, Iterator<Tuple>> mapper = new Function<>() {
+            Map<Node, Node> bNodeMap = new HashMap<>();
+
+            @Override
+            public Iterator<Tuple> apply(final Binding b) {
+                // Iteration is a new mapping of bnodes.
+                bNodeMap.clear();
+
+                List<Tuple> tupleList = new ArrayList<>(tuples.size());
+                for ( Tuple tuple : tuples ) {
+                    Tuple q = Tuples.substituteTemplate(tuple, b, bNodeMap);
+                    tupleList.add(q);
+                }
+                return tupleList.iterator();
+            }
+        };
+        return Iter.flatMap(binding, mapper);
+    }
 
     /**
      * Create a {@link RulesExecCxt} from a {@link Context}. The argument context is

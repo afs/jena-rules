@@ -53,8 +53,8 @@ public class J_SPARQLFunctionalForms {
     }
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
-        Expr expr1 = SparqlNodeExpressions.buildExpr(graph, arg1);
-        Expr expr2 = SparqlNodeExpressions.buildExpr(graph, arg2);
+        Expr expr1 = SparqlNodeExpressions.rdfToExpr(graph, arg1);
+        Expr expr2 = SparqlNodeExpressions.rdfToExpr(graph, arg2);
         Expr x = new E_LogicalAnd(expr1, expr2);
         return x.eval(row, functionEnv);
     }
@@ -143,7 +143,7 @@ public class J_SPARQLFunctionalForms {
     }
 
     static NodeValue sparql_bound(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
-        Expr expr1 =  SparqlNodeExpressions.fromNodeExpr(graph, arg1);
+        Expr expr1 =  SparqlNodeExpressions.rdfToExpr(graph, arg1);
         if ( ! expr1.isVariable() )
             throw new NodeExprEvalException("Argument to sh:bound is not a variable");
         // Just do it!

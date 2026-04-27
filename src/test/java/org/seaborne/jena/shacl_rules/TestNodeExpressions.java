@@ -36,38 +36,35 @@ import org.seaborne.jena.shacl_rules.nexpr.NX;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExpressionFunction;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExpressions;
 import org.seaborne.jena.shacl_rules.sys.P;
-import org.seaborne.jena.shacl_rules.sys.V;
 
 public class TestNodeExpressions {
 
     private static String PREFIXES = P.PREFIXES+"PREFIX : <http://example/>\n";
 
-    @Test public void nx_expr_uri() {
-        String nxGraph = PREFIXES+"""
-                :nx srl:expr [ sparql:now () ] .
-                """;
-        Node nxs = NodeFactory.createURI("http://example/nx");
-        Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
+    // Property uses to make it easy to find expressions.
+    private static Node srl_expression = NodeFactory.createURI(P.SRL+"expression");
 
-        Node nx = NodeExpressions.getNodeExpression(graph, nxs);
+    @Test public void nx_expr_evali() {
+        String nxGraph = PREFIXES+"""
+                :nx srl:expression [ sparql:now () ] .
+                """;
+        Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
+        Node nx = G.getOneSP(graph, null, srl_expression);
         NodeValue nv = NodeExpressions.evalNodeExpression(graph, nx);
         assertNotNull(nv);
     }
 
-    @Test public void nx_expr_bnode() {
+    @Test public void nx_expr_parse() {
         String nxGraph = PREFIXES+"""
-                :x srl:expr [ sparql:now () ] .
+                :x srl:expression [ sparql:now () ] .
                 """;
         Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
         // The object
-        Node nx = G.getOneSP(graph,null, V.expr);
+        Node nx = G.getOneSP(graph, null, srl_expression);
 
         NodeExpressionFunction nef = NX.getRDFExpression(graph, nx);
         assertNotNull(nef);
         assertNotNull(nef.arguments());
         assertNotNull(nef.uri());
-
-        NodeValue nv = NodeExpressions.evalNodeExpression(graph, nx);
-        assertNotNull(nv);
     }
 }

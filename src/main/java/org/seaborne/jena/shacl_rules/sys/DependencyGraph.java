@@ -120,7 +120,6 @@ public class DependencyGraph {
             ShaclRulesWriter.print(rule);
         List<DependencyEdge> connections = new ArrayList<>();
 
-        // XXX [RunOnce]
         DepEdgeType edgeType = rule.isRunOnceRule() ? DepEdgeType.NEGATIVE : DepEdgeType.POSITIVE;
         accumulateEdges(connections, rule, edgeType, rule.getBodyElements(), providers, providers2);
         if ( DEBUG_BUILD )

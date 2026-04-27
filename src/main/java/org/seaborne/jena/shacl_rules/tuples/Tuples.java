@@ -21,9 +21,11 @@
 
 package org.seaborne.jena.shacl_rules.tuples;
 
+import java.util.Map;
 import java.util.StringJoiner;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -51,6 +53,40 @@ public class Tuples {
             return tuple;
         return Tuple.create(terms);
     }
+
+    public static Tuple substituteTemplate(Tuple tuple, Binding binding, Map<Node, Node> bNodeMap) {
+        if ( isNotNeeded(binding) )
+            return tuple;
+        if ( tuple.isConcrete() )
+            return tuple;
+        int N = tuple.size();
+        Node[] terms = new Node[N];
+        boolean changed = false;
+        for ( int i = 0 ; i < N ; i++ ) {
+            Node n1 = tuple.get(i);
+            if ( n1.isBlank() ) {
+                changed = true;
+                n1 = newBlank(n1, bNodeMap);
+            }
+            // This deals with triple terms.
+            Node n2 = Substitute.substitute(n1, binding);
+            if ( ! n1.sameTermAs(n2) )
+                changed = true;
+            terms[i] = n2;
+        }
+        if ( ! changed )
+            return tuple;
+        return Tuple.create(terms);
+    }
+
+    //DRY: TemplateLib
+    /** generate a blank node consistently */
+    private static Node newBlank(Node n, Map<Node, Node> bNodeMap) {
+        if ( !bNodeMap.containsKey(n) )
+            bNodeMap.put(n, NodeFactory.createBlankNode());
+        return bNodeMap.get(n);
+    }
+
 
     private static boolean isNotNeeded(Binding b) {
         return b == null || b.isEmpty();

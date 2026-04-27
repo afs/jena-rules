@@ -21,11 +21,8 @@
 
 package org.seaborne.jena.shacl_rules.nexpr;
 
-import static java.lang.String.format;
-
 import java.util.List;
 
-import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -34,11 +31,8 @@ import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.Function;
-import org.apache.jena.sparql.util.ExprUtils;
 import org.apache.jena.system.G;
-import org.apache.jena.system.buffering.BufferingGraph;
 import org.seaborne.jena.shacl_rules.jena.JenaLib;
-import org.seaborne.jena.shacl_rules.lang.ExprNodeExpression;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.BuildSyntax;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
@@ -48,133 +42,45 @@ import org.seaborne.jena.shacl_rules.sys.V;
  */
 public class SparqlNodeExpressions {
 
+    private static boolean insertSRLExpr = false;
+
     /**
-     * Build a {@link Expr} starting from a given node in the graph.
-     * The node is used as a subject and must have property {@code sh:expr} or {@code sh:sparqlExpr}.
-     * If it has both, the {@code sh:expr} is used to build the expression.
+     * Build a {@link Expr} starting from a given node in the graph. The node is used
+     * as a subject and must have property {@code sh:expr}.
      *
      * @param graph
      * @param topNode Start of the expression.
      */
     public static Expr rdfToExpr(Graph graph, Node topNode) {
-        try {
-            // [] shr:expr ...
-            //   or
-            // [] shr:sparqlExpr ...
-
-            // Duplicate shr:expr?
-            // Look for shr:expr, return object
-            Node expression1 = NodeExpressions.getNodeExpression(graph, topNode);
-            if ( expression1 != null )
-                return buildExpr(graph, expression1);
-
-            // Look for shr:sparqlExpr, return object (which is a string).
-            Node expression2 = NodeExpressions.getSparqlExpression(graph, topNode);
-            if ( expression2 != null)
-                return buildSparqlExpr(graph, topNode);
-            // Neither
-            throw new ShaclException("Neither shr:expr nor shr:sparqlExpr found");
-        } catch (Exception ex) {
-//            System.out.println("** failed to rebuild expr: "+ex.getMessage());
-//            ex.printStackTrace();
-            return null;
-        }
+        // Check for [ srl:expr [ ...] ]
+        Node exprNode = G.getZeroOrOneSP(graph, topNode, V.expr);
+        if ( exprNode == null )
+            exprNode = topNode;
+        return buildExpr(graph, exprNode);
     }
 
     /**
-     * Build an {@link Expr} from a node with a property {@code shr:expr}. The object
-     * is a blank node structure of a SHACL Node Expression.
+     * Translate an {@link Expr} into RDF triples in the graph.
      * <p>
-     * Prefer using {@link #rdfToExpr} which switches between node expressions and
-     * SPARQL expression strings.
+     * Return the blank node that encodes the function and
+     * has the function URI as a predicate.
      */
-    public static Expr fromNodeExpr(Graph graph, Node root) {
-        return buildExpr(graph, root);
-    }
-
-    /**
-     * Build an {@link Expr} from a node with a property {@code sh:sparqExpr}
-     * whose value is a simple string in SPARQL expression syntax.
-     * <p>
-     * Prefer using {@link #rdfToExpr} which switches between node expressions and
-     * SPARQL expression strings.
-     */
-    public static Expr fromSparqlExpr(Graph graph, Node root) {
-        return buildSparqlExpr(graph, root);
-    }
-
-    /**
-     * Encode an {@link Expr} into triples.
-     * Return the node for the top of the expression.
-     * The result node has a property {@code sh:expr}
-     * or {@code sh:sparqlExpr} if the translation fails.
-     */
-
-    public static Node exprToRDF(Graph graph, Expr expr) {
-        return exprToRDF(graph, expr, false);
-    }
-
-    /**
-     * Encode an {@link Expr} into triples.
-     * Return the node for the top of the expression.
-     * The result node has a property {@code sh:expr}
-     * and also always has {@code sh:sparqlExpr}.
-     */
-    public static Node exprToRDF(Graph graph, Expr expr, boolean includeSparqlExpr) {
-        BufferingGraph graphx = new BufferingGraph(graph);
-        Node x = NodeFactory.createBlankNode();
-
-        try {
-            // [ sh:expr [ sparql:function (...) ] ]
-            encodeAsExpr(graphx, x, expr);
-        } catch (ShaclTranslateException ex) {
-            graphx.reset();
-            // Fallback.
-            // XXX Remove later?
-            encodeAsSparqlExpr(graphx, x, expr);
-            graphx.flush();
+    public static Node exprAsRDF(Graph graph, Expr expr) {
+        Node x = buildRDF(graph, expr);
+        if ( !insertSRLExpr )
             return x;
-        }
-
-        if ( includeSparqlExpr ) {
-            // [ sh:exprSparql "..." ]
-            encodeAsSparqlExpr(graphx, x, expr);
-        }
-        graphx.flush();
-        return x;
+        Node x2 = NodeFactory.createBlankNode();
+        graph.add(x2, V.expr, x);
+        return x2;
     }
 
-    private static final boolean UseExprNodeExpression = true;
+    // -------------
 
-    /*package*/static Expr buildExpr(Graph graph, Node root) {
-//        if ( UseExprNodeExpression )
-//            return ExprNodeExpression.create(graph, root);
-
-        Expr expr0 = null;
-//        try {
-//            expr0 = buildExprForReal(graph, root);
-//        } catch (Exception ex) {
-//            System.out.println(root);
-//            ex.printStackTrace();
-//        }
-        expr0 = buildExprForReal(graph, root);
-        if ( expr0 != null )
-            return expr0;
-        // Simply wrap.
-        // XXX Later - replace by calling SPARQL URI functions.
-        return ExprNodeExpression.create(graph, root);
-    }
-
-    private static Expr buildExprForReal(Graph graph, Node root) {
-        // In common with NodeExpressions.execNodeExpression
+    private static Expr buildExpr(Graph graph, Node root) {
+        // XXX [NX] In common with NodeExpressions.execNodeExpression??
         // Constant
         if ( ! root.isBlank() )
             return NodeValue.makeNode(root);
-
-        // root sh:sparqlExpr ...
-        if ( G.contains(graph, root, V.sparqlExpr, null) ) {
-            return buildSparqlExpr(graph, root);
-        }
 
         // Variable?
         Var v = RVar.getVar(graph, root);
@@ -202,76 +108,34 @@ public class SparqlNodeExpressions {
         if ( build == null )
             throw new RuntimeException("Build: "+functionURI);
 
+        // XXX Direct to list?
         Expr[] array = list.stream().map(n->buildExpr(graph, n)).toArray(Expr[]::new);
-
-        // XXX Evaluates?
-
         Expr expr = build.build(functionURI, array);
         return expr;
     }
 
-    /**
-     * {@code shr:sparqlExpr}
-     */
-    /*package*/ public static Expr buildSparqlExpr(Graph graph, Node root) {
-        Node exprSparqlNode = NodeExpressions.getSparqlExpression(graph, root);
-        if ( exprSparqlNode == null )
-            return null;
-        String exprString = G.asString(exprSparqlNode);
-        return ExprUtils.parse(exprString);
-    }
-
     // ---- Expr to RDF
 
-    /**
-     * Add {@code sh:expr node expression} (RDF syntax node expression)
-     * for a SHACL rules expression.
-     * No {@code rdf:type} is added.
-     */
-    private static void encodeAsExpr(Graph graph, Node x, Expr expr) {
-        Node exprNode = exprAsRDF(graph, expr);
-        graph.add(x, V.expr, exprNode);
-    }
+    private static Node buildRDF(Graph graph, Expr expr) {
 
-    /**
-     * Add {@code sh:sparqlExpr "expression string"} (a SPARQL syntax string).
-     * No {@code rdf:type} is added.
-     */
-    private static void encodeAsSparqlExpr(Graph graph, Node x, Expr expr) {
-        graph.add(x, V.sparqlExpr, exprAsString(expr));
-    }
-
-    /** Expression to SPARQL syntax string */
-    private static Node exprAsString(Expr expr) {
-        IndentedLineBuffer out = new IndentedLineBuffer();
-        ExprUtils.fmtSPARQL(out, expr);
-        //WriterSSE.out(out, expr, null);
-        return NodeFactory.createLiteralString(out.asString());
-    }
-
-    /**
-     * Encode an {@link Expr} as RDF triples in the graph.
-     * <p>
-     * Return the blank node that encodes the function and
-     * has the function URI as a predicate.
-     */
-    private static Node exprAsRDF(Graph graph, Expr expr) {
         switch(expr) {
             case NodeValue nv -> {
                 // Constant.
                 return nv.asNode();
             }
             case ExprVar nvar -> {
-                // Blank node: [ shr:varName "varname" ] or [ shnex:var "varname" ]
+                // Blank node: [ srl:varName "varname" ] or [ shnex:var "varname" ]
 
                 // Use Node expression form.
                 return NX.addVar(graph, nvar.getVarName());
             }
             case ExprFunction exf -> {
                 // [ function_uri (args) ]
+
                 List<Expr> args = exf.getArgs();
                 // Recursive step : arguments to RDF.
                 List<Node> argNodes = args.stream().map(e->exprAsRDF(graph,e)).toList();
+
                 Node argNodeList = JenaLib.createList(graph, argNodes);
                 Node uri = exprFunctionURI(exf, argNodes.size());
                 Node x = NodeFactory.createBlankNode();
@@ -298,21 +162,16 @@ public class SparqlNodeExpressions {
         String uri = NodeExprTables.getUriForExpr(exf);
         if ( uri != null )
             return NodeFactory.createURI(uri);
-        // No lookup. Either pass out anyway or signal an error.
-        if ( false ) {
-            String msg = format("Can't determine the URI for '%s [%s]' arity %d", exf.getFunctionPrintName(null), exf.getClass().getSimpleName(), arity);
-            throw new ShaclTranslateException(msg);
-        }
         // A URI for the function.
         return NodeFactory.createURI(exf.getFunctionIRI());
     }
 
-    /**
-     * Failure to encode a SPARQL functions as a SHACL node expressions.
-     */
-    public static class ShaclTranslateException extends ShaclException {
-        public ShaclTranslateException(String msg) {
-            super(msg);
-        }
-    }
+//    /**
+//     * Failure to encode a SPARQL functions as a SHACL node expressions.
+//     */
+//    public static class ShaclTranslateException extends ShaclException {
+//        public ShaclTranslateException(int x, String msg) {
+//            super(msg);
+//        }
+//    }
 }
