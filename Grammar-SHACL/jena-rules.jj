@@ -336,25 +336,20 @@ void DataTuple() : { Token t; Node n; }
 }
 void Assignment() : { Var v ; Expr expr ; }
 {
-    <BIND>
+//     <BIND>
+//     <LPAREN>
+//     expr = Expression()
+//     <AS>
+//     v = Var()
+//     <RPAREN>
+    <SET>
     <LPAREN>
-    expr = Expression()
-    <AS>
     v = Var()
+    <ASSIGN>
+    expr = Expression()
     <RPAREN>
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
-    //{ return new ElementBind(v, expr) ; }
 }
-// Element Let() : { Var v ; Expr expr ; }
-// {
-//     <LET>  
-//     <LPAREN>
-//     v = Var()
-//     <ASSIGN> 
-//     expr = Expression()
-//     <RPAREN>
-//     { return new ElementAssign(v, expr) ; }
-// }
 // ---- Reifier, various cases.
 // May return null.
 Node Reifier() : { Token tok = null ; Node reifId = null ; }
@@ -1090,7 +1085,6 @@ Expr BuiltInCall() : { Expr expr ;
 //   | <URI> <LPAREN> expr1 = Expression() (<COMMA> expr2 = Expression())? <RPAREN>
 //     { return makeFunction_URI(expr1, expr2) ; }
 // #else
-    // Single argument only for in SPARQL 1.1
   | <IRI> <LPAREN> expr = Expression() <RPAREN>
     { return makeFunction_IRI(expr) ; }
   | <URI> <LPAREN> expr = Expression() <RPAREN>
@@ -1173,7 +1167,7 @@ Expr BuiltInCall() : { Expr expr ;
 // #ifdef ARQ
 //   | <VERSION> <NIL>     { return new E_Version(); }
 // #endif    
-// Not in SHACl Rules
+// Not in SHACL Rules
 //   | <COALESCE> a = ExpressionList()
 //     { return new E_Coalesce(a) ; }
 // #ifdef ARQ
@@ -1403,8 +1397,9 @@ TOKEN [IGNORE_CASE] :
 | < VERSION: "version" >
 // Graph pattern operators 
 | < WHERE: "where" >
-| < BIND: "bind" >
-| < AS: "as" >
+//|  < BIND:        "bind" >
+//|  < AS:          "as" >
+| < SET: "set" >
 | < LET: "let" >
 | < ASSIGN: ":=" >
 | < TRIPLE: "TRIPLE" >

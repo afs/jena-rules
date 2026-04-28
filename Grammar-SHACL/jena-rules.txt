@@ -62,8 +62,7 @@ TOKENS
 | <PREFIX: "prefix">
 | <VERSION: "version">
 | <WHERE: "where">
-| <BIND: "bind">
-| <AS: "as">
+| <SET: "set">
 | <LET: "let">
 | <ASSIGN: ":=">
 | <TRIPLE: "TRIPLE">
@@ -277,17 +276,7 @@ NON-TERMINALS
 	TupleArg	:=	RDFTerm
 		|	Var
 	DataTuple	:=	( <TUPLE> | <DOLLAR> ) ( <NIL> | <LPAREN> RDFTerm ( <COMMA> RDFTerm )* <RPAREN> )
-	Assignment	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
-// Element Let() : { Var v ; Expr expr ; }
-// {
-//     <LET>  
-//     <LPAREN>
-//     v = Var()
-//     <ASSIGN> 
-//     expr = Expression()
-//     <RPAREN>
-//     { return new ElementAssign(v, expr) ; }
-// }
+	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
 // ---- Reifier, various cases.
 // May return null.
 	Reifier	:=	<TILDE> ( VarOrReifierId )?

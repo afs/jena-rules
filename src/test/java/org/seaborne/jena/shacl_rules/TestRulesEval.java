@@ -60,8 +60,8 @@ public class TestRulesEval {
     @Test public void eval_now() {
         Graph data = graph();
         RuleSet rules = rules("""
-                RULE { :x :p1 ?now1 } WHERE { BIND (NOW() AS ?now1) }
-                RULE { :x :p2 ?now2 } WHERE { BIND (NOW() AS ?now2) }
+                RULE { :x :p1 ?now1 } WHERE { SET ( ?now1 := NOW() ) }
+                RULE { :x :p2 ?now2 } WHERE { SET ( ?now2 := NOW() ) }
                 RULE { :x :result true } WHERE { :x :p1 ?now1 . :x :p2 ?now2. FILTER(?now1 = ?now2) }
                 RULE { :x :result false } WHERE { :x :p1 ?now1 . :x :p2 ?now2. FILTER(?now1 != ?now2) }
                 """);

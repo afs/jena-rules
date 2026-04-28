@@ -4,5 +4,5 @@ RULE { ?x :in ?o ;
          :out ?z .
 } WHERE {
     ?x :data ?o .
-    BIND( 1/?o AS ?z )
+    SET ( ?z := 1/?o AS ?z )
 }

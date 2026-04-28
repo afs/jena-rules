@@ -27,7 +27,7 @@ PREFIX : <http://example/>
 RULE { ?s ?p ?o }
 WHERE {
     ?s :p ?o .
-    BIND ( :p AS ?p  )
+    SET ( ?p := :p )
 }
 EOF
 
@@ -38,7 +38,7 @@ WHERE {
     ?s :p :z .
     NOT { ?s :q ?y }
     ?s  :q ?o
-    BIND(:p AS ?p)
+    SET(?p := :p)
 }
 EOF
 
@@ -50,7 +50,7 @@ PREFIX : <http://example/>
 RULE { ?s ?p ?o }
 WHERE {
     ?s ?p ?o
-    BIND(123 AS ?o)
+    SET(?o := 123)
 }
 EOF
 
@@ -59,8 +59,8 @@ N=$((N+1)) ; testBad $(fname "wellformed-bad-" $N) <<EOF
 PREFIX : <http://example/>
 RULE { :s :p ?x }
 WHERE {
-    BIND(1 AS ?x)
-    BIND(1 AS ?x)
+    SET(?x := 1)
+    SET(?x := 1)
 }
 EOF
 

@@ -1,6 +1,6 @@
 PREFIX : <http://example/>
 RULE { :s :p ?x }
 WHERE {
-    BIND(1 AS ?x)
-    BIND(1 AS ?x)
+    SET(?x := 1)
+    SET(?x := 1)
 }

@@ -21,7 +21,7 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "stratification-" $N) <<EOF
 PREFIX : <http://example/>
-RULE { ?s :p "abc" } WHERE { NOT { ?s :p "XYZ" } BIND ( :sz AS ?s ) }
+RULE { ?s :p "abc" } WHERE { NOT { ?s :p "XYZ" } SET ( ?s := :sz ) }
 RULE { :s :p "ABC" } WHERE { ?s :q :z }
 EOF
 

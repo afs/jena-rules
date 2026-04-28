@@ -29,7 +29,7 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
         :eval-neg-02a
         :eval-neg-02b
         :eval-filter-error-1
-        :eval-bind-error-1
+        :eval-assign-error-1
     ) .
 
 ## Negation
@@ -64,11 +64,11 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
     mf:result  <eval-filter-error-1-results.ttl>
     .
 
-:eval-bind-error-1  rdf:type srt:RulesEvalTest ;
-    mf:name "Eval-bind-error-1";
+:eval-assign-error-1  rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-assign-error-1";
     mf:action
-         [ srt:ruleset  <eval-bind-error-1.srl> ;
+         [ srt:ruleset  <eval-assign-error-1.srl> ;
            srt:data     <data-error-1.ttl> ;
          ] ;
-    mf:result  <eval-bind-error-1-results.ttl>
+    mf:result  <eval-assign-error-1-results.ttl>
     .

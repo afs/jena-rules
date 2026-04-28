@@ -338,6 +338,11 @@ public class RuleSetWriter {
                     out.write(" AS ");
                     nodeFormatter.format(out, var);
                     out.write(")");
+                    out.write("SET( ");
+                    nodeFormatter.format(out, var);
+                    out.write(" := ");
+                    writeExpr(expression);
+                    out.write(" )");
                 }
                 case null -> {
                     throw new InternalErrorException();

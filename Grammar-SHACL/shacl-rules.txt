@@ -59,8 +59,7 @@ TOKENS
 | <PREFIX: "prefix">
 | <VERSION: "version">
 | <WHERE: "where">
-| <BIND: "bind">
-| <AS: "as">
+| <SET: "set">
 | <LET: "let">
 | <ASSIGN: ":=">
 | <TRIPLE: "TRIPLE">
@@ -264,17 +263,7 @@ NON-TERMINALS
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
 	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
 	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
-	Assignment	:=	<BIND> <LPAREN> Expression <AS> Var <RPAREN>
-// Element Let() : { Var v ; Expr expr ; }
-// {
-//     <LET>  
-//     <LPAREN>
-//     v = Var()
-//     <ASSIGN> 
-//     expr = Expression()
-//     <RPAREN>
-//     { return new ElementAssign(v, expr) ; }
-// }
+	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
 // ---- Reifier, various cases.
 // May return null.
 	Reifier	:=	<TILDE> ( VarOrReifierId )?
