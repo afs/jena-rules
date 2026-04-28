@@ -43,7 +43,7 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**
  * SHACL node expression evaluation.
- * @see SparqlNodeExpressions for translation to/from SPARQL functions.
+ * @see SrlExpressions for translation to/from SPARQL functions.
  * @see SPARQLDispatch
  */
 public class NodeExpressions {

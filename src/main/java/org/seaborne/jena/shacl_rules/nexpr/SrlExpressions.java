@@ -40,7 +40,7 @@ import org.seaborne.jena.shacl_rules.sys.V;
 /**
  * Encode/decode SPARQL expressions as RDF triples.
  */
-public class SparqlNodeExpressions {
+public class SrlExpressions {
 
     private static boolean insertSRLExpr = false;
 

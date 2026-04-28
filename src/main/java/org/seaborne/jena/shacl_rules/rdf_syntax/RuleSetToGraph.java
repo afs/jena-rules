@@ -45,7 +45,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
-import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
@@ -192,16 +192,10 @@ public class RuleSetToGraph {
         return bodyNode;
     }
 
-    // Expr to nod expression, no srl:expr
+    // Expr to node expression, no srl:expr
     private static Node expression(Graph graph, Expr expr) {
-        Node x = SparqlNodeExpressions.exprAsRDF(graph, expr);
-
-        // Direct as sh:sparqlExpr
-//      Node x = NodeFactory.createBlankNode();
-//      String exprStr = exprAsString(expr);
-//      Node obj = NodeFactory.createLiteralString(exprStr);
-//      graph.add(x, V.sparqlExpr, obj);
-      return x;
+        Node x = SrlExpressions.exprAsRDF(graph, expr);
+        return x;
     }
 
     private static String exprAsString(Expr expr) {

@@ -21,6 +21,6 @@
 
 package org.seaborne.jena.shacl_rules.nexpr;
 
-class SPARQLEvalException extends NodeExprEvalException {
-    SPARQLEvalException(String msg) { super(msg); }
+class EvalException extends NodeExprEvalException {
+    EvalException(String msg) { super(msg); }
 }

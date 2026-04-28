@@ -44,7 +44,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
-import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
@@ -183,7 +183,7 @@ public class GraphToRuleSet {
             if ( G.hasProperty(graph, node, V.filter) ) {
                 // XXX [RDF syntax] Deal with both V.expr
                 Node exprNode = G.getOneSP(graph, node, V.filter) ;
-                Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+                Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
                 body.add(new EltCondition(expr));
                 continue;
             }
@@ -201,8 +201,8 @@ public class GraphToRuleSet {
                 Var var = RVar.getVar(graph, varNode);
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
                 // Force expr
-                //Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
-                Expr expr = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+                //Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
+                Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
                 body.add(new EltAssignment(var, expr));
                 continue;
             }

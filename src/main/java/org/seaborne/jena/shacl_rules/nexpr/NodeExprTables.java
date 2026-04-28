@@ -642,7 +642,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
     private static RuntimeException exception(String format, Object...args) {
         String msg = String.format(format, args);
-        return new SPARQLEvalException(msg);
+        return new EvalException(msg);
     }
 
     // Used to construct SPARQL Expr - ARQ expression syntax objects.

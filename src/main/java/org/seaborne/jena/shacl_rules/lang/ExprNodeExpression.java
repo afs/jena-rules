@@ -37,7 +37,7 @@ import org.apache.jena.sparql.graph.NodeTransform;
 import org.seaborne.jena.shacl_rules.nexpr.NX;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExpressionFunction;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExpressions;
-import org.seaborne.jena.shacl_rules.nexpr.SparqlNodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**
@@ -103,7 +103,7 @@ public class ExprNodeExpression extends ExprNode {
     @Override
     public void visit(ExprVisitor visitor) {
         // Variable extraction is done in the constructor.
-        Expr x1 = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+        Expr x1 = SrlExpressions.rdfToExpr(graph, exprNode);
         x1.visit(visitor);
     }
 
@@ -114,14 +114,14 @@ public class ExprNodeExpression extends ExprNode {
 
     @Override
     public Expr copySubstitute(Binding binding) {
-        Expr x1 = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+        Expr x1 = SrlExpressions.rdfToExpr(graph, exprNode);
         Expr x2 = x1.copySubstitute(binding);
         return x2;
     }
 
     @Override
     public Expr applyNodeTransform(NodeTransform transform) {
-        Expr x1 = SparqlNodeExpressions.rdfToExpr(graph, exprNode);
+        Expr x1 = SrlExpressions.rdfToExpr(graph, exprNode);
         Expr x2 = x1.applyNodeTransform(transform);
         return x2;
     }
