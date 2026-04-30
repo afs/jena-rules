@@ -711,18 +711,9 @@ Node GraphNodePath() : { Node n ; }
 |
   n = ReifiedTriple() { return n ; }
 }
-Node VarOrTerm() : { Node n = null ; String iri ; }
+Node VarOrTerm() : { Node n = null ; }
 {
-  ( n = Var()
-  | iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  | <NIL> { return nRDFnil ; }
-  | n = TripleTerm() { return n; }
-  )
+  ( n = Var() | n = RDFTerm() )
   { return n; }
 }
 Node RDFTerm() : { Node n = null ; String iri ; }

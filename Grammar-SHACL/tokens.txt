@@ -114,6 +114,7 @@
 // [<UNSAID>]     ::=    'UNSAID'
 [<LET>]        ::=    'LET'
 [<BIND>]       ::=    'BIND'
+[<SET>]        ::=    'SET'
 // [<FIND>]       ::=    'FIND'
 
 [<FILTER>]     ::= 'FILTER'

@@ -2014,7 +2014,7 @@ clearReifierId();
     throw new Error("Missing return statement in function");
 }
 
-  final public Node VarOrTerm() throws ParseException {Node n = null ; String iri ;
+  final public Node VarOrTerm() throws ParseException {Node n = null ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case VAR1:
     case VAR2:{
@@ -2023,18 +2023,10 @@ clearReifierId();
       }
     case IRIref:
     case PNAME_NS:
-    case PNAME_LN:{
-      iri = iri();
-{if ("" != null) return createURI(iri, token.beginLine, token.beginColumn) ;}
-      break;
-      }
-    case STRING_LITERAL1:
-    case STRING_LITERAL2:
-    case STRING_LITERAL_LONG1:
-    case STRING_LITERAL_LONG2:{
-      n = RDFLiteral();
-      break;
-      }
+    case PNAME_LN:
+    case BLANK_NODE_LABEL:
+    case TRUE:
+    case FALSE:
     case INTEGER:
     case DECIMAL:
     case DOUBLE:
@@ -2043,28 +2035,15 @@ clearReifierId();
     case DOUBLE_POSITIVE:
     case INTEGER_NEGATIVE:
     case DECIMAL_NEGATIVE:
-    case DOUBLE_NEGATIVE:{
-      n = NumericLiteral();
-      break;
-      }
-    case TRUE:
-    case FALSE:{
-      n = BooleanLiteral();
-      break;
-      }
-    case BLANK_NODE_LABEL:
-    case ANON:{
-      n = BlankNode();
-      break;
-      }
-    case NIL:{
-      jj_consume_token(NIL);
-{if ("" != null) return nRDFnil ;}
-      break;
-      }
+    case DOUBLE_NEGATIVE:
+    case STRING_LITERAL1:
+    case STRING_LITERAL2:
+    case STRING_LITERAL_LONG1:
+    case STRING_LITERAL_LONG2:
+    case NIL:
+    case ANON:
     case L_TRIPLE:{
-      n = TripleTerm();
-{if ("" != null) return n;}
+      n = RDFTerm();
       break;
       }
     default:

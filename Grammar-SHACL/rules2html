@@ -3,10 +3,10 @@
 
 OUT='rules-grammar.html'
 
-echo "Grammar toHTML ($OUT)"
+echo "Grammar to HTML ($OUT)"
 
 (
     echo "      <!-- GRAMMAR -->"
-    jj2html 'shacl-rules-12.txt' 'tokens.txt'
+    jj2html 'shacl-rules.txt' 'tokens.txt'
     echo "      <!-- GRAMMAR -->"
 ) > $OUT

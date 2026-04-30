@@ -43,7 +43,9 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTuplePattern;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
- * Rules dependency graph. The graph has vertices of rules and links being "depends
+ * Rules dependency graph.
+ * <p>
+ * The graph has vertices of rules and links being "depends
  * on" another rule, i.e. for a triple that is in the head of a rule, it is the rules
  * that can generate that triple. relations in its body. from this, we can determine
  * whether a rule is:
@@ -59,7 +61,7 @@ import org.seaborne.jena.shacl_rules.tuples.Tuple;
 public class DependencyGraph {
 
     public enum DepEdgeType {
-        POSITIVE("+"), NEGATIVE("-"), AGGREGATE("A");
+        POSITIVE("+"), NEGATIVE("-");
         public final String symbol;
         DepEdgeType(String symbol) { this.symbol = symbol; }
     }
