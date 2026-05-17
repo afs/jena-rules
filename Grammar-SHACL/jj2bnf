@@ -79,11 +79,13 @@ for $g (@g) {
 
     $rulebody =~ s!^\s*!! ;
     $rulebody =~ s!\s*$!! ;
+    $rulebody =~ s! <EOF>$!! ;
     
     # Remove outer brackets
 #    $rulebody =~ s!^\((.*)\)$!$1! ;
 
     next if $rulename eq '' ;
+    
 
     push @rules, $rulename ;
     warn "Duplicate rule (grammar): $rulename\n" if defined($ruleMap{$rulename}) ;
@@ -123,7 +125,7 @@ for $t (@t) {
 
 	#print "INLINE: ",$tokenname," => ",$tokenbody,"\n" ;
     } else {
-	## Remove < > aroudn a token name.
+	## Remove < > around a token name.
 	my $inlinePlain = $tokenname ;
 	$inlinePlain =~ s%^<%%;
 	$inlinePlain =~ s%>$%%;

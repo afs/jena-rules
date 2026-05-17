@@ -59,16 +59,6 @@ import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.ShaclRulesParserBas
 public class ShaclRulesJavacc extends ShaclRulesParserBase
 {}
 PARSER_END(ShaclRulesJavacc)
-// void RulesUnit(): {}
-// {
-//      ByteOrderMark()
-//      RuleSet()
-// }
-//
-// void ByteOrderMark() : {}
-// {
-//    (<BOM>)?
-// }
 void RuleSet(): { }
 {
   { startRules() ; }
@@ -1428,7 +1418,7 @@ TOKEN :
 | < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 | < #QUOTE_3D: "\"\"\"">
 | < #QUOTE_3S: "'''">
-| < ECHAR: "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
+| < #ECHAR: "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
 | < #UCHAR: <UCHAR4> | <UCHAR8> >
 | < #UCHAR4: "\\" "u" <HEX> <HEX> <HEX> <HEX> >
 | < #UCHAR8: "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> >

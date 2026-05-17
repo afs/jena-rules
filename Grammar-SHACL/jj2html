@@ -81,7 +81,7 @@ for $g (@g) {
 
     $rulebody =~ s!^\s*!! ;
     $rulebody =~ s!\s*$!! ;
-
+    $rulebody =~ s! <EOF>$!! ;
     
     # Remove outer brackets
 #    $rulebody =~ s!^\((.*)\)$!$1! ;
@@ -169,8 +169,13 @@ EOF
     print "\n" ;
 } ## End TABLE
 
-$indent = "      ";
-## $indent = "";
+## If inline in the text
+$indent     = "      " ;
+## If via reSpec data-include=
+$indent = "";
+
+$indentRuleExtra = "      " ;
+$indentRule = $indent. $indentRuleExtra ;
 
 print $indent,"<div class=\"grammarTable\">\n" ;
 print $indent,"  <table><tbody>\n" ;
@@ -249,8 +254,6 @@ for $r (@rules) {
     }
 
     print "\n" ;
-    $indentRule = "              ";
-    ##$indentRule = "";
     print $indentRule,"<tr style=\"vertical-align: baseline\">\n";
     
     $rlabel = '[' . $ruleNum .  ']&nbsp;&nbsp;' ;

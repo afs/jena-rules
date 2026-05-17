@@ -85,16 +85,17 @@ public class CLASS extends PARSERBASE
 {}
 PARSER_END(CLASS)
 
-// void RulesUnit(): {}
-// {
-//      ByteOrderMark()
-//      RuleSet()
-// }
-//
-// void ByteOrderMark() : {}
-// {
-//    (<BOM>)?
-// }
+#ifdef JENA
+void RulesUnit(): {}
+{
+     ByteOrderMark()
+     RuleSet()
+}
+void ByteOrderMark() : {}
+{
+   (<BOM>)?
+}
+#endif
 
 void RuleSet(): { }
 {
@@ -1777,7 +1778,7 @@ TOKEN :
 | < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 | < #QUOTE_3D: "\"\"\"">
 | < #QUOTE_3S: "'''">
-| < ECHAR: "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
+| < #ECHAR:      "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
 | < #UCHAR:      <UCHAR4> | <UCHAR8> >
 | < #UCHAR4:     "\\" "u" <HEX> <HEX> <HEX> <HEX> >
 | < #UCHAR8:     "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> >

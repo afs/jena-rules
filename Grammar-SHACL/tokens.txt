@@ -18,7 +18,7 @@
 // The presense of a token in the file does not mean it is actually used.
 
 [<EOF>]          ::=
-[<IRIref>]   ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
+[<IRIref>]   ::= '<' ([^<>"{}|^`\]-[#x00-#x20] | <UCHAR> )* '>'
 <PNAME_NS>   ::= <PN_PREFIX>? ':'
 <PNAME_LN>   ::= <PNAME_NS> <PN_LOCAL>
 <BLANK_NODE_LABEL> ::= '_:' ( <PN_CHARS_U> | [0-9] ) ((<PN_CHARS>|'.')* <PN_CHARS>)?
@@ -45,13 +45,14 @@
 <DECIMAL_NEGATIVE> ::= <MINUS> <DECIMAL>
 <DOUBLE_NEGATIVE>  ::= <MINUS> <DOUBLE>
 
-<STRING_LITERAL1> ::= "'" ( ([^#x27#x5C#xA#xD]) | <ECHAR> )* "'"
-<STRING_LITERAL2> ::= '"' ( ([^#x22#x5C#xA#xD]) | <ECHAR> )* '"'
+<STRING_LITERAL1> ::= "'" ( ([^#x27#x5C#xA#xD]) | <ECHAR> | <UCHAR> )* "'"
+<STRING_LITERAL2> ::= '"' ( ([^#x22#x5C#xA#xD]) | <ECHAR> | <UCHAR> )* '"'
 
-<STRING_LITERAL_LONG1> ::= "'''" ( ( "'" | "''" )? ( [^'\] | <ECHAR> ) )* "'''"
-<STRING_LITERAL_LONG2> ::= '"""' ( ( '"' | '""' )? ( [^"\] | <ECHAR> ) )* '"""'
+<STRING_LITERAL_LONG1> ::= "'''" ( ( "'" | "''" )? ( [^'\] | <ECHAR> | <UCHAR> ) )* "'''"
+<STRING_LITERAL_LONG2> ::= '"""' ( ( '"' | '""' )? ( [^"\] | <ECHAR> | <UCHAR> ) )* '"""'
 
 <ECHAR>           ::= '\' [tbnrf\"']
+<UCHAR>        ::= ('\u' HEX HEX HEX HEX) | ('\U' HEX HEX HEX HEX HEX HEX HEX HEX)
 // The print value is the whitespace trimmed value after ::=
 
 [<KW_A>]       ::= 'a'
@@ -60,74 +61,60 @@
 [<BASE>]       ::= 'BASE'
 [<PREFIX>]     ::= 'PREFIX'
 [<VERSION>]    ::= 'VERSION'
-[<SELECT>]     ::= 'SELECT'
-[<DESCRIBE>]   ::= 'DESCRIBE'
-[<CONSTRUCT>]  ::= 'CONSTRUCT'
-//[<CONSTRUCT_WHERE>]  ::= 'CONSTRUCT WHERE'
-[<ASK>]        ::= 'ASK'
-[<JSON>]       ::= 'JSON'
-[<DISTINCT>]   ::= 'DISTINCT'
-[<REDUCED>]    ::= 'REDUCED'
 [<WHERE>]      ::= 'WHERE'
-
-[<LIMIT>]      ::= 'LIMIT'
-[<OFFSET>]     ::= 'OFFSET'
-[<ORDER>]      ::= 'ORDER'
-[<BY>]         ::= 'BY'
-[<VALUES>]     ::= 'VALUES'
-[<UNDEF>]      ::= 'UNDEF'
-
-[<FROM>]       ::= 'FROM'
-[<NAMED>]      ::= 'NAMED'
-
-[<ASC>]        ::= 'ASC'
-[<DESC>]       ::= 'DESC'
-
-[<AS>]         ::= 'AS'
-[<EXT>]        ::= 'EXT'
-[<GROUP>]      ::= 'GROUP'
-[<HAVING>]     ::= 'HAVING'
-[<SEPARATOR>]  ::= 'SEPARATOR'
-[<AGG>]        ::= 'AGG'
-[<COUNT>]      ::= 'COUNT'
-[<MIN>]        ::= 'MIN'
-[<MAX>]        ::= 'MAX'
-[<SUM>]        ::= 'SUM'
-[<AVG>]        ::= 'AVG'
-[<MEDIAN>]     ::= 'MEDIAN'
-[<MODE>]       ::= 'MODE'
-[<SAMPLE>]     ::= 'SAMPLE'
-[<GROUP_CONCAT>]     ::= 'GROUP_CONCAT'
-
-[<STDEV>]      ::= 'STDEV'
-[<STDEV_SAMP>] ::= 'STDEVP_SAMP'
-[<STDEV_POP>]  ::= 'STDEV_POP'
-[<VARIANCE>]   ::= 'VARIANCE'
-[<VAR_SAMP>]   ::= 'VAR_SAMP'
-[<VAR_POP>]    ::= 'VAR_POP'
-
-[<SERVICE>]    ::=    'SERVICE'
-[<MINUS_P>]    ::=    'MINUS'
-[<EXISTS>]     ::=    'EXISTS'
+[<FILTER>]     ::= 'FILTER'
+[<SET>]        ::=    'SET'
 [<NOT>]        ::=    'NOT'
+
+// [<LIMIT>]      ::= 'LIMIT'
+// [<OFFSET>]     ::= 'OFFSET'
+// [<ORDER>]      ::= 'ORDER'
+// [<BY>]         ::= 'BY'
+// [<VALUES>]     ::= 'VALUES'
+// [<UNDEF>]      ::= 'UNDEF'
+// 
+// [<AS>]         ::= 'AS'
+// [<EXT>]        ::= 'EXT'
+// [<GROUP>]      ::= 'GROUP'
+// [<HAVING>]     ::= 'HAVING'
+// [<SEPARATOR>]  ::= 'SEPARATOR'
+// [<AGG>]        ::= 'AGG'
+// [<COUNT>]      ::= 'COUNT'
+// [<MIN>]        ::= 'MIN'
+// [<MAX>]        ::= 'MAX'
+// [<SUM>]        ::= 'SUM'
+// [<AVG>]        ::= 'AVG'
+// [<MEDIAN>]     ::= 'MEDIAN'
+// [<MODE>]       ::= 'MODE'
+// [<SAMPLE>]     ::= 'SAMPLE'
+// [<GROUP_CONCAT>]     ::= 'GROUP_CONCAT'
+// 
+// [<STDEV>]      ::= 'STDEV'
+// [<STDEV_SAMP>] ::= 'STDEVP_SAMP'
+// [<STDEV_POP>]  ::= 'STDEV_POP'
+// [<VARIANCE>]   ::= 'VARIANCE'
+// [<VAR_SAMP>]   ::= 'VAR_SAMP'
+// [<VAR_POP>]    ::= 'VAR_POP'
+// 
+// [<SERVICE>]    ::=    'SERVICE'
+// [<MINUS_P>]    ::=    'MINUS'
+// [<EXISTS>]     ::=    'EXISTS'
 // [<DIFF>]       ::=    'DIFF'
 // [<UNSAID>]     ::=    'UNSAID'
-[<LET>]        ::=    'LET'
-[<BIND>]       ::=    'BIND'
-[<SET>]        ::=    'SET'
+// [<LET>]        ::=    'LET'
+// [<BIND>]       ::=    'BIND'
 // [<FIND>]       ::=    'FIND'
-
-[<FILTER>]     ::= 'FILTER'
-[<REGEXP>]     ::= 'REGEXP'
-[<GRAPH>]      ::= 'GRAPH'
-[<UNION>]      ::= 'UNION'
-[<OPTIONAL>]   ::= 'OPTIONAL'
-
-[<LATERAL>]    ::= 'LATERAL'
-[<SEMIJOIN>]   ::= 'SEMIJOIN'
-[<ANTIJOIN>]   ::= 'ANTIJOIN'
-
-[<UNFOLD>]     ::= 'UNFOLD'
+// 
+// [<REGEXP>]     ::= 'REGEXP'
+// [<GRAPH>]      ::= 'GRAPH'
+// [<UNION>]      ::= 'UNION'
+// [<OPTIONAL>]   ::= 'OPTIONAL'
+// 
+// [<LATERAL>]    ::= 'LATERAL'
+// [<SEMIJOIN>]   ::= 'SEMIJOIN'
+// [<ANTIJOIN>]   ::= 'ANTIJOIN'
+// 
+// [<UNFOLD>]     ::= 'UNFOLD'
 
 [<BOUND>]      ::= 'BOUND'
 [<COALESCE>]   ::= 'COALESCE'

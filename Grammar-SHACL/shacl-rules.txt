@@ -139,7 +139,7 @@ TOKENS
 | <#EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+>
 | <#QUOTE_3D: "\"\"\"">
 | <#QUOTE_3S: "\'\'\'">
-| <ECHAR: "\\" ("t" | "b" | "n" | "r" | "f" | "\\" | "\"" | "\'")>
+| <#ECHAR: "\\" ("t" | "b" | "n" | "r" | "f" | "\\" | "\"" | "\'")>
 | <#UCHAR: <UCHAR4> | <UCHAR8>>
 | <#UCHAR4: "\\" "u" <HEX> <HEX> <HEX> <HEX>>
 | <#UCHAR8: "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX>>
@@ -209,16 +209,6 @@ TOKENS
 }
 
 NON-TERMINALS
-// void RulesUnit(): {}
-// {
-//      ByteOrderMark()
-//      RuleSet()
-// }
-//
-// void ByteOrderMark() : {}
-// {
-//    (<BOM>)?
-// }
 	RuleSet	:=	RuleOrDataBlock <EOF>
 	RuleOrDataBlock	:=	Prologue ( ( RuleOrData )+ ( Prologue1 ( RuleOrData )? )* )?
 	RuleOrData	:=	( Rule | Data )

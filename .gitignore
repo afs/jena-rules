@@ -1,6 +1,9 @@
 # Local
 local/
 
+# Intermediate files.
+Grammar-SHACL/rules-grammar.*
+
 # Maven and build files
 target/
 pom.xml.tag

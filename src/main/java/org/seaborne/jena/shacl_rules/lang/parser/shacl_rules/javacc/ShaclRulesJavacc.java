@@ -31,16 +31,6 @@ import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.ShaclRulesParserBas
 @SuppressWarnings("all")
 public class ShaclRulesJavacc extends ShaclRulesParserBase implements ShaclRulesJavaccConstants {
 
-// void RulesUnit(): {}
-// {
-//      ByteOrderMark()
-//      RuleSet()
-// }
-//
-// void ByteOrderMark() : {}
-// {
-//    (<BOM>)?
-// }
   final public void RuleSet() throws ParseException {
 startRules() ;
     RuleOrDataBlock();

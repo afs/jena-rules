@@ -1,4 +1,4 @@
-RuleSet                   ::= RuleOrDataBlock 
+RuleSet                   ::= RuleOrDataBlock
 RuleOrDataBlock           ::= Prologue ( RuleOrData+ ( Prologue1 RuleOrData? )* )?
 RuleOrData                ::= Rule | Data
 Prologue                  ::= Prologue1*
@@ -159,7 +159,7 @@ BlankNode                 ::= BLANK_NODE_LABEL | ANON
 
 @terminals
 
-IRIREF                    ::= '<' ([^<>"{}|^`\]-[#x00-#x20])* '>'
+IRIREF                    ::= '<' ([^<>"{}|^`\]-[#x00-#x20] | <UCHAR> )* '>'
 PNAME_NS                  ::= PN_PREFIX? ':'
 PNAME_LN                  ::= PNAME_NS PN_LOCAL
 BLANK_NODE_LABEL          ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
@@ -175,11 +175,12 @@ DOUBLE_POSITIVE           ::= '+' DOUBLE
 INTEGER_NEGATIVE          ::= '-' INTEGER
 DECIMAL_NEGATIVE          ::= '-' DECIMAL
 DOUBLE_NEGATIVE           ::= '-' DOUBLE
-STRING_LITERAL1           ::= "'" ( ([^#x27#x5C#xA#xD]) | ECHAR )* "'"
-STRING_LITERAL2           ::= '"' ( ([^#x22#x5C#xA#xD]) | ECHAR )* '"'
-STRING_LITERAL_LONG1      ::= "'''" ( ( "'" | "''" )? ( [^'\] | ECHAR ) )* "'''"
-STRING_LITERAL_LONG2      ::= '"""' ( ( '"' | '""' )? ( [^"\] | ECHAR ) )* '"""'
+STRING_LITERAL1           ::= "'" ( ([^#x27#x5C#xA#xD]) | ECHAR | UCHAR )* "'"
+STRING_LITERAL2           ::= '"' ( ([^#x22#x5C#xA#xD]) | ECHAR | UCHAR )* '"'
+STRING_LITERAL_LONG1      ::= "'''" ( ( "'" | "''" )? ( [^'\] | ECHAR | UCHAR ) )* "'''"
+STRING_LITERAL_LONG2      ::= '"""' ( ( '"' | '""' )? ( [^"\] | ECHAR | UCHAR ) )* '"""'
 ECHAR                     ::= '\' [tbnrf\"']
+UCHAR                     ::= ('\u' HEX HEX HEX HEX) | ('\U' HEX HEX HEX HEX HEX HEX HEX HEX)
 NIL                       ::= '(' WS* ')'
 WS                        ::= #x20 | #x9 | #xD | #xA
 ANON                      ::= '['  WS* ']'

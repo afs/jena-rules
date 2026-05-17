@@ -72,7 +72,7 @@ public class ParserJenaRules extends ParserRules {
 
         try {
             output.start();
-            parser.RuleSet();
+            parser.RulesUnit(); // RuleSet(), allowing with BOM
             output.finish();
 
             List<Rule> rules = parser.getRules();
