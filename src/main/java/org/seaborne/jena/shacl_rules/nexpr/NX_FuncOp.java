@@ -29,5 +29,4 @@ public class NX_FuncOp {
 
     /** A version of NOW that returns the current instant. */
     public static NodeValue now_instant() { return NodeValue.makeDateTime(DateTimeUtils.nowAsXSDDateTimeString()); }
-
 }
