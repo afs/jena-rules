@@ -193,9 +193,9 @@ public class DependencyGraph {
     // XXX id per edge may be sensible.
     private static boolean freshEdge(List<DependencyEdge> array, Rule rule, DepEdgeType linkType, Rule r) {
         for ( DependencyEdge e : array ) {
-            if ( e.rule.id == rule.id &&
+            if ( e.rule.localId == rule.localId &&
                  e.link == linkType &&
-                 e.linkedRule.id == r.id )
+                 e.linkedRule.localId == r.localId )
                 return false;
         }
         return true;

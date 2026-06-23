@@ -18,7 +18,7 @@
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-// SHACL Rules Language (SRL)
+// Shapes Rule Language (SRL)
 options
 {
   // \ u processed after parsing in strings and IRIs, nowhere else.
@@ -127,10 +127,11 @@ void Rule() : { }
 {
    Rule1() | Rule2() | Declaration()
 }
-void Rule1() : { Token t; }
+void Rule1() : { Token t; String uri = null;}
 {
    t = <RULE>
-   { startRule(t.beginLine, t.beginColumn); }
+   (uri = iri())?
+   { startRule(uri, t.beginLine, t.beginColumn); }
    HeadTemplate()
    <WHERE>
    BodyPattern()
@@ -139,7 +140,7 @@ void Rule1() : { Token t; }
 void Rule2() : { Token t; }
 {
    t = <IF>
-   { startRule(t.beginLine, t.beginColumn); }
+   { startRule(null, t.beginLine, t.beginColumn); }
    BodyPattern()
    <THEN>
    HeadTemplate()

@@ -224,6 +224,10 @@ public class RuleSetWriter {
         Style styleHead = this.styleRuleSet;
         Style styleBody = rule.getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
         out.print("RULE ");
+        if ( rule.getId() != null ) {
+            nodeFormatter.format(out, rule.getId());
+            out.print(" ");
+        }
         writeHead(rule, styleHead);
         if ( styleRuleSet == Style.MultiLine )
             out.println();

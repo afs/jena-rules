@@ -38,6 +38,7 @@ import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
@@ -49,39 +50,38 @@ import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class GraphToRuleSet {
+    // Shape:
+    // X rdf:Type sh:RuleSet ;
+    //   sh:ruleSet ( ... rules ... )
 
+    /**
+     * Parse a rule set out of an RDF graph.
+     * This is a convenient operation - beware if the graph contains more than one ruleset,
+     * the rule set returned is a random choice ("first found").
+     * Return null if no rule set found.
+     */
     public static RuleSet parse(Graph graph) {
-        List<RuleSet> ruleSets = _parse(graph);
-        if ( ruleSets == null )
-            return null ;
-        if ( ruleSets.isEmpty() )
+        //G.subjectsOf(any, V.rules, any);
+        Node ruleset = G.getPO(graph, V.rules, null);
+        if ( ruleset == null )
             return null;
-        if ( ruleSets.size() == 1 )
-            return ruleSets.getFirst();
-        throw new ShaclException("Multiple rule sets in graph");
+        return parse(graph, ruleset);
     }
 
+    /**
+     * Parse a rule set out of an RDF graph
+     * starting at a given node.
+     * Return null for no rule set.
+     */
+    public static RuleSet parse(Graph graph, Node ruleSet) {
+        return parseRuleSet(graph, ruleSet);
+    }
+
+    /**
+     * Parse all rule sets in a graph.
+     */
     public static List<RuleSet> parseAll(Graph graph) {
-        List<RuleSet> ruleSets = _parse(graph);
-        return ruleSets;
-    }
-
-    private static List<RuleSet> _parse(Graph graph) {
         List<RuleSet> ruleSets = new ArrayList<>();
-
-        // Shape:
-        // X rdf:Type sh:RuleSet ;
-        //   sh:ruleSet ( ... rules ... )
-
-//        // Find by type.
-//        List<Node> ruleSetNodes = G.listPO(graph, V.TYPE, V.classRuleSet);
-//        ruleSetNodes.forEach(ruleSetNode->{
-//            Node listOfRules = G.getOneSP(graph, ruleSetNode, V.ruleSet);
-//            RuleSet ruleSet = parseRuleSet(graph, ruleSetNode, listOfRules);
-//            ruleSets.add(ruleSet);
-//        });
-
-        // Find by property sh:ruleSet.
         List<Triple> ruleSetTriples = G.find(graph, null, V.rules, null).toList();
         ruleSetTriples.forEach(t->{
             Node ruleSetNode = t.getSubject();
@@ -89,14 +89,20 @@ public class GraphToRuleSet {
             RuleSet ruleSet = parseRuleSet(graph, ruleSetNode, listOfRules);
             ruleSets.add(ruleSet);
         });
-
         return ruleSets;
     }
 
-    private static RuleSet parseRuleSet(Graph graph, Node ruleSetNode, Node listOfRules) {
-        GNode gNode = GNode.create(graph, listOfRules);
-        List<Node> ruleNodes = GraphList.members(gNode);
+    private static RuleSet parseRuleSet(Graph graph, Node ruleSetNode) {
+        Node theRules = G.getSP(graph, ruleSetNode, V.rules);
+        if ( theRules == null )
+            return null;
+        return parseRuleSet(graph, ruleSetNode, theRules);
+    }
+
+    private static RuleSet parseRuleSet(Graph graph, Node ruleSetNode, Node theRules) {
+        List<Node> ruleNodes = JenaLib.getList(graph, theRules);
         List<Rule> rules = new ArrayList<>();
+
         ruleNodes.forEach(n->{
             Rule r = parseRule(graph, n);
             if ( r != null )
@@ -111,12 +117,16 @@ public class GraphToRuleSet {
     }
 
     private static Rule parseRule(Graph graph, Node n) {
+        String iri = null;
+        if ( n.isURI() )
+            iri = n.getURI();
+
         Node headNode = G.getOneSP(graph, n, V.head);
         Node bodyNode = G.getOneSP(graph, n, V.body);
 
         List<RuleHeadElement> headTemplate = parseRuleHead(graph, headNode);
         List<RuleBodyElement> body = parseRuleBody(graph, bodyNode);
-        Rule rule = Rule.create(headTemplate, body);
+        Rule rule = Rule.create(iri, headTemplate, body);
         return rule;
     }
 
@@ -224,19 +234,23 @@ public class GraphToRuleSet {
         Node list = G.getOneSP(graph, ruleSetNode, V.data);
 
         GNode gnode = GNode.create(graph, list);
-        List<Node> tripleTerms = GraphList.members(gnode);
+        List<Node> tripleTerms = GraphList.members(gnode);  // Truiple terms.
         List<Triple> triples = new ArrayList<>();
-        tripleTerms.forEach(tt-> triples.add(tt.getTriple()));
+        tripleTerms.forEach(tt-> {
+            Triple triple = parseDataTriple(graph, tt);
+            triples.add(triple);
+        });
         return triples;
     }
 
     private static Triple parseDataTriple(Graph graph, Node node) {
         if ( node.isTripleTerm() )
             return node.getTriple();
-        // srl:subject etc. Where else is this?
-
-        // XXX FIXME for [ srl:subject ; srl:predciate ; srl:object ] form
-        return node.getTriple();
+        Node s = G.getOneSP(graph, node, V.subject);
+        Node p = G.getOneSP(graph, node, V.predicate);
+        Node o = G.getOneSP(graph, node, V.object);
+        Triple triple = Triple.create(s, p, o);
+        return triple;
     }
 
     // List of lists

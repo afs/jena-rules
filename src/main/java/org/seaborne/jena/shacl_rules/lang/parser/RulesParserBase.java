@@ -108,6 +108,9 @@ public class RulesParserBase extends LangParserBase {
     enum BuildState { NONE, OUTER, DATA, TUPLE_DATA, RULE, HEAD, BODY, INNER };
     protected BuildState state = BuildState.OUTER;
 
+    // URI for the current rule.
+    private String ruleURI = null;
+
     // These 2 accumulators are allocated then handed over to the AST object.
     private List<RuleHeadElement> headAcc = null;
     // Used while parsing the body.
@@ -155,7 +158,7 @@ public class RulesParserBase extends LangParserBase {
         }
     }
 
-    protected void startRule(int line, int column) {
+    protected void startRule(String uri, int line, int column) {
         if ( state != BuildState.OUTER )
             throwInternalStateException("startHead: Already in a rule");
         if ( bodyAcc != null )
@@ -163,6 +166,7 @@ public class RulesParserBase extends LangParserBase {
         if ( headAcc != null )
             throwInternalStateException("startHead: Already in a rule");
 
+        ruleURI = uri;
         headAcc = new ArrayList<>();
         bodyAcc = new ArrayList<>();
         state = BuildState.RULE;
@@ -174,7 +178,7 @@ public class RulesParserBase extends LangParserBase {
         if ( bodyAcc == null )
             throwInternalStateException("Null body");
 
-        Rule rule = Rule.create(headAcc, bodyAcc);
+        Rule rule = Rule.create(ruleURI, headAcc, bodyAcc);
         rules.add(rule);
         clearState();
         // Data is accumulative through the parser run.

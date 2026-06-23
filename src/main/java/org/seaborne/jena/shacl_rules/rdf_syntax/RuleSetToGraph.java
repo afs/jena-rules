@@ -66,21 +66,7 @@ public class RuleSetToGraph {
         // For each rule, write, add the blank node to a list.
         List<Node> rules = new ArrayList<>();
         ruleSet.getRules().forEach(rule->{
-            Node ruleNode = NodeFactory.createBlankNode();
-            if ( true ) {
-                graph.add(ruleNode, V.TYPE, V.classRule);
-            } else {
-                Node x = NodeFactory.createBlankNode();
-                graph.add(ruleNode, V.rule, x);
-                ruleNode = x;
-            }
-
-            Node nHead = writeHead(graph, ruleNode, rule);
-            graph.add(ruleNode, V.head, nHead);
-
-            Node nBody = writeBody(graph, ruleNode, rule);
-            graph.add(ruleNode, V.body, nBody);
-
+            Node ruleNode =  writeRule(graph, rule);
             rules.add(ruleNode);
         });
         Node rulesList = list(graph, rules);
@@ -90,6 +76,23 @@ public class RuleSetToGraph {
         writeTupleData(graph, ruleSet, ruleSetNode);
     }
 
+    // Write one rule.
+    private static Node writeRule(Graph graph, Rule rule) {
+        Node ruleNode;
+        if ( rule.getId() != null ) {
+            ruleNode = rule.getId();
+        } else {
+            ruleNode = NodeFactory.createBlankNode();
+        }
+        graph.add(ruleNode, V.TYPE, V.classRule);
+
+        Node nHead = writeHead(graph, ruleNode, rule);
+        graph.add(ruleNode, V.head, nHead);
+
+        Node nBody = writeBody(graph, ruleNode, rule);
+        graph.add(ruleNode, V.body, nBody);
+        return ruleNode;
+    }
 
     private static boolean WriteAsTripleTerms = false;
 

@@ -42,6 +42,7 @@ public class JenaLib {
     /**
      * Extract the elements of a list.
      */
+    // --> G
     public static List<Node> getList(Graph graph, Node headNode) {
         Objects.requireNonNull(graph);
         Objects.requireNonNull(headNode);

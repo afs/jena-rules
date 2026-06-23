@@ -224,7 +224,7 @@ NON-TERMINALS
 	Rule	:=	Rule1
 		|	Rule2
 		|	Declaration
-	Rule1	:=	<RULE> HeadTemplate <WHERE> BodyPattern
+	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> BodyPattern
 	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
 // Withdrawn.
 // void Rule3() : { Token t; }

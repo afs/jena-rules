@@ -172,8 +172,8 @@ public class Stratification {
                 Rule qRule = e.linkedRule();
 
                 if ( false && TRACE_RULE_LOOP ) {
-                    System.out.println("pRule: "+pRule.id+" :: "+pRule);
-                    System.out.println("qRule: "+qRule.id+" :: "+qRule);
+                    System.out.println("pRule: "+pRule.localId+" :: "+pRule);
+                    System.out.println("qRule: "+qRule.localId+" :: "+qRule);
                 }
 
                 switch(e.link()) {

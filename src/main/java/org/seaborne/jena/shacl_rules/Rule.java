@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.irix.IRIs;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
@@ -38,9 +40,18 @@ public class Rule {
 
     private final RuleHead head;
     private final RuleBody body;
+
     // Debug!
     private static int counter = 0;
-    public final String id;
+
+    // RDF Term that identifies this rule.
+    // Usually, a URI.
+    // Maybe null; the global identifier for external reference to this rule.
+
+    public final Node ruleIdentifier;
+
+    // Convenience if within the rule set.
+    public final String localId;
 
     final boolean hasAssignment;
     final boolean hasNegation;
@@ -51,14 +62,28 @@ public class Rule {
      * Used by the parser and {@link GraphToRuleSet}
      */
     public static Rule create(List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
-        return new Rule(headElts, bodyElts);
+        return new Rule(null, headElts, bodyElts);
     }
 
-    private Rule(List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
+    /**
+     * Used by the parser and {@link GraphToRuleSet}
+     */
+    public static Rule create(String iri, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
+        return new Rule(iri, headElts, bodyElts);
+    }
+
+
+    private Rule(String iriStr, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
         this.head = new RuleHead(headElts);
         this.body = new RuleBody(bodyElts);
+        if ( iriStr != null ) {
+            IRIs.check(iriStr);
+            this.ruleIdentifier = NodeFactory.createURI(iriStr);
+        } else {
+            this.ruleIdentifier = null;
+        }
         counter++;
-        id = ""+counter;
+        localId = ""+counter;
 
         boolean _hasAssignment = false;
         boolean _hasNegation = false;
@@ -114,6 +139,10 @@ public class Rule {
     // XXX Where should this go?
     public boolean isRunOnceRule() {
         return hasAssignment || hasHeadBNodes;
+    }
+
+    public Node getId() {
+        return ruleIdentifier;
     }
 
     // -- Head
@@ -181,6 +210,7 @@ public class Rule {
      * Rule equivalence for serialization (and hence execution).
      * That is, parser round trip.
      * This means they have the "same head" and "same body", and also having the same order of elements.
+     * This operation ignores the rule's IRI.
      */
     /*package*/ boolean equivalentSerialization(Rule other) {
         if ( ! head.equals(other.head) )
@@ -195,6 +225,6 @@ public class Rule {
         String x = body.toString();
         x = x.replace("\n", " ");
         x = x.replaceAll("  +", " ");
-        return "["+id+"]" +head.toString() + " :- " + x;
+        return "["+localId+"]" +head.toString() + " :- " + x;
     }
 }

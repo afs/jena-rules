@@ -30,8 +30,7 @@ import org.seaborne.jena.shacl_rules.nexpr.NX;
  * Vocabulary relating to SHALC rules, including importing terms from elsewhere.
  * Expected use is as a static import.
  */
-public
-class V {
+public class V {
     public static Node NIL = RDF.Nodes.nil;
     public static Node CAR = RDF.Nodes.first;
     public static Node CDR = RDF.Nodes.rest;
@@ -53,7 +52,8 @@ class V {
     public static final Node body           = uri("body");
     public static final Node data           = uri("data");
 
-    public static final Node rule           = uri("rule");
+    // Might be used if rules are linked to a rule set and not in a list.
+    //public static final Node rule           = uri("rule");
 
     public static final Node dataTuples     = uri("tuples");
 //    public static final Node tuple          = uri("tuple");
@@ -74,8 +74,8 @@ class V {
     public static final Node expr           = uri("expr");
 
     // These are the SPARQL IF-THEN-ELSE special form, not shnex named parameter node expression.
-    public static final Node ifCond     = uri("if");
-    public static final Node ifThen     = uri("then");
-    public static final Node ifElse     = uri("else");
+    public static final Node ifCond         = uri("if");
+    public static final Node ifThen         = uri("then");
+    public static final Node ifElse         = uri("else");
     //@formatter:on
 }
