@@ -43,14 +43,14 @@ public class JenaLib {
      * Extract the elements of a list.
      */
     // --> G
-    public static List<Node> getList(Graph graph, Node headNode) {
-        Objects.requireNonNull(graph);
-        Objects.requireNonNull(headNode);
-        List<Triple> triples = new ArrayList<>();
-        GNode gNode = GNode.create(graph, headNode);
-        List<Node> x = GraphList.members(gNode);
-        return x;
-    }
+//    public static List<Node> getList(Graph graph, Node headNode) {
+//        Objects.requireNonNull(graph);
+//        Objects.requireNonNull(headNode);
+//        List<Triple> triples = new ArrayList<>();
+//        GNode gNode = GNode.create(graph, headNode);
+//        List<Node> x = GraphList.members(gNode);
+//        return x;
+//    }
 
     public static Node[] getArray(Graph graph, Node headNode) {
         Objects.requireNonNull(graph);
@@ -61,6 +61,39 @@ public class JenaLib {
         return x.toArray(Node[]::new);
     }
 
+    // XXX ==> G
+    /**
+     * Convert a list of nodes into triples, placing them in BPG, returning the head
+     * of the list
+     */
+    public static Node listIntoGraph(List<Node> list, Graph graph) {
+        // Forward version.
+        // List ...
+        if ( list.size() == 0 )
+            return RDF.Nodes.nil;
+        Node head = null;
+        Node prev = null;
+        for ( Node elt : list ) {
+            Node consCell = NodeFactory.createBlankNode();
+            if ( head == null )
+                head = consCell;
+            Triple tFirst = Triple.create(consCell, RDF.Nodes.first, elt);
+            graph.add(tFirst);
+            if ( prev != null ) {
+                // Last cell to this one.
+                Triple tRest = Triple.create(prev, RDF.Nodes.rest, consCell);
+                graph.add(tRest);
+            }
+            prev = consCell;
+        }
+        // Finish list.
+        Triple t = Triple.create(prev, RDF.Nodes.rest, RDF.Nodes.nil);
+        graph.add(t);
+        return head;
+    }
+
+
+    // ==> G
     /**
      * Build an RDF Collection (RDF list) in a graph based on the java list of nodes.
      * Return the head of the list.

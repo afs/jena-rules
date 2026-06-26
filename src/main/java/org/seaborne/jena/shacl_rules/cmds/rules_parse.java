@@ -42,11 +42,10 @@ import org.apache.jena.sys.JenaSystem;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
-import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.lang.parser.RulesParserBase;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RuleSetToGraph;
-import org.seaborne.jena.shacl_rules.sys.P;
 
 public class rules_parse extends CmdRules {
 
@@ -198,7 +197,6 @@ public class rules_parse extends CmdRules {
         }
 
         Graph graph = RuleSetToGraph.asGraph(ruleSet);
-        addPrefixes(graph);
 
         if ( printRDF ) {
             RDFWriter.source(graph).format(RDFFormat.TURTLE_LONG).output(System.out);
@@ -215,8 +213,6 @@ public class rules_parse extends CmdRules {
 
         }
     }
-
-    public static void addPrefixes(Graph graph) { P.addPrefixes(graph); }
 
     @Override
     protected String getCommandName() {

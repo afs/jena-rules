@@ -27,7 +27,7 @@ import java.util.Iterator;
 /**
  * A Set of tuples.
  */
-public interface TupleStore {
+public interface TupleStore extends Iterable<Tuple> {
 
     public static TupleStore create() {
         return new TupleStoreSimple();
@@ -54,6 +54,9 @@ public interface TupleStore {
     public Iterator<Tuple> find(Tuple pattern);
 
     public Iterator<Tuple> all();
+
+    @Override
+    public default Iterator<Tuple> iterator() { return all(); }
 
 //    public Iterator<Tuple> find(Node node1);
 //    public Iterator<Tuple> find(Node node1, Node node2);

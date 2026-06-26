@@ -308,7 +308,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
     }
 
     private static String expandName(String x) {
-        String z = P.prefixMap.expand(x);
+        String z = P.expandPrefix(x);
         return (z != null) ? z : x;
     }
 

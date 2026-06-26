@@ -151,7 +151,7 @@ public class NX {
         if ( ! pFunction.isURI( ) )
             throw new ShaclException("Not a URI for a node expression function");
         Node o = t.getObject();
-        List<Node> list = G.rdfList(graph, o);
+        List<Node> list = G.listMembers(graph, o);
         // If the list is null, then not a list argument expression, and probably a bad expression.
         return new NodeExpressionFunction(pFunction.getURI(), list);
     }

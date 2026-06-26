@@ -37,7 +37,7 @@ import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.urifunctions.SPARQLDispatch;
 import org.apache.jena.sparql.function.*;
 import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.shacl_rules.jena.JenaLib;
+import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.ExprCall;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
@@ -101,7 +101,7 @@ public class NodeExpressions {
         Node argsNode = functionTriple.getObject();
 
         // Return array.
-        List<Node> args = JenaLib.getList(graph, argsNode);
+        List<Node> args = G.listMembers(graph, argsNode);
 
         // Things that look like functions but process their argument in a special way.
         NodeExprTables.ExprCallFF callFF = NodeExprTables.getCallFF(uri);

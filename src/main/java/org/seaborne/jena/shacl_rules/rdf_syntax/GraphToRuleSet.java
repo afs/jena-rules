@@ -38,13 +38,11 @@ import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTupleTemplate;
 import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
@@ -100,7 +98,7 @@ public class GraphToRuleSet {
     }
 
     private static RuleSet parseRuleSet(Graph graph, Node ruleSetNode, Node theRules) {
-        List<Node> ruleNodes = JenaLib.getList(graph, theRules);
+        List<Node> ruleNodes = G.listMembers(graph, theRules);
         List<Rule> rules = new ArrayList<>();
 
         ruleNodes.forEach(n->{
@@ -134,11 +132,22 @@ public class GraphToRuleSet {
         List<RuleHeadElement> headTemplate = new ArrayList<>();
         GNode gNode = GNode.create(graph, headNode);
         List<Node> x = GraphList.members(gNode);
-        x.forEach(node->{
-            Triple t = parseTriple(graph, node);
-            RuleHeadElement headElt = new RuleHeadElement.EltTripleTemplate(t);
-            headTemplate.add(headElt);
-        });
+        for ( Node node : x ) {
+            if ( G.hasProperty(graph, node, V.subject) ) {
+                // Single triple rule.
+                Triple triple = parseTriple(graph, node);
+                headTemplate.add(new EltTripleTemplate(triple));
+                continue;
+            }
+
+            if ( G.hasProperty(graph, node, V.tuple) ) {
+                // Single tuple rule.
+                Node list = G.getOneSP(graph, node, V.tuple);
+                Tuple tuple = parseTuple(graph, list);
+                headTemplate.add(new EltTupleTemplate(tuple));
+                continue;
+            }
+        }
         return headTemplate;
     }
 
@@ -188,6 +197,13 @@ public class GraphToRuleSet {
                 // Single triple rule.
                 Triple triple = parseTriple(graph, node);
                 body.add(new EltTriplePattern(triple));
+                continue;
+            }
+
+            if ( G.hasProperty(graph, node, V.tuple) ) {
+                // Single tuple rule.
+                Tuple tuple = parseTuple(graph, node);
+                body.add(new EltTuplePattern(tuple));
                 continue;
             }
             if ( G.hasProperty(graph, node, V.filter) ) {
@@ -259,8 +275,7 @@ public class GraphToRuleSet {
         if ( ! G.hasProperty(graph, ruleSetNode, V.dataTuples) )
             return null;
         Node list = G.getOneSP(graph, ruleSetNode, V.dataTuples);
-        GNode gnode = GNode.create(graph, list);
-        List<Node> tuples = GraphList.members(gnode);
+        List<Node> tuples = G.listMembers(graph, list);
         List<Tuple> tupleData = new ArrayList<>();
         tuples.forEach(tupleNode-> {
             Tuple tuple = parseTuple(graph, tupleNode);
@@ -269,9 +284,9 @@ public class GraphToRuleSet {
         return tupleData;
     }
 
+    // Call with the head of the tuple elements list.
     private static Tuple parseTuple(Graph graph, Node tupleNode) {
-        GNode gnode = GNode.create(graph, tupleNode);
-        List<Node> tupleArgTerms = GraphList.members(gnode);
+        List<Node> tupleArgTerms = G.listMembers(graph, tupleNode);
         Tuple tuple = Tuple.create(tupleArgTerms);
         return tuple;
     }

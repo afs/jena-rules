@@ -44,7 +44,7 @@ public class TestNodeExpressions {
     // Property uses to make it easy to find expressions.
     private static Node srl_expression = NodeFactory.createURI(P.SRL+"expression");
 
-    @Test public void nx_expr_evali() {
+    @Test public void nx_expr_eval() {
         String nxGraph = PREFIXES+"""
                 :nx srl:expression [ sparql:now () ] .
                 """;

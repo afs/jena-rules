@@ -55,8 +55,10 @@ public class V {
     // Might be used if rules are linked to a rule set and not in a list.
     //public static final Node rule           = uri("rule");
 
+    // Block of tuples
     public static final Node dataTuples     = uri("tuples");
-//    public static final Node tuple          = uri("tuple");
+    // Tuple in head/body
+    public static final Node tuple          = uri("tuple");
 
     public static final Node subject        = uri("subject");
     public static final Node predicate      = uri("predicate");

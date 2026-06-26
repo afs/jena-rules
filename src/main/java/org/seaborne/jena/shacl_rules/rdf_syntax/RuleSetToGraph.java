@@ -41,11 +41,10 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltCondition;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
-import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
+import org.seaborne.jena.shacl_rules.sys.P;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
@@ -55,6 +54,7 @@ public class RuleSetToGraph {
         Graph graph = GraphFactory.createDefaultGraph();
         if ( ruleSet.hasPrefixMap() )
             graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
+        P.basicPrefixes(graph);
         writeToGraph(graph, ruleSet);
         return graph;
     }
@@ -123,10 +123,11 @@ public class RuleSetToGraph {
 
         List<Node> tupleData = new ArrayList<>();
 
-        // For each tuple
+        // For each tuple: write a list (no srl:tuple)
 
         tuples.forEach(tuple->{
-            Node tx = JenaLib.createList(graph, tuple.terms());
+            Node tx = encodeTuple(graph, tuple);
+            //Node tx2 = JenaLib.createList(graph, tuple.terms());
             tupleData.add(tx);
         });
 
@@ -135,16 +136,29 @@ public class RuleSetToGraph {
     }
 
     private static Node writeHead(Graph graph, Node ruleNode, Rule rule) {
-        //List<Triple> head = rule.getHeadElements();
-        // XXX Tuples
-        List<Triple> head = rule.getHeadTriples();
-        List<Node> x = triplesAsList(graph, head);
-        Node bgpNode = list(graph, x);
-        if ( ! rule.getHeadTuples().isEmpty() )
-            System.err.println("Skipping tuples in the head");
-        return bgpNode;
+        List<RuleHeadElement> headElts = rule.getHeadElements();
+        Node headNode = headElements(graph, headElts);
+        return headNode;
     }
 
+    private static Node headElements(Graph graph, List<RuleHeadElement> headElts) {
+        List<Node> items = new ArrayList<>();
+        for ( RuleHeadElement headElt : headElts ) {
+            switch(headElt) {
+                case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
+                    items.add(encodeTriple(graph, tripleTemplate));
+                }
+                case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {
+                    items.add(encodeTuple(graph, tupleTemplate));
+                }
+                case null -> {}
+                default -> {}
+
+            }
+        }
+        Node headNode = list(graph, items);
+        return headNode;
+    }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
         List<RuleBodyElement> bodyElts = rule.getBodyElements();
@@ -158,6 +172,9 @@ public class RuleSetToGraph {
             switch(elt) {
                 case EltTriplePattern(var triplePattern) -> {
                    items.add(encodeTriple(graph, triplePattern));
+                }
+                case EltTuplePattern(var tuplePattern) -> {
+                    items.add(encodeTuple(graph, tuplePattern));
                 }
                 case EltCondition(Expr condition) -> {
                     Node x1 = NodeFactory.createBlankNode();
@@ -185,12 +202,10 @@ public class RuleSetToGraph {
                     graph.add(x2, V.assign, x1);
                     items.add(x2);
                 }
-
                 case null -> {}
                 default -> {}
-                }
+            }
         });
-
         Node bodyNode = list(graph, items);
         return bodyNode;
     }
@@ -208,15 +223,6 @@ public class RuleSetToGraph {
         return out.asString();
     }
 
-    private static List<Node> triplesAsList(Graph graph, List<Triple> triples) {
-        List<Node> elements = new ArrayList<>();
-        triples.forEach(triple->{
-            var tripleNode = encodeTriple(graph, triple);
-            elements.add(tripleNode);
-        });
-        return elements;
-    }
-
     private static Node encodeTriple(Graph graph, Triple triple) {
         Node tripleNode = NodeFactory.createBlankNode();
         Node sNode = convertTermOrVar(graph, triple.getSubject());
@@ -230,6 +236,15 @@ public class RuleSetToGraph {
         graph.add(pTriple);
         graph.add(oTriple);
         return tripleNode;
+    }
+
+    private static Node encodeTuple(Graph graph, Tuple tuple) {
+        Node tupleNode = NodeFactory.createBlankNode();
+        List<Node> elts = tuple.terms();
+        Node listTuples = JenaLib.listIntoGraph(elts, graph);
+        Triple triple = Triple.create(tupleNode, V.tuple, listTuples);
+        graph.add(triple);
+        return tupleNode;
     }
 
     private static Node convertTermOrVar(Graph graph, Node node) {

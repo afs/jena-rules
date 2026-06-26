@@ -22,17 +22,14 @@
 package org.seaborne.jena.shacl_rules.sys;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.irix.IRIs;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
-import org.apache.jena.shared.JenaException;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * SHACL Rules prefixes
@@ -41,12 +38,27 @@ import org.apache.jena.shared.JenaException;
  */
 public class P {
 
-    public static final String SH = "http://www.w3.org/ns/shacl#";
-    public static final String SRL = "http://www.w3.org/ns/shacl-rules#";
-    public static final String SHNEX = "http://www.w3.org/ns/shacl-node-expr#";
+    // XXX Simplify.
+
+    public static final String SH     = "http://www.w3.org/ns/shacl#";
+    public static final String SRL    = "http://www.w3.org/ns/shacl-rules#";
+    public static final String SHNEX  = "http://www.w3.org/ns/shacl-node-expr#";
+    public static final String SPARQL = "http://www.w3.org/ns/sparql#";
 
     public static final String JenaRulesNS = "http://jena.apache.org/shacl-rules#";
     public static final String JenaRulesSymbolsNS = "http://jena.apache.org/symbols-rules#";
+
+    //@formatter:off
+    private static Map<String, String> thePrefixesMap = Map.of("rdf",     RDF.getURI(),
+                                                            "sh",      SH,
+                                                            "srl",     SRL,
+                                                            "shnex",   SHNEX,
+                                                            "sparql",  SPARQL,
+                                                            "arq",     "http://jena.apache.org/ARQ/function#",
+                                                            "arqnx",   "http://jena.apache.org/ARQ/nx#"
+                                                            );
+
+    //@formatter:on
 
     /** Build a PREFIXes block for SRL/Turtle/SPARQL syntax. */
     private static String prefixesAsString(Map<String, String> map, String...includes) {
@@ -61,73 +73,39 @@ public class P {
             }
         });
         return sb.toString();
-
-
     }
 
-    //@formatter:off
-    private static Map<String, String> prefixesMap = Map.of("rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                                                            "sh",      SH,
-                                                            "srl",     SRL,
-                                                            "shnex",   SHNEX,
-                                                            "sparql",  "http://www.w3.org/ns/sparql#",
-                                                            //"arq",     "http://jena.apache.org/ARQ/function#",
-                                                            //"arqnex",  "http://jena.apache.org/ARQ/nx#",
-                                                            "arqnx",  "http://jena.apache.org/ARQ/nx#"
-                                                            );
+    // A string in Turtle format that puts in common prefixes related to rules.
+    public static final String PREFIXES = prefixesAsString(thePrefixesMap, "rdf", "sh", "srl", "sparql", "shnex");
 
-    //@formatter:on
+    // Convenience.
+    private static PrefixMap prefixMap =
+            PrefixMapFactory.unmodifiablePrefixMap(PrefixMapFactory.create(thePrefixesMap));
 
-    public static final String PREFIXES = prefixesAsString(prefixesMap, "rdf", "sh", "srl", "shnex","sparql"
-                                                           //, "arqnex"
-                                                           , "arqnx"
-                                                           );
-
-
-    // It would be nice if this were immutable.
-    public static PrefixMap prefixMap = PrefixMapFactory.create(prefixesMap);
-
+    /** Convenience for rules related prefixes. */
     public static String getPrefix(String prefix) {
         return prefixMap.get(prefix);
     }
 
-    public static void addPrefixes(Graph graph) {
-        prefixesMap.forEach((prefix, uri) -> graph.getPrefixMapping().setNsPrefix(prefix, uri));
-
-//        JLib.addPrefixes(graph,
-//                         "rdf",     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-//                         "sh",      "http://www.w3.org/ns/shacl#",
-//                         "srl",     "http://www.w3.org/ns/shacl-rules#",
-//                         "shnex",   "http://www.w3.org/ns/shnex#",
-//                         "sparql:", "http://www.w3.org/ns/sparql#");
+    /** Convenience for rules related prefixes. */
+    public static String expandPrefix(String prefixedName) {
+        return prefixMap.expand(prefixedName);
     }
 
-    /**
-     * Add prefixes written as pairs of strings.
-     * <p>
-     * The number of strings must be even. The first of a pair is the prefix, the second is the URI.
-     */
-    public static void addPrefixes(Graph graph, String... str) {
-        if ( (str.length & 1) != 0 )
-            throw new JenaException("Must be an even number or string arguments");
-        Map<String, String> x = new HashMap<>();
-        for (int i = 0 ; i < str.length ; i += 2 ) {
-            addPrefix(graph, str[i], str[i+1]);
-        }
-        graph.getPrefixMapping().setNsPrefixes(x);
-    }
 
     /**
-     * Add a prefix to a graph.
-     * <p>
-     * The number of strings must be even. The first of a pair is the prefix, the second is the URI.
+     * Add prefixes for {@code srl:} and {@code sparql:}
+     * if they aren't defined already.
      */
-    public static void addPrefix(Graph graph, String prefix, String uri) {
-        Objects.requireNonNull(prefix);
-        Objects.requireNonNull(uri);
-        if ( prefix.endsWith(":") )
-            prefix = StringUtils.chop(prefix);
-        IRIs.checkEx(uri);
-        graph.getPrefixMapping().setNsPrefix(prefix, uri);
+    public static void basicPrefixes(Graph graph) {
+        PrefixMapping pmap = graph.getPrefixMapping();
+        addCarefully(pmap, "rdf", RDF.getURI());
+        addCarefully(pmap, "srl", SRL);
+        addCarefully(pmap, "sparql", SPARQL);
+   }
+
+    private static void addCarefully(PrefixMapping pmap, String prefix, String uri) {
+        if ( pmap.getNsPrefixURI(prefix) == null && pmap.getNsURIPrefix(uri) == null )
+            pmap.setNsPrefix(prefix, uri);
     }
 }

@@ -184,6 +184,21 @@ public class RuleSet {
         return rules;
     }
 
+    /**
+     * Return a rule from the rule set by looking for it by id (a URI).
+     */
+    public Rule getRule(Node ruleId) {
+        if ( ruleId == null )
+            return null;
+        for ( Rule r : rules ) {
+            if ( r.getId() != null ) {
+                if ( r.getId().sameTermAs(ruleId) )
+                    return r;
+            }
+        }
+        return null;
+    }
+
 //    @Override
 //    public Iterator<Rule> iterator() {
 //        return rules.iterator();
