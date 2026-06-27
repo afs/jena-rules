@@ -95,8 +95,8 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
     @Override
     public Graph materializedGraph() {
-        EvaluationBkw e = solveTop(queryTripleAll);
-        return e.outputGraph;
+        RuleSetEvaluation e = solveTop(queryTripleAll);
+        return e.outputGraph();
     }
 
     @Override
@@ -117,8 +117,8 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             LOG.printf("<< query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
         // Collects all inferred triples from rules touched during the evaluation.
         // Filter inferred triples to find the ones we want.
-        EvaluationBkw e = solveTop(queryTriple);
-        Stream<Triple> x = e.outputGraph.stream(queryTriple.getSubject(), queryTriple.getPredicate(), queryTriple.getObject());
+        RuleSetEvaluation e = solveTop(queryTriple);
+        Stream<Triple> x = e.outputGraph().stream(queryTriple.getSubject(), queryTriple.getPredicate(), queryTriple.getObject());
         if ( TRACE ) {
             LOG.printf(">> query(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
             x = trace(LOG, x);
@@ -133,9 +133,8 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
     @Override
     public Graph infer() {
-        EvaluationBkw e = solveTop(queryTripleAll);
-
-        Graph graph = e.inferredTriples;
+        RuleSetEvaluation e = solveTop(queryTripleAll);
+        Graph graph = e.inferredTriples();
         graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
         graph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
         return graph;
@@ -150,7 +149,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
      * Solver. Non-recursive rules.
      * Top of evaluation.
      */
-    EvaluationBkw solveTop(Triple queryTriple) {
+    RuleSetEvaluation solveTop(Triple queryTriple) {
         if ( TRACE ) {
             LOG.printf("solve(%s)\n", str(queryTriple, ruleSet.getPrefixMap()));
             LOG.incIndent();
@@ -218,7 +217,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
         if ( ruleSet.hasData() )
             GraphUtil.addInto(output, ruleSet.getData());
 
-        EvaluationBkw e = new EvaluationBkw(workingGraph.get(), ruleSet, inferred, null, output);
+        Evaluation e = new Evaluation(workingGraph.get(), ruleSet, inferred, output, null);
         return e;
     }
 

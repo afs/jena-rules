@@ -30,6 +30,7 @@ import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.RDF;
+import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 
 /**
  * SHACL Rules prefixes
@@ -92,6 +93,18 @@ public class P {
         return prefixMap.expand(prefixedName);
     }
 
+    /**
+     * Build a {@link PrefixMap} for a {@link RuleSetEvaluation}.
+     * This comprises the base graph prefixes, the ruleset prefixes, together with "rdf:" and "srl:".
+     * This is a convenience operation.
+     */
+    public static PrefixMap prefixes(RuleSetEvaluation evaluation) {
+        PrefixMap prefixMap = PrefixMapFactory.create(evaluation.baseGraph().getPrefixMapping());
+        prefixMap.putAll(evaluation.ruleSet().getPrefixMap());
+        addCarefully(prefixMap, "rdf", RDF.getURI());
+        addCarefully(prefixMap, "srl", SRL);
+        return prefixMap;
+    }
 
     /**
      * Add prefixes for {@code srl:} and {@code sparql:}
@@ -102,10 +115,16 @@ public class P {
         addCarefully(pmap, "rdf", RDF.getURI());
         addCarefully(pmap, "srl", SRL);
         addCarefully(pmap, "sparql", SPARQL);
-   }
+    }
 
     private static void addCarefully(PrefixMapping pmap, String prefix, String uri) {
         if ( pmap.getNsPrefixURI(prefix) == null && pmap.getNsURIPrefix(uri) == null )
             pmap.setNsPrefix(prefix, uri);
+    }
+
+    private static void addCarefully(PrefixMap pmap, String prefix, String uri) {
+        if ( ! pmap.containsPrefix(prefix) && ! pmap.getMapping().containsValue(uri) ) {
+            pmap.add(prefix, uri);
+        }
     }
 }

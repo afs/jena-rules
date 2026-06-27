@@ -30,6 +30,7 @@ import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
@@ -90,7 +91,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
 
     @Override
     public Graph materializedGraph() {
-        Evaluation e = eval();
+        RuleSetEvaluation e = eval();
         return e.outputGraph();
     }
 
@@ -110,7 +111,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     @Override
     public Stream<Triple> solve(Node s, Node p, Node o) {
         // Rather than cache, wrap in a "materialize and match" RulesEngine.
-        Evaluation e = eval();
+        RuleSetEvaluation e = eval();
         Graph g = e.outputGraph();
         Stream<Triple> stream = g.find(s, p, o).toList().stream();
         return stream;
@@ -123,8 +124,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     }
 
     @Override
-    public Evaluation eval() {
-        // Temporary - this has already been done.
+    public RuleSetEvaluation eval() {
         Stratification stratification = Stratification.create(ruleSet);
         int maxStratum = stratification.maxStratum(); // Inclusive.
 
@@ -183,6 +183,9 @@ public class RulesEngineFwdSimple implements RulesEngine {
             }
         } finally { rCxt.out().flush(); }
 
+        Graph inferredGraph = dataGraph.getAdded();
+        inferredGraph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
+        inferredGraph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
         return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);
     }
 
