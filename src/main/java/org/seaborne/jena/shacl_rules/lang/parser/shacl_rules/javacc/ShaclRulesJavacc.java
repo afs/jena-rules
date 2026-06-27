@@ -629,7 +629,7 @@ startBodyBasic(token.beginLine, token.beginColumn) ;
         jj_la1[20] = jj_gen;
         break label_5;
       }
-      Filter();
+      BodyBaseNotTriples();
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case IRIref:
       case PNAME_NS:
@@ -667,6 +667,10 @@ startBodyBasic(token.beginLine, token.beginColumn) ;
       }
     }
 finishBodyBasic(token.beginLine, token.beginColumn) ;
+}
+
+  final public void BodyBaseNotTriples() throws ParseException {
+    Filter();
 }
 
 // ---- Triples

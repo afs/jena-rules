@@ -126,8 +126,7 @@ public class RuleSetToGraph {
         // For each tuple: write a list (no srl:tuple)
 
         tuples.forEach(tuple->{
-            Node tx = encodeTuple(graph, tuple);
-            //Node tx2 = JenaLib.createList(graph, tuple.terms());
+            Node tx = tupleAsList(graph, tuple);
             tupleData.add(tx);
         });
 
@@ -240,11 +239,16 @@ public class RuleSetToGraph {
 
     private static Node encodeTuple(Graph graph, Tuple tuple) {
         Node tupleNode = NodeFactory.createBlankNode();
-        List<Node> elts = tuple.terms();
-        Node listTuples = JenaLib.listIntoGraph(elts, graph);
+        Node listTuples = tupleAsList(graph, tuple);
         Triple triple = Triple.create(tupleNode, V.tuple, listTuples);
         graph.add(triple);
         return tupleNode;
+    }
+
+    private static Node tupleAsList(Graph graph, Tuple tuple) {
+        List<Node> elts = tuple.terms();
+        Node listTuples = JenaLib.listIntoGraph(elts, graph);
+        return listTuples;
     }
 
     private static Node convertTermOrVar(Graph graph, Node node) {

@@ -47,18 +47,11 @@ public class TupleStoreWriter {
     public static void write(IndentedWriter iOut, PrefixMap prefixMap, TupleStore tupleStore) {
         NodeFormatter nFmt =  new NodeFormatterTTL(null, prefixMap);
         for ( Tuple tuple : tupleStore ) {
-            print(iOut, nFmt, tuple);
+            write(iOut, nFmt, tuple);
         }
     }
 
-    private static void print(IndentedWriter iOut, NodeFormatter nFmt, Tuple tuple) {
-
-//        StringJoiner sj = new StringJoiner(", ", "$(", ")");
-//        for ( Node n : items ) {
-//            sj.add(NodeFmtLib.displayStr(n));
-//        }
-//        return sj.toString();
-
+    private static void write(IndentedWriter iOut, NodeFormatter nFmt, Tuple tuple) {
         iOut.print("$( ");
         boolean first = true;
         for ( Node n : tuple ) {

@@ -202,10 +202,15 @@ public class GraphToRuleSet {
 
             if ( G.hasProperty(graph, node, V.tuple) ) {
                 // Single tuple rule.
-                Tuple tuple = parseTuple(graph, node);
+                // XXX Find other case of this pattern!
+                // on V.tuple.
+                // and library "processWith"
+                Node tupleNode = G.getOneSP(graph, node, V.tuple) ;
+                Tuple tuple = parseTuple(graph, tupleNode);
                 body.add(new EltTuplePattern(tuple));
                 continue;
             }
+
             if ( G.hasProperty(graph, node, V.filter) ) {
                 // XXX [RDF syntax] Deal with both V.expr
                 Node exprNode = G.getOneSP(graph, node, V.filter) ;
@@ -226,8 +231,6 @@ public class GraphToRuleSet {
                 Node varNode= G.getOneSP(graph, assign, V.assignVar);
                 Var var = RVar.getVar(graph, varNode);
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
-                // Force expr
-                //Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
                 Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
                 body.add(new EltAssignment(var, expr));
                 continue;

@@ -235,8 +235,12 @@ void BodyBasic() : {}
 {
     { startBodyBasic(token.beginLine, token.beginColumn) ; }
     (BodyTriplesBlock())?
-    ( Filter() (BodyTriplesBlock())? )*
+    ( BodyBaseNotTriples() (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
+}
+void BodyBaseNotTriples() : {}
+{
+   Filter()
 }
 // ---- Triples
 void HeadTemplateBlock() : { }

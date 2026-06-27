@@ -325,8 +325,18 @@ void BodyBasic() : {}
 {
     { startBodyBasic(token.beginLine, token.beginColumn) ; }
     (BodyTriplesBlock())?
-    ( Filter() (BodyTriplesBlock())? )*
+    ( BodyBasicNotTriples() (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
+}
+
+void BodyBasicNotTriples() : {}
+{
+#ifdef STD
+   Filter()
+#endif
+#ifdef JENA   
+   ( Filter() | TuplePattern() )
+#endif
 }
 
 // ---- Triples
@@ -639,7 +649,7 @@ Path PathSequence() : { Path p1 , p2 ; }
     p1 = PathEltOrInverse()
     ( <SLASH> p2 = PathEltOrInverse()
       { p1 = PathFactory.pathSeq(p1, p2) ; }
-// #ifdef ARQ
+// #ifdef JENA
 //     // :p^:q -- Not in SPARQL 1.1
 //     | <CARAT> p2 = PathElt()
 //       { p1 = PathFactory.pathSeq(p1, new P_Inverse(p2)) ; }
@@ -1003,7 +1013,7 @@ Node VarOrIri() : {Node n = null ; String iri ; }
 }
 
 // // e.g. INSERT DATA { GRAPH ... }
-// #ifdef ARQ
+// #ifdef JENA
 // Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
 // {
 //   ( n = Var() | n = BlankNode() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
@@ -1242,7 +1252,7 @@ Expr BuiltInCall() : { Expr expr ;
 //   | <BOUND> <LPAREN> gn = Var() <RPAREN>
 //     { return new E_Bound(new ExprVar(gn)) ; }
 
-// #ifdef ARQ
+// #ifdef JENA
 //     // ARQ extension
 //     // IRI(expr rel:String or IRI)
 //     // IRI(expr base:IRI, expr rel:String or IRI)
@@ -1277,7 +1287,7 @@ Expr BuiltInCall() : { Expr expr ;
     
   | <ROUND> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumRound(expr1) ; }
 
-#ifdef ARQ
+#ifdef JENA
        // As functions
   | <MOD>  <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN> { return new E_OpNumericMod(expr1, expr2); }
   
@@ -1342,7 +1352,7 @@ Expr BuiltInCall() : { Expr expr ;
     
   | <TIMEZONE> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeTimezone(expr1) ; }
   | <TZ> <LPAREN> expr1 = Expression() <RPAREN> { return new E_DateTimeTZ(expr1) ; }
-// #ifdef ARQ
+// #ifdef JENA
 //   | <ADJUST>
 //     // One or two arguments
 //     <LPAREN> expr1 = Expression() (<COMMA> expr2 = Expression())? <RPAREN>
@@ -1367,7 +1377,7 @@ Expr BuiltInCall() : { Expr expr ;
 //   | <SHA512>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA512(expr1) ; }
 // #endif
 // 
-// #ifdef ARQ
+// #ifdef JENA
 //   | <VERSION> <NIL>     { return new E_Version(); }
 // #endif    
 
@@ -1375,7 +1385,7 @@ Expr BuiltInCall() : { Expr expr ;
 //   | <COALESCE> a = ExpressionList()
 //     { return new E_Coalesce(a) ; }
     
-// #ifdef ARQ
+// #ifdef JENA
 //   // Maybe also allow ?func(?a1,?a2,...)
 // //  | <CALL> a = ExpressionList()
 // //    { return new E_Call(a) ; }
@@ -1409,7 +1419,7 @@ Expr BuiltInCall() : { Expr expr ;
   | <SAME_TERM> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
     { return new E_SameTerm(expr1, expr2) ; }
 
-// #ifdef ARQ
+// #ifdef JENA
 //   | <SAME_VALUE> <LPAREN> expr1 = Expression() <COMMA> expr2 = Expression() <RPAREN>
 //     { return new E_SameValue(expr1, expr2) ; }
 // #endif
@@ -1707,7 +1717,7 @@ TOKEN [IGNORE_CASE] :
 |  < FLOOR:       "FLOOR" >
 |  < ROUND:       "ROUND" >
 
-// #ifdef ARQ
+// #ifdef JENA
 // |  < MOD:         "MOD" >
 // |  < IDIV:        "IDIV" >
 // #endif
@@ -1732,7 +1742,7 @@ TOKEN [IGNORE_CASE] :
 |  < SECONDS:     "SECONDS" >
 |  < TIMEZONE:    "TIMEZONE" >
 |  < TZ:          "TZ" >
-// #ifdef ARQ
+// #ifdef JENA
 // |  < ADJUST:      "ADJUST" >
 // #endif
 |  < NOW:         "NOW" >
@@ -1853,7 +1863,7 @@ TOKEN :
 
 | < DATATYPE: "^^">
 | < AT: "@">
-// #ifdef ARQ
+// #ifdef JENA
 // | < ASSIGN:     ":=">
 // #endif
 
@@ -1867,7 +1877,7 @@ TOKEN :
 
 TOKEN:
 {
-// #ifdef ARQ
+// #ifdef JENA
 //   <#SURROGATE_PAIR: ["\uD800"-"\uDBFF"] ["\uDC00"-"\uDFFF"] >
 // |
 // #endif
@@ -1879,7 +1889,7 @@ TOKEN:
           ["\u200C"-"\u200D"] | ["\u2070"-"\u218F"] | ["\u2C00"-"\u2FEF"] |
           ["\u3001"-"\uD7FF"] | ["\uF900"-"\uFFFD"] 
           // [#x10000-#xEFFFF]
-// #ifdef ARQ
+// #ifdef JENA
 //           // Put in surrogate pairs because by the time javacc sees codepoints,
 //           // they are in UTF-16.
 //           | <SURROGATE_PAIR>

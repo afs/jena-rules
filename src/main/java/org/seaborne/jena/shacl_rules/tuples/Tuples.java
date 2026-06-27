@@ -21,17 +21,112 @@
 
 package org.seaborne.jena.shacl_rules.tuples;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.riot.out.NodeFormatter;
+import org.apache.jena.riot.out.NodeFormatterTTL;
+import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.core.Substitute;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.sse.*;
+import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.RulesException;
+import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 
 public class Tuples {
+
+
+    public static void print(TupleStore tupleStore, PrefixMap prefixMap) {
+        TupleStoreWriter.print(tupleStore, prefixMap);
+    }
+
+    public static void printSSE(TupleStore tupleStore, PrefixMap prefixMap) {
+        NodeFormatter nFmt =  new NodeFormatterTTL(null, prefixMap);
+        try ( IndentedWriter iOut = IndentedWriter.stdout.clone() ) {
+            iOut.print("(tuples");
+            iOut.incIndent();
+
+            for ( Tuple tuple : tupleStore ) {
+                printTuple(iOut, tuple, nFmt);
+            }
+            iOut.decIndent();
+            iOut.println(")");
+        }
+    }
+
+    private static void printTuple(IndentedWriter iOut, Tuple tuple, NodeFormatter nFmt) {
+        iOut.print("( ");
+        boolean first = true;
+        for ( Node n : tuple ) {
+            if ( ! first )
+                iOut.print(" ");
+            else
+                first = false;
+            nFmt.format(iOut, n);
+        }
+        iOut.print(" )");
+        iOut.println();
+    }
+
+
+    public static TupleStore tupleStoreSSE(String str) {
+        List<Tuple> elts = parseSSE(str);
+        return new TupleStoreSimple(elts);
+    }
+
+    public static List<Tuple> parseSSE(String str) {
+        Item item = SSE.parseItem(str);
+        if ( ! item.isList() )
+            throw new SSE_Exception("Not a list of tuples");
+        if ( item.isTagged("tuples") )
+            return buildTuplesUntagged(item.getList(), 1);
+        else
+            return buildTuplesUntagged(item.getList(), 0);
+    }
+
+    /** SRL syntax */
+    public static List<Tuple> parse(String str) {
+        RuleSet ruleSet = ShaclRulesParser.parseString(str);
+        if ( ! ruleSet.hasData() )
+            throw new RulesException("List of tuples: data present");
+        if ( ! ruleSet.hasImports() )
+            throw new RulesException("List of tuples: imports present");
+        if ( ! ruleSet.getRules().isEmpty() )
+            throw new RulesException("List of tuples: rulesPresent");
+        return ruleSet.getDataTuples();
+    }
+
+    private static List<Tuple> buildTuplesUntagged(ItemList list, int idx) {
+        List<Tuple> tuples = new ArrayList<>();
+
+        for ( int eltIdx = idx ; eltIdx < list.size() ; eltIdx++ ) {
+            Item elt = list.get(eltIdx);
+            if ( ! elt.isList() )
+                throw new SSE_Exception("Item "+eltIdx+" : not a list");
+            Tuple tuple = buildTuple(elt.getList());
+            tuples.add(tuple);
+        }
+        return tuples;
+    }
+
+    private static Tuple buildTuple(ItemList list) {
+        List<Node> nodes = new ArrayList<>();
+        for ( int i = 0 ; i < list.size() ; i++ ) {
+            Item elt = list.get(i);
+            Item nodeItem = ItemLift.liftItem(elt);
+            if ( ! nodeItem.isNode() )
+                throw new SSE_Exception("Not a node : "+nodeItem);
+            nodes.add(nodeItem.getNode());
+        }
+        return Tuple.create(nodes);
+    }
 
     public static Tuple substitute(Tuple tuple, Binding binding) {
         if ( isNotNeeded(binding) )

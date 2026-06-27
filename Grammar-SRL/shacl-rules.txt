@@ -247,7 +247,8 @@ NON-TERMINALS
 	BodyTriplesBlock	:=	TriplesBlock
 	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
-	BodyBasic	:=	( BodyTriplesBlock )? ( Filter ( BodyTriplesBlock )? )*
+	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBaseNotTriples ( BodyTriplesBlock )? )*
+	BodyBaseNotTriples	:=	Filter
 // ---- Triples
 	HeadTemplateBlock	:=	TriplesBlock
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?

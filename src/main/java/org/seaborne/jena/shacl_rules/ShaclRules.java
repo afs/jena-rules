@@ -31,6 +31,7 @@ import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.sys.P;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /**
  * Common operations.
@@ -71,6 +72,14 @@ public class ShaclRules {
     public static RuleSetEvaluation evaluation(Graph graph, RuleSet ruleSet) {
         return RulesEngine.create(EngineType.SIMPLE, graph, ruleSet).eval();
     }
+
+    /**
+     * {@link RuleSetEvaluation}
+     */
+    public static RuleSetEvaluation evaluation(Graph graph, TupleStore inputTupleStore, RuleSet ruleSet) {
+        return RulesEngine.create(EngineType.SIMPLE, graph, inputTupleStore, ruleSet).eval();
+    }
+
 
     // -- Parse
 
