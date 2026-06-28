@@ -21,6 +21,8 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import java.util.List;
+
 import org.apache.jena.graph.Graph;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 
@@ -33,4 +35,14 @@ public class ShaclRulesExec {
         RuleSetEvaluation e = RulesEngine.create(baseGraph, ruleSet).eval();
         return e;
     }
+
+    /**
+     * Execute a rule and return any new triples not in the baseGraph)
+     */
+    public static Graph execute(Rule rule, Graph baseGraph) {
+        RuleSet ruleSet = RuleSet.create(null, null, null, List.of(rule), null, null);
+        RuleSetEvaluation e = RulesEngine.create(baseGraph, ruleSet).eval();
+        return e.inferredTriples();
+    }
+
 }
