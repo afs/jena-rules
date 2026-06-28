@@ -56,7 +56,8 @@ import org.seaborne.jena.shacl_rules.tuples.Tuples;
 /**
  * Forward execution support. This class is not API.
  */
-public class RulesExecLib {
+public/*development only*/
+class RulesExecLib {
 
     /** Perform checking and setup */
     public static void prepare(RuleSet ruleSet, RulesExecCxt rCxt) {
