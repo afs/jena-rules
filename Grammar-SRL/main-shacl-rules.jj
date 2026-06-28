@@ -243,8 +243,17 @@ void Data() : { Token t; }
 
 void TriplesDataBlock() : {}
 {
+#ifdef STD
+    // Recursive
     TriplesSameSubject()
     (<DOT> (TriplesDataBlock())?)?
+#endif
+#ifdef JENA
+    // Rewrite for no recursion - grammar is not LL(1)
+    TriplesSameSubject()
+    (LOOKAHEAD(2) (<DOT>) TriplesSameSubject())*
+    (<DOT>)?
+#endif
 }
 
 #ifdef JENA
@@ -272,7 +281,7 @@ void HeadTemplate() : { Token t ; }
     { startHead(t.beginLine, t.beginColumn); }
     (HeadTemplateBlock())?
 #ifdef JENA
-    (HeadNotTriples() (HeadTemplateBlock())?)*
+    (HeadNotTriples() (<DOT>)? (HeadTemplateBlock())?)*
 #endif
     <RBRACE>
     { finishHead(t.beginLine, t.beginColumn); }
@@ -286,7 +295,7 @@ void BodyPattern() : { Token t ; }
     { startBody(t.beginLine, t.beginColumn); }
     // Make sure BodyTriplesBlock() can't be followed by BodyTriplesBlock()
     (BodyTriplesBlock())?
-    ( BodyNotTriples() (BodyTriplesBlock())? )*
+    ( BodyNotTriples()  (<DOT>)? (BodyTriplesBlock())? )*
     <RBRACE>
     { finishBody(t.beginLine, t.beginColumn); }
 }
@@ -325,7 +334,7 @@ void BodyBasic() : {}
 {
     { startBodyBasic(token.beginLine, token.beginColumn) ; }
     (BodyTriplesBlock())?
-    ( BodyBasicNotTriples() (BodyTriplesBlock())? )*
+    ( BodyBasicNotTriples()  (<DOT>)? (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
 }
 
@@ -1717,10 +1726,10 @@ TOKEN [IGNORE_CASE] :
 |  < FLOOR:       "FLOOR" >
 |  < ROUND:       "ROUND" >
 
-// #ifdef JENA
-// |  < MOD:         "MOD" >
-// |  < IDIV:        "IDIV" >
-// #endif
+#ifdef JENA
+|  < MOD:         "MOD" >
+|  < IDIV:        "IDIV" >
+#endif
 
 |  < CONCAT:      "CONCAT" >
 |  < SUBSTR:      "SUBSTR" >

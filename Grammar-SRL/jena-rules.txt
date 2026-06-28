@@ -100,6 +100,8 @@ TOKENS
 | <CEIL: "CEIL">
 | <FLOOR: "FLOOR">
 | <ROUND: "ROUND">
+| <MOD: "MOD">
+| <IDIV: "IDIV">
 | <CONCAT: "CONCAT">
 | <SUBSTR: "SUBSTR">
 | <STRLEN: "STRLEN">
@@ -243,19 +245,19 @@ NON-TERMINALS
 // }
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 	Data	:=	<DATA> <LBRACE> ( TriplesDataBlock )? <RBRACE>
-	TriplesDataBlock	:=	TriplesSameSubject ( <DOT> ( TriplesDataBlock )? )?
+	TriplesDataBlock	:=	TriplesSameSubject ( ( <DOT> ) TriplesSameSubject )* ( <DOT> )?
 	TupleData	:=	<TUPLES> <LBRACE> ( TuplesDataBlock )? <RBRACE>
 	TuplesDataBlock	:=	( DataTuple ( <DOT> )? )+
 // ---- Rule head
-	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? ( HeadNotTriples ( HeadTemplateBlock )? )* <RBRACE>
+	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? ( HeadNotTriples ( <DOT> )? ( HeadTemplateBlock )? )* <RBRACE>
 // ---- Rule body
-	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )* <RBRACE>
+	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
 	BodyNotTriples	:=	( Filter | Negation | Assignment | TuplePattern )
 	BodyTriplesBlock	:=	TriplesBlock
 	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
-	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBaseNotTriples ( BodyTriplesBlock )? )*
-	BodyBaseNotTriples	:=	( Filter | TuplePattern )
+	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
+	BodyBasicNotTriples	:=	( Filter | TuplePattern )
 // ---- Triples
 	HeadTemplateBlock	:=	TriplesBlock
 	HeadNotTriples	:=	TupleTemplate
@@ -364,7 +366,7 @@ NON-TERMINALS
 // e.g. Property (if no bNodes) + DESCRIBE
 	VarOrIri	:=	( Var | iri )
 // // e.g. INSERT DATA { GRAPH ... }
-// #ifdef ARQ
+// #ifdef JENA
 // Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
 // {
 //   ( n = Var() | n = BlankNode() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
@@ -413,6 +415,8 @@ NON-TERMINALS
 		|	<CEIL> <LPAREN> Expression <RPAREN>
 		|	<FLOOR> <LPAREN> Expression <RPAREN>
 		|	<ROUND> <LPAREN> Expression <RPAREN>
+		|	<MOD> <LPAREN> Expression <COMMA> Expression <RPAREN>
+		|	<IDIV> <LPAREN> Expression <COMMA> Expression <RPAREN>
 		|	<CONCAT> ExpressionList
 		|	<SUBSTR> <LPAREN> Expression <COMMA> Expression ( <COMMA> Expression )? <RPAREN>
 		|	<STRLEN> <LPAREN> Expression <RPAREN>

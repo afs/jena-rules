@@ -242,13 +242,13 @@ NON-TERMINALS
 // ---- Rule head
 	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? <RBRACE>
 // ---- Rule body
-	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( BodyTriplesBlock )? )* <RBRACE>
+	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
 	BodyNotTriples	:=	( Filter | Negation | Assignment )
 	BodyTriplesBlock	:=	TriplesBlock
 	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
-	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBaseNotTriples ( BodyTriplesBlock )? )*
-	BodyBaseNotTriples	:=	Filter
+	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
+	BodyBasicNotTriples	:=	Filter
 // ---- Triples
 	HeadTemplateBlock	:=	TriplesBlock
 	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
@@ -349,7 +349,7 @@ NON-TERMINALS
 // e.g. Property (if no bNodes) + DESCRIBE
 	VarOrIri	:=	( Var | iri )
 // // e.g. INSERT DATA { GRAPH ... }
-// #ifdef ARQ
+// #ifdef JENA
 // Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
 // {
 //   ( n = Var() | n = BlankNode() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
