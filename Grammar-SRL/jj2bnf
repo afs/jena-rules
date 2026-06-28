@@ -30,6 +30,8 @@ if ( $#ARGV != 1 )
     exit 1 ;
 }
 
+$WithNumbers = 1 ;
+
 $/ = undef ;
 # Just table or full page.
 
@@ -53,8 +55,9 @@ $grammar =~ s!^[\n\s]*!\n! ;
 # Merge alts
 $grammar =~ s!\n\s*\|!\ |!g ;
 
-# Tab after |
-$grammar =~ s!\|\t!\| !g ;
+## readFile replaces tabs with spaces.
+## # Tab after |
+## $grammar =~ s!\|\t!\| !g ;
 
 $tokens =~ s!//.*!!g ;
 $tokens =~ s!\r!!g ;
@@ -85,7 +88,6 @@ for $g (@g) {
     #    $rulebody =~ s!^\((.*)\)$!$1! ;
 
     next if $rulename eq '' ;
-    
 
     push @rules, $rulename ;
     warn "Duplicate rule (grammar): $rulename\n" if defined($ruleMap{$rulename}) ;
@@ -121,8 +123,8 @@ for $t (@t) {
         $tokenname =~ s/\]$//g ;
         $tokenbody =~ s/"/'/g ; # '" -- But not literal " -- how?
         $tokenbody =~ s/\<\>\'\{\}/\<\>\"\{\}/ ; # '" IRI fixup
-        $inline{$tokenname} = $tokenbody ;
 
+        $inline{$tokenname} = $tokenbody ;
         #print "INLINE: ",$tokenname," => ",$tokenbody,"\n" ;
     } else {
         ## Remove < > around a token name.
@@ -193,12 +195,14 @@ for $r (@rules) {
     ## Third part of the output.
     $ruleBodyStr = fixupRule($rulename, $ruleBodyStr) ;
 
-    ##Why no NL needed?
-    ## printf "%-5s  %-25s ::= %s\n", $rlabel, $rn, $ruleBodyStr ;
-    printf "%-25s ::= %s\n", $rn, $ruleBodyStr ;
-
-    #    $rule{$rulename, $rulebody) ;
-    #    print $rulename , "\n" ;
+    if ( $WithNumbers ) {
+	## 5 spaces for the line number text, 2 gap = 7
+	$ruleNumStr = sprintf("%-5s", '[' . $ruleNum .  ']');
+	printf "%s  %-25s ::= %s\n", $ruleNumStr, $rn, $ruleBodyStr ;
+    } else {
+	## No number label
+	printf "%-25s ::= %s\n", $rn, $ruleBodyStr ;
+    }
 }
 
 sub readFile {
@@ -263,8 +267,15 @@ sub fixupRule {
         
         ## Alternative more general removal: NB space-) - matched the BNF parens
         ##$body =~ s%'BNODE'.*? \)%XXX-BNODE-XXX%;
-        
-        $body =~ s%\|\s*%\n                          |   %g ;
+
+	if ( $WithNumbers ) {
+	    ## Align spaces with the number label
+	    ## With number label
+	    $body =~ s%\|\s*%\n                                   | %g ;
+	} else {
+	    ## No number label
+	    $body =~ s%\|\s*%\n                            | %g ;
+	}
         
         ## Replace marker
         $body =~ s%XXX-BNODE-XXX%'BNODE' \( '(' Expression ')' \| NIL \)%;

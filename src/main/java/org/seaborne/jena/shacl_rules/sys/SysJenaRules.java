@@ -30,7 +30,7 @@ public class SysJenaRules {
     // release settings: false/false.
 
     /** Allow assignments in recursive rules */
-    public static boolean allowUnsafeAssigments = true;
+    public static boolean allowUnsafeAssigments = false;
 
     /** Allow blank node in templates in recursive rules */
     public static boolean allowUnsafeTemplates = false;
