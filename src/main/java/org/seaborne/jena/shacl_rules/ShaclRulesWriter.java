@@ -87,6 +87,14 @@ public class ShaclRulesWriter {
        }
     }
 
+    /** A string to identify the rule */
+    public static String abbreviatedString(Rule rule, PrefixMap prefixMap) {
+        try ( IndentedLineBuffer out = new IndentedLineBuffer() ) {
+            RuleSetWriter.writeAbbrev(out, rule, prefixMap);
+            return out.asString();
+        }
+     }
+
     /** Write a rule (no prologue). */
     public static void write(OutputStream outStream, Rule rule, PrefixMap prefixMap, boolean flatMode) {
         IndentedWriter output = new IndentedWriter(outStream);

@@ -167,8 +167,9 @@ public class RulesEngineFwdSimple implements RulesEngine {
             for ( int i = stratification.minStratum() ; i <= stratification.maxStratum() ; i++ ) {
                 Stratum stratum = stratification.getLevel(i);
                 if ( TRACE ) {
-                    rCxt.out().printf("Level %d -- (Once=%d, All=%d) rules\n", i, stratum.runOnce().size(), stratum.runAll().size());
+                    rCxt.out().printf("Level %d -- (Once=%d, General=%d) rules\n", i, stratum.runOnce().size(), stratum.runGeneral().size());
                     rCxt.out().incIndent();
+                    rCxt.out().flush();
                 }
                 int rounds = evalStratum(i, stratum, dataGraph, tupleStore, rCxt);
 
@@ -218,8 +219,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
         AppendGraph graph1 = AppendGraph.create(dataGraph);
 
         Collection<Rule> runOnceRules = stratum.runOnce();
-        Collection<Rule> runAllRules = stratum.runAll();
-
+        Collection<Rule> runGeneralRules = stratum.runGeneral();
 
 //        /*
 //         * accumulationGraph (informational, for development) is all inferred triples
@@ -239,7 +239,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
             }
             for ( Rule rule : runOnceRules ) {
                 if ( TRACE )
-                    System.out.printf("Eval(once): %s\n", rule);
+                    System.out.printf("Eval(general): %s\n", rule);
                 executeOneRule(graph1, evalTupleStore, rule, prefixMap());
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
@@ -270,7 +270,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
             // This is the "naive" algorithm.
             // By tracking rules that actually cause change, we can get semi-naive.
 
-            for (Rule rule : runAllRules ) {
+            for (Rule rule : runGeneralRules ) {
                 if ( TRACE )
                     System.out.printf("Eval: %d : %s\n", round, rule);
                 executeOneRule(graph1, evalTupleStore, rule, prefixMap());
@@ -315,7 +315,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
     private void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, PrefixMap pmap) {
         if ( TRACE ) {
             rCxt.out().print("Rule: ");
-            String rs = ShaclRulesWriter.asString(rule, pmap);
+            String rs = ShaclRulesWriter.abbreviatedString(rule, pmap);
             rCxt.out().print(rs);
             //rCxt.out().println();
         }
@@ -324,6 +324,10 @@ public class RulesEngineFwdSimple implements RulesEngine {
             evalTupleStore.addAll(rEval.tuples());
         }
         List<Triple> triples = rEval.triples();
+//        for ( Triple t : triples ) {
+//            if ( ! graph.contains(t) )
+//                System.out.println(t);
+//        }
         if ( ! triples.isEmpty() )
             GraphUtil.add(graph, triples);
     }

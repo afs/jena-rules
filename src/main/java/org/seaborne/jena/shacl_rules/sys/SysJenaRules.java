@@ -21,14 +21,23 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
-import java.util.Collection;
-
-import org.seaborne.jena.shacl_rules.Rule;
-
 /**
- * A Stratum is a pair of a collection of rules to run once, at he start of the
- * stratum and a collection of rules to run to completion (e.g. recursion).
+ * System settings.
  */
+public class SysJenaRules {
 
-public record Stratum(Collection<Rule> runOnce, Collection<Rule> runGeneral) {
+    // enum!
+    // release settings: false/false.
+
+    /** Allow assignments in recursive rules */
+    public static boolean allowUnsafeAssigments = true;
+
+    /** Allow blank node in templates in recursive rules */
+    public static boolean allowUnsafeTemplates = false;
+
+//    /**
+//     * Whether run-=once rules are strictly stratified
+//     * (whether DependencyGraph makes a run-once style rule positive or negatives
+//     */
+//    public static boolean safeDependencies() { return  !allowUnsafeAssigmments && !allowUnsafeTemplates; }
 }

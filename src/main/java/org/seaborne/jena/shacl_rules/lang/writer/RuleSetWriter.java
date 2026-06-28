@@ -72,14 +72,19 @@ public class RuleSetWriter {
     /** Write a rule set */
     public static void write(IndentedWriter output, RuleSet ruleSet, PrefixMap prefixMap, IRIx baseIRI, Style style) {
         RuleSetWriter srw = new RuleSetWriter(output, prefixMap, baseIRI, style);
-
-        //output.setLinePrefix("X:");
         output.setLineNumbers(true);
         output.setFlushOnNewline(true);
-
-
         srw.writeRuleSet(ruleSet);
     }
+
+    /** Write a an abbreviated string for the rule e.g. for error messages */
+    public static void writeAbbrev(IndentedWriter output, Rule rule, PrefixMap prefixMap) {
+        RuleSetWriter srw = new RuleSetWriter(output, prefixMap, null, Style.Flat);
+        output.setLineNumbers(false);
+        output.setFlushOnNewline(true);
+        srw.writeRuleAbbrev(rule);
+    }
+
 //
 //    /** Write a rule set */
 //    public static void write(IndentedWriter out,  RuleSet ruleSet, Style style, PrefixMap prefixMap, IRIx baseIRI) {
@@ -235,6 +240,21 @@ public class RuleSetWriter {
             out.print(" ");
         out.print("WHERE ");
         writeBody(rule, styleBody);
+    }
+
+    private void writeRuleAbbrev(Rule rule) {
+        Style styleHead = Style.Flat ;
+        out.print("RULE ");
+        if ( rule.getId() != null ) {
+            nodeFormatter.format(out, rule.getId());
+            out.print(" ");
+        }
+        writeHead(rule, styleHead);
+        if ( styleRuleSet == Style.MultiLine )
+            out.println();
+        else
+            out.print(" ");
+        out.print("WHERE ...");
     }
 
     private void writeHead(Rule rule, Style styleRule) {

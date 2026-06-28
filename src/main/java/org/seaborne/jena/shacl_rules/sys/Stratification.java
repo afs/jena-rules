@@ -177,13 +177,13 @@ public class Stratification {
                 }
 
                 switch(e.link()) {
-                    case POSITIVE -> {
+                    case OPEN -> {
                         if ( stratumMap.get(pRule) < stratumMap.get(qRule) ) {
                             stratumMap.put(pRule, stratumMap.get(qRule));
                             changed = true;
                         }
                     }
-                    case NEGATIVE -> {
+                    case CLOSED -> {
                         if ( stratumMap.get(pRule) <= stratumMap.get(qRule) ) {
                             int xStratum = 1 + stratumMap.get(qRule);
                             if ( xStratum > limit )
@@ -212,22 +212,40 @@ public class Stratification {
         // -- Divide into runOnce and runAll, then setup the layers list.
 
         ListValuedMap<Integer, Rule> stratumRunOnce = MultiMapUtils.newListValuedHashMap();
-        ListValuedMap<Integer, Rule> stratumRunAll = MultiMapUtils.newListValuedHashMap();
+        ListValuedMap<Integer, Rule> stratumRunGeneral = MultiMapUtils.newListValuedHashMap();
 
         for ( Entry<Rule, Integer> entry : stratumMap.entrySet() ) {
             Rule rule = entry.getKey();
             Integer stratumNum = entry.getValue();
-            if ( rule.isRunOnceRule() )
-                stratumRunOnce.put(stratumNum, rule);
-            else
-                stratumRunAll.put(stratumNum, rule);
+            if ( rule.isRunOnceRule() ) {
+                // stratumRunOnce.put(stratumNum, rule);
+                // Is it permitted for unsafe evaluation?
+                // If it is run-once because of assignment but does not have
+                // blank node templates, then run as a general rule.
+                // Similarly, if run-once because blank node templates, but not
+                // assignments, then run as a general rule.
+
+                // XXX Better way?
+                boolean allowAssigmentOnly = SysJenaRules.allowUnsafeAssigments && rule.hasAssignment() && !rule.hasTemplateBlankNodes();
+                boolean allowBlankNodeTemplatesOnly = SysJenaRules.allowUnsafeAssigments && rule.hasTemplateBlankNodes() && !rule.hasAssignment();
+                boolean allowBoth = SysJenaRules.allowUnsafeAssigments && SysJenaRules.allowUnsafeTemplates;
+
+                if ( allowAssigmentOnly || allowBlankNodeTemplatesOnly || allowBoth )
+                    stratumRunGeneral.put(stratumNum, rule);
+                else
+                    // run-once
+                    stratumRunOnce.put(stratumNum, rule);
+
+            } else {
+                stratumRunGeneral.put(stratumNum, rule);
+            }
             maxStratum = Math.max(maxStratum, stratumNum);
         }
 
         List<Stratum> layers = new ArrayList<>(maxStratum);
         for ( int i = minStratum ; i <= maxStratum ; i++ ) {
             // ListValuedMap.get(i) returns an empty collection if there is no such key.
-            Stratum stratum = new Stratum(stratumRunOnce.get(i), stratumRunAll.get(i));
+            Stratum stratum = new Stratum(stratumRunOnce.get(i), stratumRunGeneral.get(i));
             // Looses minStratum, maxStratum.
             layers.add(stratum);
         }
@@ -241,7 +259,7 @@ public class Stratification {
                 Stratum layer = layers.get(i);
 
                 Collection<Rule> stratumOnce = layer.runOnce();
-                Collection<Rule> stratumAll = layer.runAll();
+                Collection<Rule> stratumAll = layer.runGeneral();
 
                 if ( stratumOnce.isEmpty() && stratumAll.isEmpty() ) {
                     System.err.printf("No rules at level %d\n", i);

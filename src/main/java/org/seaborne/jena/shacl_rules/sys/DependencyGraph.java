@@ -47,7 +47,7 @@ import org.seaborne.jena.shacl_rules.tuples.Tuple;
  * <p>
  * The graph has vertices of rules and links being "depends
  * on" another rule, i.e. for a triple that is in the head of a rule, it is the rules
- * that can generate that triple. relations in its body. from this, we can determine
+ * that can generate that triple via relations in its body. From this, we can determine
  * whether a rule is:
  * <ul>
  * <li>Data only (body contains relations that only appear in the data)</li>
@@ -55,13 +55,16 @@ import org.seaborne.jena.shacl_rules.tuples.Tuple;
  * <li>Mutually recursive rules</li>
  * <li>Linear (only one body relationship is recursive)</li>
  * <li>Depends on a negation or aggregation
+ * <li>Run-once - it needs the dependencies to be completed before execution
  * </ul>
  */
 
 public class DependencyGraph {
 
     public enum DepEdgeType {
-        POSITIVE("+"), NEGATIVE("-");
+        // Also known as
+        // POSITIVE("+"), NEGATIVE("-");
+        OPEN("+"), CLOSED("-");
         public final String symbol;
         DepEdgeType(String symbol) { this.symbol = symbol; }
     }
@@ -122,11 +125,26 @@ public class DependencyGraph {
             ShaclRulesWriter.print(rule);
         List<DependencyEdge> connections = new ArrayList<>();
 
-        DepEdgeType edgeType = rule.isRunOnceRule() ? DepEdgeType.NEGATIVE : DepEdgeType.POSITIVE;
+        // Rule edge dependency (minimum dependency restriction)
+        // is the initial choice of edge dependency at the whole-rule level.
+        // If the run is run-once, then strictly required all dependencies to be "closed".
+        // run-once is the combination of assignment and blank nodes in the head.
+        // This is not element dependency - NOT - which is handled in accumulateEdges.
+        DepEdgeType edgeType = ruleEdgeDependency(rule);
+
         accumulateEdges(connections, rule, edgeType, rule.getBodyElements(), providers, providers2);
         if ( DEBUG_BUILD )
             System.out.println(connections.size()+" :: put:"+connections);
         return connections;
+    }
+
+    /** Whole rule dependency requirement */
+    private static DepEdgeType ruleEdgeDependency(Rule rule) {
+        if ( !SysJenaRules.allowUnsafeAssigments && rule.hasAssignment() )
+            return DepEdgeType.CLOSED;
+        if ( !SysJenaRules.allowUnsafeTemplates && rule.hasTemplateBlankNodes() )
+            return DepEdgeType.CLOSED;
+        return DepEdgeType.OPEN;
     }
 
     private static void accumulateEdges(List<DependencyEdge> accumulator, Rule rule, DepEdgeType linkType, List<RuleBodyElement> elts,
@@ -175,7 +193,7 @@ public class DependencyGraph {
                 }
 
                 case EltNegation(List<RuleBodyElement> inner) -> {
-                    accumulateEdges(accumulator, rule, DepEdgeType.NEGATIVE, inner, providers, providers2);
+                    accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, inner, providers, providers2);
                 }
 
                 // These do not cause a dependency relationship.

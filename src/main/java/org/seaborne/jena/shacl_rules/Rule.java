@@ -56,7 +56,7 @@ public class Rule {
     final boolean hasAssignment;
     final boolean hasNegation;
     //boolean final hasAggregation;
-    final boolean hasHeadBNodes;
+    final boolean hasTemplateBNodes;
 
     /**
      * Used by the parser and {@link GraphToRuleSet}
@@ -117,7 +117,7 @@ public class Rule {
        this.hasAssignment = _hasAssignment;
        this.hasNegation = _hasNegation;
 //        //boolean final hasAggregation;
-       this.hasHeadBNodes = _hasHeadBNodes;
+       this.hasTemplateBNodes = _hasHeadBNodes;
     }
 
     private boolean blankNodePresent(Triple triple) {
@@ -138,7 +138,15 @@ public class Rule {
 
     // XXX Where should this go?
     public boolean isRunOnceRule() {
-        return hasAssignment || hasHeadBNodes;
+        return hasAssignment || hasTemplateBNodes;
+    }
+
+    public boolean hasAssignment() {
+        return hasAssignment;
+    }
+
+    public boolean hasTemplateBlankNodes() {
+        return hasTemplateBNodes;
     }
 
     public Node getId() {
@@ -160,7 +168,6 @@ public class Rule {
     public List<Tuple> getHeadTuples() {
         return getHead().getHeadTuples();
     }
-
 
     /**
      * Return the triple templates that used to generate triples.

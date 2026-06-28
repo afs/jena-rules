@@ -58,7 +58,7 @@ public class RecursionChecker {
     public static class RecursionException extends RulesException {
         private final Deque<Rule> path;
 
-        public RecursionException(String msg, Deque<Rule> path) {
+        private RecursionException(String msg, Deque<Rule> path) {
             super(msg);
             this.path = path;
         }
@@ -87,7 +87,9 @@ public class RecursionChecker {
     private static IsRecursive checkRecursion(DependencyGraph depGraph, Rule topRule, PathIncludesNegation seenNegation, Rule rule, Deque<Rule> path) {
         if ( path.contains(rule) ) {
             if ( seenNegation == PathIncludesNegation.YES ) {
-                String ruleStr = ShaclRulesWriter.asString(rule, null);
+                // Need abbreviates rule e.g.RULE { head } WHERE ...
+                String ruleStr = ShaclRulesWriter.abbreviatedString(rule, depGraph.getRuleSet().getPrefixMap());
+                //String ruleStr = "Rule ["+rule.localId+"]";
                 throw new RecursionException(ruleStr, path);
             }
             return IsRecursive.YES;
@@ -107,7 +109,7 @@ public class RecursionChecker {
         boolean recursion = false;
         for( DependencyEdge edge : providedBy ) {
             PathIncludesNegation seen = seenNegation;
-            if ( edge.link() == DepEdgeType.NEGATIVE )
+            if ( edge.link() == DepEdgeType.CLOSED )
                 seen = PathIncludesNegation.YES;
             IsRecursive stepIsRecursive = checkRecursion(depGraph, topRule, seen, edge.linkedRule(), visited);
             if ( stepIsRecursive == IsRecursive.YES )

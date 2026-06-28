@@ -30,6 +30,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.TerminationException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.riot.RDFParser;
@@ -45,6 +46,10 @@ import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
+import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.shacl_rules.sys.RecursionChecker.RecursionException;
+import org.seaborne.jena.shacl_rules.sys.Stratification.StratificationException;
+import org.seaborne.jena.shacl_rules.sys.WellFormed.NotWellFormedException;
 
 public class rules_eval extends CmdRules {
 
@@ -77,7 +82,13 @@ public class rules_eval extends CmdRules {
                 throw new CmdException("Usage: rules exec RulesFile [DataFile]");
         }
 
-        RuleSet ruleSet = ShaclRulesParser.parseFile(rulesFile);
+        RuleSet ruleSet;
+        try {
+            ruleSet = ShaclRulesParser.parseFile(rulesFile);
+        } catch (ShaclRulesParseException ex) {
+            System.err.println("Syntax error");
+            throw messageAndTerminate(ex, 1);
+        }
         Graph data = GraphMemFactory.createDefaultGraph();
 
         if ( dataFile != null ) {
@@ -88,8 +99,29 @@ public class rules_eval extends CmdRules {
         }
 
         boolean verbose = super.isVerbose();
-        RulesEngine engine = defaultRulesEngine(data, ruleSet).setTrace(verbose);
-        exec(ruleSet, data, engine);
+        try {
+            RulesEngine engine = defaultRulesEngine(data, ruleSet).setTrace(verbose);
+            exec(ruleSet, data, engine);
+        }
+        catch (NotWellFormedException ex) {
+            System.err.println("Not wellformed");
+            throw messageAndTerminate(ex, 1);
+        }
+        catch (StratificationException ex) {
+            System.err.println("Stratification failure");
+            throw messageAndTerminate(ex, 1);
+        }
+        catch (RecursionException ex) {
+            System.err.println("Recursion error");
+            throw messageAndTerminate(ex, 1);
+        }
+    }
+
+    private static RuntimeException messageAndTerminate(RuntimeException ex, int rc) {
+        System.err.print("  ");
+        System.err.print(ex.getMessage());
+        System.err.println();
+        throw new TerminationException(rc);
     }
 
     private static RulesEngine defaultRulesEngine(Graph data, RuleSet ruleSet) {
@@ -98,7 +130,7 @@ public class rules_eval extends CmdRules {
         return engine;
     }
 
-    public static void exec(RuleSet ruleSet, Graph data, RulesEngine engine) {
+    private static void exec(RuleSet ruleSet, Graph data, RulesEngine engine) {
         RuleSetEvaluation e = engine.eval();
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();
