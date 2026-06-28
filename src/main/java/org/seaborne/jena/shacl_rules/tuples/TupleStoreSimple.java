@@ -62,6 +62,7 @@ public class TupleStoreSimple implements TupleStore {
 
     @Override
     public void addAll(TupleStore other) {
+        Objects.requireNonNull(other);
         other.all().forEachRemaining(this::add);
     }
 

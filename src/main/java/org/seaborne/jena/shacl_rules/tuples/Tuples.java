@@ -21,10 +21,7 @@
 
 package org.seaborne.jena.shacl_rules.tuples;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Node;
@@ -34,6 +31,7 @@ import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterTTL;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.core.Substitute;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.sse.*;
 import org.seaborne.jena.shacl_rules.RuleSet;
@@ -41,12 +39,19 @@ import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 
 public class Tuples {
-
-
+    // Consider splitting moving the print/parse operation to a RulesIO class.
+    //
+    /**
+     * Print to stdout in SRL/text (extended) syntax
+     * which is a list of tuple {@code $(...)}, one per line.
+     */
     public static void print(TupleStore tupleStore, PrefixMap prefixMap) {
         TupleStoreWriter.print(tupleStore, prefixMap);
     }
 
+    /**
+     * Print to stdout in SRL/SSE syntax.
+     */
     public static void printSSE(TupleStore tupleStore, PrefixMap prefixMap) {
         NodeFormatter nFmt =  new NodeFormatterTTL(null, prefixMap);
         try ( IndentedWriter iOut = IndentedWriter.stdout.clone() ) {
@@ -81,6 +86,17 @@ public class Tuples {
         return new TupleStoreSimple(elts);
     }
 
+    /**
+     * Read in tuples in SSE format.
+     * <pre>
+     *    (tuples
+     *       (:a :b :c)
+     *       (:d :e :f)
+     *       ...
+     *    )
+     * </pre>
+     * An untagged list of lists is also accepted.
+     */
     public static List<Tuple> parseSSE(String str) {
         Item item = SSE.parseItem(str);
         if ( ! item.isList() )
@@ -91,8 +107,19 @@ public class Tuples {
             return buildTuplesUntagged(item.getList(), 0);
     }
 
-    /** SRL syntax */
+    /**
+     * Read a list of tuples in SRL syntax.
+     *
+     * <pre>
+     *    PREFIX : <http://example/>
+     *    TUPLES {
+     *        $(:a, 1)
+     *        $("b", "xyz")
+     *    }
+     * </pre>
+     */
     public static List<Tuple> parse(String str) {
+        // Use the rule set parser and check that it only has a tuples block.
         RuleSet ruleSet = ShaclRulesParser.parseString(str);
         if ( ! ruleSet.hasData() )
             throw new RulesException("List of tuples: data present");
@@ -128,6 +155,9 @@ public class Tuples {
         return Tuple.create(nodes);
     }
 
+    /**
+     * Substitute variables for RDF terms
+     */
     public static Tuple substitute(Tuple tuple, Binding binding) {
         if ( isNotNeeded(binding) )
             return tuple;
@@ -149,6 +179,11 @@ public class Tuples {
         return Tuple.create(terms);
     }
 
+    /**
+     * Substitute variables for RDF terms and also
+     * map blank nodes according to the blank node map.
+     * The bnode map is updated for new blank nodes.
+     */
     public static Tuple substituteTemplate(Tuple tuple, Binding binding, Map<Node, Node> bNodeMap) {
         if ( isNotNeeded(binding) )
             return tuple;
@@ -163,7 +198,7 @@ public class Tuples {
                 changed = true;
                 n1 = newBlank(n1, bNodeMap);
             }
-            // This deals with triple terms.
+            // XXX What about triple terms?
             Node n2 = Substitute.substitute(n1, binding);
             if ( ! n1.sameTermAs(n2) )
                 changed = true;
@@ -201,5 +236,14 @@ public class Tuples {
             terms[i] = SSE.parseNode(strings[i]);
         }
         return Tuple.create(terms);
+    }
+
+    public static void addVars(Set<Var> vars, Tuple tuple) {
+        tuple.forEach(n-> {
+            if ( Var.isVar(n) ) {
+                Var var = Var.alloc(n);
+                vars.add(var);
+            }
+        });
     }
 }

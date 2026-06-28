@@ -24,6 +24,7 @@ import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.atlas.web.TypedInputStream;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.http.HttpEnv;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.riot.*;
@@ -39,6 +40,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.ShaclRules;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 import org.slf4j.Logger;
 
 /**
@@ -61,6 +63,10 @@ public class ImportsProcessor {
         PrefixMap prefixMap = PrefixMapFactory.create(ruleSet.getPrefixMap());
         Graph mergedData = GraphFactory.createDefaultGraph();
         G.addInto(mergedData, ruleSet.getData());
+        TupleStore tupleStore = TupleStore.create();
+        if ( ruleSet.getTupleStore() != null )
+            tupleStore.addAll(ruleSet.getTupleStore());
+
         List<Rule> rules = new ArrayList<>(ruleSet.getRules());
         Set<Tuple> tuples = new LinkedHashSet<>(ruleSet.getDataTuples());
 
@@ -69,16 +75,17 @@ public class ImportsProcessor {
             prefixMap.putAll(rs.getPrefixMap());
             rules.addAll(rs.getRules());
             G.addInto(mergedData, rs.getData());
-            rs.getTuplesData();
+            rs.getDataTuples().forEach(tuples::add);
         }
 
         List<Tuple> listTuples = tuples.stream().toList();
-        RuleSet result =
-            RuleSet.create(ruleSet.getBase(),
+        List<Triple> listTriples = mergedData.find().toList();
+
+        RuleSet result = RuleSet.create(ruleSet.getBase(),
                            prefixMap,
                            Set.of(),
                            rules,
-                           mergedData.find().toList(),
+                           listTriples,
                            listTuples);
         return result;
     }

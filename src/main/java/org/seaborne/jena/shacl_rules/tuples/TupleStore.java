@@ -23,14 +23,19 @@ package org.seaborne.jena.shacl_rules.tuples;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
- * A Set of tuples.
+ * A set of tuples.
  */
 public interface TupleStore extends Iterable<Tuple> {
 
     public static TupleStore create() {
         return new TupleStoreSimple();
+    }
+
+    public static TupleStore create(List<Tuple> tuples) {
+        return new TupleStoreSimple(tuples);
     }
 
     /** Test for a concrete occurrence of tuple (no patterns) */

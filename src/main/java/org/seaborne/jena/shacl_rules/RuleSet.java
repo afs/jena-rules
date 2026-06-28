@@ -180,6 +180,10 @@ public class RuleSet {
         return base;
     }
 
+    public boolean hasRules() {
+        return rules != null || ! rules.isEmpty();
+    }
+
     public List<Rule> getRules() {
         return rules;
     }
@@ -208,28 +212,30 @@ public class RuleSet {
         return data;
     }
 
-    public TupleStore getTuplesData() {
-        return tuples;
-    }
-
-    public List<Triple> getDataTriples() {
-        return dataTriples;
-    }
-
-    public List<Tuple> getDataTuples() {
-        return dataTuples;
-    }
-
     public boolean hasData() {
         if ( dataTriples == null )
             return false;
         return ! dataTriples.isEmpty();
     }
 
+    /** The list of triples as given - may include duplicates */
+    public List<Triple> getDataTriples() {
+        return dataTriples;
+    }
+
     public boolean hasTupleData() {
         if ( dataTuples == null )
             return false;
         return ! dataTuples.isEmpty();
+    }
+
+    /** The list of tuples as given - may include duplicates */
+    public List<Tuple> getDataTuples() {
+        return dataTuples;
+    }
+
+    public TupleStore getTupleStore() {
+        return tuples;
     }
 
     public boolean hasImports() {
