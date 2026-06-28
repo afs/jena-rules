@@ -337,11 +337,6 @@ public class RuleSetWriter {
                     out.write(" }");
                 }
                 case EltAssignment(Var var, Expr expression) -> {
-                    out.write("BIND( ");
-                    writeExpr(expression);
-                    out.write(" AS ");
-                    nodeFormatter.format(out, var);
-                    out.write(")");
                     out.write("SET( ");
                     nodeFormatter.format(out, var);
                     out.write(" := ");
