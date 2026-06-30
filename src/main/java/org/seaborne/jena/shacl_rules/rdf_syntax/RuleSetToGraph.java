@@ -45,6 +45,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
 import org.seaborne.jena.shacl_rules.sys.P;
+import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
@@ -144,11 +145,23 @@ public class RuleSetToGraph {
         List<Node> items = new ArrayList<>();
         for ( RuleHeadElement headElt : headElts ) {
             switch(headElt) {
-                case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
-                    items.add(encodeTriple(graph, tripleTemplate));
+                case RuleHeadElement.EltTripleTemplate(var tripleTemplate) -> {
+                    if ( SysJenaRules.useRoleTriples ) {
+                        Node encTriple = encodeTriple(graph, tripleTemplate);
+                        Node x = attach(graph, V.tripleTemplate, encTriple);
+                        items.add(x);
+                    } else {
+                        items.add(encodeTriple(graph, tripleTemplate));
+                    }
                 }
-                case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {
-                    items.add(encodeTuple(graph, tupleTemplate));
+                case RuleHeadElement.EltTupleTemplate(var tupleTemplate) -> {
+                    if ( SysJenaRules.useRoleTriples ) {
+                        items.add(encodeTuple(graph, tupleTemplate));
+                    } else {
+                        Node encTuple = encodeTuple(graph, tupleTemplate);
+                        Node x = attach(graph, V.tupleTemplate, encTuple);
+                        items.add(x);
+                    }
                 }
                 case null -> {}
                 default -> {}
@@ -157,6 +170,14 @@ public class RuleSetToGraph {
         }
         Node headNode = list(graph, items);
         return headNode;
+    }
+
+    /** Create an attachment triple - this describes the role being played */
+    private static Node attach(Graph graph, Node property, Node value) {
+        Node blank = NodeFactory.createBlankNode();
+        Triple elementTriple = Triple.create(blank, property, value);
+        graph.add(elementTriple);
+        return blank;
     }
 
     private static Node writeBody(Graph graph, Node ruleNode, Rule rule) {
@@ -170,10 +191,22 @@ public class RuleSetToGraph {
         bodyElts.forEach(elt->{
             switch(elt) {
                 case EltTriplePattern(var triplePattern) -> {
-                   items.add(encodeTriple(graph, triplePattern));
+                    if ( SysJenaRules.useRoleTriples ) {
+                        Node encTriple = encodeTriple(graph, triplePattern);
+                        Node x = attach(graph, V.triplePattern, encTriple);
+                        items.add(x);
+                    } else {
+                        items.add(encodeTriple(graph, triplePattern));
+                    }
                 }
                 case EltTuplePattern(var tuplePattern) -> {
-                    items.add(encodeTuple(graph, tuplePattern));
+                    if ( SysJenaRules.useRoleTriples ) {
+                        Node encTuple = encodeTuple(graph, tuplePattern);
+                        Node x = attach(graph, V.tuplePattern, encTuple);
+                        items.add(x);
+                    } else {
+                        items.add(encodeTuple(graph, tuplePattern));
+                    }
                 }
                 case EltCondition(Expr condition) -> {
                     Node x1 = NodeFactory.createBlankNode();
@@ -188,7 +221,7 @@ public class RuleSetToGraph {
                     items.add(x1);
                 }
 
-                case EltAssignment(Var var, Expr expression) -> {
+                case EltAssignment(var var, var expression) -> {
                     // Functions.
                     Node nExpr = expression(graph, expression);
                     Node nVar = RVar.addVar(graph, var.getVarName());
@@ -222,6 +255,10 @@ public class RuleSetToGraph {
         return out.asString();
     }
 
+    /**
+     * Encode a triple (pattern, template), updating the graph.
+     * See also {@link #attach(Node, Node)}.
+     */
     private static Node encodeTriple(Graph graph, Triple triple) {
         Node tripleNode = NodeFactory.createBlankNode();
         Node sNode = convertTermOrVar(graph, triple.getSubject());
@@ -237,11 +274,14 @@ public class RuleSetToGraph {
         return tripleNode;
     }
 
+    /**
+     * Encode a tuple (pattern, template), updating the graph.
+     * An encoded tuple is an RDF  list.
+     * See also {@link #attach(Node, Node)}.
+     */
     private static Node encodeTuple(Graph graph, Tuple tuple) {
         Node tupleNode = NodeFactory.createBlankNode();
         Node listTuples = tupleAsList(graph, tuple);
-        Triple triple = Triple.create(tupleNode, V.tuple, listTuples);
-        graph.add(triple);
         return tupleNode;
     }
 

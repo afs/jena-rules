@@ -44,6 +44,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTripleTemplate;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTupleTemplate;
 import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
+import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
@@ -59,7 +60,6 @@ public class GraphToRuleSet {
      * Return null if no rule set found.
      */
     public static RuleSet parse(Graph graph) {
-        //G.subjectsOf(any, V.rules, any);
         Node ruleset = G.getPO(graph, V.rules, null);
         if ( ruleset == null )
             return null;
@@ -134,15 +134,23 @@ public class GraphToRuleSet {
         List<Node> x = GraphList.members(gNode);
         for ( Node node : x ) {
             if ( G.hasProperty(graph, node, V.subject) ) {
-                // Single triple rule.
+                if ( SysJenaRules.useRoleTriples )
+                    System.err.println("Old style triple template");
                 Triple triple = parseTriple(graph, node);
                 headTemplate.add(new EltTripleTemplate(triple));
                 continue;
             }
 
-            if ( G.hasProperty(graph, node, V.tuple) ) {
+            if ( G.hasProperty(graph, node, V.tripleTemplate) ) {
+                Node tripleNode = G.getOneSP(graph, node, V.tripleTemplate);
+                Triple triple = parseTriple(graph, tripleNode);
+                headTemplate.add(new EltTripleTemplate(triple));
+                continue;
+            }
+
+            if ( G.hasProperty(graph, node, V.tupleTemplate) ) {
                 // Single tuple rule.
-                Node list = G.getOneSP(graph, node, V.tuple);
+                Node list = G.getOneSP(graph, node, V.tupleTemplate);
                 Tuple tuple = parseTuple(graph, list);
                 headTemplate.add(new EltTupleTemplate(tuple));
                 continue;
@@ -194,17 +202,23 @@ public class GraphToRuleSet {
         List<Triple> currentTriples = new ArrayList<>();
         for ( Node node : x ) {
             if ( G.hasProperty(graph, node, V.subject) ) {
+                System.err.println("Old style triple pattern");
                 // Single triple rule.
                 Triple triple = parseTriple(graph, node);
                 body.add(new EltTriplePattern(triple));
                 continue;
             }
 
+            if ( G.hasProperty(graph, node, V.triplePattern) ) {
+                if ( SysJenaRules.useRoleTriples )
+                    System.err.println("Old style triple pattern");
+                Node tripleNode = G.getOneSP(graph, node, V.triplePattern);
+                Triple triple = parseTriple(graph, tripleNode);
+                body.add(new EltTriplePattern(triple));
+                continue;
+            }
+
             if ( G.hasProperty(graph, node, V.tuple) ) {
-                // Single tuple rule.
-                // XXX Find other case of this pattern!
-                // on V.tuple.
-                // and library "processWith"
                 Node tupleNode = G.getOneSP(graph, node, V.tuple) ;
                 Tuple tuple = parseTuple(graph, tupleNode);
                 body.add(new EltTuplePattern(tuple));
@@ -212,7 +226,6 @@ public class GraphToRuleSet {
             }
 
             if ( G.hasProperty(graph, node, V.filter) ) {
-                // XXX [RDF syntax] Deal with both V.expr
                 Node exprNode = G.getOneSP(graph, node, V.filter) ;
                 Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
                 body.add(new EltCondition(expr));
@@ -228,8 +241,10 @@ public class GraphToRuleSet {
 
             if ( G.hasProperty(graph, node, V.assign) ) {
                 Node assign = G.getOneSP(graph, node, V.assign) ;
+                // Variable part
                 Node varNode= G.getOneSP(graph, assign, V.assignVar);
                 Var var = RVar.getVar(graph, varNode);
+                // Value part
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
                 Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
                 body.add(new EltAssignment(var, expr));
@@ -262,6 +277,7 @@ public class GraphToRuleSet {
         return triples;
     }
 
+    // Maybe a triple term <<( )>>
     private static Triple parseDataTriple(Graph graph, Node node) {
         if ( node.isTripleTerm() )
             return node.getTriple();

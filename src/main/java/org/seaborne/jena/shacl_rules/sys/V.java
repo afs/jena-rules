@@ -52,8 +52,10 @@ public class V {
     public static final Node body           = uri("body");
     public static final Node data           = uri("data");
 
-    // Might be used if rules are linked to a rule set and not in a list.
-    //public static final Node rule           = uri("rule");
+    // Might be used if
+    // (1) rules are linked to a rule set and not in a list.
+    // (2) externally to connect a resource entity to a rule.
+    public static final Node rule           = uri("rule");
 
     // Block of tuples
     public static final Node dataTuples     = uri("tuples");
@@ -64,8 +66,14 @@ public class V {
     public static final Node predicate      = uri("predicate");
     public static final Node object         = uri("object");
 
+
     public static final Node filter         = uri("filter");
     public static final Node negation       = uri("not");
+    public static final Node triplePattern  = uri("triplePattern");
+    public static final Node tripleTemplate = uri("tripleTemplate");
+    public static final Node tuplePattern   = uri("tuplePattern");
+    public static final Node tupleTemplate  = uri("tupleTemplate");
+
     public static final Node assign         = uri("assign");
     public static final Node assignVar      = uri("assignVar");
     public static final Node assignValue    = uri("assignValue");
