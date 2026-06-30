@@ -172,6 +172,11 @@ public class RulesParserBase extends LangParserBase {
         state = BuildState.RULE;
     }
 
+    protected void setGroundedRule(int line, int column) {
+        // XXX Grounded
+        System.err.printf("[Line %d] Grounded rule\n", line);
+    }
+
     protected void finishRule(int line, int column) {
         if ( headAcc == null )
             throwInternalStateException("Null head");
@@ -293,6 +298,11 @@ public class RulesParserBase extends LangParserBase {
         innerBodyAcc = new ArrayList<>();
     }
 
+    protected void setGroundedNegation(int line, int column) {
+        // XXX Grounded
+        System.err.printf("[Line %d] Grounded NOT\n", line);
+    }
+
     protected void finishNegation(int line, int column) {
         debug("finishNegation", line, column);
         state = BuildState.BODY;
@@ -318,14 +328,13 @@ public class RulesParserBase extends LangParserBase {
         }
     }
 
-    // XXX Rename to the specific element type.
     // Triple pattern.
     private void addRuleElement(Triple triplePattern) {
         requireNonNull(triplePattern);
         addToBody(new RuleBodyElement.EltTriplePattern(triplePattern));
     }
 
-    // Triple pattern.
+    // Tuple pattern.
     private void addRuleElement(Tuple tuplePattern) {
         requireNonNull(tuplePattern);
         addToBody(new RuleBodyElement.EltTuplePattern(tuplePattern));

@@ -127,7 +127,7 @@ void Rule() : { }
 {
    Rule1() | Rule2() | Declaration()
 }
-void Rule1() : { Token t; String uri = null;}
+void Rule1() : { Token t; String uri = null; }
 {
    t = <RULE>
    (uri = iri())?
@@ -221,7 +221,7 @@ void BodyTriplesBlock() : { }
    TriplesBlock()
    { finishTriplesBlock(token.beginLine, token.beginColumn) ; }
 }
-void Negation() : { Token t; }
+void Negation() : { Token t; Token t2;}
 {
     t = <NOT>
     { startNegation(token.beginLine, token.beginColumn) ; }
@@ -682,8 +682,11 @@ Node ReifiedTripleSubject() : { Node s; String iri; }
   | s = BooleanLiteral()
   | s = BlankNode()
   | s = ReifiedTriple()
+  // Not () - only allow that where a list is allowed.
   //  <LPAREN> <RPAREN>     { s = RDFnil ; }
   //| <NIL>  { s = nRDFnil ; }
+  // Symmetric RDF
+  | s = TripleTerm()
   )
   { return s; }
 }
@@ -723,7 +726,7 @@ Node TripleTermSubject() : { Node n; String iri; }
   | n = BlankNode()
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
   //| <NIL>  { return nRDFnil ; }
-  //| n = TripleTerm()      { return n; }
+  | n = TripleTerm() { return n; }
   )
   { return n; }
 }

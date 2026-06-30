@@ -231,7 +231,7 @@ NON-TERMINALS
 	Rule	:=	Rule1
 		|	Rule2
 		|	Declaration
-	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> BodyPattern
+	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
 	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
 // Withdrawn.
 // void Rule3() : { Token t; }
@@ -254,7 +254,7 @@ NON-TERMINALS
 	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
 	BodyNotTriples	:=	( Filter | Negation | Assignment | TuplePattern )
 	BodyTriplesBlock	:=	TriplesBlock
-	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
+	Negation	:=	<NOT> ( <DATA> )? <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	( Filter | TuplePattern )
@@ -345,10 +345,10 @@ NON-TERMINALS
 	VarOrTerm	:=	( Var | RDFTerm )
 	RDFTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | <NIL> | TripleTerm )
 	ReifiedTriple	:=	<LT2> ReifiedTripleSubject Verb ReifiedTripleObject ( Reifier )? <GT2>
-	ReifiedTripleSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple )
+	ReifiedTripleSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
 	ReifiedTripleObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
 	TripleTerm	:=	<L_TRIPLE> TripleTermSubject Verb TripleTermObject <R_TRIPLE>
-	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode )
+	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
 	TripleTermObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
 	TripleTermData	:=	<L_TRIPLE> TripleTermDataSubject ( iri | <KW_A> ) TripleTermDataObject <R_TRIPLE>
 	TripleTermDataSubject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral )

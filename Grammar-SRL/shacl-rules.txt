@@ -328,10 +328,10 @@ NON-TERMINALS
 	VarOrTerm	:=	( Var | RDFTerm )
 	RDFTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | <NIL> | TripleTerm )
 	ReifiedTriple	:=	<LT2> ReifiedTripleSubject Verb ReifiedTripleObject ( Reifier )? <GT2>
-	ReifiedTripleSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple )
+	ReifiedTripleSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
 	ReifiedTripleObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
 	TripleTerm	:=	<L_TRIPLE> TripleTermSubject Verb TripleTermObject <R_TRIPLE>
-	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode )
+	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
 	TripleTermObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
 	TripleTermData	:=	<L_TRIPLE> TripleTermDataSubject ( iri | <KW_A> ) TripleTermDataObject <R_TRIPLE>
 	TripleTermDataSubject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral )
