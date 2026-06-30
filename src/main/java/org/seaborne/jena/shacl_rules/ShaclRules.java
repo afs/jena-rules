@@ -70,14 +70,14 @@ public class ShaclRules {
      * {@link RuleSetEvaluation}
      */
     public static RuleSetEvaluation evaluation(Graph graph, RuleSet ruleSet) {
-        return RulesEngine.create(EngineType.SIMPLE, graph, ruleSet).eval();
+        return ShaclRulesExec.create(EngineType.SIMPLE, graph, ruleSet).eval();
     }
 
     /**
      * {@link RuleSetEvaluation}
      */
     public static RuleSetEvaluation evaluation(Graph graph, TupleStore inputTupleStore, RuleSet ruleSet) {
-        return RulesEngine.create(EngineType.SIMPLE, graph, inputTupleStore, ruleSet).eval();
+        return ShaclRulesExec.create(EngineType.SIMPLE, graph, inputTupleStore, ruleSet).eval();
     }
 
 

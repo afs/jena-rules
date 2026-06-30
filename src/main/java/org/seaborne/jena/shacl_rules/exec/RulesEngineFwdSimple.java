@@ -51,10 +51,12 @@ public class RulesEngineFwdSimple implements RulesEngine {
     public static final RulesEngineFactory factory = RulesEngineFwdSimple::build;
 
     /**
-     * Preferred: use {@link RulesEngine#create(EngineType, Graph, TupleStore, RuleSet)}
-     * with {@link EngineType#SIMPLE}.
+     * Not public.
+     * Preferred: use {@link ShaclRulesExec#create(EngineType, Graph, TupleStore, RuleSet)}
+     * with {@link EngineType#SIMPLE} which goes via the RulesEngineRegistry
      */
-    public static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
+    private
+    static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
         RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
         RulesExecLib.prepare(ruleSet, rCxt);
         return new RulesEngineFwdSimple(graph, tupleStore, ruleSet, rCxt);

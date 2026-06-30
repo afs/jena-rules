@@ -43,6 +43,7 @@ import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
@@ -53,10 +54,13 @@ import org.seaborne.jena.shacl_rules.tuples.Tuple;
 import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /*
- * A simple backwards chaining rule engine.
+ * A simple backwards chaining rule engine for experimentation.
  * It does not support recursion.
  */
 public class RulesEngineBkdNonRecursive implements RulesEngine {
+
+    public static final RulesEngineFactory factory = RulesEngineBkdNonRecursive::build;
+
 
     private boolean TRACE = false;
     @Override
@@ -67,7 +71,11 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
 
     public static IndentedWriter LOG = IndentedWriter.stdout.clone().setFlushOnNewline(true).setLinePrefix("R: ");
 
-    public static RulesEngineBkdNonRecursive build(Graph graph, RuleSet ruleSet) {
+    public static RulesEngineBkdNonRecursive build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {//(Graph graph, RuleSet ruleSet) {
+        if ( tupleStore != null )
+            throw new RuleEvalException("Tuples not supported for "+RulesEngineBkdNonRecursive.class.getSimpleName());
+        if ( ruleSet.hasTupleData() && ruleSet.getDataTuples().isEmpty() )
+            throw new RuleEvalException("Tuples in rule set : not supported for "+RulesEngineBkdNonRecursive.class.getSimpleName());
         RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(Rules.getContext());
         RulesExecLib.prepare(ruleSet, rCxt);
         return new RulesEngineBkdNonRecursive(graph, ruleSet);

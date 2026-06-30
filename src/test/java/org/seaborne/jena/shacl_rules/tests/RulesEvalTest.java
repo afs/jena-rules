@@ -37,7 +37,7 @@ import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.RulesEngine;
+import org.seaborne.jena.shacl_rules.ShaclRulesExec;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
@@ -83,7 +83,7 @@ public class RulesEvalTest implements Runnable {
 
         boolean verbose = false;
 
-        RuleSetEvaluation e = RulesEngine.create(engineType, input, ruleSet).setTrace(false).eval();
+        RuleSetEvaluation e = ShaclRulesExec.create(engineType, input, ruleSet).setTrace(false).eval();
 
         Graph outcome = e.inferredTriples();
         Node nResult = testItem.getResult();

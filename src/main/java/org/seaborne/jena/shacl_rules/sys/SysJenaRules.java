@@ -26,9 +26,6 @@ package org.seaborne.jena.shacl_rules.sys;
  */
 public class SysJenaRules {
 
-    // enum!
-    // release settings: false/false.
-
     /** Allow assignments in recursive rules */
     public static boolean allowUnsafeAssigments = false;
 
@@ -37,7 +34,6 @@ public class SysJenaRules {
 
     /** Role triples for RDF syntax */
     public static boolean useRoleTriples = true;
-
 
 //    /**
 //     * Whether run-=once rules are strictly stratified

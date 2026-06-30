@@ -82,7 +82,7 @@ public class TestRulesEval {
 
     private RuleSetEvaluation testEval(String label, Graph data, RuleSet ruleSet) {
         EngineType engineType = EngineType.SIMPLE;
-        RuleSetEvaluation e = RulesEngine.create(engineType, data, ruleSet).setTrace(false).eval();
+        RuleSetEvaluation e = ShaclRulesExec.create(engineType, data, ruleSet).setTrace(false).eval();
         return e;
     }
 
