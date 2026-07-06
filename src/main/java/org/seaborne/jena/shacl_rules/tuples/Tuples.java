@@ -238,7 +238,7 @@ public class Tuples {
         return Tuple.create(terms);
     }
 
-    public static void addVars(Set<Var> vars, Tuple tuple) {
+    public static void addVars(Collection<Var> vars, Tuple tuple) {
         tuple.forEach(n-> {
             if ( Var.isVar(n) ) {
                 Var var = Var.alloc(n);

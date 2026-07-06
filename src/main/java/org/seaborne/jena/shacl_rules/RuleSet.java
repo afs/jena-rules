@@ -181,7 +181,7 @@ public class RuleSet {
     }
 
     public boolean hasRules() {
-        return rules != null || ! rules.isEmpty();
+        return rules != null && ! rules.isEmpty();
     }
 
     public List<Rule> getRules() {
