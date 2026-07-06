@@ -80,6 +80,9 @@ public class RulesSyntaxTest implements Runnable {
                 //ex.printStackTrace();
                 fail("Parse error: "+ex.getMessage());
             }
+        } catch(RuntimeException ex) {
+            ex.printStackTrace();
+            throw ex;
         }
     }
 

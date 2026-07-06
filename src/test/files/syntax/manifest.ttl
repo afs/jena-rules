@@ -73,6 +73,29 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
         :test_60
         :test_61
         :test_62
+        :test_63
+        :test_64
+        :test_65
+        :test_66
+        :test_67
+        :test_68
+        :test_69
+        :test_70
+        :test_71
+        :test_72
+        :test_73
+        :test_74
+        :test_75
+        :test_76
+        :test_77
+        :test_78
+        :test_79
+        :test_80
+        :test_81
+        :test_82
+        :test_83
+        :test_84
+        :test_85
     ) .
 
 :test_1 rdf:type   srt:RulesPositiveSyntaxTest ;
@@ -321,66 +344,181 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
    .
 
 :test_50 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-01.srl" ;
+   mf:action  <syntax-data-01.srl> ;
+   .
+
+:test_51 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-02.srl" ;
+   mf:action  <syntax-data-02.srl> ;
+   .
+
+:test_52 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-03.srl" ;
+   mf:action  <syntax-data-03.srl> ;
+   .
+
+:test_53 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-04.srl" ;
+   mf:action  <syntax-data-04.srl> ;
+   .
+
+:test_54 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-05.srl" ;
+   mf:action  <syntax-data-05.srl> ;
+   .
+
+:test_55 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-06.srl" ;
+   mf:action  <syntax-data-06.srl> ;
+   .
+
+:test_56 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-07.srl" ;
+   mf:action  <syntax-data-07.srl> ;
+   .
+
+:test_57 rdf:type   srt:RulesPositiveSyntaxTest ;
    mf:name    "syntax-data-08.srl" ;
    mf:action  <syntax-data-08.srl> ;
    .
 
-:test_51 rdf:type   srt:RulesPositiveSyntaxTest ;
+:test_58 rdf:type   srt:RulesPositiveSyntaxTest ;
    mf:name    "syntax-data-09.srl" ;
    mf:action  <syntax-data-09.srl> ;
    .
 
-:test_52 rdf:type   srt:RulesPositiveSyntaxTest ;
+:test_59 rdf:type   srt:RulesPositiveSyntaxTest ;
    mf:name    "syntax-data-10.srl" ;
    mf:action  <syntax-data-10.srl> ;
    .
 
-:test_53 rdf:type   srt:RulesPositiveSyntaxTest ;
+:test_60 rdf:type   srt:RulesPositiveSyntaxTest ;
    mf:name    "syntax-data-11.srl" ;
    mf:action  <syntax-data-11.srl> ;
    .
 
-:test_54 rdf:type   srt:RulesPositiveSyntaxTest ;
+:test_61 rdf:type   srt:RulesPositiveSyntaxTest ;
    mf:name    "syntax-data-12.srl" ;
    mf:action  <syntax-data-12.srl> ;
    .
 
-:test_55 rdf:type   srt:RulesPositiveSyntaxTest ;
+:test_62 rdf:type   srt:RulesPositiveSyntaxTest ;
    mf:name    "syntax-data-13.srl" ;
    mf:action  <syntax-data-13.srl> ;
    .
 
-:test_56 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_63 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-14.srl" ;
+   mf:action  <syntax-data-14.srl> ;
+   .
+
+:test_64 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-15.srl" ;
+   mf:action  <syntax-data-15.srl> ;
+   .
+
+:test_65 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-16.srl" ;
+   mf:action  <syntax-data-16.srl> ;
+   .
+
+:test_66 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-17.srl" ;
+   mf:action  <syntax-data-17.srl> ;
+   .
+
+:test_67 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-18.srl" ;
+   mf:action  <syntax-data-18.srl> ;
+   .
+
+:test_68 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-19.srl" ;
+   mf:action  <syntax-data-19.srl> ;
+   .
+
+:test_69 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-20.srl" ;
+   mf:action  <syntax-data-20.srl> ;
+   .
+
+:test_70 rdf:type   srt:RulesPositiveSyntaxTest ;
+   mf:name    "syntax-data-21.srl" ;
+   mf:action  <syntax-data-21.srl> ;
+   .
+
+:test_71 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-01.srl" ;
+   mf:action  <syntax-data-bad-01.srl> ;
+   .
+
+:test_72 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-02.srl" ;
+   mf:action  <syntax-data-bad-02.srl> ;
+   .
+
+:test_73 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-03.srl" ;
+   mf:action  <syntax-data-bad-03.srl> ;
+   .
+
+:test_74 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-04.srl" ;
+   mf:action  <syntax-data-bad-04.srl> ;
+   .
+
+:test_75 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-05.srl" ;
+   mf:action  <syntax-data-bad-05.srl> ;
+   .
+
+:test_76 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-06.srl" ;
+   mf:action  <syntax-data-bad-06.srl> ;
+   .
+
+:test_77 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-07.srl" ;
+   mf:action  <syntax-data-bad-07.srl> ;
+   .
+
+:test_78 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-08.srl" ;
+   mf:action  <syntax-data-bad-08.srl> ;
+   .
+
+:test_79 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-data-bad-09.srl" ;
+   mf:action  <syntax-data-bad-09.srl> ;
+   .
+
+:test_80 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-01.srl" ;
    mf:action  <syntax-rule-bad-01.srl> ;
    .
 
-:test_57 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_81 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-02.srl" ;
    mf:action  <syntax-rule-bad-02.srl> ;
    .
 
-:test_58 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_82 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-03.srl" ;
    mf:action  <syntax-rule-bad-03.srl> ;
    .
 
-:test_59 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_83 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-04.srl" ;
    mf:action  <syntax-rule-bad-04.srl> ;
    .
 
-:test_60 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_84 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-05.srl" ;
    mf:action  <syntax-rule-bad-05.srl> ;
    .
 
-:test_61 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_85 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-rule-bad-06.srl" ;
    mf:action  <syntax-rule-bad-06.srl> ;
-   .
-
-:test_62 rdf:type   srt:RulesNegativeSyntaxTest ;
-   mf:name    "syntax-data-bad-01.srl" ;
-   mf:action  <syntax-data-bad-01.srl> ;
    .

@@ -324,8 +324,9 @@ EOF
 
 ## 
 
-## Data
+## DATA
 
+N=0
 N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
 PREFIX : <http://example/>
 DATA { }
@@ -333,32 +334,160 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
 PREFIX : <http://example/>
+DATA { :s :p :o . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
 DATA { :s :p :o }
 EOF
+
 N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
 PREFIX : <http://example/>
-DATA { :s :p 123 }
+DATA { :s a :T }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
 PREFIX : <http://example/>
-DATA { :s :p 1,2 }
+DATA {
+   # Symmetric RDF
+   123 :q 456 .
+}
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
 PREFIX : <http://example/>
-DATA { :s :p ( 1 2 ) }
+DATA { :s :p1 "abc", "abc"@en , "abc"@en--ltr . }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
 PREFIX : <http://example/>
-DATA { <<:s :p :o >> }
+DATA {   :s :p1 1, 1.0, 1e0 . }
 EOF
 
-## Bad syntax
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA {   :s :p1 true, false }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA {   :s :p1 "xyz"^^:datatype }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA {   :s :p :o1, :o2 . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p :o {| :q1 "abc", "abc"@en , "abc"@EN-GB , "abc"@en--ltr ; :q2 1, true |} . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p :o ~:r {| :q :z |} . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p :o ~:r1 {| :q1 :z1 |} ~_:B {| :q1 :z1 |} }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :x :p :z ~_:B {| :q _:B |} }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :a :b :c ~:r . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { << :s :p :o >> }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { << :s :p :o >> . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { << :a :b :c ~:r >> . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { << :s :p :o >> :q << :s1 :p1 :o1 >> . }
+EOF
+  
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF      
+PREFIX : <http://example/>
+DATA { <<( :s :p :o )>> :q <<( :s1 :p1 :o1 )>> . }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-data-" $N) <<EOF      
+PREFIX : <http://example/>
+DATA { :s :p :o }
+DATA { :x :y :z . }
+EOF
+
+## Bad DATA
 
 N=0
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { a :p :o }
+EOF
 
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p a }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s "literal" :o }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p "abc"@en--LTR }
+EOF
+
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p ?o }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s ?p :o }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { ?s :p :o }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p :o ~:r {| |} }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
+PREFIX : <http://example/>
+DATA { :s :p :o ~ ?r {| :p :z |} }
+EOF
+
+## Bad syntax - structure
+
+N=0
 N=$((N+1)) ; testBad $(fname "syntax-rule-bad-" $N) <<EOF
 PREFIX : <http://example/>
 RULE
@@ -386,10 +515,4 @@ EOF
 N=$((N+1)) ; testBad $(fname "syntax-rule-bad-" $N) <<EOF
 PREFIX : <http://example/>
 RULE {} WHERE {?s ?p ?o NOT { ?a ?b ?c { NOT ?d ?e ?f } } }
-EOF
-
-N=0
-N=$((N+1)) ; testBad $(fname "syntax-data-bad-" $N) <<EOF
-PREFIX : <http://example/>
-DATA { :s :p ?o }
 EOF

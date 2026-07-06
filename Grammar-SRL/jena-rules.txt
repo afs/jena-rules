@@ -244,8 +244,45 @@ NON-TERMINALS
 //    { finishRule(t.beginLine, t.beginColumn); }
 // }
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
-	Data	:=	<DATA> <LBRACE> ( TriplesDataBlock )? <RBRACE>
-	TriplesDataBlock	:=	TriplesSameSubject ( ( <DOT> ) TriplesSameSubject )* ( <DOT> )?
+// Production organisation.
+// Data block   - rules of the form *Data - no variables
+// HeadTemplate - rules of the form *Template - variables, no paths
+// BodyPattern  - rules of the form *Pattern - variables and paths
+// Tuples - one set, with variables.
+// General.
+// ---- Start: DATA block.
+// No variables.
+// There follows rules of the form *Data
+	Data	:=	<DATA> <LBRACE> ( TriplesBlockData )? <RBRACE>
+	TriplesBlockData	:=	TriplesSameSubjectData ( ( <DOT> ) TriplesSameSubjectData )* ( <DOT> )?
+	TriplesSameSubjectData	:=	RDFTerm PropertyListNotEmptyData
+		|	TriplesNodeData PropertyListData
+		|	ReifiedTripleBlockData
+	PropertyListData	:=	( PropertyListNotEmptyData )?
+	PropertyListNotEmptyData	:=	VerbData ObjectListData ( <SEMICOLON> ( VerbData ObjectListData )? )*
+	VerbData	:=	( iri | <KW_A> )
+	ObjectListData	:=	ObjectData ( <COMMA> ObjectData )*
+	ObjectData	:=	GraphNodeData AnnotationData
+// Object position RDF term or element of a list
+	GraphNodeData	:=	RDFTerm
+		|	TriplesNodeData
+		|	ReifiedTripleData
+	TriplesNodeData	:=	CollectionData
+		|	BlankNodePropertyListData
+	BlankNodePropertyListData	:=	<LBRACKET> PropertyListNotEmptyData <RBRACKET>
+	CollectionData	:=	<LPAREN> ( GraphNodeData )+ <RPAREN>
+	AnnotationData	:=	( ReifierData | AnnotationBlock )*
+	ReifierData	:=	<TILDE> ( ReifierIdData )?
+	ReifierIdData	:=	( iri | BlankNode )
+// << :s :p :o >>, maybe a property list.
+	ReifiedTripleBlockData	:=	ReifiedTripleData PropertyListData
+	ReifiedTripleData	:=	<LT2> ReifiedTripleSubjectData VerbData ReifiedTripleObjectData ( ReifierData )? <GT2>
+	ReifiedTripleSubjectData	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleData | TripleTermData )
+	ReifiedTripleObjectData	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleData | TripleTermData )
+	TripleTermData	:=	<L_TRIPLE> TripleTermSubjectData VerbData TripleTermObjectData <R_TRIPLE>
+	TripleTermSubjectData	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData )
+	TripleTermObjectData	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData )
+// ---- End: DATA block
 	TupleData	:=	<TUPLES> <LBRACE> ( TuplesDataBlock )? <RBRACE>
 	TuplesDataBlock	:=	( DataTuple ( <DOT> )? )+
 // ---- Rule head
@@ -342,39 +379,24 @@ NON-TERMINALS
 	GraphNodePath	:=	VarOrTerm
 		|	TriplesNodePath
 		|	ReifiedTriple
-	VarOrTerm	:=	( Var | RDFTerm )
-	RDFTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | <NIL> | TripleTerm )
+// Patterns
 	ReifiedTriple	:=	<LT2> ReifiedTripleSubject Verb ReifiedTripleObject ( Reifier )? <GT2>
 	ReifiedTripleSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
 	ReifiedTripleObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm )
 	TripleTerm	:=	<L_TRIPLE> TripleTermSubject Verb TripleTermObject <R_TRIPLE>
 	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
 	TripleTermObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
-	TripleTermData	:=	<L_TRIPLE> TripleTermDataSubject ( iri | <KW_A> ) TripleTermDataObject <R_TRIPLE>
-	TripleTermDataSubject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral )
-	TripleTermDataObject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | TripleTermData )
-// // VarOrTerm except no var, no bnodes
-// // @@ Rename?
-// Node DataValueTerm() : {  Node n = null ; String iri ; Node s , p , o ; }
-// {
-//   iri = iri()            { return createURI(iri, token.beginLine, token.beginColumn) ; }
-// | n = RDFLiteral()       { return n ; }
-// | n = NumericLiteral()   { return n ; }
-// | n = BooleanLiteral()   { return n ; }
-// | n = TripleTermData()   { return n; }
-// }
-// e.g. Property (if no bNodes) + DESCRIBE
+// ---- Start: templates
+	TripleTermTemplate	:=	<L_TRIPLE> TripleTermSubjectTemplate ( iri | <KW_A> ) TripleTermObjectTemplate <R_TRIPLE>
+	TripleTermSubjectTemplate	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral )
+	TripleTermObjectTemplate	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | TripleTermData )
+// ---- Start: RDFTerm and variables.
+	RDFTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | <NIL> | TripleTerm )
+	VarOrTerm	:=	( Var | RDFTerm )
 	VarOrIri	:=	( Var | iri )
-// // e.g. INSERT DATA { GRAPH ... }
-// #ifdef JENA
-// Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
-// {
-//   ( n = Var() | n = BlankNode() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
-//   { return n ; }
-// }
-// #endif
 	Var	:=	( <VAR1> | <VAR2> )
-// -------- Constraint syntax
+	RDFLiteral	:=	String ( <LANG_DIR> | <DATATYPE> iri )?
+// ---- Start: expression syntax
 	Expression	:=	ConditionalOrExpression
 	ConditionalOrExpression	:=	ConditionalAndExpression ( <SC_OR> ConditionalAndExpression )*
 	ConditionalAndExpression	:=	ValueLogical ( <SC_AND> ValueLogical )*
@@ -388,17 +410,6 @@ NON-TERMINALS
 		|	<MINUS> PrimaryExpression
 		|	PrimaryExpression
 	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
-// Node ExprVarOrTerm() : { Node n; String s;}
-// {
-//   ( s = iri() { n = createURI(s, token.beginLine, token.beginColumn); }
-//   | n = RDFLiteral()
-//   | n = NumericLiteral()
-//   | n = BooleanLiteral()
-//   | n = Var()
-//   | n = ExprTripleTerm()
-//   )
-//   { return n; }
-// }
 	ExprTripleTerm	:=	<L_TRIPLE> ExprTripleTermSubject Verb ExprTripleTermObject <R_TRIPLE>
 	ExprTripleTermSubject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var )
 	ExprTripleTermObject	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
@@ -460,7 +471,7 @@ NON-TERMINALS
 		|	<OBJECT> <LPAREN> Expression <RPAREN>
 // See also FunctionCall.
 	iriOrFunction	:=	iri ( ArgList )?
-	RDFLiteral	:=	String ( <LANG_DIR> | <DATATYPE> iri )?
+// ---- Build blocks from terminals.
 	NumericLiteral	:=	( NumericLiteralUnsigned | NumericLiteralPositive | NumericLiteralNegative )
 	NumericLiteralUnsigned	:=	<INTEGER>
 		|	<DECIMAL>

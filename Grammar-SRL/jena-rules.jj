@@ -184,22 +184,236 @@ void Declaration() : { Token t; String iriStr ; }
     { inverseProperties(iriStr1, iriStr2); }
   )
 }
+// Production organisation.
+// Data block   - rules of the form *Data - no variables
+// HeadTemplate - rules of the form *Template - variables, no paths
+// BodyPattern  - rules of the form *Pattern - variables and paths
+// Tuples - one set, with variables.
+// General.
+// ---- Start: DATA block.
+// No variables.
+// There follows rules of the form *Data
 void Data() : { Token t; }
 {
     t = <DATA>
     <LBRACE>
     { startData(t.beginLine, t.beginColumn); }
-    (TriplesDataBlock())?
+    (TriplesBlockData())?
     <RBRACE>
     { finishData(t.beginLine, t.beginColumn); }
 }
-void TriplesDataBlock() : {}
+void TriplesBlockData() : {}
 {
     // Rewrite for no recursion - grammar is not LL(1)
-    TriplesSameSubject()
-    (LOOKAHEAD(2) (<DOT>) TriplesSameSubject())*
+    TriplesSameSubjectData()
+    (LOOKAHEAD(2) (<DOT>) TriplesSameSubjectData())*
     (<DOT>)?
 }
+void TriplesSameSubjectData() : { Node s; }
+{
+  s = RDFTerm()
+  PropertyListNotEmptyData(s)
+|
+  // Any of the triple generating syntax elements : (), []
+  s = TriplesNodeData()
+  PropertyListData(s)
+|
+  ReifiedTripleBlockData()
+}
+void PropertyListData(Node s) : { }
+{
+  ( PropertyListNotEmptyData(s) )?
+}
+void PropertyListNotEmptyData(Node s) : { Node p = null ; }
+{
+    p = VerbData()
+    ObjectListData(s, p)
+  ( <SEMICOLON>
+    (
+       p = VerbData()
+       ObjectListData(s, p)
+    )?
+  )*
+}
+Node VerbData() : { String iriStr ; }
+{
+  ( iriStr = iri() { return createURI(iriStr, token.beginLine, token.beginColumn) ; }
+  | <KW_A> { return nRDFtype ; }
+  )
+}
+void ObjectListData(Node s, Node p) : { }
+{
+  ObjectData(s, p)
+  ( <COMMA> ObjectData(s, p) )*
+}
+void ObjectData(Node s, Node p) : { Node o; }
+{
+   o = GraphNodeData()
+   { emitTriple(s, p, o, token.beginLine, token.beginColumn); }
+   AnnotationData(s, p, o)
+}
+// Object position RDF term or element of a list
+Node GraphNodeData() : { Node n ; }
+{
+   n = RDFTerm() { return n ; }
+ |
+   n = TriplesNodeData() { return n ; }
+ |
+   n = ReifiedTripleData() { return n ; }
+}
+Node TriplesNodeData() : { Node n ; }
+{
+   n = CollectionData() { return n ; }
+ |
+   n = BlankNodePropertyListData() { return n ; }
+}
+Node BlankNodePropertyListData() : { Token t ; }
+{
+  t = <LBRACKET>
+    { Node n = createBNode( t.beginLine, t.beginColumn) ; }
+  PropertyListNotEmptyData(n)
+  <RBRACKET>
+    { return n ; }
+}
+Node CollectionData() :
+    { Node listHead = nRDFnil ; Node lastCell = null ; Node n ; Token t ; }
+{
+  t = <LPAREN>
+  { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
+  (
+    { Node cell = createListNode( beginLine, beginColumn) ;
+      if ( listHead == nRDFnil )
+         listHead = cell ;
+      if ( lastCell != null )
+        emitTriple(lastCell, nRDFrest, cell, token.beginLine, token.beginColumn) ;
+    }
+    n = GraphNodeData()
+    {
+      emitTriple(cell, nRDFfirst, n,token.beginLine, token.beginColumn) ;
+      lastCell = cell ;
+    }
+  ) +
+  // Not * here - "()" is handled separately.
+  <RPAREN>
+   { if ( lastCell != null )
+       emitTriple(lastCell, nRDFrest, nRDFnil, token.beginLine, token.beginColumn) ;
+     return listHead ; }
+}
+void AnnotationData(Node s, Node p, Node o) : { Node reifId = null ; }
+{
+  (
+    // "~ :reifier"
+    { p = preConditionReifier(s, p, null, o, token.beginLine, token.beginColumn); }
+    reifId = ReifierData()
+    { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }
+    { setReifierId(reifId); }
+  |
+    {
+      // No "~". Generated blank node
+      p = preConditionReifier(s, p, null, o, token.beginLine, token.beginColumn);
+      reifId = getOrAllocReifierId(s, p, o, token.beginLine, token.beginColumn);
+    }
+    { clearReifierId(); }
+    AnnotationBlock(reifId)
+  )*
+}
+Node ReifierData() : { Token tok = null ; Node reifId = null ; }
+{
+    tok = <TILDE>
+    (reifId = ReifierIdData() )?
+    { return reifId; }
+}
+Node ReifierIdData() : { String iri; Node n; }
+{
+   ( iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
+   | n = BlankNode() { return n ; }
+   )
+}
+// << :s :p :o >>, maybe a property list.
+Node ReifiedTripleBlockData() : {Node reifId ; }
+{
+   reifId = ReifiedTripleData()
+   PropertyListData(reifId)
+   { return reifId; }
+}
+Node ReifiedTripleData() : { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
+{
+  tok = <LT2>
+  s = ReifiedTripleSubjectData()
+  p = VerbData()
+  o = ReifiedTripleObjectData()
+  (reifId = ReifierData())?
+  { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }
+  <GT2>
+  { return reifId; }
+}
+Node ReifiedTripleSubjectData() : { Node s; String iri; }
+{
+  ( iri = iri() { s = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | s = RDFLiteral()
+  | s = NumericLiteral()
+  | s = BooleanLiteral()
+  | s = BlankNode()
+  | s = ReifiedTripleData()
+  // Not () - only allow that where a list is allowed.
+  //  <LPAREN> <RPAREN>     { s = RDFnil ; }
+  //| <NIL>  { s = nRDFnil ; }
+  // Symmetric RDF
+  | s = TripleTermData()
+  )
+  { return s; }
+}
+Node ReifiedTripleObjectData() : { Node o; String iri; }
+{
+  ( iri = iri() { o = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | o = RDFLiteral()
+  | o = NumericLiteral()
+  | o = BooleanLiteral()
+  | o = BlankNode()
+  | o = ReifiedTripleData()
+  //  <LPAREN> <RPAREN>     { o = nRDFnil ; }
+  //| <NIL>  { o = nRDFnil ; }
+  | o = TripleTermData()
+  )
+  { return o; }
+}
+Node TripleTermData() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
+{
+    openToken = <L_TRIPLE>
+    s = TripleTermSubjectData()
+    p = VerbData()
+    o = TripleTermObjectData()
+    { n = createTripleTerm(s, p, o, openToken.beginLine, openToken.beginColumn); }
+    <R_TRIPLE>
+    { return n ; }
+}
+Node TripleTermSubjectData() : { Node n; String iri; }
+{
+  ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = BlankNode()
+  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
+  //| <NIL>  { return nRDFnil ; }
+  | n = TripleTermData() { return n; }
+  )
+  { return n; }
+}
+Node TripleTermObjectData() : { Node n; String iri; }
+{
+  ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = BlankNode()
+  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
+  //| <NIL>  { return nRDFnil ; }
+  | n = TripleTermData() { return n; }
+  )
+  { return n; }
+}
+// ---- End: DATA block
 void TupleData() : { Token t; }
 {
     t = <TUPLES>
@@ -448,8 +662,6 @@ void PropertyListNotEmpty(Node s) : { Node p = null ; }
 }
 Node Verb() : { Node p ;}
 {
-// Blank nodes as predicates
-//   ( p = VarOrBlankNodeOrIri() | <KW_A> { p = nRDFtype ; } )
   ( p = VarOrIri() | <KW_A> { p = nRDFtype ; } )
   { return p ; }
 }
@@ -719,24 +931,7 @@ Node GraphNodePath() : { Node n ; }
 |
   n = ReifiedTriple() { return n ; }
 }
-Node VarOrTerm() : { Node n = null ; }
-{
-  ( n = Var() | n = RDFTerm() )
-  { return n; }
-}
-Node RDFTerm() : { Node n = null ; String iri ; }
-{
-  ( iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  | <NIL> { return nRDFnil ; }
-  | n = TripleTerm() { return n; }
-  )
-  { return n; }
-}
+// Patterns
 Node ReifiedTriple() : { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
 {
   tok = <LT2>
@@ -819,18 +1014,19 @@ Node TripleTermObject() : { Node n; String iri; }
   )
   { return n; }
 }
-Node TripleTermData() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
+// ---- Start: templates
+Node TripleTermTemplate() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
 {
     openToken = <L_TRIPLE>
     // @@ Alt name? ttDataValueTerm
-    s = TripleTermDataSubject()
+    s = TripleTermSubjectTemplate()
     ( iri = iri() { p = createURI(iri, token.beginLine, token.beginColumn) ; } | <KW_A> { p = nRDFtype ; } )
-    o = TripleTermDataObject()
+    o = TripleTermObjectTemplate()
     { n = createTripleTerm(s, p, o, openToken.beginLine, openToken.beginColumn); }
     <R_TRIPLE>
     { return n ; }
 }
-Node TripleTermDataSubject() : { Node n = null; String iri; }
+Node TripleTermSubjectTemplate() : { Node n = null; String iri; }
 {
  ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
  | n = RDFLiteral()
@@ -840,46 +1036,59 @@ Node TripleTermDataSubject() : { Node n = null; String iri; }
  )
  { return n; }
 }
-Node TripleTermDataObject() : { Node n = null; String iri; }
+Node TripleTermObjectTemplate() : { Node n = null; String iri; }
 {
- ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
- | n = RDFLiteral()
- | n = NumericLiteral()
- | n = BooleanLiteral()
- | n = TripleTermData()
- )
+  ( iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = TripleTermData()
+  )
  { return n; }
 }
-// // VarOrTerm except no var, no bnodes
-// // @@ Rename?
-// Node DataValueTerm() : {  Node n = null ; String iri ; Node s , p , o ; }
-// {
-//   iri = iri()            { return createURI(iri, token.beginLine, token.beginColumn) ; }
-// | n = RDFLiteral()       { return n ; }
-// | n = NumericLiteral()   { return n ; }
-// | n = BooleanLiteral()   { return n ; }
-// | n = TripleTermData()   { return n; }
-// }
-// e.g. Property (if no bNodes) + DESCRIBE
+// ---- Start: RDFTerm and variables.
+Node RDFTerm() : { Node n = null ; String iri ; }
+{
+  ( iri = iri() { return createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = BlankNode()
+  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
+  | <NIL> { return nRDFnil ; }
+  | n = TripleTerm() { return n; }
+  )
+  { return n; }
+}
+Node VarOrTerm() : { Node n = null ; }
+{
+  ( n = Var() | n = RDFTerm() )
+  { return n; }
+}
 Node VarOrIri() : {Node n = null ; String iri ; }
 {
   ( n = Var() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
   { return n ; }
 }
-// // e.g. INSERT DATA { GRAPH ... }
-// #ifdef JENA
-// Node VarOrBlankNodeOrIri() : {Node n = null ; String iri ; }
-// {
-//   ( n = Var() | n = BlankNode() | iri = iri() { n = createURI(iri, token.beginLine, token.beginColumn) ; } )
-//   { return n ; }
-// }
-// #endif
 Var Var() : { Token t ;}
 {
     ( t = <VAR1> | t = <VAR2> )
     { return createVariable(t.image, t.beginLine, t.beginColumn) ; }
 }
-// -------- Constraint syntax
+Node RDFLiteral() : { Token t ; String lex = null ; String uri = null ; }
+{
+  lex = String()
+  // Optional lang tag and datatype.
+  (
+    t = <LANG_DIR>
+    { return createLiteralLang(lex, t.image, token.beginLine, token.beginColumn); }
+  |
+     <DATATYPE> uri = iri()
+     { return createLiteralDT(lex, uri, token.beginLine, token.beginColumn); }
+  )?
+  { return createLiteralString(lex, token.beginLine, token.beginColumn) ; }
+}
+// ---- Start: expression syntax
 Expr Expression() : { Expr expr ; }
 {
   expr = ConditionalOrExpression()
@@ -1012,17 +1221,6 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm() { return asExpr(n) ; }
   )
 }
-// Node ExprVarOrTerm() : { Node n; String s;}
-// {
-//   ( s = iri() { n = createURI(s, token.beginLine, token.beginColumn); }
-//   | n = RDFLiteral()
-//   | n = NumericLiteral()
-//   | n = BooleanLiteral()
-//   | n = Var()
-//   | n = ExprTripleTerm()
-//   )
-//   { return n; }
-// }
 Node ExprTripleTerm() : { Token t ; Node s,p,o,n; }
 {
   t = <L_TRIPLE>
@@ -1256,19 +1454,7 @@ Expr iriOrFunction() : { String iri ; ExprList a = null ; }
     return new E_Function(iri, a) ;
   }
 }
-Node RDFLiteral() : { Token t ; String lex = null ; String uri = null ; }
-{
-  lex = String()
-  // Optional lang tag and datatype.
-  (
-    t = <LANG_DIR>
-    { return createLiteralLang(lex, t.image, token.beginLine, token.beginColumn); }
-  |
-     <DATATYPE> uri = iri()
-     { return createLiteralDT(lex, uri, token.beginLine, token.beginColumn); }
-  )?
-  { return createLiteralString(lex, token.beginLine, token.beginColumn) ; }
-}
+// ---- Build blocks from terminals.
 Node NumericLiteral() : { Node n ; }
 {
   (

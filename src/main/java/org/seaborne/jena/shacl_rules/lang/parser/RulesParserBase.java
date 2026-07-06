@@ -36,7 +36,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.TextDirection;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.QueryParseException;
 import org.apache.jena.riot.lang.LangParserBase;
 import org.apache.jena.sparql.ARQInternalErrorException;
 import org.apache.jena.sparql.core.Var;
@@ -45,6 +44,7 @@ import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.shacl_rules.Rule;
+import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
@@ -454,8 +454,8 @@ public class RulesParserBase extends LangParserBase {
 
     // --
 
-    protected void throwParseException(String msg, int line, int column) {
-        throw new ShaclRulesParseException(msg, line, column);
+    protected RulesException createParseException(String msg, int line, int column) {
+        return new ShaclRulesParseException(msg, line, column);
     }
 
     protected void throwInternalStateException(String msg) {
@@ -473,7 +473,7 @@ public class RulesParserBase extends LangParserBase {
             }
             case DATA -> {
                 if ( ! triple.isConcrete() )
-                    throwParseException("Triple must be concrete (no variables): "+triple, line, column);
+                    throw createParseException("Triple must be concrete (no variables): "+triple, line, column);
                 data.add(triple);
             }
             default -> {
@@ -515,8 +515,7 @@ public class RulesParserBase extends LangParserBase {
             return p;
         if ( path instanceof P_Link )
             return ((P_Link)path).getNode();
-        throwParseException("Only simple paths allowed with reifier syntax", line, column);
-        return null;
+        throw createParseException("Only simple paths allowed with reifier syntax", line, column);
     }
 
     // ---- IRIs with resolving
@@ -603,7 +602,7 @@ public class RulesParserBase extends LangParserBase {
 
         if ( langTag2 != null && textDirStr2 != null ) {
             if ( ! TextDirection.isValid(textDirStr2) )
-                throw new QueryParseException("Illegal base direction: '"+textDirStr2+"'", line, column);
+                throw createParseException("Illegal base direction: '"+textDirStr2+"'", line, column);
             return NodeFactory.createLiteralDirLang(lexicalForm, langTag2, textDirStr2);
         }
         // langTag != null, textDirStr == null.
