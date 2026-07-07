@@ -341,15 +341,34 @@ NON-TERMINALS
 	ObjectPath	:=	GraphNodePath AnnotationPath
 // End paths stuff.
 // -------- Paths
-// Simpified to Sequence  and inverse only.
-// // Weakest outermost
+// Simpified to Sequence and inverse only.
+// Weakest outermost
 	Path	:=	PathSequence
 	PathSequence	:=	PathEltOrInverse ( <SLASH> PathEltOrInverse )*
-// Path unit element, including inverse.
+// Path unit element or inverse.
 	PathEltOrInverse	:=	( PathElt | <CARAT> PathElt )
-// Path unit element, no inverse
-	PathElt	:=	PathPrimary
-	PathPrimary	:=	( iri | <KW_A> | <LPAREN> Path <RPAREN> )
+// Path unit element
+	PathElt	:=	( iri | <KW_A> | <LPAREN> Path <RPAREN> )
+// // Path unit element
+// Path PathElt() : { String str ; Node n ; Path p ; }
+// { 
+//    p = PathPrimary() 
+//    //( p = PathMod(p) )?
+//    { return p ; }
+// }
+// 
+// Path PathPrimary() : { String str ; Path p ; Node n ; }
+// {
+//     ( 
+//       str = iri()
+//        { n = createURI(str, token.beginLine, token.beginColumn) ; p = PathFactory.pathLink(n) ; }
+//     | <KW_A> 
+//        { p = PathFactory.pathLink(nRDFtype) ; }
+//     //| <BANG> p = PathNegatedPropertySet()
+//     | <LPAREN> p = Path() <RPAREN>
+//     )
+//    { return p ; }
+// }
 // -------- Triple expansions
 // Anything that can stand in a node slot and which is
 // a number of triples

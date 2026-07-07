@@ -734,8 +734,8 @@ void ObjectPath(Node s, Node p, Path path): { Node o ; }
 }
 // End paths stuff.
 // -------- Paths
-// Simpified to Sequence  and inverse only.
-// // Weakest outermost
+// Simpified to Sequence and inverse only.
+// Weakest outermost
 Path Path() : { Path p ; }
 {
   p = PathSequence() { return p ; }
@@ -753,7 +753,7 @@ Path PathSequence() : { Path p1 , p2 ; }
     )*
    { return p1; }
 }
-// Path unit element, including inverse.
+// Path unit element or inverse.
 Path PathEltOrInverse() : { String str ; Node n ; Path p ; }
 {
    ( p = PathElt()
@@ -763,14 +763,8 @@ Path PathEltOrInverse() : { String str ; Node n ; Path p ; }
    )
    { return p ; }
 }
-// Path unit element, no inverse
+// Path unit element
 Path PathElt() : { String str ; Node n ; Path p ; }
-{
-   p = PathPrimary()
-   //( p = PathMod(p) )?
-   { return p ; }
-}
-Path PathPrimary() : { String str ; Path p ; Node n ; }
 {
     (
       str = iri()
@@ -782,6 +776,26 @@ Path PathPrimary() : { String str ; Path p ; Node n ; }
     )
    { return p ; }
 }
+// // Path unit element
+// Path PathElt() : { String str ; Node n ; Path p ; }
+// { 
+//    p = PathPrimary() 
+//    //( p = PathMod(p) )?
+//    { return p ; }
+// }
+// 
+// Path PathPrimary() : { String str ; Path p ; Node n ; }
+// {
+//     ( 
+//       str = iri()
+//        { n = createURI(str, token.beginLine, token.beginColumn) ; p = PathFactory.pathLink(n) ; }
+//     | <KW_A> 
+//        { p = PathFactory.pathLink(nRDFtype) ; }
+//     //| <BANG> p = PathNegatedPropertySet()
+//     | <LPAREN> p = Path() <RPAREN>
+//     )
+//    { return p ; }
+// }
 // -------- Triple expansions
 // Anything that can stand in a node slot and which is
 // a number of triples

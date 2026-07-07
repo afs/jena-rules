@@ -163,6 +163,21 @@ PREFIX :    <http://example/>
 RULE { } WHERE { :sx :p1 :o ; :p2 :o2 . :sy :p :o }
 EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE { } WHERE { :sx ^:p1 :o }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE { } WHERE { :sx :p1/:p2 :o }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE { } WHERE { :sx ^:p1/^:p2 :o }
+EOF
+
 ## FILTERs
 N=0
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-filter-" $N) <<EOF

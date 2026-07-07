@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -37,8 +38,10 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.TextDirection;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.lang.LangParserBase;
+import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.ARQInternalErrorException;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.core.VarAlloc;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
@@ -361,17 +364,20 @@ public class RulesParserBase extends LangParserBase {
         hasAssignment = true;
     }
 
+    private VarAlloc varAlloc = new VarAlloc(ARQConstants.allocPathVariables);
+
     protected void emitTriple(Node s, Node p, Path path, Node o, int line, int column) {
         debug("emitTriple", line, column);
-        if ( path != null ) {
-            if ( path instanceof P_Link pLink ) {
-                p = pLink.getNode();
-            } else {
-                profile.getErrorHandler().error("Path - ignored", line, column);
-                return;
-            }
+        if ( p != null && path != null ) {
+            String str = ParserLib.formatMessage("emitTriple : Both property and path are set", line, column);
+            throw new InternalErrorException(str);
         }
-        accTriple(s, p, o, line, column);
+
+        if ( p != null ) {
+            accTriple(s, p, o, line, column);
+            return;
+        }
+        PathExpand.pathExpand(varAlloc, s, path, o, (_s,_p,_o)->accTriple(_s, _p, _o, line, column));
     }
 
     @Override

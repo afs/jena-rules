@@ -1925,8 +1925,8 @@ emitTriple(s, p, path, o, token.beginLine, token.beginColumn);
 
 // End paths stuff.
 // -------- Paths
-// Simpified to Sequence  and inverse only.
-// // Weakest outermost
+// Simpified to Sequence and inverse only.
+// Weakest outermost
   final public Path Path() throws ParseException {Path p ;
     p = PathSequence();
 {if ("" != null) return p ;}
@@ -1954,7 +1954,7 @@ p1 = PathFactory.pathSeq(p1, p2) ;
     throw new Error("Missing return statement in function");
 }
 
-// Path unit element, including inverse.
+// Path unit element or inverse.
   final public Path PathEltOrInverse() throws ParseException {String str ; Node n ; Path p ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case IRIref:
@@ -1980,14 +1980,8 @@ p = PathFactory.pathInverse(p) ;
     throw new Error("Missing return statement in function");
 }
 
-// Path unit element, no inverse
+// Path unit element
   final public Path PathElt() throws ParseException {String str ; Node n ; Path p ;
-    p = PathPrimary();
-{if ("" != null) return p ;}
-    throw new Error("Missing return statement in function");
-}
-
-  final public Path PathPrimary() throws ParseException {String str ; Path p ; Node n ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case IRIref:
     case PNAME_NS:
@@ -2016,6 +2010,26 @@ p = PathFactory.pathLink(nRDFtype) ;
     throw new Error("Missing return statement in function");
 }
 
+// // Path unit element
+// Path PathElt() : { String str ; Node n ; Path p ; }
+// { 
+//    p = PathPrimary() 
+//    //( p = PathMod(p) )?
+//    { return p ; }
+// }
+// 
+// Path PathPrimary() : { String str ; Path p ; Node n ; }
+// {
+//     ( 
+//       str = iri()
+//        { n = createURI(str, token.beginLine, token.beginColumn) ; p = PathFactory.pathLink(n) ; }
+//     | <KW_A> 
+//        { p = PathFactory.pathLink(nRDFtype) ; }
+//     //| <BANG> p = PathNegatedPropertySet()
+//     | <LPAREN> p = Path() <RPAREN>
+//     )
+//    { return p ; }
+// }
 // -------- Triple expansions
 // Anything that can stand in a node slot and which is
 // a number of triples

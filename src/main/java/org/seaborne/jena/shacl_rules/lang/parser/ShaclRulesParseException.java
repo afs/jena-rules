@@ -51,11 +51,4 @@ public class ShaclRulesParseException extends RulesException {
 
     /** Line number where the parse exception occurred. */
     public int getLine()   { return line ; }
-
-    public static String formatMessage(String msg, int line, int column)
-    {
-        if ( line == -1 || column == -1 )
-            return msg ;
-        return String.format("[line: %d, col: %d] "+msg, line, column) ;
-    }
 }

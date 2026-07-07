@@ -12,17 +12,18 @@
 [12]   Rule1                     ::= 'RULE' iri? HeadTemplate 'WHERE' BodyPattern
 [13]   Rule2                     ::= 'IF' BodyPattern 'THEN' HeadTemplate
 [14]   Declaration               ::= ( 'TRANSITIVE' '(' iri ')' | 'SYMMETRIC' '(' iri ')' | 'INVERSE' '(' iri ',' iri ')' )
+
 [15]   Data                      ::= 'DATA' '{' TriplesBlockData? '}'
 [16]   TriplesBlockData          ::= TriplesSameSubjectData ( '.' TriplesBlockData? )?
-[17]   TriplesSameSubjectData    ::= RDFTerm PropertyListNotEmptyData | TriplesNodeData PropertyListData | ReifiedTripleBlockData
-[18]   PropertyListData          ::= PropertyListNotEmptyData?
-[19]   PropertyListNotEmptyData  ::= VerbData ObjectListData ( ';' ( VerbData ObjectListData )? )*
+[17]   TriplesSameSubjectData    ::= RDFTerm PropertyListDataNotEmpty | TriplesNodeData PropertyListData | ReifiedTripleBlockData
+[18]   PropertyListData          ::= PropertyListNotEmpty?
+[19]   PropertyListDataNotEmpty  ::= VerbData ObjectListData ( ';' ( VerbData ObjectListData )? )*
 [20]   VerbData                  ::= iri | 'a'
 [21]   ObjectListData            ::= ObjectData ( ',' ObjectData )*
 [22]   ObjectData                ::= GraphNodeData AnnotationData
 [23]   GraphNodeData             ::= RDFTerm | TriplesNodeData | ReifiedTripleData
 [24]   TriplesNodeData           ::= CollectionData | BlankNodePropertyListData
-[25]   BlankNodePropertyListData ::= '[' PropertyListNotEmptyData ']'
+[25]   BlankNodePropertyListData ::= '[' PropertyListDataNotEmpty ']'
 [26]   CollectionData            ::= '(' GraphNodeData+ ')'
 [27]   AnnotationData            ::= ( ReifierData | AnnotationBlock )*
 [28]   ReifierData               ::= '~' ReifierIdData?
@@ -34,15 +35,22 @@
 [34]   TripleTermData            ::= '<<(' TripleTermSubjectData VerbData TripleTermObjectData ')>>'
 [35]   TripleTermSubjectData     ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData
 [36]   TripleTermObjectData      ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData
+
 [37]   HeadTemplate              ::= '{' HeadTemplateBlock? '}'
+
+
+
 [38]   BodyPattern               ::= '{' BodyTriplesBlock? ( BodyNotTriples '.'? BodyTriplesBlock? )* '}'
 [39]   BodyNotTriples            ::= Filter | Negation | Assignment
 [40]   BodyTriplesBlock          ::= TriplesBlock
 [41]   Negation                  ::= 'NOT' '{' BodyBasic '}'
 [42]   BodyBasic                 ::= BodyTriplesBlock? ( BodyBasicNotTriples '.'? BodyTriplesBlock? )*
 [43]   BodyBasicNotTriples       ::= Filter
+
 [44]   HeadTemplateBlock         ::= TriplesBlock
+
 [45]   TriplesBlock              ::= TriplesSameSubjectPath ( '.' TriplesBlock? )?
+
 [46]   ReifiedTripleBlock        ::= ReifiedTriple PropertyList
 [47]   ReifiedTripleBlockPath    ::= ReifiedTriple PropertyListPath
 [48]   Assignment                ::= 'SET' '(' Var ':=' Expression ')'
@@ -66,11 +74,13 @@
 [66]   VerbSimple                ::= Var
 [67]   ObjectListPath            ::= ObjectPath ( ',' ObjectPath )*
 [68]   ObjectPath                ::= GraphNodePath AnnotationPath
+
 [69]   Path                      ::= PathSequence
 [70]   PathSequence              ::= PathEltOrInverse ( '/' PathEltOrInverse )*
 [71]   PathEltOrInverse          ::= PathElt | '^' PathElt
 [72]   PathElt                   ::= PathPrimary
 [73]   PathPrimary               ::= iri | 'a' | '(' Path ')' 
+
 [74]   TriplesNode               ::= Collection | BlankNodePropertyList
 [75]   BlankNodePropertyList     ::= '[' PropertyListNotEmpty ']'
 [76]   TriplesNodePath           ::= CollectionPath | BlankNodePropertyListPath
@@ -180,7 +190,7 @@
 
 @terminals
 
-[125]  IRIREF                    ::= '<' ([^<>"{}|^`\]-[#x00-#x20] | UCHAR )* '>'
+[125]  IRIREF                    ::= '<' ([^<>"{}|^`\]-[#x00-#x20] | <UCHAR> )* '>'
 [126]  PNAME_NS                  ::= PN_PREFIX? ':'
 [127]  PNAME_LN                  ::= PNAME_NS PN_LOCAL
 [128]  BLANK_NODE_LABEL          ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
