@@ -11,120 +11,127 @@
 [11]   Rule                      ::= Rule1 | Rule2 | Declaration
 [12]   Rule1                     ::= 'RULE' iri? HeadTemplate 'WHERE' BodyPattern
 [13]   Rule2                     ::= 'IF' BodyPattern 'THEN' HeadTemplate
-[14]   Declaration               ::= ( 'TRANSITIVE' '(' iri ')' | 'SYMMETRIC' '(' iri ')' | 'INVERSE' '(' iri ',' iri ')' )
-
-[15]   Data                      ::= 'DATA' '{' TriplesBlockData? '}'
-[16]   TriplesBlockData          ::= TriplesSameSubjectData ( '.' TriplesBlockData? )?
-[17]   TriplesSameSubjectData    ::= RDFTerm PropertyListDataNotEmpty | TriplesNodeData PropertyListData | ReifiedTripleBlockData
-[18]   PropertyListData          ::= PropertyListNotEmpty?
-[19]   PropertyListDataNotEmpty  ::= VerbData ObjectListData ( ';' ( VerbData ObjectListData )? )*
-[20]   VerbData                  ::= iri | 'a'
-[21]   ObjectListData            ::= ObjectData ( ',' ObjectData )*
-[22]   ObjectData                ::= GraphNodeData AnnotationData
-[23]   GraphNodeData             ::= RDFTerm | TriplesNodeData | ReifiedTripleData
-[24]   TriplesNodeData           ::= CollectionData | BlankNodePropertyListData
-[25]   BlankNodePropertyListData ::= '[' PropertyListDataNotEmpty ']'
-[26]   CollectionData            ::= '(' GraphNodeData+ ')'
-[27]   AnnotationData            ::= ( ReifierData | AnnotationBlock )*
-[28]   ReifierData               ::= '~' ReifierIdData?
-[29]   ReifierIdData             ::= iri | BlankNode
-[30]   ReifiedTripleBlockData    ::= ReifiedTripleData PropertyListData
-[31]   ReifiedTripleData         ::= '<<' ReifiedTripleSubjectData VerbData ReifiedTripleObjectData ReifierData? '>>'
-[32]   ReifiedTripleSubjectData  ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleData | TripleTermData
-[33]   ReifiedTripleObjectData   ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleData | TripleTermData
-[34]   TripleTermData            ::= '<<(' TripleTermSubjectData VerbData TripleTermObjectData ')>>'
-[35]   TripleTermSubjectData     ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData
-[36]   TripleTermObjectData      ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData
-
-[37]   HeadTemplate              ::= '{' HeadTemplateBlock? '}'
-
-
-
-[38]   BodyPattern               ::= '{' BodyTriplesBlock? ( BodyNotTriples '.'? BodyTriplesBlock? )* '}'
-[39]   BodyNotTriples            ::= Filter | Negation | Assignment
-[40]   BodyTriplesBlock          ::= TriplesBlock
-[41]   Negation                  ::= 'NOT' '{' BodyBasic '}'
-[42]   BodyBasic                 ::= BodyTriplesBlock? ( BodyBasicNotTriples '.'? BodyTriplesBlock? )*
-[43]   BodyBasicNotTriples       ::= Filter
-
-[44]   HeadTemplateBlock         ::= TriplesBlock
-
-[45]   TriplesBlock              ::= TriplesSameSubjectPath ( '.' TriplesBlock? )?
-
-[46]   ReifiedTripleBlock        ::= ReifiedTriple PropertyList
-[47]   ReifiedTripleBlockPath    ::= ReifiedTriple PropertyListPath
-[48]   Assignment                ::= 'SET' '(' Var ':=' Expression ')'
-[49]   Reifier                   ::= '~' VarOrReifierId?
-[50]   VarOrReifierId            ::= Var | iri | BlankNode
-[51]   Filter                    ::= 'FILTER' Constraint
-[52]   Constraint                ::= BrackettedExpression | BuiltInCall | FunctionCall
-[53]   FunctionCall              ::= iri ArgList
-[54]   ArgList                   ::= NIL | '(' Expression ( ',' Expression )* ')' 
-[55]   ExpressionList            ::= NIL | '(' Expression ( ',' Expression )* ')' 
-[56]   TriplesSameSubject        ::= VarOrTerm PropertyListNotEmpty | TriplesNode PropertyList | ReifiedTripleBlock
-[57]   PropertyList              ::= PropertyListNotEmpty?
-[58]   PropertyListNotEmpty      ::= Verb ObjectList ( ';' ( Verb ObjectList )? )*
-[59]   Verb                      ::= VarOrIri | 'a'
-[60]   ObjectList                ::= Object ( ',' Object )*
-[61]   Object                    ::= GraphNode Annotation
-[62]   TriplesSameSubjectPath    ::= VarOrTerm PropertyListPathNotEmpty | TriplesNodePath PropertyListPath | ReifiedTripleBlockPath
-[63]   PropertyListPath          ::= PropertyListPathNotEmpty?
-[64]   PropertyListPathNotEmpty  ::= ( VerbPath | VerbSimple ) ObjectListPath ( ';' ( ( VerbPath | VerbSimple ) ObjectListPath )? )*
-[65]   VerbPath                  ::= Path
-[66]   VerbSimple                ::= Var
-[67]   ObjectListPath            ::= ObjectPath ( ',' ObjectPath )*
-[68]   ObjectPath                ::= GraphNodePath AnnotationPath
-
-[69]   Path                      ::= PathSequence
-[70]   PathSequence              ::= PathEltOrInverse ( '/' PathEltOrInverse )*
-[71]   PathEltOrInverse          ::= PathElt | '^' PathElt
-[72]   PathElt                   ::= PathPrimary
-[73]   PathPrimary               ::= iri | 'a' | '(' Path ')' 
-
-[74]   TriplesNode               ::= Collection | BlankNodePropertyList
-[75]   BlankNodePropertyList     ::= '[' PropertyListNotEmpty ']'
-[76]   TriplesNodePath           ::= CollectionPath | BlankNodePropertyListPath
-[77]   BlankNodePropertyListPath ::= '[' PropertyListPathNotEmpty ']'
-[78]   Collection                ::= '(' GraphNode+ ')'
-[79]   CollectionPath            ::= '(' GraphNodePath+ ')'
-[80]   AnnotationPath            ::= ( Reifier | AnnotationBlockPath )*
-[81]   AnnotationBlockPath       ::= '{|' PropertyListPathNotEmpty '|}'
-[82]   Annotation                ::= ( Reifier | AnnotationBlock )*
-[83]   AnnotationBlock           ::= '{|' PropertyListNotEmpty '|}'
-[84]   GraphNode                 ::= VarOrTerm | TriplesNode | ReifiedTriple
-[85]   GraphNodePath             ::= VarOrTerm | TriplesNodePath | ReifiedTriple
-[86]   ReifiedTriple             ::= '<<' ReifiedTripleSubject Verb ReifiedTripleObject Reifier? '>>'
-[87]   ReifiedTripleSubject      ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm
-[88]   ReifiedTripleObject       ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm
-[89]   TripleTerm                ::= '<<(' TripleTermSubject Verb TripleTermObject ')>>'
-[90]   TripleTermSubject         ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm
-[91]   TripleTermObject          ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm
-[92]   TripleTermTemplate        ::= '<<(' TripleTermSubjectTemplate ( iri | 'a' ) TripleTermObjectTemplate ')>>'
-[93]   TripleTermSubjectTemplate ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral
-[94]   TripleTermObjectTemplate  ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | TripleTermData
-[95]   RDFTerm                   ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | NIL | TripleTerm
-[96]   VarOrTerm                 ::= Var | RDFTerm
-[97]   VarOrIri                  ::= Var | iri
-[98]   Var                       ::= VAR1 | VAR2
-[99]   RDFLiteral                ::= String ( LANG_DIR | '^^' iri )?
-[100]  Expression                ::= ConditionalOrExpression
-[101]  ConditionalOrExpression   ::= ConditionalAndExpression ( '||' ConditionalAndExpression )*
-[102]  ConditionalAndExpression  ::= ValueLogical ( '&&' ValueLogical )*
-[103]  ValueLogical              ::= RelationalExpression
-[104]  RelationalExpression      ::= NumericExpression ( '=' NumericExpression | '!=' NumericExpression | '<' NumericExpression | '>' NumericExpression | '<=' NumericExpression | '>=' NumericExpression | 'IN' ExpressionList | 'NOT' 'IN' ExpressionList )?
-[105]  NumericExpression         ::= AdditiveExpression
-[106]  AdditiveExpression        ::= MultiplicativeExpression ( '+' MultiplicativeExpression | '-' MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( '*' UnaryExpression ) | ( '/' UnaryExpression ) )* )*
-[107]  MultiplicativeExpression  ::= UnaryExpression ( '*' UnaryExpression | '/' UnaryExpression )*
-[108]  UnaryExpression           ::= '!' PrimaryExpression 
+[14]   Data                      ::= 'DATA' '{' DataTriplesBlock? '}'
+[15]   HeadTemplate              ::= '{' HeadTemplateBlock? '}'
+[16]   BodyPattern               ::= '{' BodyTriplesBlock? ( BodyNotTriples '.'? BodyTriplesBlock? )* '}'
+[17]   BodyNotTriples            ::= Filter | Negation | Assignment
+[18]   Negation                  ::= 'NOT' '{' BodyBasic '}'
+[19]   BodyBasic                 ::= BodyTriplesBlock? ( BodyBasicNotTriples '.'? BodyTriplesBlock? )*
+[20]   BodyBasicNotTriples       ::= Filter
+[21]   Assignment                ::= 'SET' '(' Var ':=' Expression ')'
+[22]   Declaration               ::= ( 'TRANSITIVE' '(' iri ')' | '(' iri ')' 'SYMMETRIC' | 'INVERSE' '(' iri ',' iri ')' )
+[23]   DataTriplesBlock          ::= TriplesSameSubjectData ( '.' DataTriplesBlock? )?
+[24]   TriplesSameSubjectData    ::= RDFTerm PropertyListNotEmptyData | TriplesNodeData PropertyListData | ReifiedTripleBlockData
+[25]   PropertyListData          ::= PropertyListNotEmptyData?
+[26]   PropertyListNotEmptyData  ::= VerbData ObjectListData ( ';' ( VerbData ObjectListData )? )*
+[27]   VerbData                  ::= iri | 'a'
+[28]   ObjectListData            ::= ObjectData ( ',' ObjectData )*
+[29]   ObjectData                ::= GraphNodeData AnnotationData
+[30]   GraphNodeData             ::= RDFTerm | TriplesNodeData | ReifiedTripleData
+[31]   TriplesNodeData           ::= CollectionData | BlankNodePropertyListData
+[32]   BlankNodePropertyListData ::= '[' PropertyListNotEmptyData ']'
+[33]   CollectionData            ::= '(' GraphNodeData+ ')'
+[34]   AnnotationData            ::= ( ReifierData | AnnotationBlock )*
+[35]   ReifierData               ::= '~' ReifierIdData?
+[36]   ReifierIdData             ::= iri | BlankNode
+[37]   ReifiedTripleBlockData    ::= ReifiedTripleData PropertyListData
+[38]   ReifiedTripleData         ::= '<<' ReifiedTripleSubjectData VerbData ReifiedTripleObjectData ReifierData? '>>'
+[39]   ReifiedTripleSubjectData  ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleData | TripleTermData
+[40]   ReifiedTripleObjectData   ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleData | TripleTermData
+[41]   TripleTermData            ::= '<<(' TripleTermSubjectData VerbData TripleTermObjectData ')>>'
+[42]   TripleTermSubjectData     ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData
+[43]   TripleTermObjectData      ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData
+[44]   HeadTemplateBlock         ::= TriplesBlockTemplate
+[45]   TriplesBlockTemplate      ::= TriplesSameSubjectTemplate ( '.' TriplesBlockTemplate? )?
+[46]   TriplesSameSubjectTemplate ::= VarOrTerm PropertyListNotEmptyTemplate | TriplesNodeTemplate PropertyListTemplate | ReifiedTripleBlockTemplate
+[47]   PropertyListTemplate      ::= PropertyListNotEmptyTemplate?
+[48]   PropertyListNotEmptyTemplate ::= VerbTemplate ObjectListTemplate ( ';' ( VerbTemplate ObjectListTemplate )? )*
+[49]   VerbTemplate              ::= VarOrIri | 'a'
+[50]   ObjectListTemplate        ::= ObjectTemplate ( ',' ObjectTemplate )*
+[51]   ObjectTemplate            ::= GraphNodeTemplate AnnotationTemplate
+[52]   GraphNodeTemplate         ::= VarOrTerm | TriplesNodeTemplate | ReifiedTripleTemplate
+[53]   TriplesNodeTemplate       ::= CollectionTemplate | BlankNodePropertyListTemplate
+[54]   BlankNodePropertyListTemplate ::= '[' PropertyListNotEmptyTemplate ']'
+[55]   CollectionTemplate        ::= '(' GraphNodeTemplate+ ')'
+[56]   AnnotationTemplate        ::= ( ReifierTemplate | AnnotationBlock )*
+[57]   ReifierTemplate           ::= '~' ReifierIdTemplate?
+[58]   ReifierIdTemplate         ::= Var | iri | BlankNode
+[59]   ReifiedTripleBlockTemplate ::= ReifiedTripleTemplate PropertyListTemplate
+[60]   ReifiedTripleTemplate     ::= '<<' ReifiedTripleSubjectTemplate VerbTemplate ReifiedTripleObjectTemplate ReifierTemplate? '>>'
+[61]   ReifiedTripleSubjectTemplate ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleTemplate | TripleTermTemplate
+[62]   ReifiedTripleObjectTemplate ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleTemplate | TripleTermTemplate
+[63]   TripleTermTemplate        ::= '<<(' TripleTermSubjectTemplate VerbTemplate TripleTermObjectTemplate ')>>'
+[64]   TripleTermSubjectTemplate ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermTemplate
+[65]   TripleTermObjectTemplate  ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermTemplate
+[66]   BodyTriplesBlock          ::= TriplesBlockPath
+[67]   TriplesBlockPath          ::= TriplesSameSubjectPath ( '.' TriplesBlockPath? )?
+[68]   ReifiedTripleBlock        ::= ReifiedTriple PropertyList
+[69]   ReifiedTripleBlockPath    ::= ReifiedTriple PropertyListPath
+[70]   Reifier                   ::= '~' VarOrReifierId?
+[71]   VarOrReifierId            ::= Var | iri | BlankNode
+[72]   Filter                    ::= 'FILTER' Constraint
+[73]   Constraint                ::= BrackettedExpression | BuiltInCall | FunctionCall
+[74]   FunctionCall              ::= iri ArgList
+[75]   ArgList                   ::= NIL | '(' Expression ( ',' Expression )* ')' 
+[76]   ExpressionList            ::= NIL | '(' Expression ( ',' Expression )* ')' 
+[77]   TriplesSameSubject        ::= VarOrTerm PropertyListNotEmpty | TriplesNode PropertyList | ReifiedTripleBlock
+[78]   PropertyList              ::= PropertyListNotEmpty?
+[79]   PropertyListNotEmpty      ::= Verb ObjectList ( ';' ( Verb ObjectList )? )*
+[80]   Verb                      ::= VarOrIri | 'a'
+[81]   ObjectList                ::= Object ( ',' Object )*
+[82]   Object                    ::= GraphNode Annotation
+[83]   TriplesSameSubjectPath    ::= VarOrTerm PropertyListPathNotEmpty | TriplesNodePath PropertyListPath | ReifiedTripleBlockPath
+[84]   PropertyListPath          ::= PropertyListPathNotEmpty?
+[85]   PropertyListPathNotEmpty  ::= ( VerbPath | VerbSimple ) ObjectListPath ( ';' ( ( VerbPath | VerbSimple ) ObjectListPath )? )*
+[86]   VerbPath                  ::= Path
+[87]   VerbSimple                ::= Var
+[88]   ObjectListPath            ::= ObjectPath ( ',' ObjectPath )*
+[89]   ObjectPath                ::= GraphNodePath AnnotationPath
+[90]   Path                      ::= PathSequence
+[91]   PathSequence              ::= PathEltOrInverse ( '/' PathEltOrInverse )*
+[92]   PathEltOrInverse          ::= PathElt | '^' PathElt
+[93]   PathElt                   ::= ( iri | 'a' | '(' Path ')' )
+[94]   TriplesNode               ::= Collection | BlankNodePropertyList
+[95]   BlankNodePropertyList     ::= '[' PropertyListNotEmpty ']'
+[96]   TriplesNodePath           ::= CollectionPath | BlankNodePropertyListPath
+[97]   BlankNodePropertyListPath ::= '[' PropertyListPathNotEmpty ']'
+[98]   Collection                ::= '(' GraphNode+ ')'
+[99]   CollectionPath            ::= '(' GraphNodePath+ ')'
+[100]  AnnotationPath            ::= ( Reifier | AnnotationBlockPath )*
+[101]  AnnotationBlockPath       ::= '{|' PropertyListPathNotEmpty '|}'
+[102]  Annotation                ::= ( Reifier | AnnotationBlock )*
+[103]  AnnotationBlock           ::= '{|' PropertyListNotEmpty '|}'
+[104]  GraphNode                 ::= VarOrTerm | TriplesNode | ReifiedTriple
+[105]  GraphNodePath             ::= VarOrTerm | TriplesNodePath | ReifiedTriple
+[106]  ReifiedTriple             ::= '<<' ReifiedTripleSubject Verb ReifiedTripleObject Reifier? '>>'
+[107]  ReifiedTripleSubject      ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm
+[108]  ReifiedTripleObject       ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTriple | TripleTerm
+[109]  TripleTerm                ::= '<<(' TripleTermSubject Verb TripleTermObject ')>>'
+[110]  TripleTermSubject         ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm
+[111]  TripleTermObject          ::= Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm
+[112]  RDFTerm                   ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | NIL | TripleTerm
+[113]  VarOrTerm                 ::= Var | RDFTerm
+[114]  VarOrIri                  ::= Var | iri
+[115]  Var                       ::= VAR1 | VAR2
+[116]  RDFLiteral                ::= String ( LANG_DIR | '^^' iri )?
+[117]  Expression                ::= ConditionalOrExpression
+[118]  ConditionalOrExpression   ::= ConditionalAndExpression ( '||' ConditionalAndExpression )*
+[119]  ConditionalAndExpression  ::= ValueLogical ( '&&' ValueLogical )*
+[120]  ValueLogical              ::= RelationalExpression
+[121]  RelationalExpression      ::= NumericExpression ( '=' NumericExpression | '!=' NumericExpression | '<' NumericExpression | '>' NumericExpression | '<=' NumericExpression | '>=' NumericExpression | 'IN' ExpressionList | 'NOT' 'IN' ExpressionList )?
+[122]  NumericExpression         ::= AdditiveExpression
+[123]  AdditiveExpression        ::= MultiplicativeExpression ( '+' MultiplicativeExpression | '-' MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( '*' UnaryExpression ) | ( '/' UnaryExpression ) )* )*
+[124]  MultiplicativeExpression  ::= UnaryExpression ( '*' UnaryExpression | '/' UnaryExpression )*
+[125]  UnaryExpression           ::= '!' PrimaryExpression 
                                    | '+' PrimaryExpression 
                                    | '-' PrimaryExpression 
                                    | PrimaryExpression
-[109]  PrimaryExpression         ::= BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm
-[110]  ExprTripleTerm            ::= '<<(' ExprTripleTermSubject Verb ExprTripleTermObject ')>>'
-[111]  ExprTripleTermSubject     ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var
-[112]  ExprTripleTermObject      ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm
-[113]  BrackettedExpression      ::= '(' Expression ')'
-[114]  BuiltInCall               ::= 'STR' '(' Expression ')' 
+[126]  PrimaryExpression         ::= BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm
+[127]  ExprTripleTerm            ::= '<<(' ExprTripleTermSubject Verb ExprTripleTermObject ')>>'
+[128]  ExprTripleTermSubject     ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var
+[129]  ExprTripleTermObject      ::= iri | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm
+[130]  BrackettedExpression      ::= '(' Expression ')'
+[131]  BuiltInCall               ::= 'STR' '(' Expression ')' 
                                    | 'LANG' '(' Expression ')' 
                                    | 'LANGMATCHES' '(' Expression ',' Expression ')' 
                                    | 'LANGDIR' '(' Expression ')' 
@@ -177,45 +184,45 @@
                                    | 'SUBJECT' '(' Expression ')' 
                                    | 'PREDICATE' '(' Expression ')' 
                                    | 'OBJECT' '(' Expression ')'
-[115]  iriOrFunction             ::= iri ArgList?
-[116]  NumericLiteral            ::= NumericLiteralUnsigned | NumericLiteralPositive | NumericLiteralNegative
-[117]  NumericLiteralUnsigned    ::= INTEGER | DECIMAL | DOUBLE
-[118]  NumericLiteralPositive    ::= INTEGER_POSITIVE | DECIMAL_POSITIVE | DOUBLE_POSITIVE
-[119]  NumericLiteralNegative    ::= INTEGER_NEGATIVE | DECIMAL_NEGATIVE | DOUBLE_NEGATIVE
-[120]  BooleanLiteral            ::= 'true' | 'false'
-[121]  String                    ::= STRING_LITERAL1 | STRING_LITERAL2 | STRING_LITERAL_LONG1 | STRING_LITERAL_LONG2
-[122]  iri                       ::= IRIREF | PrefixedName
-[123]  PrefixedName              ::= PNAME_LN | PNAME_NS
-[124]  BlankNode                 ::= BLANK_NODE_LABEL | ANON
+[132]  iriOrFunction             ::= iri ArgList?
+[133]  NumericLiteral            ::= NumericLiteralUnsigned | NumericLiteralPositive | NumericLiteralNegative
+[134]  NumericLiteralUnsigned    ::= INTEGER | DECIMAL | DOUBLE
+[135]  NumericLiteralPositive    ::= INTEGER_POSITIVE | DECIMAL_POSITIVE | DOUBLE_POSITIVE
+[136]  NumericLiteralNegative    ::= INTEGER_NEGATIVE | DECIMAL_NEGATIVE | DOUBLE_NEGATIVE
+[137]  BooleanLiteral            ::= 'true' | 'false'
+[138]  String                    ::= STRING_LITERAL1 | STRING_LITERAL2 | STRING_LITERAL_LONG1 | STRING_LITERAL_LONG2
+[139]  iri                       ::= IRIREF | PrefixedName
+[140]  PrefixedName              ::= PNAME_LN | PNAME_NS
+[141]  BlankNode                 ::= BLANK_NODE_LABEL | ANON
 
 @terminals
 
-[125]  IRIREF                    ::= '<' ([^<>"{}|^`\]-[#x00-#x20] | <UCHAR> )* '>'
-[126]  PNAME_NS                  ::= PN_PREFIX? ':'
-[127]  PNAME_LN                  ::= PNAME_NS PN_LOCAL
-[128]  BLANK_NODE_LABEL          ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
-[129]  VAR1                      ::= '?' VARNAME
-[130]  VAR2                      ::= '$' VARNAME
-[131]  LANG_DIR                  ::= '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ('--' [a-zA-Z]+)?
-[132]  INTEGER                   ::= [0-9]+
-[133]  DECIMAL                   ::= [0-9]* '.' [0-9]+
-[134]  DOUBLE                    ::= ( ([0-9]+ ('.'[0-9]*)? ) | ( '.' ([0-9])+ ) ) [eE][+-]?[0-9]+
-[135]  INTEGER_POSITIVE          ::= '+' INTEGER
-[136]  DECIMAL_POSITIVE          ::= '+' DECIMAL
-[137]  DOUBLE_POSITIVE           ::= '+' DOUBLE
-[138]  INTEGER_NEGATIVE          ::= '-' INTEGER
-[139]  DECIMAL_NEGATIVE          ::= '-' DECIMAL
-[140]  DOUBLE_NEGATIVE           ::= '-' DOUBLE
-[141]  STRING_LITERAL1           ::= "'" ( ([^#x27#x5C#xA#xD]) | ECHAR | UCHAR )* "'"
-[142]  STRING_LITERAL2           ::= '"' ( ([^#x22#x5C#xA#xD]) | ECHAR | UCHAR )* '"'
-[143]  STRING_LITERAL_LONG1      ::= "'''" ( ( "'" | "''" )? ( [^'\] | ECHAR | UCHAR ) )* "'''"
-[144]  STRING_LITERAL_LONG2      ::= '"""' ( ( '"' | '""' )? ( [^"\] | ECHAR | UCHAR ) )* '"""'
-[145]  ECHAR                     ::= '\' [tbnrf\"']
-[146]  UCHAR                     ::= ('\u' HEX HEX HEX HEX) | ('\U' HEX HEX HEX HEX HEX HEX HEX HEX)
-[147]  NIL                       ::= '(' WS* ')'
-[148]  WS                        ::= #x20 | #x9 | #xD | #xA
-[149]  ANON                      ::= '['  WS* ']'
-[150]  PN_CHARS_BASE             ::= [A-Z] 
+[142]  IRIREF                    ::= '<' ([^<>"{}|^`\]-[#x00-#x20] | UCHAR )* '>'
+[143]  PNAME_NS                  ::= PN_PREFIX? ':'
+[144]  PNAME_LN                  ::= PNAME_NS PN_LOCAL
+[145]  BLANK_NODE_LABEL          ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
+[146]  VAR1                      ::= '?' VARNAME
+[147]  VAR2                      ::= '$' VARNAME
+[148]  LANG_DIR                  ::= '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ('--' [a-zA-Z]+)?
+[149]  INTEGER                   ::= [0-9]+
+[150]  DECIMAL                   ::= [0-9]* '.' [0-9]+
+[151]  DOUBLE                    ::= ( ([0-9]+ ('.'[0-9]*)? ) | ( '.' ([0-9])+ ) ) [eE][+-]?[0-9]+
+[152]  INTEGER_POSITIVE          ::= '+' INTEGER
+[153]  DECIMAL_POSITIVE          ::= '+' DECIMAL
+[154]  DOUBLE_POSITIVE           ::= '+' DOUBLE
+[155]  INTEGER_NEGATIVE          ::= '-' INTEGER
+[156]  DECIMAL_NEGATIVE          ::= '-' DECIMAL
+[157]  DOUBLE_NEGATIVE           ::= '-' DOUBLE
+[158]  STRING_LITERAL1           ::= "'" ( ([^#x27#x5C#xA#xD]) | ECHAR | UCHAR )* "'"
+[159]  STRING_LITERAL2           ::= '"' ( ([^#x22#x5C#xA#xD]) | ECHAR | UCHAR )* '"'
+[160]  STRING_LITERAL_LONG1      ::= "'''" ( ( "'" | "''" )? ( [^'\] | ECHAR | UCHAR ) )* "'''"
+[161]  STRING_LITERAL_LONG2      ::= '"""' ( ( '"' | '""' )? ( [^"\] | ECHAR | UCHAR ) )* '"""'
+[162]  ECHAR                     ::= '\' [tbnrf\"']
+[163]  UCHAR                     ::= ('\u' HEX HEX HEX HEX) | ('\U' HEX HEX HEX HEX HEX HEX HEX HEX)
+[164]  NIL                       ::= '(' WS* ')'
+[165]  WS                        ::= #x20 | #x9 | #xD | #xA
+[166]  ANON                      ::= '['  WS* ']'
+[167]  PN_CHARS_BASE             ::= [A-Z] 
                                    | [a-z] 
                                    | [#x00C0-#x00D6] 
                                    | [#x00D8-#x00F6] 
@@ -229,12 +236,12 @@
                                    | [#xF900-#xFDCF] 
                                    | [#xFDF0-#xFFFD] 
                                    | [#x10000-#xEFFFF]
-[151]  PN_CHARS_U                ::= PN_CHARS_BASE | '_'
-[152]  VARNAME                   ::= ( PN_CHARS_U  | [0-9] ) ( PN_CHARS_U | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
-[153]  PN_CHARS                  ::= PN_CHARS_U | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040]
-[154]  PN_PREFIX                 ::= PN_CHARS_BASE ((PN_CHARS|'.')* PN_CHARS)?
-[155]  PN_LOCAL                  ::= (PN_CHARS_U | ':' | [0-9] | PLX ) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX) )?
-[156]  PLX                       ::= PERCENT | PN_LOCAL_ESC
-[157]  PERCENT                   ::= '%' HEX HEX
-[158]  HEX                       ::= [0-9] | [A-F] | [a-f]
-[159]  PN_LOCAL_ESC              ::= '\' ( '_' | '~' | '.' | '-' | '!' | '$' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '/' | '?' | '#' | '@' | '%' )
+[168]  PN_CHARS_U                ::= PN_CHARS_BASE | '_'
+[169]  VARNAME                   ::= ( PN_CHARS_U  | [0-9] ) ( PN_CHARS_U | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
+[170]  PN_CHARS                  ::= PN_CHARS_U | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040]
+[171]  PN_PREFIX                 ::= PN_CHARS_BASE ((PN_CHARS|'.')* PN_CHARS)?
+[172]  PN_LOCAL                  ::= (PN_CHARS_U | ':' | [0-9] | PLX ) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX) )?
+[173]  PLX                       ::= PERCENT | PN_LOCAL_ESC
+[174]  PERCENT                   ::= '%' HEX HEX
+[175]  HEX                       ::= [0-9] | [A-F] | [a-f]
+[176]  PN_LOCAL_ESC              ::= '\' ( '_' | '~' | '.' | '-' | '!' | '$' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '/' | '?' | '#' | '@' | '%' )

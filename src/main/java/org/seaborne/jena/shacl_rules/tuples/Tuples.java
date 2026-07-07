@@ -80,7 +80,6 @@ public class Tuples {
         iOut.println();
     }
 
-
     public static TupleStore tupleStoreSSE(String str) {
         List<Tuple> elts = parseSSE(str);
         return new TupleStoreSimple(elts);
@@ -111,7 +110,7 @@ public class Tuples {
      * Read a list of tuples in SRL syntax.
      *
      * <pre>
-     *    PREFIX : <http://example/>
+     *    PREFIX : &lt;http://example/&gt;
      *    TUPLES {
      *        $(:a, 1)
      *        $("b", "xyz")

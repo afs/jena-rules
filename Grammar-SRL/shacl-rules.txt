@@ -236,18 +236,27 @@ NON-TERMINALS
 //    BodyPattern()
 //    { finishRule(t.beginLine, t.beginColumn); }
 // }
-	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
+	Data	:=	<DATA> <LBRACE> ( DataTriplesBlock )? <RBRACE>
+	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? <RBRACE>
+	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
+	BodyNotTriples	:=	( Filter | Negation | Assignment )
+	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
+// Body-like pattern for NOT
+	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
+	BodyBasicNotTriples	:=	Filter
+	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
+	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <LPAREN> iri <RPAREN> <SYMMETRIC> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
+// -----------------------
 // Production organisation.
-// Data block   - rules of the form *Data - no variables
-// HeadTemplate - rules of the form *Template - variables, no paths
-// BodyPattern  - rules of the form *Pattern - variables and paths
+// DataTriplesBlock  - rules of the form *Data - no variables
+// HeadTemplateBlock - rules of the form *Template - variables, no paths
+// BodyTriplesBlock  - rules of the form *Pattern - variables and paths
+//
 // Tuples - one set, with variables.
-// General.
 // ---- Start: DATA block.
 // No variables.
-// There follows rules of the form *Data
-	Data	:=	<DATA> <LBRACE> ( TriplesBlockData )? <RBRACE>
-	TriplesBlockData	:=	TriplesSameSubjectData ( <DOT> ( TriplesBlockData )? )?
+// Rules of the form *Data
+	DataTriplesBlock	:=	TriplesSameSubjectData ( <DOT> ( DataTriplesBlock )? )?
 	TriplesSameSubjectData	:=	RDFTerm PropertyListNotEmptyData
 		|	TriplesNodeData PropertyListData
 		|	ReifiedTripleBlockData
@@ -264,7 +273,8 @@ NON-TERMINALS
 		|	BlankNodePropertyListData
 	BlankNodePropertyListData	:=	<LBRACKET> PropertyListNotEmptyData <RBRACKET>
 	CollectionData	:=	<LPAREN> ( GraphNodeData )+ <RPAREN>
-	AnnotationData	:=	( ReifierData | AnnotationBlock )*
+	AnnotationData	:=	( ReifierData | AnnotationBlockData )*
+	AnnotationBlockData	:=	<L_ANN> PropertyListNotEmptyData <R_ANN>
 	ReifierData	:=	<TILDE> ( ReifierIdData )?
 	ReifierIdData	:=	( iri | BlankNode )
 // << :s :p :o >>, maybe a property list.
@@ -276,22 +286,52 @@ NON-TERMINALS
 	TripleTermSubjectData	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData )
 	TripleTermObjectData	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermData )
 // ---- End: DATA block
-// ---- Rule head
-	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? <RBRACE>
-// ---- Rule body
-	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
-	BodyNotTriples	:=	( Filter | Negation | Assignment )
-	BodyTriplesBlock	:=	TriplesBlock
-	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
-// Body-like pattern for NOT
-	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
-	BodyBasicNotTriples	:=	Filter
+// ---- Start: Template block
+// Variables. No paths.
+// Head template.
+// Rules of the form *Template
+	HeadTemplateBlock	:=	TriplesBlockTemplate
+	TriplesBlockTemplate	:=	TriplesSameSubjectTemplate ( <DOT> ( TriplesBlockTemplate )? )?
+	TriplesSameSubjectTemplate	:=	VarOrTerm PropertyListNotEmptyTemplate
+		|	TriplesNodeTemplate PropertyListTemplate
+		|	ReifiedTripleBlockTemplate
+	PropertyListTemplate	:=	( PropertyListNotEmptyTemplate )?
+	PropertyListNotEmptyTemplate	:=	VerbTemplate ObjectListTemplate ( <SEMICOLON> ( VerbTemplate ObjectListTemplate )? )*
+	VerbTemplate	:=	( VarOrIri | <KW_A> )
+	ObjectListTemplate	:=	ObjectTemplate ( <COMMA> ObjectTemplate )*
+	ObjectTemplate	:=	GraphNodeTemplate AnnotationTemplate
+// Object position RDF term or element of a list
+	GraphNodeTemplate	:=	VarOrTerm
+		|	TriplesNodeTemplate
+		|	ReifiedTripleTemplate
+	TriplesNodeTemplate	:=	CollectionTemplate
+		|	BlankNodePropertyListTemplate
+	BlankNodePropertyListTemplate	:=	<LBRACKET> PropertyListNotEmptyTemplate <RBRACKET>
+	CollectionTemplate	:=	<LPAREN> ( GraphNodeTemplate )+ <RPAREN>
+	AnnotationTemplate	:=	( ReifierTemplate | AnnotationBlockTemplate )*
+	AnnotationBlockTemplate	:=	<L_ANN> PropertyListNotEmptyTemplate <R_ANN>
+	ReifierTemplate	:=	<TILDE> ( ReifierIdTemplate )?
+// == VarOrReifierId
+	ReifierIdTemplate	:=	( Var | iri | BlankNode )
+// << :s :p :o >>, maybe a property list.
+	ReifiedTripleBlockTemplate	:=	ReifiedTripleTemplate PropertyListTemplate
+	ReifiedTripleTemplate	:=	<LT2> ReifiedTripleSubjectTemplate VerbTemplate ReifiedTripleObjectTemplate ( ReifierTemplate )? <GT2>
+// SHARE
+	ReifiedTripleSubjectTemplate	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleTemplate | TripleTermTemplate )
+	ReifiedTripleObjectTemplate	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | ReifiedTripleTemplate | TripleTermTemplate )
+	TripleTermTemplate	:=	<L_TRIPLE> TripleTermSubjectTemplate VerbTemplate TripleTermObjectTemplate <R_TRIPLE>
+	TripleTermSubjectTemplate	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermTemplate )
+	TripleTermObjectTemplate	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTermTemplate )
+//---- Tuples
+// ---- End: Template
+// ---- Start: BodyPattern
+// Variables, paths.
+// Rules of the form *Pattern
+	BodyTriplesBlock	:=	TriplesBlockPath
 // ---- Triples
-	HeadTemplateBlock	:=	TriplesBlock
-	TriplesBlock	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlock )? )?
-	ReifiedTripleBlock	:=	ReifiedTriple PropertyList
+	TriplesBlockPath	:=	TriplesSameSubjectPath ( <DOT> ( TriplesBlockPath )? )?
+	ReifiedTripleBlock	:=	ReifiedTriple PropertyListPath
 	ReifiedTripleBlockPath	:=	ReifiedTriple PropertyListPath
-	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
 // ---- Reifier, various cases.
 // May return null.
 	Reifier	:=	<TILDE> ( VarOrReifierId )?
@@ -301,18 +341,7 @@ NON-TERMINALS
 	FunctionCall	:=	iri ArgList
 	ArgList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
 	ExpressionList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
-// -------- Triple lists with property and object lists
-// -------- Without paths: entry: TriplesSameSubject
-	TriplesSameSubject	:=	VarOrTerm PropertyListNotEmpty
-		|	TriplesNode PropertyList
-		|	ReifiedTripleBlock
-	PropertyList	:=	( PropertyListNotEmpty )?
-	PropertyListNotEmpty	:=	Verb ObjectList ( <SEMICOLON> ( Verb ObjectList )? )*
 	Verb	:=	( VarOrIri | <KW_A> )
-	ObjectList	:=	Object ( <COMMA> Object )*
-	Object	:=	GraphNode Annotation
-// -------- BGPs with paths.
-// -------- Entry point: TriplesSameSubjectPath
 	TriplesSameSubjectPath	:=	VarOrTerm PropertyListPathNotEmpty
 		|	TriplesNodePath PropertyListPath
 		|	ReifiedTripleBlockPath
@@ -332,7 +361,7 @@ NON-TERMINALS
 	PathEltOrInverse	:=	( PathElt | <CARAT> PathElt )
 // Path unit element
 	PathElt	:=	( iri | <KW_A> | <LPAREN> Path <RPAREN> )
-// // Path unit element
+// // Path unit element (for negated property paths): Not rules.
 // Path PathElt() : { String str ; Node n ; Path p ; }
 // { 
 //    p = PathPrimary() 
@@ -352,32 +381,14 @@ NON-TERMINALS
 //     )
 //    { return p ; }
 // }
-// -------- Triple expansions
-// Anything that can stand in a node slot and which is
-// a number of triples
-	TriplesNode	:=	Collection
-		|	BlankNodePropertyList
-	BlankNodePropertyList	:=	<LBRACKET> PropertyListNotEmpty <RBRACKET>
 	TriplesNodePath	:=	CollectionPath
 		|	BlankNodePropertyListPath
 	BlankNodePropertyListPath	:=	<LBRACKET> PropertyListPathNotEmpty <RBRACKET>
-// ------- RDF collections
-	Collection	:=	<LPAREN> ( GraphNode )+ <RPAREN>
 	CollectionPath	:=	<LPAREN> ( GraphNodePath )+ <RPAREN>
 // ---- RDF-star Annotation Syntax
 // Allow paths. Query graph patterns.
 	AnnotationPath	:=	( Reifier | AnnotationBlockPath )*
 	AnnotationBlockPath	:=	<L_ANN> PropertyListPathNotEmpty <R_ANN>
-// ---- RDF-star Annotation Syntax
-// No paths. Construct templates.
-	Annotation	:=	( Reifier | AnnotationBlock )*
-	AnnotationBlock	:=	<L_ANN> PropertyListNotEmpty <R_ANN>
-// -------- Nodes in a graph pattern or template
-// Object position RDF term, element of a list
-// No paths in TriplesNode
-	GraphNode	:=	VarOrTerm
-		|	TriplesNode
-		|	ReifiedTriple
 	GraphNodePath	:=	VarOrTerm
 		|	TriplesNodePath
 		|	ReifiedTriple
@@ -388,10 +399,6 @@ NON-TERMINALS
 	TripleTerm	:=	<L_TRIPLE> TripleTermSubject Verb TripleTermObject <R_TRIPLE>
 	TripleTermSubject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
 	TripleTermObject	:=	( Var | iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | TripleTerm )
-// ---- Start: templates
-	TripleTermTemplate	:=	<L_TRIPLE> TripleTermSubjectTemplate ( iri | <KW_A> ) TripleTermObjectTemplate <R_TRIPLE>
-	TripleTermSubjectTemplate	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral )
-	TripleTermObjectTemplate	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | TripleTermData )
 // ---- Start: RDFTerm and variables.
 	RDFTerm	:=	( iri | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | <NIL> | TripleTerm )
 	VarOrTerm	:=	( Var | RDFTerm )
