@@ -1,0 +1,20 @@
+Share between Template and Pattern:
+
+
+Reifier
+TripleTerm(inv var)
+ReifiedTriple   << :s :p :o >>
+
+
+    // Between template and pattern:
+    // ReifiedTripleTemplate/Patterns are the same
+    // TripleTerms are the same
+    
+    // AnnotationBlocks are not.
+
+    // [ ] Do Pattern systematically, write tests, then consolidate
+
+    // ReifiedtripleSubjectTemplate/ReifiedTripleObjectTermplate == the pattern ones : share.
+    // VerbTemplate == VerbOrVar (== Verb) : share
+
+but not annotation blocks.

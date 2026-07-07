@@ -260,6 +260,50 @@ void BodyNotTriples() : {}
    )
 }
 
+void Filter() : { Expr c ; }
+{
+    <FILTER> c = Constraint()
+    { emitFilterExpr(c, token.beginLine, token.beginColumn); }
+}
+
+Expr Constraint() : { Expr c ; }
+{
+  ( c = BrackettedExpression() 
+  | c = BuiltInCall()
+  | c = FunctionCall()
+  )
+  { return c ; }
+}
+
+Expr FunctionCall() : { String fname ; ExprList a ; }
+{
+  fname = iri()
+  a = ArgList()
+  { return new E_Function(fname, a) ; }
+}
+
+ExprList ArgList() : { Expr expr ; ExprList args = new ExprList() ; Token t ; }
+{ 
+  ( <NIL>
+  | <LPAREN>
+      expr = Expression() { args.add(expr) ; } 
+      (<COMMA> expr = Expression() { args.add(expr) ; } )*
+    <RPAREN>
+  )
+  { return args ; }
+}
+
+ExprList ExpressionList() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
+{
+  ( <NIL>
+  | <LPAREN>
+    expr = Expression() { exprList.add(expr) ; } 
+      (<COMMA> expr = Expression() { exprList.add(expr) ; } )* 
+    <RPAREN>
+  )
+  { return exprList ; }
+}
+
 void Negation() : { Token t; Token t2;}
 {
     t = <NOT>
@@ -353,7 +397,7 @@ void DataTriplesBlock() : {}
 
 void TriplesSameSubjectData() : { Node s; }
 {
-  s = RDFTerm()
+  s = RDFTermData()
   PropertyListNotEmptyData(s) 
 |
   // Any of the triple generating syntax elements : (), []
@@ -403,7 +447,7 @@ void ObjectData(Node s, Node p) : { Node o; }
 // Object position RDF term or element of a list
 Node GraphNodeData() : { Node n ; }
 {
-   n = RDFTerm() { return n ; }
+   n = RDFTermData() { return n ; }
  |
    n = TriplesNodeData() { return n ; }
  |
@@ -622,7 +666,7 @@ void TriplesBlockTemplate() : {}
 
 void TriplesSameSubjectTemplate() : { Node s; }
 {
-  s = VarOrTerm()
+  s = VarOrRDFTerm()
   PropertyListNotEmptyTemplate(s) 
 |
   // Any of the triple generating syntax elements : (), []
@@ -639,7 +683,7 @@ void PropertyListTemplate(Node s) : { }
 
 void PropertyListNotEmptyTemplate(Node s) : { Node p = null ; }
 {
-    p = VerbTemplate()
+    p = Verb()
     ObjectListTemplate(s, p)
   ( <SEMICOLON> 
     (
@@ -672,7 +716,7 @@ void ObjectTemplate(Node s, Node p) : { Node o; }
 Node GraphNodeTemplate() : { Node n ; }
 {
   
-   n = VarOrTerm() { return n ; }
+   n = VarOrRDFTerm() { return n ; }
  |
    n = TriplesNodeTemplate() { return n ; }
  |
@@ -890,97 +934,31 @@ void TuplesDataBlock() : {}
 void BodyTriplesBlock() : { }
 {
    { startTriplesBlock(token.beginLine, token.beginColumn) ; }
-   TriplesBlockPath()
+   TriplesBlockPattern()
    { finishTriplesBlock(token.beginLine, token.beginColumn) ; }
 }
 
-// ---- Triples
-
-void TriplesBlockPath() : { }
+void TriplesBlockPattern() : { }
 {
-    TriplesSameSubjectPath()
-    ( <DOT> (TriplesBlockPath())? )?
+    TriplesSameSubjectPattern()
+    ( <DOT> (TriplesBlockPattern())? )?
 }
 
-Node ReifiedTripleBlock() : { Node reifId ; }
+Node ReifiedTripleBlockPattern() : { Node reifId ; }
 {
-    reifId = ReifiedTriple()
-    PropertyListPath(reifId)   // May be empty
+    reifId = ReifiedTriplePattern()
+    PropertyListPattern(reifId)   // May be empty
     { return reifId ; }
 }
 
-Node ReifiedTripleBlockPath() : { Node reifId ; }
-{
-    reifId = ReifiedTriple()
-    PropertyListPath(reifId)   // May be empty
-    { return reifId ; }
-}
-
-#ifdef JENA
-
-// ---- Tuples
-
-void TuplePattern() : {}
-{
-    TupleWithVars()
-}
-
-void TupleTemplate() : {}
-{
-    TupleWithVars()
-}
-
-void TupleWithVars() : { Token t = null ; Node n; }
-{
-   (t = <TUPLE>| t = <DOLLAR>)
-   { startTuple(t.beginLine, t.beginColumn); }
-   ( <NIL>
-   |
-     <LPAREN>
-     n = TupleArg()
-     { tupleArg(n); }
-     ( <COMMA> n = TupleArg() { tupleArg(n); } )*
-     <RPAREN>
-   )
-   { finishTuple(t.beginLine, t.beginColumn); }
-}
-
-
-Node TupleArg() : { Node n ; Var v; }
-{
-    n = RDFTerm() { return n; }
-  |
-    v = Var() { return v; }
-}
-
-void DataTuple() : { Token t; Node n; }
-{
-   ( t = <TUPLE> | t = <DOLLAR> )
-   { startDataTuple(t.beginLine, t.beginColumn); }
-   (
-     <NIL>
-   |
-     <LPAREN>
-     n = RDFTerm()  { tupleArg(n); }
-     (<COMMA> n = RDFTerm()  { tupleArg(n); } )*
-     <RPAREN>
-   )
-   { finishDataTuple(t.beginLine, t.beginColumn); }
-}
-
-#endif
-
-// ---- Reifier, various cases.
-// May return null.
-
-Node Reifier() : { Token tok = null ; Node reifId = null ; }
+Node ReifierPattern() : { Token tok = null ; Node reifId = null ; }
 {
     tok = <TILDE>
-    (reifId = VarOrReifierId() )?
+    (reifId = ReifierIdPattern() )?
     { return reifId; }
 }
 
-Node VarOrReifierId() : { Node n = null; String iri = null; }
+Node ReifierIdPattern() : { Node n = null; String iri = null; }
 {
    ( n = Var()        { return n; }
    | iri = iri()      { return createURI(iri, token.beginLine, token.beginColumn) ; }
@@ -988,52 +966,215 @@ Node VarOrReifierId() : { Node n = null; String iri = null; }
    )
 }
 
-void Filter() : { Expr c ; }
+void TriplesSameSubjectPattern() : { Node s ; } 
 {
-    <FILTER> c = Constraint()
-    { emitFilterExpr(c, token.beginLine, token.beginColumn); }
+  s = VarOrRDFTerm()
+  PropertyListNotEmptyPattern(s) 
+|
+  // Any of the triple generating syntax elements
+  s = TriplesNodePattern()
+  PropertyListPattern(s)
+|
+  ReifiedTripleBlockPattern()
 }
 
-Expr Constraint() : { Expr c ; }
+void PropertyListPattern(Node s) : { }
 {
-  ( c = BrackettedExpression() 
-  | c = BuiltInCall()
-  | c = FunctionCall()
+  ( PropertyListNotEmptyPattern(s) ) ?
+}
+
+void PropertyListNotEmptyPattern(Node s) : { Path path = null ; Node p = null ; }
+{
+  ( path = VerbPath()
+  | p = VerbVar()
   )
-  { return c ; }
+
+  ObjectListPattern(s, p, path)
+  ( <SEMICOLON> 
+    { path = null ; p = null ; }
+    (
+      ( path = VerbPath()
+      | p = VerbVar()
+      )
+      ObjectListPattern(s, p, path)
+    )?
+  )*
 }
 
-Expr FunctionCall() : { String fname ; ExprList a ; }
+void ObjectListPattern(Node s, Node p, Path path): { Node o ; } 
 {
-  fname = iri()
-  a = ArgList()
-  { return new E_Function(fname, a) ; }
+  ObjectPattern(s, p, path)
+  ( <COMMA> ObjectPattern(s, p, path) )*
 }
 
-ExprList ArgList() : { Expr expr ; ExprList args = new ExprList() ; Token t ; }
-{ 
+void ObjectPattern(Node s, Node p, Path path): { Node o ; }
+{
+  o = GraphNodePattern() 
+  { emitTriple(s, p, path, o, token.beginLine, token.beginColumn); }
+  AnnotationPattern(s, p, path, o)
+}
+
+Node TriplesNodePattern() : { Node n ; }
+{
+   n = CollectionPattern() { return n ; }
+ |
+   n = BlankNodePropertyListPattern() { return n ; }
+}
+
+Node BlankNodePropertyListPattern() : { Token t ; }
+{
+  t = <LBRACKET> 
+    { Node n = createBNode( t.beginLine, t.beginColumn) ; }
+  PropertyListNotEmptyPattern(n)
+  <RBRACKET>
+    { return n ; }
+}
+
+Node CollectionPattern() : 
+    { Node listHead = nRDFnil ; Node lastCell = null ; int mark ; Node n ; Token t ; }
+{
+  t = <LPAREN>
+  { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
   (
-    <NIL>
-  |
-    <LPAREN>
-      expr = Expression() { args.add(expr) ; } 
-      (<COMMA> expr = Expression() { args.add(expr) ; } )*
-    <RPAREN>
-   )
-   { return args ; }
+    { Node cell = createListNode( beginLine, beginColumn) ;
+      if ( listHead == nRDFnil )
+         listHead = cell ;
+      if ( lastCell != null )
+          emitTriple(lastCell, nRDFrest,  cell, token.beginLine, token.beginColumn) ;
+    }
+    n = GraphNodePattern()
+    {
+      emitTriple(cell, nRDFfirst, n, token.beginLine, token.beginColumn) ;
+      lastCell = cell ;
+    }
+  ) +
+  // Not * here - "()" is handled separately.
+  <RPAREN>
+   { if ( lastCell != null )
+       emitTriple(lastCell, nRDFrest,  nRDFnil, token.beginLine, token.beginColumn) ;
+     return listHead ; }
 }
 
-ExprList ExpressionList() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
+void AnnotationPattern(Node s, Node p, Path path, Node o) : { Node reifId = null ; }
 {
   (
-    <NIL>
+    { p = preConditionReifier(s, p, path, o, token.beginLine, token.beginColumn); }
+    reifId = ReifierPattern()
+    { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }
+    { setReifierId(reifId); }
   |
-    <LPAREN>
-    expr = Expression() { exprList.add(expr) ; } 
-      (<COMMA> expr = Expression() { exprList.add(expr) ; } )* 
-    <RPAREN>
+    {
+      p = preConditionReifier(s, p, path, o, token.beginLine, token.beginColumn);
+      reifId = getOrAllocReifierId(s, p, o, token.beginLine, token.beginColumn);
+    }
+    { clearReifierId(); }
+    AnnotationBlockPattern(reifId)
+  )*
+  { clearReifierId(); }
+}
+
+void AnnotationBlockPattern(Node reifId) : { }
+{
+   <L_ANN>
+      PropertyListNotEmptyPattern(reifId)
+   <R_ANN>
+}
+
+Node GraphNodePattern() : { Node n ; }
+{
+  n = VarOrRDFTerm() { return n ; }
+|
+  n = TriplesNodePattern() { return n ; }
+|
+  n = ReifiedTriplePattern()  { return n ; }
+}
+
+Node ReifiedTriplePattern() : { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
+{
+  tok = <LT2>
+  s = ReifiedTripleSubjectPattern()
+  p = Verb()
+  o = ReifiedTripleObjectPattern()
+  (reifId = ReifierPattern())?
+  { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }    
+  <GT2>
+  { return reifId; }
+}
+
+Node ReifiedTripleSubjectPattern() : { Node s; String iri; }
+{
+  ( s = Var()
+  | iri = iri()           { s = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | s = RDFLiteral()
+  | s = NumericLiteral()
+  | s = BooleanLiteral()
+  | s = BlankNode()
+  | s = ReifiedTriplePattern()
+  // Not () - only allow that where a list is allowed.
+  //  <LPAREN> <RPAREN>     { s = RDFnil ; }
+  //| <NIL>  { s = nRDFnil ; }
+  // Symmetric RDF
+  | s = TripleTermPattern()
   )
-  { return exprList ; }
+  { return s; }
+}
+
+Node ReifiedTripleObjectPattern() : { Node o; String iri; }
+{
+  ( o = Var()
+  | iri = iri()           { o = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | o = RDFLiteral()
+  | o = NumericLiteral()
+  | o = BooleanLiteral()
+  | o = BlankNode()
+  | o = ReifiedTriplePattern()
+  //  <LPAREN> <RPAREN>     { o = nRDFnil ; }
+  //| <NIL>  { o = nRDFnil ; }
+  | o = TripleTermPattern()
+  )
+  { return o; }
+}
+
+Node TripleTermPattern() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
+{
+    openToken = <L_TRIPLE>
+    // @@ Alt name. ttSubject()?
+    s = TripleTermSubjectPattern()
+    p = Verb()
+    o = TripleTermObjectPattern()
+    { n = createTripleTerm(s, p, o, openToken.beginLine, openToken.beginColumn); }
+    <R_TRIPLE>
+    { return n ; }
+}
+
+Node TripleTermSubjectPattern() : { Node n; String iri; }
+{
+  ( n = Var()
+  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = BlankNode()
+  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
+  //| <NIL>  { return nRDFnil ; }
+  | n = TripleTermPattern()      { return n; }
+  )
+  { return n; }
+}
+
+Node TripleTermObjectPattern() : { Node n; String iri; }
+{
+  ( n = Var()
+  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = BlankNode()
+  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
+  //| <NIL>  { return nRDFnil ; }
+  | n = TripleTermPattern()      { return n; }
+  )
+  { return n; }
 }
 
 Node Verb() : { Node p ;}
@@ -1042,69 +1183,19 @@ Node Verb() : { Node p ;}
   { return p ; }
 }
 
-void TriplesSameSubjectPath() : { Node s ; } 
-{
-  s = VarOrTerm()
-  PropertyListPathNotEmpty(s) 
-|
-  // Any of the triple generating syntax elements
-  s = TriplesNodePath()
-  PropertyListPath(s)
-|
-  ReifiedTripleBlockPath()
-}
-
-void PropertyListPath(Node s) : { }
-{
-  ( PropertyListPathNotEmpty(s) ) ?
-}
-
-void PropertyListPathNotEmpty(Node s) : 
-    { Path path = null ; Node p = null ; }
-{
-  ( path = VerbPath()
-  | p = VerbSimple()
-  )
-
-  ObjectListPath(s, p, path)
-  ( <SEMICOLON> 
-    { path = null ; p = null ; }
-    (
-      ( path = VerbPath()
-      | p = VerbSimple()
-      )
-      ObjectListPath(s, p, path)
-    )?
-  )*
-}
-
-Path VerbPath() : {Node p ; Path path ; }
+Path VerbPath() : { Path path ; }
 {
   path = Path() { return path ; }
 }
 
-Node VerbSimple() : { Node p ; }
+Node VerbVar() : { Node p ; }
 {
-  // "a" now allowed in paths.
-  //( p = Var() | <KW_A> { p = nRDFtype ; } )
-  p = Var()
-  { return p ; }
+  p = Var() { return p ; }
 }
 
-void ObjectListPath(Node s, Node p, Path path): { Node o ; } 
-{
-  ObjectPath(s, p, path)
-  ( <COMMA> ObjectPath(s, p, path) )*
-}
+// ----End: Body Pattern
 
-void ObjectPath(Node s, Node p, Path path): { Node o ; }
-{
-  o = GraphNodePath() 
-  { emitTriple(s, p, path, o, token.beginLine, token.beginColumn); }
-  AnnotationPath(s, p, path, o)
-}
 
-// End paths stuff.
 
 // -------- Paths
 // Simpified to Sequence and inverse only.
@@ -1175,192 +1266,88 @@ Path PathElt() : { String str ; Node n ; Path p ; }
 //    { return p ; }
 // }
 
-Node TriplesNodePath() : { Node n ; }
+#ifdef JENA
+
+// ---- Tuples
+
+void TuplePattern() : {}
 {
-   n = CollectionPath() { return n ; }
- |
-   n = BlankNodePropertyListPath() { return n ; }
+    TupleWithVars()
 }
 
-Node BlankNodePropertyListPath() : { Token t ; }
+void TupleTemplate() : {}
 {
-  t = <LBRACKET> 
-    { Node n = createBNode( t.beginLine, t.beginColumn) ; }
-  PropertyListPathNotEmpty(n)
-  <RBRACKET>
-    { return n ; }
+    TupleWithVars()
 }
 
-Node CollectionPath() : 
-    { Node listHead = nRDFnil ; Node lastCell = null ; int mark ; Node n ; Token t ; }
+void TupleWithVars() : { Token t = null ; Node n; }
 {
-  t = <LPAREN>
-  { int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null; }
-  (
-    { Node cell = createListNode( beginLine, beginColumn) ;
-      if ( listHead == nRDFnil )
-         listHead = cell ;
-      if ( lastCell != null )
-          emitTriple(lastCell, nRDFrest,  cell, token.beginLine, token.beginColumn) ;
-    }
-    n = GraphNodePath()
-    {
-      emitTriple(cell, nRDFfirst, n, token.beginLine, token.beginColumn) ;
-      lastCell = cell ;
-    }
-  ) +
-  // Not * here - "()" is handled separately.
-  <RPAREN>
-   { if ( lastCell != null )
-       emitTriple(lastCell, nRDFrest,  nRDFnil, token.beginLine, token.beginColumn) ;
-     return listHead ; }
+   (t = <TUPLE>| t = <DOLLAR>)
+   { startTuple(t.beginLine, t.beginColumn); }
+   ( <NIL>
+   |
+     <LPAREN>
+     n = TupleArg()
+     { tupleArg(n); }
+     ( <COMMA> n = TupleArg() { tupleArg(n); } )*
+     <RPAREN>
+   )
+   { finishTuple(t.beginLine, t.beginColumn); }
 }
 
-// ---- RDF-star Annotation Syntax
-// Allow paths. Query graph patterns.
-void AnnotationPath(Node s, Node p, Path path, Node o) : { Node reifId = null ; }
+
+Node TupleArg() : { Node n; }
 {
-  (
-    { p = preConditionReifier(s, p, path, o, token.beginLine, token.beginColumn); }
-    reifId = Reifier()
-    { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }
-    { setReifierId(reifId); }
-  |
-    {
-      p = preConditionReifier(s, p, path, o, token.beginLine, token.beginColumn);
-      reifId = getOrAllocReifierId(s, p, o, token.beginLine, token.beginColumn);
-    }
-    { clearReifierId(); }
-    AnnotationBlockPath(reifId)
-  )*
-  { clearReifierId(); }
+    n = VarOrRDFTerm() { return n; }
 }
 
-void AnnotationBlockPath(Node reifId) : { }
+void DataTuple() : { Token t; Node n; }
 {
-   <L_ANN>
-      PropertyListPathNotEmpty(reifId)
-   <R_ANN>
+   ( t = <TUPLE> | t = <DOLLAR> )
+   { startDataTuple(t.beginLine, t.beginColumn); }
+   (
+     <NIL>
+   |
+     <LPAREN>
+     n = RDFTermData()  { tupleArg(n); }
+     (<COMMA> n = RDFTermData()  { tupleArg(n); } )*
+     <RPAREN>
+   )
+   { finishDataTuple(t.beginLine, t.beginColumn); }
 }
 
-Node GraphNodePath() : { Node n ; }
-{
-  n = VarOrTerm() { return n ; }
-|
-  n = TriplesNodePath() { return n ; }
-|
-  n = ReifiedTriple()  { return n ; }
-}
-
-// Patterns
-
-Node ReifiedTriple() :  { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
-{
-  tok = <LT2>
-  s = ReifiedTripleSubject()
-  p = Verb()
-  o = ReifiedTripleObject()
-  (reifId = Reifier())?
-  { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }    
-  <GT2>
-  { return reifId; }
-}
-
-Node ReifiedTripleSubject() : { Node s; String iri; }
-{
-  ( s = Var()
-  | iri = iri()           { s = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | s = RDFLiteral()
-  | s = NumericLiteral()
-  | s = BooleanLiteral()
-  | s = BlankNode()
-  | s = ReifiedTriple()
-  // Not () - only allow that where a list is allowed.
-  //  <LPAREN> <RPAREN>     { s = RDFnil ; }
-  //| <NIL>  { s = nRDFnil ; }
-  // Symmetric RDF
-  | s = TripleTerm()
-  )
-  { return s; }
-}
-
-Node ReifiedTripleObject() : { Node o; String iri; }
-{
-  ( o = Var()
-  | iri = iri()           { o = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | o = RDFLiteral()
-  | o = NumericLiteral()
-  | o = BooleanLiteral()
-  | o = BlankNode()
-  | o = ReifiedTriple()
-  //  <LPAREN> <RPAREN>     { o = nRDFnil ; }
-  //| <NIL>  { o = nRDFnil ; }
-  | o = TripleTerm()
-  )
-  { return o; }
-}
-
-Node TripleTerm() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
-{
-    openToken = <L_TRIPLE>
-    // @@ Alt name. ttSubject()?
-    s = TripleTermSubject()
-    p = Verb()
-    o = TripleTermObject()
-    { n = createTripleTerm(s, p, o, openToken.beginLine, openToken.beginColumn); }
-    <R_TRIPLE>
-    { return n ; }
-}
-
-Node TripleTermSubject() : { Node n; String iri; }
-{
-  ( n = Var()
-  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  //| <NIL>  { return nRDFnil ; }
-  | n = TripleTerm()      { return n; }
-  )
-  { return n; }
-}
-
-Node TripleTermObject() : { Node n; String iri; }
-{
-  ( n = Var()
-  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  //| <NIL>  { return nRDFnil ; }
-  | n = TripleTerm()      { return n; }
-  )
-  { return n; }
-}
+#endif
 
 // ---- Start: RDFTerm and variables.
 
-Node RDFTerm() : { Node n = null ; String iri ; }
+Node RDFTermData() : { Node n = null ; String iri ; }
 {
-  ( iri = iri()           { return createURI(iri, token.beginLine, token.beginColumn) ; }
+  ( iri = iri()             { return createURI(iri, token.beginLine, token.beginColumn) ; }
   | n = RDFLiteral()
   | n = NumericLiteral()
   | n = BooleanLiteral()
   | n = BlankNode()
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  | <NIL>  { return nRDFnil ; }
-  | n = TripleTerm()      { return n; }
+  | <NIL>                   { return nRDFnil ; }
+  // No variables.
+  | n = TripleTermData()    { return n; }
   )
   { return n; }
 }
 
-Node VarOrTerm() : { Node n = null ; }
+Node VarOrRDFTerm() : { Node n = null ; String iri ; }
 {
-  ( n = Var() | n = RDFTerm() )
+  ( n = Var()
+  | iri = iri()            { return createURI(iri, token.beginLine, token.beginColumn) ; }
+  | n = RDFLiteral()
+  | n = NumericLiteral()
+  | n = BooleanLiteral()
+  | n = BlankNode()
+  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
+  | <NIL>                   { return nRDFnil ; }
+  // With variables.
+  | n = TripleTermPattern() { return n; }
+  )
   { return n; }
 }
 
