@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
-DIR="/home/afs/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
+##DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
+DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/rules/"
 
 function exportDir {
     local SRC="$1"
@@ -8,14 +9,20 @@ function exportDir {
     cp -r $SRC $DIR
 }
 
-rm -f $DIR/README.md
-rm -f $DIR/manifest*
-rm -rf $DIR/eval $DIR/syntax
+function replaceArea {
+    local AREA="$1"
+    rm -rf "$DIR/$AREA"
+    exportDir "$AREA"
+}
 
-cp manifest-rules.ttl $DIR
-cp README.md $DIR
+replaceArea syntax
+## replaceArea wellformed
+## replaceArea stratification
+## replaceArea eval
 
-exportDir syntax
-exportDir wellformed
-exportDir stratification
-exportDir eval
+
+## rm -f $DIR/README.md
+## rm -f $DIR/manifest*
+##cp manifest-rules.ttl $DIR
+##cp README.md $DIR
+

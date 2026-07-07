@@ -15,14 +15,8 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-## TODO (2024)
-## [ ] Why does ruleBodyStr have a newline?
-
-## Consider rewriting, preserving the inlining.
-## Parse lines (and continuation lines). Fixup.
-
 # Grammar into BNF text
-# Reads in sparql.txt and the tokens.txt file
+# Reads in grammar.txt and the tokens.txt file
 
 if ( $#ARGV != 1 )
 {
@@ -179,6 +173,7 @@ for $r (@rules) {
 
     ##$ruleId = sane("r".$rulename) ;
 
+    ## Trigger for splitting
     if($rulename eq 'IRIREF') {
         print "\n";
         print "\@terminals\n";

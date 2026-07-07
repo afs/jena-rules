@@ -245,6 +245,7 @@ for $r (@rules) {
 
     $ruleId = sane("r".$rulename) ;
 
+    ## Trigger for splitting
     if($rulename eq 'IRIREF') {
         print $indent,"  </tbody></table>\n" ;
         print $indent,"</div>\n" ;
