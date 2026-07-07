@@ -1,2 +1,2 @@
 PREFIX : <http://example/>
-DATA { :s :p "abc"@en--LTR }
+DATA { :s :p ?o }
