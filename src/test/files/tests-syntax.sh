@@ -630,6 +630,15 @@ PREFIX : <http://example/>
 RULE { :s :p :o ~:r {| |} } WHERE { ?a ?b ?c }
 EOF
 
+N=$((N+1)) ; testBad $(fname "syntax-template-bad-" $N) <<EOF
+PREFIX : <http://example/>
+RULE { :s :p1/:p2 :o } WHERE { ?a ?b ?c }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-template-bad-" $N) <<EOF
+PREFIX : <http://example/>
+RULE { :s :p :o {| :p1/:p2 :oz } WHERE { ?a ?b ?c }
+EOF
 
 ## Body Patterns
 

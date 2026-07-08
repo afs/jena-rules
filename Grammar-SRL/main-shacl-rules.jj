@@ -687,16 +687,10 @@ void PropertyListNotEmptyTemplate(Node s) : { Node p = null ; }
     ObjectListTemplate(s, p)
   ( <SEMICOLON> 
     (
-       p = VerbTemplate()
+       p = Verb()
        ObjectListTemplate(s, p)
     )? 
   )*
-}
-
-Node VerbTemplate() : { Node p ;}
-{
-  ( p = VarOrIri() | <KW_A> { p = nRDFtype ; } )
-  { return p ; }
 }
 
 void ObjectListTemplate(Node s, Node p) : { } 
@@ -720,7 +714,7 @@ Node GraphNodeTemplate() : { Node n ; }
  |
    n = TriplesNodeTemplate() { return n ; }
  |
-   n = ReifiedTripleTemplate()  { return n ; }
+   n = ReifiedTriple()  { return n ; }
 }
 
 
@@ -770,7 +764,7 @@ void AnnotationTemplate(Node s, Node p, Node o) : { Node reifId = null ; }
   (
     // "~ :reifier"
     { p = preConditionReifier(s, p, null, o, token.beginLine, token.beginColumn); }
-    reifId = ReifierTemplate()
+    reifId = Reifier()
     { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }    
     { setReifierId(reifId); }
   |
@@ -791,139 +785,13 @@ void AnnotationBlockTemplate(Node reifId) : { }
    <R_ANN>
 }
 
-
-
-Node ReifierTemplate() : { Token tok = null ; Node reifId = null ; }
-{
-
-    tok = <TILDE>
-    (reifId = ReifierIdTemplate() )?
-    { return reifId; }
-}
-
-// == VarOrReifierId
-Node ReifierIdTemplate() : { String iri; Node n; }
-{
-   ( n = Var()        { return n ; }
-   | iri = iri()      { return createURI(iri, token.beginLine, token.beginColumn) ; }
-   | n = BlankNode()  { return n ; }
-   )
-}
-
 // << :s :p :o >>, maybe a property list.
 Node ReifiedTripleBlockTemplate() : {Node reifId ; }
 {
-   reifId = ReifiedTripleTemplate()
+   reifId = ReifiedTriple()
    PropertyListTemplate(reifId)
    { return reifId; }
 }
-
-Node ReifiedTripleTemplate() :  { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
-{
-  tok = <LT2>
-  s = ReifiedTripleSubjectTemplate()
-  p = VerbTemplate()
-  o = ReifiedTripleObjectTemplate()
-  (reifId = ReifierTemplate())?
-  { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }    
-  <GT2>
-  { return reifId; }
-}
-
-// SHARE
-Node ReifiedTripleSubjectTemplate() : { Node s; String iri; }
-{
-  ( s = Var()
-  | iri = iri()           { s = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | s = RDFLiteral()
-  | s = NumericLiteral()
-  | s = BooleanLiteral()
-  | s = BlankNode()
-  | s = ReifiedTripleTemplate()
-  // Not () - only allow that where a list is allowed.
-  //  <LPAREN> <RPAREN>     { s = RDFnil ; }
-  //| <NIL>  { s = nRDFnil ; }
-  // Symmetric RDF
-  | s = TripleTermTemplate()
-  )
-  { return s; }
-}
-
-Node ReifiedTripleObjectTemplate() : { Node o; String iri; }
-{
-  ( o = Var()
-  | iri = iri()           { o = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | o = RDFLiteral()
-  | o = NumericLiteral()
-  | o = BooleanLiteral()
-  | o = BlankNode()
-  | o = ReifiedTripleTemplate()
-  //  <LPAREN> <RPAREN>     { o = nRDFnil ; }
-  //| <NIL>  { o = nRDFnil ; }
-  | o = TripleTermTemplate()
-  )
-  { return o; }
-}
-
-Node TripleTermTemplate() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
-{
-    openToken = <L_TRIPLE>
-    s = TripleTermSubjectTemplate()
-    p = VerbTemplate()
-    o = TripleTermObjectTemplate()
-    { n = createTripleTerm(s, p, o, openToken.beginLine, openToken.beginColumn); }
-    <R_TRIPLE>
-    { return n ; }
-}
-
-Node TripleTermSubjectTemplate() : { Node n; String iri; }
-{
-  ( n = Var()
-  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  //| <NIL>  { return nRDFnil ; }
-  | n = TripleTermTemplate()      { return n; }
-  )
-  { return n; }
-}
-
-Node TripleTermObjectTemplate() : { Node n; String iri; }
-{
-  ( n = Var()
-  | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
-  | n = RDFLiteral()
-  | n = NumericLiteral()
-  | n = BooleanLiteral()
-  | n = BlankNode()
-  //  <LPAREN> <RPAREN>     { return nRDFnil ; }
-  //| <NIL>  { return nRDFnil ; }
-  | n = TripleTermTemplate()      { return n; }
-  )
-  { return n; }
-}
-
-//---- Tuples
-
-#ifdef JENA
-void TupleData() : { Token t; }
-{
-    t = <TUPLES>
-    <LBRACE>
-    { startTupleDataBlock(t.beginLine, t.beginColumn); }
-    (TuplesDataBlock())?
-    <RBRACE>
-    { finishTupleDataBlock(t.beginLine, t.beginColumn); }
-}
-
-void TuplesDataBlock() : {}
-{
-   (DataTuple() (<DOT>)? )+
-}
-#endif
 
 // ---- End: Template
 
@@ -946,24 +814,9 @@ void TriplesBlockPattern() : { }
 
 Node ReifiedTripleBlockPattern() : { Node reifId ; }
 {
-    reifId = ReifiedTriplePattern()
+    reifId = ReifiedTriple()
     PropertyListPattern(reifId)   // May be empty
     { return reifId ; }
-}
-
-Node ReifierPattern() : { Token tok = null ; Node reifId = null ; }
-{
-    tok = <TILDE>
-    (reifId = ReifierIdPattern() )?
-    { return reifId; }
-}
-
-Node ReifierIdPattern() : { Node n = null; String iri = null; }
-{
-   ( n = Var()        { return n; }
-   | iri = iri()      { return createURI(iri, token.beginLine, token.beginColumn) ; }
-   | n = BlankNode()  { return n ; }
-   )
 }
 
 void TriplesSameSubjectPattern() : { Node s ; } 
@@ -986,15 +839,15 @@ void PropertyListPattern(Node s) : { }
 void PropertyListNotEmptyPattern(Node s) : { Path path = null ; Node p = null ; }
 {
   ( path = VerbPath()
-  | p = VerbVar()
+  | p = Var()
   )
 
   ObjectListPattern(s, p, path)
   ( <SEMICOLON> 
     { path = null ; p = null ; }
     (
-      ( path = VerbPath()
-      | p = VerbVar()
+      ( path = VerbPath() 
+      | p = Var()
       )
       ObjectListPattern(s, p, path)
     )?
@@ -1059,7 +912,7 @@ void AnnotationPattern(Node s, Node p, Path path, Node o) : { Node reifId = null
 {
   (
     { p = preConditionReifier(s, p, path, o, token.beginLine, token.beginColumn); }
-    reifId = ReifierPattern()
+    reifId = Reifier()
     { reifId = emitTripleReifier(reifId, s, p, o, token.beginLine, token.beginColumn) ; }
     { setReifierId(reifId); }
   |
@@ -1086,22 +939,45 @@ Node GraphNodePattern() : { Node n ; }
 |
   n = TriplesNodePattern() { return n ; }
 |
-  n = ReifiedTriplePattern()  { return n ; }
+  n = ReifiedTriple()  { return n ; }
 }
 
-Node ReifiedTriplePattern() : { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
+// ---- End: Body Pattern
+
+
+// ---- Start: Reifiers and triple terms.
+// The rules with variables and without paths share between
+// templates and patterns.
+// Not innvolving PropertyListPattern/PropertyListTemplate
+
+Node Reifier() : { Token tok = null ; Node reifId = null ; }
+{
+    tok = <TILDE>
+    (reifId = ReifierId() )?
+    { return reifId; }
+}
+
+Node ReifierId() : { Node n = null; String iri = null; }
+{
+   ( n = Var()        { return n; }
+   | iri = iri()      { return createURI(iri, token.beginLine, token.beginColumn) ; }
+   | n = BlankNode()  { return n ; }
+   )
+}
+
+Node ReifiedTriple() : { Node reifId = null ; Token tok ; Node s; Node p ; Node o ; }
 {
   tok = <LT2>
-  s = ReifiedTripleSubjectPattern()
+  s = ReifiedTripleSubject()
   p = Verb()
-  o = ReifiedTripleObjectPattern()
-  (reifId = ReifierPattern())?
+  o = ReifiedTripleObject()
+  (reifId = Reifier())?
   { reifId = emitTripleReifier(reifId, s, p, o, tok.beginLine, tok.beginColumn) ; }    
   <GT2>
   { return reifId; }
 }
 
-Node ReifiedTripleSubjectPattern() : { Node s; String iri; }
+Node ReifiedTripleSubject() : { Node s; String iri; }
 {
   ( s = Var()
   | iri = iri()           { s = createURI(iri, token.beginLine, token.beginColumn) ; }
@@ -1109,17 +985,17 @@ Node ReifiedTripleSubjectPattern() : { Node s; String iri; }
   | s = NumericLiteral()
   | s = BooleanLiteral()
   | s = BlankNode()
-  | s = ReifiedTriplePattern()
+  | s = ReifiedTriple()
   // Not () - only allow that where a list is allowed.
   //  <LPAREN> <RPAREN>     { s = RDFnil ; }
   //| <NIL>  { s = nRDFnil ; }
   // Symmetric RDF
-  | s = TripleTermPattern()
+  | s = TripleTerm()
   )
   { return s; }
 }
 
-Node ReifiedTripleObjectPattern() : { Node o; String iri; }
+Node ReifiedTripleObject() : { Node o; String iri; }
 {
   ( o = Var()
   | iri = iri()           { o = createURI(iri, token.beginLine, token.beginColumn) ; }
@@ -1127,27 +1003,26 @@ Node ReifiedTripleObjectPattern() : { Node o; String iri; }
   | o = NumericLiteral()
   | o = BooleanLiteral()
   | o = BlankNode()
-  | o = ReifiedTriplePattern()
+  | o = ReifiedTriple()
   //  <LPAREN> <RPAREN>     { o = nRDFnil ; }
   //| <NIL>  { o = nRDFnil ; }
-  | o = TripleTermPattern()
+  | o = TripleTerm()
   )
   { return o; }
 }
 
-Node TripleTermPattern() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
+Node TripleTerm() : { Node n = null ; Token openToken ; String iri ; Node s , p , o ; }
 {
     openToken = <L_TRIPLE>
-    // @@ Alt name. ttSubject()?
-    s = TripleTermSubjectPattern()
+    s = TripleTermSubject()
     p = Verb()
-    o = TripleTermObjectPattern()
+    o = TripleTermObject()
     { n = createTripleTerm(s, p, o, openToken.beginLine, openToken.beginColumn); }
     <R_TRIPLE>
     { return n ; }
 }
 
-Node TripleTermSubjectPattern() : { Node n; String iri; }
+Node TripleTermSubject() : { Node n; String iri; }
 {
   ( n = Var()
   | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
@@ -1157,12 +1032,12 @@ Node TripleTermSubjectPattern() : { Node n; String iri; }
   | n = BlankNode()
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
   //| <NIL>  { return nRDFnil ; }
-  | n = TripleTermPattern()      { return n; }
+  | n = TripleTerm()      { return n; }
   )
   { return n; }
 }
 
-Node TripleTermObjectPattern() : { Node n; String iri; }
+Node TripleTermObject() : { Node n; String iri; }
 {
   ( n = Var()
   | iri = iri()           { n = createURI(iri, token.beginLine, token.beginColumn) ; }
@@ -1172,7 +1047,7 @@ Node TripleTermObjectPattern() : { Node n; String iri; }
   | n = BlankNode()
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
   //| <NIL>  { return nRDFnil ; }
-  | n = TripleTermPattern()      { return n; }
+  | n = TripleTerm()      { return n; }
   )
   { return n; }
 }
@@ -1187,15 +1062,6 @@ Path VerbPath() : { Path path ; }
 {
   path = Path() { return path ; }
 }
-
-Node VerbVar() : { Node p ; }
-{
-  p = Var() { return p ; }
-}
-
-// ----End: Body Pattern
-
-
 
 // -------- Paths
 // Simpified to Sequence and inverse only.
@@ -1270,12 +1136,41 @@ Path PathElt() : { String str ; Node n ; Path p ; }
 
 // ---- Tuples
 
-void TuplePattern() : {}
+void TupleData() : { Token t; }
+{
+    t = <TUPLES>
+    <LBRACE>
+    { startTupleDataBlock(t.beginLine, t.beginColumn); }
+    (TuplesDataBlock())?
+    <RBRACE>
+    { finishTupleDataBlock(t.beginLine, t.beginColumn); }
+}
+
+void TuplesDataBlock() : {}
+{
+   (DataTuple() (<DOT>)? )+
+}
+
+void DataTuple() : { Token t; Node n; }
+{
+   ( t = <TUPLE> | t = <DOLLAR> )
+   { startDataTuple(t.beginLine, t.beginColumn); }
+   ( <NIL>
+   |
+     <LPAREN>
+     n = RDFTermData()  { tupleArg(n); }
+     (<COMMA> n = RDFTermData()  { tupleArg(n); } )*
+     <RPAREN>
+   )
+   { finishDataTuple(t.beginLine, t.beginColumn); }
+}
+
+void TupleTemplate() : {}
 {
     TupleWithVars()
 }
 
-void TupleTemplate() : {}
+void TuplePattern() : {}
 {
     TupleWithVars()
 }
@@ -1287,33 +1182,16 @@ void TupleWithVars() : { Token t = null ; Node n; }
    ( <NIL>
    |
      <LPAREN>
-     n = TupleArg()
-     { tupleArg(n); }
+     n = TupleArg() { tupleArg(n); }
      ( <COMMA> n = TupleArg() { tupleArg(n); } )*
      <RPAREN>
    )
    { finishTuple(t.beginLine, t.beginColumn); }
 }
 
-
 Node TupleArg() : { Node n; }
 {
     n = VarOrRDFTerm() { return n; }
-}
-
-void DataTuple() : { Token t; Node n; }
-{
-   ( t = <TUPLE> | t = <DOLLAR> )
-   { startDataTuple(t.beginLine, t.beginColumn); }
-   (
-     <NIL>
-   |
-     <LPAREN>
-     n = RDFTermData()  { tupleArg(n); }
-     (<COMMA> n = RDFTermData()  { tupleArg(n); } )*
-     <RPAREN>
-   )
-   { finishDataTuple(t.beginLine, t.beginColumn); }
 }
 
 #endif
@@ -1346,7 +1224,7 @@ Node VarOrRDFTerm() : { Node n = null ; String iri ; }
   //  <LPAREN> <RPAREN>     { return nRDFnil ; }
   | <NIL>                   { return nRDFnil ; }
   // With variables.
-  | n = TripleTermPattern() { return n; }
+  | n = TripleTerm() { return n; }
   )
   { return n; }
 }
@@ -1378,7 +1256,88 @@ Node RDFLiteral() : { Token t ; String lex = null ; String uri = null ; }
   { return createLiteralString(lex, token.beginLine, token.beginColumn) ; }
 } 
 
-// ---- Start: expression syntax
+// ---- Build blocks from terminals.
+
+Node NumericLiteral() : { Node n ; }
+{
+  (
+    n = NumericLiteralUnsigned()
+  | n = NumericLiteralPositive()
+  | n = NumericLiteralNegative()
+  )
+  { return n ; }
+
+}
+
+Node NumericLiteralUnsigned() : { Token t ; }
+{
+  t = <INTEGER> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DECIMAL> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DOUBLE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
+}
+
+Node NumericLiteralPositive() : { Token t ; }
+{
+  t = <INTEGER_POSITIVE> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DECIMAL_POSITIVE> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DOUBLE_POSITIVE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
+}
+
+Node NumericLiteralNegative() : { Token t ; }
+{
+  t = <INTEGER_NEGATIVE> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DECIMAL_NEGATIVE> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
+| t = <DOUBLE_NEGATIVE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
+}
+
+Node BooleanLiteral() : {}
+{
+  <TRUE> { return XSD_TRUE ; }
+ |
+  <FALSE> { return XSD_FALSE ; }
+}
+
+String String() : { Token t ; String lex ; }
+{
+  ( t = <STRING_LITERAL1> { lex = stripQuotes(t.image) ; }
+  | t = <STRING_LITERAL2> { lex = stripQuotes(t.image) ; }
+  | t = <STRING_LITERAL_LONG1> { lex = stripQuotes3(t.image) ; }
+  | t = <STRING_LITERAL_LONG2> { lex = stripQuotes3(t.image) ; }
+  )
+    { lex = unescapeStr(lex, t.beginLine, t.beginColumn) ;
+      checkRDFString(lex, t.beginLine, t.beginColumn) ;
+      return lex ;
+    }
+}
+
+String iri() : { String iri ; }
+{
+  iri = IRIREF() { return iri ; }
+|
+  iri = PrefixedName() { return iri ; }
+}
+
+String PrefixedName() : { Token t ; }
+{
+  ( t = <PNAME_LN>
+    { return resolvePName(t.image, t.beginLine, t.beginColumn) ; }
+  |
+    t = <PNAME_NS>
+    { return resolvePName(t.image, t.beginLine, t.beginColumn) ; }
+  )
+}
+
+Node BlankNode() :  { Token t = null ; }
+{
+  t = <BLANK_NODE_LABEL>
+    { return createBNode(t.image, t.beginLine, t.beginColumn) ; }  
+|
+//  <LBRACKET> <RBRACKET> { return createBNode(t.beginLine, t.beginColumn) ; }
+  t = <ANON> { return createBNode(t.beginLine, t.beginColumn) ; }
+
+}
+
+// ---- Start: Expression syntax
 
 Expr Expression() : { Expr expr ; }
 {
@@ -1525,6 +1484,18 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = Var()             { return asExpr(n) ; }
   | n = ExprTripleTerm()  { return asExpr(n) ; }
   )
+}
+
+// See also FunctionCall.
+
+Expr iriOrFunction() : { String iri ; ExprList a = null ; }
+{
+  iri = iri()
+  (a = ArgList())?
+  { if ( a == null ) 
+       return asExpr(createURI(iri, token.beginLine, token.beginColumn)) ;
+    return new E_Function(iri, a) ;
+  }
 }
 
 Node ExprTripleTerm() : { Token t ; Node s,p,o,n; }
@@ -1816,105 +1787,12 @@ Expr BuiltInCall() : { Expr expr ;
     { return new E_TripleObject(expr) ; }
 }
 
-// See also FunctionCall.
-
-Expr iriOrFunction() : { String iri ; ExprList a = null ; }
-{
-  iri = iri()
-  (a = ArgList())?
-  { if ( a == null ) 
-       return asExpr(createURI(iri, token.beginLine, token.beginColumn)) ;
-    return new E_Function(iri, a) ;
-  }
-}
-
-// ---- Build blocks from terminals.
-
-Node NumericLiteral() : { Node n ; }
-{
-  (
-    n = NumericLiteralUnsigned()
-  | n = NumericLiteralPositive()
-  | n = NumericLiteralNegative()
-  )
-  { return n ; }
-
-}
-
-Node NumericLiteralUnsigned() : { Token t ; }
-{
-  t = <INTEGER> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DECIMAL> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DOUBLE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
-}
-
-Node NumericLiteralPositive() : { Token t ; }
-{
-  t = <INTEGER_POSITIVE> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DECIMAL_POSITIVE> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DOUBLE_POSITIVE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
-}
-
-Node NumericLiteralNegative() : { Token t ; }
-{
-  t = <INTEGER_NEGATIVE> { return createLiteralInteger(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DECIMAL_NEGATIVE> { return createLiteralDecimal(t.image, t.beginLine, t.beginColumn) ; }
-| t = <DOUBLE_NEGATIVE>  { return createLiteralDouble(t.image, t.beginLine, t.beginColumn) ; }
-}
-
-Node BooleanLiteral() : {}
-{
-  <TRUE> { return XSD_TRUE ; }
- |
-  <FALSE> { return XSD_FALSE ; }
-}
-
-String String() : { Token t ; String lex ; }
-{
-  ( t = <STRING_LITERAL1> { lex = stripQuotes(t.image) ; }
-  | t = <STRING_LITERAL2> { lex = stripQuotes(t.image) ; }
-  | t = <STRING_LITERAL_LONG1> { lex = stripQuotes3(t.image) ; }
-  | t = <STRING_LITERAL_LONG2> { lex = stripQuotes3(t.image) ; }
-  )
-    { lex = unescapeStr(lex, t.beginLine, t.beginColumn) ;
-      checkRDFString(lex, t.beginLine, t.beginColumn) ;
-      return lex ;
-    }
-}
-
-String iri() : { String iri ; }
-{
-  iri = IRIREF() { return iri ; }
-|
-  iri = PrefixedName() { return iri ; }
-}
-
-String PrefixedName() : { Token t ; }
-{
-  ( t = <PNAME_LN>
-    { return resolvePName(t.image, t.beginLine, t.beginColumn) ; }
-  |
-    t = <PNAME_NS>
-    { return resolvePName(t.image, t.beginLine, t.beginColumn) ; }
-  )
-}
-
-Node BlankNode() :  { Token t = null ; }
-{
-  t = <BLANK_NODE_LABEL>
-    { return createBNode(t.image, t.beginLine, t.beginColumn) ; }  
-|
-//  <LBRACKET> <RBRACKET> { return createBNode(t.beginLine, t.beginColumn) ; }
-  t = <ANON> { return createBNode(t.beginLine, t.beginColumn) ; }
-
-}
-
+// Logically, this is a token. We use a production to insert the resolveQuotedIRI.
 String IRIREF() : { Token t ; }
 {
   t = <IRIref>
   { return resolveQuotedIRI(t.image, t.beginLine, t.beginColumn) ; }
 }
-
 
 // ------------------------------------------
 // Tokens

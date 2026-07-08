@@ -147,6 +147,8 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
         :test_134
         :test_135
         :test_136
+        :test_137
+        :test_138
     ) .
 
 :test_1 rdf:type   srt:RulesPositiveSyntaxTest ;
@@ -810,21 +812,31 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
    .
 
 :test_133 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-template-bad-05.srl" ;
+   mf:action  <syntax-template-bad-05.srl> ;
+   .
+
+:test_134 rdf:type   srt:RulesNegativeSyntaxTest ;
+   mf:name    "syntax-template-bad-06.srl" ;
+   mf:action  <syntax-template-bad-06.srl> ;
+   .
+
+:test_135 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-pattern-bad-01.srl" ;
    mf:action  <syntax-pattern-bad-01.srl> ;
    .
 
-:test_134 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_136 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-pattern-bad-02.srl" ;
    mf:action  <syntax-pattern-bad-02.srl> ;
    .
 
-:test_135 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_137 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-pattern-bad-03.srl" ;
    mf:action  <syntax-pattern-bad-03.srl> ;
    .
 
-:test_136 rdf:type   srt:RulesNegativeSyntaxTest ;
+:test_138 rdf:type   srt:RulesNegativeSyntaxTest ;
    mf:name    "syntax-pattern-bad-04.srl" ;
    mf:action  <syntax-pattern-bad-04.srl> ;
    .
