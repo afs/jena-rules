@@ -2,7 +2,9 @@
 local/
 
 # Intermediate files.
-Grammar-SHACL/rules-grammar.*
+Grammar-SRL/rules-grammar.*
+Grammar-SRL/dev-*
+Grammar-SRL/dev.bnf
 
 # Maven and build files
 target/
