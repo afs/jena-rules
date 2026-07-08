@@ -59,6 +59,8 @@ $grammar =~ s!\|\t!\| !g ;
 $tokens =~ s!//.*!!g ;
 $tokens =~ s!\r!!g ;
 
+# Hard gap in the table.
+$gap = "";
 
 ## Grammar
 #print "GRAMMAR\n" ;
@@ -257,7 +259,7 @@ for $r (@rules) {
     print "\n" ;
     print $indentRule,"<tr style=\"vertical-align: baseline\">\n";
     
-    $rlabel = '[' . $ruleNum .  ']&nbsp;&nbsp;' ;
+    $rlabel = "[" . $ruleNum .  "]$gap" ;
 
     print $indentRule,"  <td><code>",$rlabel,"</code></td>\n" ;
 
@@ -270,7 +272,7 @@ for $r (@rules) {
         esc($rn),
         '</span></code></td>',"\n";
     
-    print $indentRule,"  <td>&nbsp;&nbsp;::=&nbsp;&nbsp;</td>\n" ;
+    print $indentRule,"  <td>".$gap."::=$gap</td>\n" ;
     
     $ruleBodyStr = fixupRule($rulename, $ruleBodyStr) ;
     print $indentRule,"  <td>",code('gRuleBody',$ruleBodyStr),"</td>\n" ;
@@ -355,7 +357,7 @@ sub fixupRule {
     {
         $body =~ s%\|%\<br/\>\|%g ;
         $body =~ s/^\s+// ;
-        $body = "&nbsp;&nbsp;".$body ;
+        $body = "$gap".$body ;
     }
 
     if ( $head eq "Aggregate" )
@@ -365,9 +367,8 @@ sub fixupRule {
         ## Be careful of nested | in COUNT
         $body =~ s%(\| \<span class="token")%\<br/\>$1%g ;
         $body =~ s/^\s+// ;
-        $body = "&nbsp;&nbsp;".$body ;
+        $body = "$gap".$body ;
     }
-
 
     if (  $head eq "BuiltInCall" )
     {
