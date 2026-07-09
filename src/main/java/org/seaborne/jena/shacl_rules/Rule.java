@@ -21,6 +21,8 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -53,90 +55,163 @@ public class Rule {
     // Convenience if within the rule set.
     public final String localId;
 
-    final boolean hasAssignment;
-    final boolean hasNegation;
+    private final boolean ruleGrounded;
+    private final boolean hasAssignment;
+    private final boolean hasNegation;
     //boolean final hasAggregation;
-    final boolean hasTemplateBNodes;
+    private final boolean hasTemplateBNodes;
 
     /**
      * Used by the parser and {@link GraphToRuleSet}
      */
     public static Rule create(List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
-        return new Rule(null, headElts, bodyElts);
+        return create(null, headElts, bodyElts);
     }
 
     /**
      * Used by the parser and {@link GraphToRuleSet}
      */
-    public static Rule create(String iri, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
-        return new Rule(iri, headElts, bodyElts);
+    public static Rule create(String iriStr, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
+        return Rule.newBuilder()
+                .ruleIdentifier(iriStr)
+                .addHeadElements(headElts)
+                .addBodyElements(bodyElts)
+                .build();
     }
 
+    public static Builder newBuilder() { return new Builder(); }
 
-    private Rule(String iriStr, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts) {
+    public static class Builder {
+        private List<RuleHeadElement> headElts = new ArrayList<>();
+        private List<RuleBodyElement> bodyElts = new ArrayList<>();
+
+        // RDF Term that identifies this rule.
+        // Usually, a URI.
+
+        private Node ruleIdentifier;
+
+        // Convenience if within the rule set.
+        private String localId;
+
+        boolean hasAssignment = false;
+        boolean hasNegation = false;
+        //boolean final hasAggregation;
+        boolean hasTemplateBNodes = false;
+        boolean groundedRule = false;
+
+        public Builder addHeadElement(RuleHeadElement elt)  {
+            headElts.add(elt);
+            return this;
+        }
+
+        public Builder addBodyElement(RuleBodyElement elt)  {
+            bodyElts.add(elt);
+            return this;
+        }
+
+        public Builder addHeadElements(Collection<RuleHeadElement> elts)  {
+            headElts.addAll(elts);
+            return this;
+        }
+
+        public Builder addBodyElements(Collection<RuleBodyElement> elts)  {
+            bodyElts.addAll(elts);
+            return this;
+        }
+
+
+        public Builder ruleIdentifier(String iriStr) {
+            if ( iriStr != null ) {
+                IRIs.check(iriStr);
+                this.ruleIdentifier = NodeFactory.createURI(iriStr);
+            } else {
+                this.ruleIdentifier = null;
+            }
+            return this;
+        }
+
+        public Builder ruleIdentifier(Node ruleIdentifier) {
+            this.ruleIdentifier = ruleIdentifier;
+            return this;
+        }
+
+        public Builder groundedRule(boolean groundedRule) {
+            this.groundedRule = false;
+            return this;
+        }
+
+        private boolean blankNodePresent(Triple triple) {
+            if ( blankNodePresent(triple.getSubject()) )
+                return true;
+            //if ( containsBNode(triple.getPredicate()) ) {}
+            if ( blankNodePresent(triple.getObject()) )
+                return true;
+            return false;
+        }
+
+        private boolean blankNodePresent(Node node) {
+            if ( node.isTripleTerm() ) {
+                return blankNodePresent(node.getTriple());
+            }
+            return node.isBlank();
+        }
+
+        public Rule build() {
+            // Rules don't always come from the SRL parser.
+            boolean _hasAssignment = false;
+            boolean _hasNegation = false;
+            //boolean final hasAggregation;
+
+            for ( RuleBodyElement elt : bodyElts ) {
+                switch (elt) {
+                    //case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {}
+                    //case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
+                    case RuleBodyElement.EltNegation(List<RuleBodyElement> inner) -> { _hasNegation = true; }
+                    //case RuleBodyElement.EltCondition(Expr condition) -> {}
+                    case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
+                    case null -> {}
+                    default -> {}
+                };
+            }
+
+            boolean _hasHeadBNodes = false;
+            for ( RuleHeadElement elt : headElts ) {
+                switch (elt) {
+                    case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
+                        if ( blankNodePresent(tripleTemplate ) )
+                            _hasHeadBNodes = true;
+                    }
+                    case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {}
+                    case null -> {}
+                    default -> {}
+                }
+            }
+
+            return new Rule(ruleIdentifier, headElts, bodyElts,
+                            groundedRule,
+                            _hasAssignment, _hasNegation, _hasHeadBNodes);
+        }
+
+    }
+
+    private Rule(Node ruleIdenifier, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts,
+                 boolean ruleGrounded,
+                 boolean hasAssignment, boolean hasNegation, boolean hasTemplateBNodes
+                 //, boolean hasAggregation
+                 ) {
         this.head = new RuleHead(headElts);
         this.body = new RuleBody(bodyElts);
-        if ( iriStr != null ) {
-            IRIs.check(iriStr);
-            this.ruleIdentifier = NodeFactory.createURI(iriStr);
-        } else {
-            this.ruleIdentifier = null;
-        }
+        this.ruleIdentifier = ruleIdenifier;
         counter++;
         localId = ""+counter;
 
-        boolean _hasAssignment = false;
-        boolean _hasNegation = false;
-        //boolean final hasAggregation;
-
-        for ( RuleBodyElement elt : bodyElts ) {
-            switch (elt) {
-                //case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {}
-                //case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
-                case RuleBodyElement.EltNegation(List<RuleBodyElement> inner) -> { _hasNegation = true; }
-                //case RuleBodyElement.EltCondition(Expr condition) -> {}
-                case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
-                case null -> {}
-                default -> {}
-            };
-        }
-
-        boolean _hasHeadBNodes = false;
-        for ( RuleHeadElement elt : headElts ) {
-            switch (elt) {
-                case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
-                    if ( blankNodePresent(tripleTemplate ) )
-                        _hasHeadBNodes = true;
-                }
-                case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {}
-                case null -> {}
-                default -> {}
-            }
-        }
-
-       this.hasAssignment = _hasAssignment;
-       this.hasNegation = _hasNegation;
-//        //boolean final hasAggregation;
-       this.hasTemplateBNodes = _hasHeadBNodes;
+        this.ruleGrounded = ruleGrounded;
+        this.hasAssignment = hasAssignment;
+        this.hasNegation = hasNegation;
+        //this.hasAggregation = hasAggregation;
+        this.hasTemplateBNodes = hasTemplateBNodes;
     }
 
-    private boolean blankNodePresent(Triple triple) {
-        if ( blankNodePresent(triple.getSubject()) )
-            return true;
-        //if ( containsBNode(triple.getPredicate()) ) {}
-        if ( blankNodePresent(triple.getObject()) )
-            return true;
-        return false;
-    }
-
-    private boolean blankNodePresent(Node node) {
-        if ( node.isTripleTerm() ) {
-            return blankNodePresent(node.getTriple());
-        }
-        return node.isBlank();
-    }
-
-    // XXX Where should this go?
     public boolean isRunOnceRule() {
         return hasAssignment || hasTemplateBNodes;
     }
@@ -145,8 +220,21 @@ public class Rule {
         return hasAssignment;
     }
 
+    public boolean hasNegation() {
+        return hasNegation;
+    }
+
+    // boolean final hasAggregation;
+    public boolean hasTemplateBNodes() {
+        return hasTemplateBNodes;
+    }
+
     public boolean hasTemplateBlankNodes() {
         return hasTemplateBNodes;
+    }
+
+    public boolean isGrounded() {
+        return ruleGrounded;
     }
 
     public Node getId() {
@@ -181,9 +269,6 @@ public class Rule {
         getHead().getHeadElements().forEach(action);
     }
 
-    // -- Body
-
-    // Currently, the parser structure.
     private RuleBody getBody() {
         return body;
     }

@@ -37,8 +37,14 @@ public class Scripts_RuleSyntax {
     public static void afterClass() {}
 
     @TestFactory
-    @DisplayName("Jena Rules (Syntax)")
-    public Stream<DynamicNode> syntax() {
+    @DisplayName("Rules (Syntax)")
+    public Stream<DynamicNode> syntaxStd() {
         return Scripts.manifestTestFactory("src/test/files/syntax/manifest.ttl", RuleTests::makeRuleTest);
+    }
+
+    @TestFactory
+    @DisplayName("Rules (Syntax) - Jena extensions")
+    public Stream<DynamicNode> syntaxJena() {
+        return Scripts.manifestTestFactory("src/test/files/syntax-jena/manifest.ttl", RuleTests::makeRuleTest);
     }
 }

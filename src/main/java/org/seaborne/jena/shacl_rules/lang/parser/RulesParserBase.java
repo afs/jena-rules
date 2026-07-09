@@ -124,6 +124,11 @@ public class RulesParserBase extends LangParserBase {
     // Used to accumulate nodes for a tuple.
     private final List<Node> tupleArgs = new ArrayList<>();
 
+    // The whole rule is "RULE DATA"
+    private boolean ruleIsGrounded;
+
+    // Internal. The rule builder will calculate these.
+    // We could give them to the builder if there is a way to also have them not set (API built, RDF Graph).
     private boolean hasNegation;
     private boolean hasAssignment;
     private boolean hasAggregation;
@@ -134,8 +139,8 @@ public class RulesParserBase extends LangParserBase {
         hasNegation = false;
         hasAssignment = false;
         hasAggregation = false;
+        ruleIsGrounded = false;
     }
-
 
     // ----
 
