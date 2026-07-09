@@ -16,6 +16,10 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
         :test_3
         :test_4
         :test_5
+        :test_6
+        :test_7
+        :test_8
+        :test_9
     ) .
 
 :test_1 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
@@ -38,7 +42,27 @@ PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
    mf:action  <syntax-ext-tuples-04.srl> ;
    .
 
-:test_5 rdf:type   srt:JenaRulesNegativeSyntaxTest ;
+:test_5 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-05.srl" ;
+   mf:action  <syntax-ext-tuples-05.srl> ;
+   .
+
+:test_6 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-06.srl" ;
+   mf:action  <syntax-ext-tuples-06.srl> ;
+   .
+
+:test_7 rdf:type   srt:JenaRulesPositiveSyntaxTest ;
+   mf:name    "syntax-ext-tuples-07.srl" ;
+   mf:action  <syntax-ext-tuples-07.srl> ;
+   .
+
+:test_8 rdf:type   srt:JenaRulesNegativeSyntaxTest ;
    mf:name    "syntax-ext-tuples-bad-01.srl" ;
    mf:action  <syntax-ext-tuples-bad-01.srl> ;
+   .
+
+:test_9 rdf:type   srt:JenaRulesNegativeSyntaxTest ;
+   mf:name    "syntax-ext-tuples-bad-02.srl" ;
+   mf:action  <syntax-ext-tuples-bad-02.srl> ;
    .

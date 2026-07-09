@@ -1,0 +1,1 @@
+RULE { $("num", ?c) } WHERE { ?a ?b ?c }
