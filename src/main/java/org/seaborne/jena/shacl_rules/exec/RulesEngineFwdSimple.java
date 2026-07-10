@@ -74,7 +74,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
         this.rCxt = rCxt;
     }
 
-    private boolean TRACE = true;
+    private boolean TRACE = false;
     @Override
     public RulesEngineFwdSimple setTrace(boolean traceSetting) {
         TRACE = traceSetting;
@@ -109,7 +109,6 @@ public class RulesEngineFwdSimple implements RulesEngine {
     /**
      * This function calculates by all triples, then matches the pattern given.
      */
-
     @Override
     public Stream<Triple> solve(Node s, Node p, Node o) {
         // Rather than cache, wrap in a "materialize and match" RulesEngine.
@@ -134,7 +133,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
        if ( TRACE ) {
            ruleSet.getRules().forEach(rule->{
                String s = ShaclRulesWriter.asString(rule, ruleSet.getPrefixMap());
-               rCxt.out().printf("[%s] %s", ruleSet.indexFor(rule), s);
+               rCxt.out().printf("%s %s", ruleSet.labelFor(rule), s);
            });
        }
 
@@ -256,7 +255,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
             }
             for ( Rule rule : runOnceRules ) {
                 if ( TRACE )
-                    System.out.printf("Eval(general): %s\n", ruleSet.labelFor(rule));
+                    System.out.printf("Eval(once): %s\n", ruleSet.labelFor(rule));
                 executeOneRule(graph1, evalTupleStore, rule);
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());

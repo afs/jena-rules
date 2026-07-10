@@ -64,9 +64,9 @@ class RulesExecLib {
         //XXX [RunOnce] Do this in "rules parser ..."
         WellFormed.checkWellFormed(ruleSet);
         // XXX Ought to do this once as a "prepare" step and keep in the RuleSet.
-        DependencyGraph depGraph = DependencyGraph.create(ruleSet);
-        RecursionChecker.checkForIllegalRecursion(depGraph);
-        Stratification.create(ruleSet, depGraph);
+        DependencyGraph depGraph = DependencyGraph.create(ruleSet, rCxt);
+        RecursionChecker.checkForIllegalRecursion(depGraph, rCxt);
+        Stratification.create(ruleSet, depGraph, rCxt);
     }
 
     public static RuleEval evalRule(Rule rule, Graph graph, TupleStore tupleStore, RulesExecCxt rCxt) {

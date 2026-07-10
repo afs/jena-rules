@@ -28,6 +28,7 @@ import java.util.Deque;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DepEdgeType;
 
@@ -65,11 +66,15 @@ public class RecursionChecker {
         public Deque<Rule> getPath() { return path; }
     }
 
+    public static void checkForIllegalRecursion(DependencyGraph depGraph) {
+        checkForIllegalRecursion(depGraph, RulesExecCxt.get());
+    }
+
     /*
      * Check for illegal recursion - a recursive path that goes through a negation (NOT).
      * This function throws an exception if it finds an illegal recursion.
      */
-    public static void checkForIllegalRecursion(DependencyGraph depGraph) {
+    public static void checkForIllegalRecursion(DependencyGraph depGraph, RulesExecCxt rCxt) {
         for ( Rule rule : depGraph.getRuleSet().getRules()) {
             // Throws an exception on an illegal recursion.
             /*IsRecursive isRecursive = */ RecursionChecker.checkRecursion(depGraph, rule);

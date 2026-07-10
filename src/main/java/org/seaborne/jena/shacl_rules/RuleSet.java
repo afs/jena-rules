@@ -22,7 +22,6 @@
 package org.seaborne.jena.shacl_rules;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -272,8 +271,13 @@ public class RuleSet {
         return rules.size();
     }
 
-    // XXX Could add ShaclRulesWriter.abbreviatedString(rule, prefixMap)
-    // XXX Consider having a separate "labelling " record
+    @Override
+    public String toString() {
+        return rules.toString();
+    }
+
+    // Labelling and tracing.
+
     private boolean labellingInitialized = false;
     private Map<Rule, String> ruleToLabel = null;
     private Map<Rule, Integer> ruleToIndex = null;
@@ -283,25 +287,27 @@ public class RuleSet {
      * This is for tracing and and logging.
      */
     public String labelFor(Rule rule) {
-        ensureLabelling();
+        initLabelling();
         return ruleToLabel.get(rule);
     }
 
     public int indexFor(Rule rule) {
-        ensureLabelling();
+        initLabelling();
         return ruleToIndex.get(rule);
     }
 
     public Rule ruleForLabel(String label) {
-        ensureLabelling();
+        initLabelling();
         return labelToRule.get(label);
     }
 
-    private void ensureLabelling() {
+    private void initLabelling() {
         if ( ! labellingInitialized  ) {
-            ruleToLabel = new IdentityHashMap<>();
-            labelToRule = new IdentityHashMap<>();
-            ruleToIndex = new IdentityHashMap<>();
+            // Avoid total packed.
+            int N = Math.round(1.25f*rules.size());
+            ruleToLabel = new IdentityHashMap<>(N);
+            labelToRule = new IdentityHashMap<>(N);
+            ruleToIndex = new IdentityHashMap<>(N);
             labellingInitialized = true;
             this.applyRules((idx, rule)->{
                 String label = String.format("[%s]", idx);
@@ -310,10 +316,5 @@ public class RuleSet {
                 ruleToIndex.put(rule, idx);
             });
         }
-    }
-
-    @Override
-    public String toString() {
-        return rules.toString();
     }
 }

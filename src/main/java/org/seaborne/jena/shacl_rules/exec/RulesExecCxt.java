@@ -49,6 +49,11 @@ public class RulesExecCxt implements FunctionEnv {
     private final boolean strict;
     private final AtomicBoolean cancelSignal;
 
+    /* A general purpose setting */
+    private static RulesExecCxt global = RulesExecCxt.create();
+    /* A general purpose setting */
+    public static RulesExecCxt get() { return global; }
+
     public static RulesExecCxt create() {
         return create(ARQ.getContext());
     }

@@ -35,6 +35,7 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
@@ -82,12 +83,16 @@ public class DependencyGraph {
     private final RuleSet ruleSet;
 
     public static DependencyGraph create(RuleSet ruleSet) {
-        DependencyGraph depGraph = new DependencyGraph(ruleSet);
+        return create(ruleSet, RulesExecCxt.get());
+    }
+
+    public static DependencyGraph create(RuleSet ruleSet, RulesExecCxt rCxt) {
+        DependencyGraph depGraph = new DependencyGraph(ruleSet, rCxt);
         //depGraph.initialize();
         return depGraph;
     }
 
-    private DependencyGraph(RuleSet ruleSet) {
+    private DependencyGraph(RuleSet ruleSet, RulesExecCxt rCxt) {
         this.ruleSet = ruleSet;
 
         // Head triple template to rule.

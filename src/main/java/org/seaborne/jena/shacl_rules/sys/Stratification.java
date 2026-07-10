@@ -31,6 +31,7 @@ import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
 
 /**
@@ -63,12 +64,17 @@ public class Stratification {
     static Integer minDependentStratum = Integer.valueOf(1);
 
     public static Stratification create(RuleSet ruleSet) throws StratificationException {
-        DependencyGraph depGraph = DependencyGraph.create(ruleSet);
-        return create(ruleSet, depGraph);
+        RulesExecCxt rCxt = RulesExecCxt.get();
+        DependencyGraph depGraph = DependencyGraph.create(ruleSet, rCxt);
+        return create(ruleSet, depGraph, rCxt);
     }
 
     public static Stratification create(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
-        return functionCreateStratification(ruleSet, depGraph);
+        return functionCreateStratification(ruleSet, depGraph, RulesExecCxt.get());
+    }
+
+    public static Stratification create(RuleSet ruleSet, DependencyGraph depGraph, RulesExecCxt rCxt) throws StratificationException {
+        return functionCreateStratification(ruleSet, depGraph, rCxt);
     }
 
     private Stratification(int minStratum, int maxStratum,  List<Stratum> stratumLevels, RuleSet ruleSet) {
@@ -107,7 +113,7 @@ public class Stratification {
 
     // ----
 
-    private static Stratification functionCreateStratification(RuleSet ruleSet, DependencyGraph depGraph) throws StratificationException {
+    private static Stratification functionCreateStratification(RuleSet ruleSet, DependencyGraph depGraph, RulesExecCxt rCxt) throws StratificationException {
         List<Rule> rules = ruleSet.getRules();
 
         if ( rules.isEmpty() )

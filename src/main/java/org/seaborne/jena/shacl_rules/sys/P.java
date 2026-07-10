@@ -80,17 +80,18 @@ public class P {
     public static final String PREFIXES = prefixesAsString(thePrefixesMap, "rdf", "sh", "srl", "sparql", "shnex");
 
     // Convenience.
-    private static PrefixMap prefixMap =
+    private static PrefixMap stdPrefixMap =
             PrefixMapFactory.unmodifiablePrefixMap(PrefixMapFactory.create(thePrefixesMap));
+    public static PrefixMap prefixMap() { return stdPrefixMap; }
 
     /** Convenience for rules related prefixes. */
     public static String getPrefix(String prefix) {
-        return prefixMap.get(prefix);
+        return stdPrefixMap.get(prefix);
     }
 
     /** Convenience for rules related prefixes. */
     public static String expandPrefix(String prefixedName) {
-        return prefixMap.expand(prefixedName);
+        return stdPrefixMap.expand(prefixedName);
     }
 
     /**

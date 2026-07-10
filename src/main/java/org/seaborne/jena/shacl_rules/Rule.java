@@ -30,12 +30,14 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIs;
+import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.rdf_syntax.GraphToRuleSet;
+import org.seaborne.jena.shacl_rules.sys.P;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class Rule {
@@ -49,7 +51,7 @@ public class Rule {
 
     public final Node ruleIdentifier;
 
-    private final boolean ruleGrounded;
+    private final boolean isGrounded;
     private final boolean hasAssignment;
     private final boolean hasNegation;
     //boolean final hasAggregation;
@@ -190,7 +192,7 @@ public class Rule {
     }
 
     private Rule(Node ruleIdenifier, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts,
-                 boolean ruleGrounded,
+                 boolean isGrounded,
                  boolean hasAssignment, boolean hasNegation, boolean hasTemplateBNodes
                  //, boolean hasAggregation
                  ) {
@@ -198,7 +200,7 @@ public class Rule {
         this.body = new RuleBody(bodyElts);
         this.ruleIdentifier = ruleIdenifier;
 
-        this.ruleGrounded = ruleGrounded;
+        this.isGrounded = isGrounded;
         this.hasAssignment = hasAssignment;
         this.hasNegation = hasNegation;
         //this.hasAggregation = hasAggregation;
@@ -206,7 +208,7 @@ public class Rule {
     }
 
     public boolean isRunOnceRule() {
-        return hasAssignment || hasTemplateBNodes;
+        return hasAssignment || hasTemplateBNodes || isGrounded;
     }
 
     public boolean hasAssignment() {
@@ -227,7 +229,7 @@ public class Rule {
     }
 
     public boolean isGrounded() {
-        return ruleGrounded;
+        return isGrounded;
     }
 
     public Node getId() {
@@ -307,9 +309,17 @@ public class Rule {
 
     @Override
     public String toString() {
-        String x = body.toString();
-        x = x.replace("\n", " ");
-        x = x.replaceAll("  +", " ");
-        return head.toString() + " :- " + x;
+        return toString(P.prefixMap());
     }
+
+    public String toString(PrefixMap prefixMap) {
+        String x = ShaclRulesWriter.asString(this, prefixMap);
+        return x.trim();
+
+//        String x = body.toString();
+//        x = x.replace("\n", " ");
+//        x = x.replaceAll("  +", " ");
+//        return head.toString() + " :- " + x;
+    }
+
 }

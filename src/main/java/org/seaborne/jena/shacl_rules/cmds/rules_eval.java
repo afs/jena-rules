@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.cmd.CmdException;
 import org.apache.jena.cmd.TerminationException;
@@ -73,10 +74,16 @@ public class rules_eval extends CmdRules {
         switch(positionals.size()) {
             case 1 -> {
                 rulesFile = positionals.get(0);
+                if ( ! FileOps.exists(rulesFile) )
+                    throw new CmdException("No such file: "+rulesFile);
             }
             case 2 -> {
                 rulesFile = positionals.get(0);
                 dataFile = positionals.get(1);
+                if ( ! FileOps.exists(rulesFile) )
+                    throw new CmdException("No such file: "+rulesFile);
+                if ( ! FileOps.exists(dataFile) )
+                    throw new CmdException("No such file: "+dataFile);
             }
             default ->
                 throw new CmdException("Usage: rules exec RulesFile [DataFile]");
