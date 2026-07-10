@@ -143,13 +143,19 @@ public class RuleSetASTWriter {
         }
 
         public void writeRule(Rule rule) {
+            writeRule(rule, -1);
+        }
+
+        private void writeRule(Rule rule,int idx) {
+
             out.print("(");
             out.print(tagRule);
             if ( rule.getId() != null ) {
                 out.print(" ");
                 nodeFormatter.format(out, rule.getId());
             }
-            out.printf(" [%s]", rule.localId);
+            if ( idx >= 0 )
+                out.printf(" [%s]", idx);
             out.println();
             out.incIndent();
 

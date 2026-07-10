@@ -216,12 +216,12 @@ public class DependencyGraph {
     }
 
     // Checked whether an edge is already in the collection.
-    // XXX id per edge may be sensible.
-    private static boolean freshEdge(List<DependencyEdge> array, Rule rule, DepEdgeType linkType, Rule r) {
+    private static boolean freshEdge(List<DependencyEdge> array, Rule fromRule, DepEdgeType linkType, Rule toRule) {
         for ( DependencyEdge e : array ) {
-            if ( e.rule.localId == rule.localId &&
+            // Use object identity for "same"
+            if ( e.rule == fromRule &&
                  e.link == linkType &&
-                 e.linkedRule.localId == r.localId )
+                 e.linkedRule == toRule )
                 return false;
         }
         return true;

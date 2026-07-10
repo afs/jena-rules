@@ -131,6 +131,13 @@ public class RulesEngineFwdSimple implements RulesEngine {
     }
 
    private RuleSetEvaluation evalRuleSet() {
+       if ( TRACE ) {
+           ruleSet.getRules().forEach(rule->{
+               String s = ShaclRulesWriter.asString(rule, ruleSet.getPrefixMap());
+               rCxt.out().printf("[%s] %s", ruleSet.indexFor(rule), s);
+           });
+       }
+
        // Setup steps
        Stratification stratification = Stratification.create(ruleSet);
        int maxStratum = stratification.maxStratum(); // Inclusive.
@@ -249,8 +256,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
             }
             for ( Rule rule : runOnceRules ) {
                 if ( TRACE )
-                    System.out.printf("Eval(general): %s\n", rule);
-                executeOneRule(graph1, evalTupleStore, rule, prefixMap());
+                    System.out.printf("Eval(general): %s\n", ruleSet.labelFor(rule));
+                executeOneRule(graph1, evalTupleStore, rule);
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
             }
@@ -282,8 +289,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
 
             for (Rule rule : runGeneralRules ) {
                 if ( TRACE )
-                    System.out.printf("Eval: %d : %s\n", round, rule);
-                executeOneRule(graph1, evalTupleStore, rule, prefixMap());
+                    rCxt.out().printf("Eval: round=%d : %s %s\n", round, ruleSet.labelFor(rule), ShaclRulesWriter.abbreviatedString(rule, ruleSet.getPrefixMap()));
+                executeOneRule(graph1, evalTupleStore, rule);
 
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
@@ -311,6 +318,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
             // If flushAfterEachRound is true, then exiting
             // the last round did a flush.
             flush(graph1);
+        if ( TRACE )
+            rCxt.out().flush();
         return round;
     }
 
@@ -322,13 +331,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
      * One execution of one rule.
      * The argument graph is updated.
      */
-    private void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, PrefixMap pmap) {
-        if ( TRACE ) {
-            rCxt.out().print("Rule: ");
-            String rs = ShaclRulesWriter.abbreviatedString(rule, pmap);
-            rCxt.out().print(rs);
-            //rCxt.out().println();
-        }
+    private void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule) {
         RuleEval rEval = RulesExecLib.evalRule(rule, graph, evalTupleStore, rCxt);
         if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() ) {
             evalTupleStore.addAll(rEval.tuples());

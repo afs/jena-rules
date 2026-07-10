@@ -22,6 +22,8 @@
 package org.seaborne.jena.shacl_rules;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.tuple.TupleFactory;
@@ -189,6 +191,21 @@ public class RuleSet {
     }
 
     /**
+     * Apply an action to each (index, rule).
+     * This is primarily to aid development.
+     * It gives a view of the rules set with local identifiers for each rule.
+     * For example, printing the full rule when explaining execution is too verbose.
+     */
+    //public
+    private void applyRules(BiConsumer<Integer, Rule> action) {
+        List<Rule> x = getRules();
+        int N = x.size();
+        for ( int idx = 0 ; idx < N ; idx++ ) {
+            action.accept(idx, x.get(idx));
+        }
+    }
+
+    /**
      * Return a rule from the rule set by looking for it by id (a URI).
      */
     public Rule getRule(Node ruleId) {
@@ -246,17 +263,57 @@ public class RuleSet {
         return imports;
     }
 
+    /** Any rules? */
+    public boolean isEmpty() {
+        return rules.isEmpty();
+    }
+
     public int numRules() {
         return rules.size();
+    }
+
+    // XXX Could add ShaclRulesWriter.abbreviatedString(rule, prefixMap)
+    // XXX Consider having a separate "labelling " record
+    private boolean labellingInitialized = false;
+    private Map<Rule, String> ruleToLabel = null;
+    private Map<Rule, Integer> ruleToIndex = null;
+    private Map<String, Rule> labelToRule = null;
+    /**
+     * Return a label to identify a rule within the rule set.
+     * This is for tracing and and logging.
+     */
+    public String labelFor(Rule rule) {
+        ensureLabelling();
+        return ruleToLabel.get(rule);
+    }
+
+    public int indexFor(Rule rule) {
+        ensureLabelling();
+        return ruleToIndex.get(rule);
+    }
+
+    public Rule ruleForLabel(String label) {
+        ensureLabelling();
+        return labelToRule.get(label);
+    }
+
+    private void ensureLabelling() {
+        if ( ! labellingInitialized  ) {
+            ruleToLabel = new IdentityHashMap<>();
+            labelToRule = new IdentityHashMap<>();
+            ruleToIndex = new IdentityHashMap<>();
+            labellingInitialized = true;
+            this.applyRules((idx, rule)->{
+                String label = String.format("[%s]", idx);
+                ruleToLabel.put(rule, label);
+                labelToRule.put(label, rule);
+                ruleToIndex.put(rule, idx);
+            });
+        }
     }
 
     @Override
     public String toString() {
         return rules.toString();
-    }
-
-    /** Any rules? */
-    public boolean isEmpty() {
-        return rules.isEmpty();
     }
 }

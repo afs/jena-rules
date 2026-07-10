@@ -91,7 +91,8 @@ public class ShaclRulesWriter {
     public static String abbreviatedString(Rule rule, PrefixMap prefixMap) {
         try ( IndentedLineBuffer out = new IndentedLineBuffer() ) {
             RuleSetWriter.writeAbbrev(out, rule, prefixMap);
-            return out.asString();
+            String x = out.asString().strip();
+            return x;
         }
      }
 

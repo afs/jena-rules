@@ -43,17 +43,11 @@ public class Rule {
     private final RuleHead head;
     private final RuleBody body;
 
-    // Debug!
-    private static int counter = 0;
-
     // RDF Term that identifies this rule.
     // Usually, a URI.
     // Maybe null; the global identifier for external reference to this rule.
 
     public final Node ruleIdentifier;
-
-    // Convenience if within the rule set.
-    public final String localId;
 
     private final boolean ruleGrounded;
     private final boolean hasAssignment;
@@ -203,8 +197,6 @@ public class Rule {
         this.head = new RuleHead(headElts);
         this.body = new RuleBody(bodyElts);
         this.ruleIdentifier = ruleIdenifier;
-        counter++;
-        localId = ""+counter;
 
         this.ruleGrounded = ruleGrounded;
         this.hasAssignment = hasAssignment;
@@ -318,6 +310,6 @@ public class Rule {
         String x = body.toString();
         x = x.replace("\n", " ");
         x = x.replaceAll("  +", " ");
-        return "["+localId+"]" +head.toString() + " :- " + x;
+        return head.toString() + " :- " + x;
     }
 }
