@@ -129,11 +129,13 @@ void Rule() : { }
 }
 void Rule1() : { Token t; String uri = null; }
 {
+   // RULE <iri>? {} WHERE DATA? { }
    t = <RULE>
    (uri = iri())?
    { startRule(uri, t.beginLine, t.beginColumn); }
    HeadTemplate()
    <WHERE>
+   ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
    BodyPattern()
    { finishRule(t.beginLine, t.beginColumn); }
 }
@@ -233,6 +235,7 @@ void Negation() : { Token t; Token t2;}
 {
     t = <NOT>
     { startNegation(token.beginLine, token.beginColumn) ; }
+   ( <DATA> { setGroundedNegation(token.beginLine, token.beginColumn); } )?
     t = <LBRACE>
     BodyBasic()
     <RBRACE>

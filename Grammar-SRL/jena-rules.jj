@@ -139,6 +139,7 @@ void Rule() : { }
 }
 void Rule1() : { Token t; String uri = null; }
 {
+   // RULE <iri>? {} WHERE DATA? { }
    t = <RULE>
    (uri = iri())?
    { startRule(uri, t.beginLine, t.beginColumn); }

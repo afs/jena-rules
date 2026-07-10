@@ -224,7 +224,7 @@ NON-TERMINALS
 	Rule	:=	Rule1
 		|	Rule2
 		|	Declaration
-	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> BodyPattern
+	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
 	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
 // Withdrawn.
 // void Rule3() : { Token t; }
@@ -245,7 +245,7 @@ NON-TERMINALS
 	FunctionCall	:=	iri ArgList
 	ArgList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
 	ExpressionList	:=	( <NIL> | <LPAREN> Expression ( <COMMA> Expression )* <RPAREN> )
-	Negation	:=	<NOT> <LBRACE> BodyBasic <RBRACE>
+	Negation	:=	<NOT> ( <DATA> )? <LBRACE> BodyBasic <RBRACE>
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	Filter
