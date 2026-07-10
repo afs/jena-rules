@@ -50,7 +50,8 @@ import org.seaborne.jena.shacl_rules.tuples.Tuple;
  * that can generate that triple via relations in its body. From this, we can determine
  * whether a rule is:
  * <ul>
- * <li>Data only (body contains relations that only appear in the data)</li>
+ * <li>Data only (the body contains relations that only appear in the data)</li>
+ * <li>Data rule (the body is evaluated on the data, not inferences)</li>
  * <li>Not-recursive: it can be solved by top-down flattening</li>
  * <li>Mutually recursive rules</li>
  * <li>Linear (only one body relationship is recursive)</li>
@@ -123,6 +124,11 @@ public class DependencyGraph {
     static Collection<DependencyEdge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers, MultiValuedMap<Tuple, Rule> providers2) {
         if ( DEBUG_BUILD )
             ShaclRulesWriter.print(rule);
+        if ( rule.isGrounded() ) {
+            if ( DEBUG_BUILD )
+                System.out.println("- :: Grounded rule");
+            return List.of();
+        }
         List<DependencyEdge> connections = new ArrayList<>();
 
         // Rule edge dependency (minimum dependency restriction)
@@ -162,7 +168,7 @@ public class DependencyGraph {
                         }
 
                         // Possible improvement.
-                        // Find triple templats that match triple patterns using e.g. index by predicate. rather then a ruleset scan?
+                        // Find triple templates that match triple patterns using e.g. index by predicate. rather then a ruleset scan?
                         // i.e. a better Triple template to rule lookup.
                         //  TriplePattern -> Possible (Triple templates, rule)
 
@@ -192,8 +198,10 @@ public class DependencyGraph {
                     });
                 }
 
-                case EltNegation(List<RuleBodyElement> inner) -> {
-                    accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, inner, providers, providers2);
+                case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                    // If grounded, no dependency edges (all dependencies are to the starting inference graph: base graph + DATA
+                    if ( ! grounded )
+                        accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, inner, providers, providers2);
                 }
 
                 // These do not cause a dependency relationship.

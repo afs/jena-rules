@@ -106,13 +106,13 @@ public class ShaclRulesWriter {
         }
     }
 
+    public static void write(IndentedWriter output, Rule rule, boolean flatMode) {
+        write(output, rule, null, flatMode);
+    }
+
     public static void write(IndentedWriter output, Rule rule, PrefixMap prefixMap, boolean flatMode) {
         Style style = flatMode ? Style.Flat : Style.MultiLine;
         RuleSetWriter.write(output, rule, prefixMap, null, style);
     }
 
-    public static void write(IndentedWriter output, Rule rule, boolean flatMode) {
-        Style style = flatMode ? Style.Flat : Style.MultiLine;
-        RuleSetWriter.write(output, rule, null, null, style);
-    }
 }

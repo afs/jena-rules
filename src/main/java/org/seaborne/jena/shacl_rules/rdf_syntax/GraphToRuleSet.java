@@ -33,6 +33,7 @@ import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.graph.NodeConst;
 import org.apache.jena.sparql.util.graph.GNode;
 import org.apache.jena.sparql.util.graph.GraphList;
 import org.apache.jena.system.G;
@@ -123,8 +124,15 @@ public class GraphToRuleSet {
         Node bodyNode = G.getOneSP(graph, n, V.body);
 
         List<RuleHeadElement> headTemplate = parseRuleHead(graph, headNode);
-        List<RuleBodyElement> body = parseRuleBody(graph, bodyNode);
-        Rule rule = Rule.create(iri, headTemplate, body);
+        List<RuleBodyElement> bodyPattern = parseRuleBody(graph, bodyNode);
+
+        boolean grounded = getGrounded(graph, n);
+        Rule rule = Rule.newBuilder()
+                .ruleIdentifier(iri)
+                .addHeadElements(headTemplate)
+                .addBodyElements(bodyPattern)
+                .groundedRule(grounded)
+                .build();
         return rule;
     }
 
@@ -194,6 +202,19 @@ public class GraphToRuleSet {
         throw new ShaclException("Blank node in pattern or malformed for a variable.");
     }
 
+    // Get the value of srl:grounded, which must be a boolean. Default is false.
+    private static boolean getGrounded(Graph graph, Node node) {
+        Node gt = G.getZeroOrOneSP(graph, node, V.grounded);
+        if ( gt == null )
+            return false;
+        if ( gt.equals(NodeConst.TRUE) )
+            return true;
+        else if ( gt.equals(NodeConst.FALSE) )
+            return false;
+        else
+            throw new ShaclException("Unrecognized value for srl:grounded");
+    }
+
     private static List<RuleBodyElement> parseRuleBody(Graph graph, Node bodyNode) {
         List<RuleBodyElement> body = new ArrayList<>();
         GNode gNode = GNode.create(graph, bodyNode);
@@ -210,8 +231,6 @@ public class GraphToRuleSet {
             }
 
             if ( G.hasProperty(graph, node, V.triplePattern) ) {
-                if ( SysJenaRules.useRoleTriples )
-                    System.err.println("Old style triple pattern");
                 Node tripleNode = G.getOneSP(graph, node, V.triplePattern);
                 Triple triple = parseTriple(graph, tripleNode);
                 body.add(new EltTriplePattern(triple));
@@ -228,14 +247,16 @@ public class GraphToRuleSet {
             if ( G.hasProperty(graph, node, V.filter) ) {
                 Node exprNode = G.getOneSP(graph, node, V.filter) ;
                 Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
-                body.add(new EltCondition(expr));
+                body.add(new EltFilter(expr));
                 continue;
             }
 
             if ( G.hasProperty(graph, node, V.negation) ) {
                 Node nInnerBody = G.getOneSP(graph, node, V.negation);
                 List<RuleBodyElement> innerBody = parseRuleBody(graph, nInnerBody);
-                body.add(new EltNegation(innerBody));
+                Node gt = G.getOneSP(graph, node, V.grounded);
+                boolean grounded = getGrounded(graph, node);
+                body.add(new EltNegation(innerBody, grounded));
                 continue;
             }
 

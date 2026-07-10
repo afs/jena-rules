@@ -36,6 +36,7 @@ import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.graph.NodeConst;
 import org.apache.jena.sparql.util.ExprUtils;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
@@ -92,6 +93,8 @@ public class RuleSetToGraph {
 
         Node nBody = writeBody(graph, ruleNode, rule);
         graph.add(ruleNode, V.body, nBody);
+        if ( rule.isGrounded() )
+            graph.add(ruleNode, V.grounded, NodeConst.TRUE);
         return ruleNode;
     }
 
@@ -208,16 +211,19 @@ public class RuleSetToGraph {
                         items.add(encodeTuple(graph, tuplePattern));
                     }
                 }
-                case EltCondition(Expr condition) -> {
+                case EltFilter(Expr condition) -> {
                     Node x1 = NodeFactory.createBlankNode();
                     Node nExpr = expression(graph, condition);
                     graph.add(x1, V.filter, nExpr);
                     items.add(x1);
                 }
-                case EltNegation(var innerBody) ->{
+                case EltNegation(var innerBody, boolean grounded) ->{
+                    // [NOT DATA]
                     Node nInnerBody = writeBodyElements(graph, innerBody);
                     Node x1 = NodeFactory.createBlankNode();
                     graph.add(x1, V.negation, nInnerBody);
+                    if ( grounded )
+                        graph.add(x1, V.grounded, NodeConst.TRUE);
                     items.add(x1);
                 }
 

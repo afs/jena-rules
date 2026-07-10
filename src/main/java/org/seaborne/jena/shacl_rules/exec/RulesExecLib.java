@@ -150,7 +150,7 @@ class RulesExecLib {
             case EltTuplePattern(Tuple tuplePattern) -> {
                 return AccessTuples.accessTupleStore(chainIn, tupleStore, tuplePattern, rCxt);
             }
-            case EltCondition(Expr condition) -> {
+            case EltFilter(Expr condition) -> {
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution -> {
                     FunctionEnv functionEnv = rCxt;
                     // ExprNode.isSatisfied converts ExprEvalException to false.
@@ -174,7 +174,8 @@ class RulesExecLib {
                 };
                 return Iter.iter(chainIn).map(mapper).removeNulls()/* .get() */;
             }
-            case EltNegation(List<RuleBodyElement> innerBody) -> {
+            case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
+                // [NOT DATA]
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution -> {
                     Iterator<Binding> chainInner = buildEvalBody(graph, tupleStore, solution, innerBody, rCxt);
                     boolean innerMatches = chainInner.hasNext();

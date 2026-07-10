@@ -66,7 +66,7 @@ public class V {
     public static final Node predicate      = uri("predicate");
     public static final Node object         = uri("object");
 
-
+    public static final Node grounded       = uri("grounded");
     public static final Node filter         = uri("filter");
     public static final Node negation       = uri("not");
     public static final Node triplePattern  = uri("triplePattern");

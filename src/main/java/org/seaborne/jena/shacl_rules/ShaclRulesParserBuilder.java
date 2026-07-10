@@ -39,10 +39,9 @@ import org.seaborne.jena.shacl_rules.lang.ShaclRulesSyntax;
     private StringReader        javaReader = null;
     private StreamManager       streamManager = null;
     private ErrorHandler        errorHandler = null;
-    private String baseURI = null;
-    private ShaclRulesSyntax rulesSyntax = null;
-    private Context context = null;
-
+    private String              baseURI = null;
+    private ShaclRulesSyntax    rulesSyntax = null;
+    private Context             context = null;
 
     ShaclRulesParserBuilder() {}
 

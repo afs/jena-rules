@@ -124,8 +124,12 @@ public class RulesParserBase extends LangParserBase {
     // Used to accumulate nodes for a tuple.
     private final List<Node> tupleArgs = new ArrayList<>();
 
-    // The whole rule is "RULE DATA"
-    private boolean ruleIsGrounded;
+    // The whole body is "WHERE DATA"
+    private boolean isGroundedRule;
+
+    // The current rule element is NOT DATA
+    private boolean isGroundedNegation;
+
 
     // Internal. The rule builder will calculate these.
     // We could give them to the builder if there is a way to also have them not set (API built, RDF Graph).
@@ -139,7 +143,8 @@ public class RulesParserBase extends LangParserBase {
         hasNegation = false;
         hasAssignment = false;
         hasAggregation = false;
-        ruleIsGrounded = false;
+        isGroundedRule = false;
+        isGroundedNegation = false;
     }
 
     // ----
@@ -181,8 +186,7 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void setGroundedRule(int line, int column) {
-        // XXX Grounded
-        System.err.printf("[Line %d] Grounded rule\n", line);
+        this.isGroundedRule = true;
     }
 
     protected void finishRule(int line, int column) {
@@ -191,7 +195,12 @@ public class RulesParserBase extends LangParserBase {
         if ( bodyAcc == null )
             throwInternalStateException("Null body");
 
-        Rule rule = Rule.create(ruleURI, headAcc, bodyAcc);
+        Rule rule = Rule.newBuilder()
+                .ruleIdentifier(ruleURI)
+                .addBodyElements(bodyAcc)
+                .addHeadElements(headAcc)
+                .groundedRule(isGroundedRule)
+                .build();
         rules.add(rule);
         clearState();
         // Data is accumulative through the parser run.
@@ -307,8 +316,8 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void setGroundedNegation(int line, int column) {
-        // XXX Grounded
-        System.err.printf("[Line %d] Grounded NOT\n", line);
+        // Cleared in addRuleElement(List<RuleBodyElement> inner)
+        this.isGroundedNegation = true;
     }
 
     protected void finishNegation(int line, int column) {
@@ -316,12 +325,12 @@ public class RulesParserBase extends LangParserBase {
         state = BuildState.BODY;
     }
 
-    private void addToHead(Triple tripleTemplate) {
+    private void addHeadEltTriple(Triple tripleTemplate) {
         requireNonNull(tripleTemplate);
         headAcc.add(new RuleHeadElement.EltTripleTemplate(tripleTemplate));
     }
 
-    private void addToHead(Tuple tuple) {
+    private void addHeadEltTuple(Tuple tuple) {
         requireNonNull(tuple);
         headAcc.add(new RuleHeadElement.EltTupleTemplate(tuple));
     }
@@ -329,40 +338,41 @@ public class RulesParserBase extends LangParserBase {
     private void addToBody(RuleBodyElement ruleElt) {
         requireNonNull(ruleElt);
         switch(state) {
-            case BODY -> bodyAcc.add(ruleElt);
-            case INNER -> innerBodyAcc.add(ruleElt);
-            default ->
+            case BODY   -> bodyAcc.add(ruleElt);
+            case INNER  -> innerBodyAcc.add(ruleElt);
+            default     ->
                 throwInternalStateException("Rule element emitted when in state "+state);
         }
     }
 
     // Triple pattern.
-    private void addRuleElement(Triple triplePattern) {
+    private void addBodyEltTiple(Triple triplePattern) {
         requireNonNull(triplePattern);
         addToBody(new RuleBodyElement.EltTriplePattern(triplePattern));
     }
 
     // Tuple pattern.
-    private void addRuleElement(Tuple tuplePattern) {
+    private void addBodyEltTuple(Tuple tuplePattern) {
         requireNonNull(tuplePattern);
         addToBody(new RuleBodyElement.EltTuplePattern(tuplePattern));
     }
 
     // Condition
-    private void addRuleElement(Expr expression) {
+    private void addBodyEltCondition(Expr expression) {
         requireNonNull(expression);
-        addToBody(new RuleBodyElement.EltCondition(expression));
+        addToBody(new RuleBodyElement.EltFilter(expression));
     }
 
     // Negation
-    private void addRuleElement(List<RuleBodyElement> inner) {
+    private void addBodyEltNegation(List<RuleBodyElement> inner) {
         requireNonNull(inner);
-        RuleBodyElement rElt = new RuleBodyElement.EltNegation(inner);
+        RuleBodyElement rElt = new RuleBodyElement.EltNegation(inner, isGroundedNegation);
         addToBody(rElt);
-}
+        isGroundedNegation = false;
+    }
 
     // Assignment
-    private void addRuleElement(Var var, Expr expression) {
+    private void addBodyEltAssignment(Var var, Expr expression) {
         requireNonNull(var);
         requireNonNull(expression);
         addToBody(new RuleBodyElement.EltAssignment(var, expression));
@@ -394,8 +404,8 @@ public class RulesParserBase extends LangParserBase {
     protected void emitTuple(Tuple tuple, int line, int column) {
         debug("emitTuple", line, column);
         switch(state) {
-            case HEAD -> { addToHead(tuple); }
-            case BODY -> { addRuleElement(tuple); }
+            case HEAD -> { addHeadEltTuple(tuple); }
+            case BODY -> { addBodyEltTuple(tuple); }
             case INNER -> {
                 innerBodyAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
             }
@@ -409,18 +419,18 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void emitNegation(int line, int column) {
-        addRuleElement(innerBodyAcc);
+        addBodyEltNegation(innerBodyAcc);
         innerBodyAcc = null;
     }
 
     protected void emitFilterExpr(Expr expr, int line, int column) {
         debug("emitFilterExpr", line, column);
-        addRuleElement(expr);
+        addBodyEltCondition(expr);
     }
 
     protected void emitAssignment(Var var, Expr expr, int line, int column) {
         debug("emitAssignment", line, column);
-        addRuleElement(var, expr);
+        addBodyEltAssignment(var, expr);
     }
 
     // << x y z >>
@@ -476,8 +486,8 @@ public class RulesParserBase extends LangParserBase {
     private void accTriple(Node s, Node p , Node o, int line, int column) {
         Triple triple = Triple.create(s, p, o);
         switch(state) {
-            case HEAD -> { addToHead(triple); }
-            case BODY -> { addRuleElement(Triple.create(s,p,o)); }
+            case HEAD -> { addHeadEltTriple(triple); }
+            case BODY -> { addBodyEltTiple(Triple.create(s,p,o)); }
             case INNER -> {
                 Triple triplePattern = Triple.create(s,p,o);
                 innerBodyAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));

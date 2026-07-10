@@ -179,7 +179,13 @@ public class RuleSetASTWriter {
 
         private void writeBody(Rule rule) {
             out.print("(");
-            out.println(tagBody);
+            out.print(tagBody);
+            if ( rule.isGrounded() ) {
+                out.print(" ");
+                out.print(tagData);
+            }
+            out.println();
+
             out.incIndent();
 
             writeRuleElements(rule.getBodyElements());
@@ -204,7 +210,7 @@ public class RuleSetASTWriter {
                             writeTuple(tuplePattern);
                         }
 
-                        case EltCondition(Expr condition) -> {
+                        case EltFilter(Expr condition) -> {
                             out.print("(");
                             out.print(tagFilter);
                             out.print(" ");
@@ -220,14 +226,17 @@ public class RuleSetASTWriter {
     //                        out.decIndent();
     //                        out.print(")");
                         }
-                        case EltNegation(List<RuleBodyElement> inner) -> {
+                        case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
                             final int indentLevelNegation = 2 ;
                             out.print("(");
-                            out.println(tagNot);
+                            out.print(tagNot);
+                            if ( grounded ) {
+                                out.print(" ");
+                                out.print(tagData);
+                            }
+                            out.println();
                             out.incIndent(indentLevelNegation);
-
                             writeRuleElements(inner);
-
                             out.decIndent(indentLevelNegation);
                             out.print(")");
                         }

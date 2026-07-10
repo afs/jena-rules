@@ -53,19 +53,19 @@ public class ShaclRulesParser {
     public static ShaclRulesParserBuilder from(String filenameorURI) { return create().from(filenameorURI); }
     public static ShaclRulesParserBuilder from(InputStream input) { return create().from(input); }
 
-    private final String              filenameOrURI;
-    private final Path                path;
-    private final String              stringToParse;
-    private final InputStream         inputStream;
-    private final StringReader        javaReader;
-    private final StreamManager       streamManager;
-    private final String              baseURI;
+    private final String            filenameOrURI;
+    private final Path              path;
+    private final String            stringToParse;
+    private final InputStream       inputStream;
+    private final StringReader      javaReader;
+    private final StreamManager     streamManager;
+    private final String            baseURI;
 
-//    private final HttpClient          httpClient;
-    //private final boolean             strict;
-    private final ErrorHandler        errorHandler;
-    private final Context             context;
-    private final ShaclRulesSyntax rulesSyntax;
+    // private final HttpClient        httpClient;
+    // private final boolean           strict;
+    private final ErrorHandler      errorHandler;
+    private final Context           context;
+    private final ShaclRulesSyntax  rulesSyntax;
 
     // Some cases the parser is reusable (read a file), some are not (input streams).
     private boolean                   canUseThisParser = true;

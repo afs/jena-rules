@@ -239,6 +239,8 @@ public class RuleSetWriter {
         else
             out.print(" ");
         out.print("WHERE ");
+        if ( rule.isGrounded() )
+            out.print("DATA ");
         writeBody(rule, styleBody);
     }
 
@@ -342,12 +344,15 @@ public class RuleSetWriter {
                     writeTuple(tuplePattern);
                 }
 
-                case EltCondition(Expr condition) -> {
+                case EltFilter(Expr condition) -> {
                     out.write("FILTER");
                     writeExpr(condition);
                 }
-                case EltNegation(List<RuleBodyElement> inner) -> {
-                    out.write("NOT {");
+                case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                    out.write("NOT ");
+                    if ( grounded )
+                        out.write("DATA ");
+                    out.write("{");
                     out.println();
                     final int indentLevelNegation = 4 ;
                     out.incIndent(indentLevelNegation);

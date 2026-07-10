@@ -93,11 +93,11 @@ public class Rule {
         // Convenience if within the rule set.
         private String localId;
 
-        boolean hasAssignment = false;
-        boolean hasNegation = false;
+        private boolean hasAssignment = false;
+        private boolean hasNegation = false;
         //boolean final hasAggregation;
-        boolean hasTemplateBNodes = false;
-        boolean groundedRule = false;
+        private boolean hasTemplateBNodes = false;
+        private boolean groundedRule = false;
 
         public Builder addHeadElement(RuleHeadElement elt)  {
             headElts.add(elt);
@@ -119,7 +119,6 @@ public class Rule {
             return this;
         }
 
-
         public Builder ruleIdentifier(String iriStr) {
             if ( iriStr != null ) {
                 IRIs.check(iriStr);
@@ -136,7 +135,7 @@ public class Rule {
         }
 
         public Builder groundedRule(boolean groundedRule) {
-            this.groundedRule = false;
+            this.groundedRule = groundedRule;
             return this;
         }
 
@@ -162,18 +161,20 @@ public class Rule {
             boolean _hasNegation = false;
             //boolean final hasAggregation;
 
+            // Look for assignment and negation
             for ( RuleBodyElement elt : bodyElts ) {
                 switch (elt) {
-                    //case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {}
-                    //case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
-                    case RuleBodyElement.EltNegation(List<RuleBodyElement> inner) -> { _hasNegation = true; }
-                    //case RuleBodyElement.EltCondition(Expr condition) -> {}
+                    // case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {}
+                    // case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
+                    case RuleBodyElement.EltNegation(List<RuleBodyElement> inner, boolean grounded) -> { _hasNegation = true; }
+                    // case RuleBodyElement.EltFilter(Expr condition) -> {}
                     case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
                     case null -> {}
                     default -> {}
                 };
             }
 
+            // Look for blank nodes in the head template
             boolean _hasHeadBNodes = false;
             for ( RuleHeadElement elt : headElts ) {
                 switch (elt) {
@@ -181,7 +182,7 @@ public class Rule {
                         if ( blankNodePresent(tripleTemplate ) )
                             _hasHeadBNodes = true;
                     }
-                    case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {}
+                    //case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {}
                     case null -> {}
                     default -> {}
                 }

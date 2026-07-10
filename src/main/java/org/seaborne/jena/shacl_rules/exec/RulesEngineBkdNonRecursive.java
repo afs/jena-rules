@@ -273,15 +273,14 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 case EltTuplePattern(Tuple tuplePattern) -> {
                     throw new NotImplemented();
                 }
-                case EltCondition(Expr condition) -> {
+                case EltFilter(Expr condition) -> {
                     chain = Iter.filter(chain, solution-> {
                         FunctionEnv functionEnv = new FunctionEnvBase(Rules.getContext());
                         // ExprNode.isSatisfied converts ExprEvalException to false.
                         return condition.isSatisfied(solution, functionEnv);
                     });
                 }
-                case EltNegation(var expr) -> {
-                    // SPARQL FILTER NOT EXISTs, recursive translation.
+                case EltNegation(var expr, var grounded) -> {
                     System.err.println("EltNegation in RulesEngineBkdNonRecursive.solveRule");
                     throw new NotImplemented();
                 }

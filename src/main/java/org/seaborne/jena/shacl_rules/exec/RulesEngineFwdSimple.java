@@ -74,7 +74,7 @@ public class RulesEngineFwdSimple implements RulesEngine {
         this.rCxt = rCxt;
     }
 
-    private boolean TRACE = false;
+    private boolean TRACE = true;
     @Override
     public RulesEngineFwdSimple setTrace(boolean traceSetting) {
         TRACE = traceSetting;
@@ -127,44 +127,56 @@ public class RulesEngineFwdSimple implements RulesEngine {
 
     @Override
     public RuleSetEvaluation eval() {
-        Stratification stratification = Stratification.create(ruleSet);
-        int maxStratum = stratification.maxStratum(); // Inclusive.
+        return evalRuleSet();
+    }
 
-        // NOW()
-        Context.setCurrentDateTime(rCxt.getContext());
+   private RuleSetEvaluation evalRuleSet() {
+       // Setup steps
+       Stratification stratification = Stratification.create(ruleSet);
+       int maxStratum = stratification.maxStratum(); // Inclusive.
 
-        TRACE = rCxt.trace();
+       // NOW()
+       Context.setCurrentDateTime(rCxt.getContext());
 
-        // == dataGraph -- base graph + data.
-        // The input graph for the algorithm.
-        AppendGraph dataGraph = AppendGraph.create(baseGraph);
-        // Add DATA
-        Graph ruleSetData = ruleSet.getData() ;
-        if ( ruleSet.hasData() ) {
-            GraphUtil.addInto(dataGraph, ruleSetData);
-        }
+       TRACE = TRACE || rCxt.trace();
 
-        // rCxt.strict
-        TupleStore tupleStore = TupleStore.create();
-        if ( ruleSet.hasTupleData() || baseTupleStore != null ) {
-            if ( ruleSet.hasTupleData() )
-                tupleStore.addAll(ruleSet.getDataTuples());
-            if ( baseTupleStore != null )
-                tupleStore.addAll(baseTupleStore);
-        }
+       // == dataGraph -- base graph + data.
+       // This input graph for the algorithm - baseGraph + DATA.
+       // It grows as execution proceeds
+       AppendGraph dataGraph = AppendGraph.create(baseGraph);
+       // Add DATA
+       Graph ruleSetData = ruleSet.getData() ;
+       if ( ruleSet.hasData() ) {
+           GraphUtil.addInto(dataGraph, ruleSetData);
+       }
 
-        // Prefixes for the inferred graph.
-        // === Graph of new triples.
-        // Initially, the DATA triples.
-        Graph inferred = dataGraph.getAdded();
-        inferred.getPrefixMapping().setNsPrefixes(dataGraph.getPrefixMapping());
+       // rCxt.strict
+       TupleStore tupleStore = TupleStore.create();
+       if ( ruleSet.hasTupleData() || baseTupleStore != null ) {
+           if ( ruleSet.hasTupleData() )
+               tupleStore.addAll(ruleSet.getDataTuples());
+           if ( baseTupleStore != null )
+               tupleStore.addAll(baseTupleStore);
+       }
 
-        if ( TRACE ) {
-            rCxt.out().println("Base graph: size = "+baseGraph.size());
-            rCxt.out().println("Inferred graph: size = "+inferred.size());
-            //rCxt.out().println("Inferred graph: size = "+inferred.size());
-        }
+       // Prefixes for the inferred graph.
+       // === Graph of new triples.
+       // Initially, the DATA triples.
+       Graph inferredGraph= dataGraph.getAdded();
+       inferredGraph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
+       inferredGraph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
 
+       if ( TRACE ) {
+           rCxt.out().println("Base graph: size = "+baseGraph.size());
+           rCxt.out().println("Initial inferred graph: size = "+inferredGraph.size());
+       }
+
+       // Execute WHERE DATA rules.
+
+       return evalStratification(dataGraph, stratification, tupleStore);
+    }
+
+    private RuleSetEvaluation evalStratification(AppendGraph dataGraph, Stratification stratification, TupleStore tupleStore) {
         try {
             for ( int i = stratification.minStratum() ; i <= stratification.maxStratum() ; i++ ) {
                 Stratum stratum = stratification.getLevel(i);
@@ -176,9 +188,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
                 int rounds = evalStratum(i, stratum, dataGraph, tupleStore, rCxt);
 
                 if ( TRACE ) {
-                    rCxt.out().println("Base graph: size = "+baseGraph.size());
-                    rCxt.out().println("Inferred graph: size = "+inferred.size());
-                    //rCxt.out().println("Inferred graph: size = "+inferred.size());
+                    //rCxt.out().println("Base graph: size = "+baseGraph.size());
+                    rCxt.out().println("Inferred graph: size = "+dataGraph.getAdded().size());
                 }
 
                 if ( TRACE )
@@ -186,9 +197,6 @@ public class RulesEngineFwdSimple implements RulesEngine {
             }
         } finally { rCxt.out().flush(); }
 
-        Graph inferredGraph = dataGraph.getAdded();
-        inferredGraph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
-        inferredGraph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
         return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);
     }
 

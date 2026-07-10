@@ -24,24 +24,22 @@ package org.seaborne.jena.shacl_rules.lang.writer;
 import org.apache.jena.sparql.sse.Tags;
 
 public class RSE {
-    public static final String tagRuleSet = "ruleset";
-    public static final String tagData = "data";
-    public static final String tagRule = "rule";
+    public static final String tagRuleSet   = "ruleset";
+    public static final String tagData      = "data";
+    public static final String tagRule      = "rule";
 
-    public static final String tagHead = "head";
-    public static final String tagBody = "body";
+    public static final String tagHead      = "head";
+    public static final String tagBody      = "body";
 
-    public static final String tagFilter = "filter";
-    public static final String tagSet = "set";
-    public static final String tagNot = "not";
+    public static final String tagFilter    = "filter";
+    public static final String tagSet       = "set";
+    public static final String tagNot       = "not";
 
-    public static final String tagTriple = Tags.tagTriple;
-    public static final String tagSubject = Tags.tagSubject;
-    public static final String tagProperty = Tags.tagPredicate;
-    public static final String tagObject = Tags.tagObject;
+    public static final String tagTriple    = Tags.tagTriple;
+    public static final String tagSubject   = Tags.tagSubject;
+    public static final String tagProperty  = Tags.tagPredicate;
+    public static final String tagObject    = Tags.tagObject;
 
-    public static final String tagBase = "base";
-    public static final String tagPrefixes = "prefixes";
-
-
+    public static final String tagBase      = Tags.tagBase ;
+    public static final String tagPrefixes  = "prefixes";
 }

@@ -102,10 +102,10 @@ public class WellFormed {
                     addVar(tracker.bodyDefined, tuplePattern.get(i));
                 }
             }
-            case EltCondition(Expr condition) -> {
+            case EltFilter(Expr condition) -> {
                 processWellFormedExpr(tracker, condition);
             }
-            case EltNegation(List<RuleBodyElement> innerBody) -> {
+            case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
                 // Isolated tracker.
                 VarTracker negTracker = tracker.copyOf();
                 checkRuleElements(negTracker, innerBody);

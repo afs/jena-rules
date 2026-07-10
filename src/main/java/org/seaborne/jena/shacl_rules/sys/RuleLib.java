@@ -24,6 +24,8 @@ package org.seaborne.jena.shacl_rules.sys;
 import java.util.List;
 
 import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.syntax.*;
@@ -31,7 +33,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 
 /** This class is not API */
-public class RuleLib {
+class RuleLib {
 
     /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */
     public static ElementGroup ruleEltsToElementGroup(List<RuleBodyElement> ruleElts) {
@@ -41,13 +43,15 @@ public class RuleLib {
             switch (rElt) {
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
                 case EltTuplePattern(var tuple) -> { throw new NotImplemented(); }
-                case EltCondition(var expr) -> group.addElement(new ElementFilter(expr));
-                case EltNegation(var innerBody) -> {
-                    ElementGroup innerGroup = ruleEltsToElementGroup(innerBody);
-                    // Use ARQ extension
-                    //Element element = new ElementNotExists(innerGroup);
-                    Element element = new ElementFilter(new E_NotExists(innerGroup));
-                    group.addElement(element);
+                case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
+                case EltNegation(var innerBody, boolean grounded ) -> {
+                    Element inner = ruleEltsToElementGroup(innerBody);
+                    Element negationElt = new ElementFilter(new E_NotExists(inner));
+                    if ( grounded ) {
+                        Node n = NodeFactory.createURI("arq:baseGraph");
+                        negationElt = new ElementNamedGraph(n, negationElt);
+                    }
+                    group.addElement(negationElt);
                 }
                 case EltAssignment(var assignedVar, var expr) -> {
                     group.addElement(new ElementBind(assignedVar, expr));
