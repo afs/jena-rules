@@ -30,9 +30,7 @@ import org.seaborne.jena.shacl_rules.nexpr.NX;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
- * RDF-encoing of variables - from a rule perspective.
- * <p>
- * {@code srl:varName} is synonym for {@code shnex:var}
+ * RDF-encoding of variables - from a rule perspective.
  * <p>
  * Accept both when reading; write {@code srl:varName} in triple patterns and
  * templates, where it is not node expression evaluation
@@ -44,16 +42,19 @@ public class RVar {
     // Write srl:varName in triple patterns and templates
     // Write shnex:var in node expressions
 
-    private static Node predicateSHR = V.varName;
+    /** {@code srl:varName} is synonym for {@code shnex:var} */
+    private static boolean NX_SYNONYM = false;
+
+    private static Node predicateSRL = V.varName;
     private static Node predicateNX = NX.var;
 
     // Preferred predicate writing in triple patterns and templates.
     /** {@link RVar#addVar} here */
-    private static Node varPatternPredicate = predicateSHR;
+    private static Node varPatternPredicate = predicateSRL;
 
-    // Preferred predicate writing in node expressions.
-    /** {@link NX#addVar}. */
-    private static Node varExprPredicate = predicateNX;
+//    // Preferred predicate writing in node expressions.
+//    /** {@link NX#addVar}. */
+//    private static Node varExprPredicate = predicateNX;
 
     /**
      * Return the name of the variable at the given node.
@@ -62,9 +63,11 @@ public class RVar {
      */
     public static String getVarName(Graph graph, Node node) {
         // Am I a variable?
-        Node vx = G.getZeroOrOneSP(graph, node, predicateSHR);
-        if ( vx == null )
-            vx = G.getZeroOrOneSP(graph, node, predicateNX);
+        Node vx = G.getZeroOrOneSP(graph, node, predicateSRL);
+        if ( NX_SYNONYM ) {
+            if ( vx == null )
+                vx = G.getZeroOrOneSP(graph, node, predicateNX);
+        }
         if ( vx == null )
             return null;
         // RDFDataException if it is not a string.
