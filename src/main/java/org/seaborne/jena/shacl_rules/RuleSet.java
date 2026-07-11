@@ -276,6 +276,11 @@ public class RuleSet {
         return rules.toString();
     }
 
+    /** String for a rule */
+    public String str(Rule rule) {
+        return String.format("%s %s", labelFor(rule), ShaclRulesWriter.abbreviatedString(rule, getPrefixMap()));
+    }
+
     // Labelling and tracing.
 
     private boolean labellingInitialized = false;

@@ -60,7 +60,6 @@ public class RulesEvalTest implements Runnable {
     }
 
     public void run(EngineType engineType) {
-
         Graph itemGraph = testItem.getGraph();
         String itemName = testItem.getName();
         Node action = testItem.getAction();
@@ -82,8 +81,7 @@ public class RulesEvalTest implements Runnable {
         Graph input = ( nData == null ) ? GraphZero.instance() : read(nData);
 
         boolean verbose = false;
-
-        RuleSetEvaluation e = ShaclRulesExec.create(engineType, input, ruleSet).setTrace(false).eval();
+        RuleSetEvaluation e = ShaclRulesExec.create(engineType, input, ruleSet).setTrace(verbose).eval();
 
         Graph outcome = e.inferredTriples();
         Node nResult = testItem.getResult();

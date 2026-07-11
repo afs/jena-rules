@@ -58,7 +58,6 @@ public class RulesEngineFwdSimple implements RulesEngine {
     private
     static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
         RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
-        RulesExecLib.prepare(ruleSet, rCxt);
         return new RulesEngineFwdSimple(graph, tupleStore, ruleSet, rCxt);
     }
 
@@ -137,8 +136,8 @@ public class RulesEngineFwdSimple implements RulesEngine {
            });
        }
 
-       // Setup steps
-       Stratification stratification = Stratification.create(ruleSet);
+       Stratification stratification = RulesExecLib.prepare(ruleSet, rCxt);
+
        int maxStratum = stratification.maxStratum(); // Inclusive.
 
        // NOW()
@@ -286,9 +285,9 @@ public class RulesEngineFwdSimple implements RulesEngine {
             // This is the "naive" algorithm.
             // By tracking rules that actually cause change, we can get semi-naive.
 
-            for (Rule rule : runGeneralRules ) {
+            for ( Rule rule : runGeneralRules ) {
                 if ( TRACE )
-                    rCxt.out().printf("Eval: round=%d : %s %s\n", round, ruleSet.labelFor(rule), ShaclRulesWriter.abbreviatedString(rule, ruleSet.getPrefixMap()));
+                    rCxt.out().printf("Eval: round=%d : %s\n", round, ruleSet.str(rule));
                 executeOneRule(graph1, evalTupleStore, rule);
 
                 if ( TRACE )

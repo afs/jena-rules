@@ -30,6 +30,7 @@ import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
 import org.slf4j.Logger;
 
+/** Not API */
 public class ParserRules {
 
     // c.f. RiotLib.createParserProfile

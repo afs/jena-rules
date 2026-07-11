@@ -51,17 +51,16 @@ public class Stratification {
         }
     }
 
-    final private static boolean TRACE = false;
-    final private int minStratum;
-    final private int maxStratum;
-    final private List<Stratum> stratumLevels;
-
     // Setting used to have data rules (no dependencies)
     // separate rules with rule dependencies in level 0.
     static Integer dataStratum = Integer.valueOf(0);
     // Setting uses to have separate data rules (no dependencies)
     // from rule with rule dependencies.
     static Integer minDependentStratum = Integer.valueOf(1);
+
+    final private int minStratum;
+    final private int maxStratum;
+    final private List<Stratum> stratumLevels;
 
     public static Stratification create(RuleSet ruleSet) throws StratificationException {
         RulesExecCxt rCxt = RulesExecCxt.get();
@@ -77,7 +76,7 @@ public class Stratification {
         return functionCreateStratification(ruleSet, depGraph, rCxt);
     }
 
-    private Stratification(int minStratum, int maxStratum,  List<Stratum> stratumLevels, RuleSet ruleSet) {
+    private Stratification(int minStratum, int maxStratum, List<Stratum> stratumLevels, RuleSet ruleSet) {
         if ( minStratum < 0 )
             throw new IllegalArgumentException("Negative minStratum");
         this.minStratum = minStratum;
@@ -114,6 +113,9 @@ public class Stratification {
     // ----
 
     private static Stratification functionCreateStratification(RuleSet ruleSet, DependencyGraph depGraph, RulesExecCxt rCxt) throws StratificationException {
+
+        boolean TRACE = false ; //rCxt.trace();
+
         List<Rule> rules = ruleSet.getRules();
 
         if ( rules.isEmpty() )
@@ -149,11 +151,9 @@ public class Stratification {
         // For now, have a potential empty 0-stratum.
 
         if ( TRACE ) {
-            stratumMap.forEach((rule, integer) -> {
-                System.out.printf("StratumMap input %d : %s\n", integer, rule);
+            stratumMap.forEach((rule, level) -> {
+                rCxt.out().printf("Input level %d : %s\n", level, ruleSet.str(rule));
             });
-            if ( ! stratumMap.isEmpty() )
-                System.out.println();
         }
 
         // Bad recursion would cause this to go on forever.
@@ -166,20 +166,18 @@ public class Stratification {
         // (+1 is for the data stratum)
         final int limit = rules.size()+1;
 
-        final boolean TRACE_RULE_LOOP = false && TRACE; // Development only - verbose
+        final boolean TRACE_RULE_LOOP = false && TRACE; // Detailed development only - verbose
 
         while(changed) {
             changed = false;
-            if ( TRACE_RULE_LOOP )
-                System.out.println();
             for ( DependencyEdge e : depGraph.edges() ) {
                 // Edge from p to q of type sign
                 Rule pRule = e.rule();
                 Rule qRule = e.linkedRule();
 
-                if ( false && TRACE_RULE_LOOP ) {
-                    System.out.println("pRule: "+ruleSet.labelFor(pRule)+" :: "+pRule);
-                    System.out.println("qRule: "+ruleSet.labelFor(qRule)+" :: "+qRule);
+                if ( TRACE_RULE_LOOP ) {
+                    rCxt.out().println("pRule: "+ruleSet.labelFor(pRule)+" :: "+pRule);
+                    rCxt.out().println("qRule: "+ruleSet.labelFor(qRule)+" :: "+qRule);
                 }
 
                 switch(e.link()) {
@@ -200,7 +198,7 @@ public class Stratification {
                     }
                     // case AGGREGATE->{}
                     default -> {
-                        throw new StratificationException("Stratification error: unknowmn link type: " + e.link());
+                        throw new StratificationException("Stratification error: unknown link type: " + e.link());
                     }
                 }
             }
@@ -208,10 +206,8 @@ public class Stratification {
 
         if ( TRACE ) {
             stratumMap.forEach((rule, integer) -> {
-                System.out.printf("StratumMap layer %d : %s\n", integer, rule);
+                rCxt.out().printf("StratumMap layer %d : %s\n", integer, ruleSet.str(rule));
             });
-            if ( ! stratumMap.isEmpty() )
-                System.out.println();
         }
 
         // ---- Levels : Collect rules into strata.
@@ -258,27 +254,26 @@ public class Stratification {
 
         if ( TRACE ) {
             // Development.
-            System.out.println();
-            System.out.printf("==== Strata (max = %d)\n", maxStratum);
+            rCxt.out().printf("==== Strata (max = %d)\n", maxStratum);
             for ( int i = 0 ; i <= maxStratum ; i++ ) {
-                System.out.printf("== Layer %d\n", i);
+                rCxt.out().printf("== Layer %d\n", i);
                 Stratum layer = layers.get(i);
 
                 Collection<Rule> stratumOnce = layer.runOnce();
                 Collection<Rule> stratumAll = layer.runGeneral();
 
-                if ( stratumOnce.isEmpty() && stratumAll.isEmpty() ) {
-                    System.err.printf("No rules at level %d\n", i);
+                if ( stratumOnce.isEmpty() && stratumAll.isEmpty() && i > 0 ) {
+                    rCxt.out().printf("No rules at level %d\n", i);
                     continue;
                 }
 
-                System.out.printf("Level %d\n", i);
+                rCxt.out().printf("Level %d\n", i);
                 stratumOnce.forEach(rule-> {
-                    System.out.print("  ");
+                    rCxt.out().print("  ");
                     ShaclRulesWriter.print(rule, ruleSet.getPrefixMap());
                 });
                 stratumAll.forEach(rule-> {
-                    System.out.print("  ");
+                    rCxt.out().print("  ");
                     ShaclRulesWriter.print(rule, ruleSet.getPrefixMap());
                 });
             }
