@@ -53,21 +53,21 @@ public class J_SPARQLFunctionalForms {
     }
 
     static NodeValue sparql_logical_and(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
-        Expr expr1 = SrlExpressions.rdfToExpr(graph, arg1);
-        Expr expr2 = SrlExpressions.rdfToExpr(graph, arg2);
+        Expr expr1 = ExprGraph.rdfToExpr(graph, arg1);
+        Expr expr2 = ExprGraph.rdfToExpr(graph, arg2);
         Expr x = new E_LogicalAnd(expr1, expr2);
         return x.eval(row, functionEnv);
     }
 
     static NodeValue sparql_logical_or(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1, Node arg2) {
-        Expr expr1 = SrlExpressions.rdfToExpr(graph, arg1);
-        Expr expr2 = SrlExpressions.rdfToExpr(graph, arg2);
+        Expr expr1 = ExprGraph.rdfToExpr(graph, arg1);
+        Expr expr2 = ExprGraph.rdfToExpr(graph, arg2);
         Expr x = new E_LogicalOr(expr1, expr2);
         return x.eval(row, functionEnv);
     }
 
     static NodeValue sparql_logical_not(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
-        Expr expr1 = SrlExpressions.rdfToExpr(graph, arg1);
+        Expr expr1 = ExprGraph.rdfToExpr(graph, arg1);
         Expr x = new E_LogicalNot(expr1);
         return x.eval(row, functionEnv);
     }
@@ -85,14 +85,14 @@ public class J_SPARQLFunctionalForms {
 
     // SPARQL IF(condition, then, else)
     static NodeValue sparql_if(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node condition, Node thenArg, Node elseArg) {
-        NodeValue nv = NodeExpressions.evalNodeExpression(graph, condition, row, functionEnv);
+        NodeValue nv = NodeExprEval.evalNodeExpression(graph, condition, row, functionEnv);
         boolean b = XSDFuncOp.effectiveBooleanValue(nv);
         if ( b ) {
             if ( thenArg != null )
-                return NodeExpressions.evalNodeExpression(graph, thenArg, row, functionEnv);
+                return NodeExprEval.evalNodeExpression(graph, thenArg, row, functionEnv);
         } else {
             if ( elseArg != null )
-                return NodeExpressions.evalNodeExpression(graph, elseArg, row, functionEnv);
+                return NodeExprEval.evalNodeExpression(graph, elseArg, row, functionEnv);
         }
         return XSDFuncOp.effectiveBooleanValueAsNodeValue(nv);
     }
@@ -102,7 +102,7 @@ public class J_SPARQLFunctionalForms {
     static NodeValue sparql_coalesce(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, List<Node> args) {
         for ( Node arg : args ) {
             try {
-                NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row, functionEnv);
+                NodeValue nv = NodeExprEval.evalNodeExpression(graph, arg, row, functionEnv);
                 if ( nv == null )
                     throw new InternalErrorException("Node expressiom return null");
                 return nv;
@@ -130,10 +130,10 @@ public class J_SPARQLFunctionalForms {
         // Alt - build the Expr and make a E_OneOf to eval.
 
         Node valueNode = args.getFirst();
-        NodeValue value = NodeExpressions.evalNodeExpression(graph, valueNode, row, functionEnv);
+        NodeValue value = NodeExprEval.evalNodeExpression(graph, valueNode, row, functionEnv);
         for ( int i = 1 ; i < args.size(); i++ ) {
             Node arg = args.get(i);
-            NodeValue nv = NodeExpressions.evalNodeExpression(graph, arg, row, functionEnv);
+            NodeValue nv = NodeExprEval.evalNodeExpression(graph, arg, row, functionEnv);
             if ( nv == null )
                 throw new InternalErrorException("Node expression return null");
             if ( NodeValue.sameValueAs(value, nv) )
@@ -143,7 +143,7 @@ public class J_SPARQLFunctionalForms {
     }
 
     static NodeValue sparql_bound(Graph graph, Node callNode, FunctionEnv functionEnv, Binding row, Node arg1) {
-        Expr expr1 =  SrlExpressions.rdfToExpr(graph, arg1);
+        Expr expr1 =  ExprGraph.rdfToExpr(graph, arg1);
         if ( ! expr1.isVariable() )
             throw new NodeExprEvalException("Argument to sh:bound is not a variable");
         // Just do it!

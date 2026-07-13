@@ -44,7 +44,7 @@ import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTripleTemplate;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTupleTemplate;
-import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.ExprGraph;
 import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 import org.seaborne.jena.shacl_rules.sys.V;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
@@ -246,7 +246,7 @@ public class GraphToRuleSet {
 
             if ( G.hasProperty(graph, node, V.filter) ) {
                 Node exprNode = G.getOneSP(graph, node, V.filter) ;
-                Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
+                Expr expr = ExprGraph.rdfToExpr(graph, exprNode);
                 body.add(new EltFilter(expr));
                 continue;
             }
@@ -267,7 +267,7 @@ public class GraphToRuleSet {
                 Var var = RVar.getVar(graph, varNode);
                 // Value part
                 Node exprNode = G.getOneSP(graph, assign, V.assignValue);
-                Expr expr = SrlExpressions.rdfToExpr(graph, exprNode);
+                Expr expr = ExprGraph.rdfToExpr(graph, exprNode);
                 body.add(new EltAssignment(var, expr));
                 continue;
             }

@@ -40,7 +40,7 @@ import org.seaborne.jena.shacl_rules.sys.V;
 /**
  * Helper functions for working with node expressions.
  * This class is not API.
- * @see NodeExpressions for the main API including evaluation.
+ * @see NodeExprEval for the main API including evaluation.
  */
 public class NX {
 
@@ -133,7 +133,7 @@ public class NX {
         // See whether it is a named argument form:
         for ( Triple t : triples ) {
             Node p = t.getPredicate();
-            if ( NodeExpressions.namedNodeExpressions.contains(p)) {
+            if ( NodeExprEval.namedNodeExpressions.contains(p)) {
                 return t;
             }
         }

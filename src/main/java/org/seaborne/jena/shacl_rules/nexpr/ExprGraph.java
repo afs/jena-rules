@@ -33,14 +33,13 @@ import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.Function;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.jena.JenaLib;
-import org.seaborne.jena.shacl_rules.nexpr.NodeExprTables.BuildSyntax;
 import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 import org.seaborne.jena.shacl_rules.sys.V;
 
 /**
  * Encode/decode SPARQL expressions as RDF triples.
  */
-public class SrlExpressions {
+public class ExprGraph {
 
     private static boolean insertSRLExpr = false;
 
@@ -90,27 +89,21 @@ public class SrlExpressions {
         // General function.
         NodeExpressionFunction nExprFn = NX.getRDFExpression(graph, root);
         String functionURI = nExprFn.uri();
-        List<Node> list = nExprFn.arguments();
-        if ( list == null )
-            throw new NodeExprException("Bad node expression");
+        List<Node> argsList = nExprFn.arguments();
+        if ( argsList == null )
+            throw new RuleExprEvalException("Bad node expression");
 
         // Registered in the node expression-only registry.
         Function function = NX.getFunction(functionURI);
         if ( function != null ) {
             //if ( NX.isRegistered(functionURI) ) {
             ExprList exprList = new ExprList();
-            list.stream().map(n->buildExpr(graph, n)).forEach(exprList::add);
+            argsList.stream().map(n->buildExpr(graph, n)).forEach(exprList::add);
             return new E_Function(functionURI, exprList);
         }
 
-        // Registered in the NodeExprTables registry (which is copied into in the SPARQL function registry).
-        BuildSyntax build = NodeExprTables.getBuild(functionURI);
-        if ( build == null )
-            throw new RuntimeException("Build: "+functionURI);
-
-        // XXX Direct to list?
-        Expr[] array = list.stream().map(n->buildExpr(graph, n)).toArray(Expr[]::new);
-        Expr expr = build.build(functionURI, array);
+        Expr[] args = argsList.stream().map(n->buildExpr(graph, n)).toArray(Expr[]::new);
+        Expr expr = RuleExpr.build(functionURI, args);
         return expr;
     }
 
@@ -137,7 +130,7 @@ public class SrlExpressions {
                 List<Node> argNodes = args.stream().map(e->exprAsRDF(graph,e)).toList();
 
                 Node argNodeList = JenaLib.createList(graph, argNodes);
-                Node uri = exprFunctionURI(exf, argNodes.size());
+                Node uri = RuleExpr.exprFunctionURI(exf, argNodes.size());
                 Node x = NodeFactory.createBlankNode();
                 graph.add(x, uri, argNodeList);
                 return x;
@@ -156,22 +149,4 @@ public class SrlExpressions {
             }
         }
     }
-
-    /** For a given SPARQL function or functional form, encode in RDF. */
-    private static Node exprFunctionURI(ExprFunction exf, int arity) {
-        String uri = NodeExprTables.getUriForExpr(exf);
-        if ( uri != null )
-            return NodeFactory.createURI(uri);
-        // A URI for the function.
-        return NodeFactory.createURI(exf.getFunctionIRI());
-    }
-
-//    /**
-//     * Failure to encode a SPARQL functions as a SHACL node expressions.
-//     */
-//    public static class ShaclTranslateException extends ShaclException {
-//        public ShaclTranslateException(int x, String msg) {
-//            super(msg);
-//        }
-//    }
 }

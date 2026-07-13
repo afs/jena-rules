@@ -43,17 +43,17 @@ import org.seaborne.jena.shacl_rules.rdf_syntax.RVar;
 
 /**
  * SHACL node expression evaluation.
- * @see SrlExpressions for translation to/from SPARQL functions.
+ * @see ExprGraph for translation to/from SPARQL functions.
  * @see SPARQLDispatch
  */
-public class NodeExpressions {
+public class NodeExprEval {
     static { INIT.init(); }
 
     private static Context emptyContext = Context.emptyContext();
     private static FunctionEnv blankFunctionEnv = new FunctionEnvBase(emptyContext, null, null);
     private static Binding emptyBinding = BindingFactory.empty();
 
-    private NodeExpressions() {}
+    private NodeExprEval() {}
 
     // --- Execution
 
@@ -196,7 +196,7 @@ public class NodeExpressions {
 
         private static FunctionFactory createFunctionFactory() {
             return uri -> new FunctionBase() {
-                @Override public NodeValue exec(List<NodeValue> args) { return NodeExpressions.eval(uri, args); }
+                @Override public NodeValue exec(List<NodeValue> args) { return NodeExprEval.eval(uri, args); }
                 @Override public void checkBuild(String uri, ExprList args) {}
             };
         }

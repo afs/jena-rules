@@ -46,8 +46,13 @@ import org.apache.jena.sparql.function.library.triple.TripleTermOps;
  */
 public class J_SPARQLFuncOp {
 
+    // This is the library of all functions and operators.
+
     // Stand-in for org.apache.jena.sparql.expr.urifunctions.SPARQLFuncOp
     // See also J_SPARQLFunctionalForms for specials e.g. now().
+
+    // Set up is in NodeExprTables.
+
     // ----
 
     private static boolean strict() {

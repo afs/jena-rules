@@ -26,11 +26,11 @@ import java.util.Objects;
 import org.apache.jena.sparql.function.Function;
 import org.apache.jena.sparql.function.FunctionFactory;
 
-public class FunctionFactoryFN implements FunctionFactory {
+class FunctionFactoryFN implements FunctionFactory {
 
     private final Function function;
 
-    public FunctionFactoryFN(Function function) { this.function = Objects.requireNonNull(function); }
+    FunctionFactoryFN(Function function) { this.function = Objects.requireNonNull(function); }
 
     @Override
     public Function create(String uri) {

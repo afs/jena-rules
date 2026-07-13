@@ -21,6 +21,10 @@
 
 package org.seaborne.jena.shacl_rules.nexpr;
 
-class EvalException extends NodeExprEvalException {
-    EvalException(String msg) { super(msg); }
+import org.seaborne.jena.shacl_rules.exec.RulesEvalException;
+
+public class RuleExprEvalException extends RulesEvalException {
+    public RuleExprEvalException(String message) {
+        super(message);
+    }
 }

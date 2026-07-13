@@ -24,7 +24,7 @@ package org.seaborne.jena.shacl_rules.nexpr;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.sparql.expr.NodeValue;
 
-public class NX_FuncOp {
+class NX_FuncOp {
     // Node expressions, with no SPARQL equivalent
 
     /** A version of NOW that returns the current instant. */

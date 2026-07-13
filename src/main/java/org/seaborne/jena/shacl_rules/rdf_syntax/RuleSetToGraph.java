@@ -43,7 +43,7 @@ import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.jena.JenaLib;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
-import org.seaborne.jena.shacl_rules.nexpr.SrlExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.ExprGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.sys.P;
 import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
@@ -250,7 +250,7 @@ public class RuleSetToGraph {
 
     // Expr to node expression, no srl:expr
     private static Node expression(Graph graph, Expr expr) {
-        Node x = SrlExpressions.exprAsRDF(graph, expr);
+        Node x = ExprGraph.exprAsRDF(graph, expr);
         return x;
     }
 

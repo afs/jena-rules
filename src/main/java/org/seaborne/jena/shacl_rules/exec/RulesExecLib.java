@@ -229,7 +229,7 @@ class RulesExecLib {
      * Create a {@link RulesExecCxt} from a {@link Context}. The argument context is
      * copied - the caller does not need to provide a safe copy.
      */
-    public static RulesExecCxt rulesExecCxt(Context cxt) {
+    static RulesExecCxt rulesExecCxt(Context cxt) {
         if ( cxt == null )
             cxt = Rules.getContext();
         // Isolated.

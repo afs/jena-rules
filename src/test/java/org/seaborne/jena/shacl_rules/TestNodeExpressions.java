@@ -34,7 +34,7 @@ import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.nexpr.NX;
 import org.seaborne.jena.shacl_rules.nexpr.NodeExpressionFunction;
-import org.seaborne.jena.shacl_rules.nexpr.NodeExpressions;
+import org.seaborne.jena.shacl_rules.nexpr.NodeExprEval;
 import org.seaborne.jena.shacl_rules.sys.P;
 
 public class TestNodeExpressions {
@@ -50,7 +50,7 @@ public class TestNodeExpressions {
                 """;
         Graph graph = RDFParser.fromString(nxGraph, Lang.TTL).toGraph();
         Node nx = G.getOneSP(graph, null, srl_expression);
-        NodeValue nv = NodeExpressions.evalNodeExpression(graph, nx);
+        NodeValue nv = NodeExprEval.evalNodeExpression(graph, nx);
         assertNotNull(nv);
     }
 

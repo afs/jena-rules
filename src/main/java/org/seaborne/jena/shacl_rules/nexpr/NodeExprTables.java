@@ -27,7 +27,6 @@ import java.util.Map;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnv;
@@ -320,12 +319,12 @@ import org.seaborne.jena.shacl_rules.sys.P;
 
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 0 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
             BuildSyntax0 makerNX0 = ()->new E_Function(uri, ExprList.emptyList);
             return makerNX0.build();
         };
         ExprCall call = args->{
-            if ( args.length != 0 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+            if ( args.length != 0 ) throw evalException("%s: Expected zero arguments. Got %d", uri, args.length);
             return function.exec();
         };
         mapDispatch.put(uri, call);
@@ -341,11 +340,11 @@ import org.seaborne.jena.shacl_rules.sys.P;
         String uri = expandName(uriName);
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 0 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
             return maker.build();
         };
         ExprCall call = args->{
-            if ( args.length != 0 ) throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+            if ( args.length != 0 ) throw evalException("%s: Expected zero arguments. Got %d", uri, args.length);
             return function.exec();
         };
         mapDispatch.put(uri, call);
@@ -361,11 +360,11 @@ import org.seaborne.jena.shacl_rules.sys.P;
         String uri = expandName(uriName);
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 1 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
             return maker.build(exprs[0]);
         };
         ExprCall call = args->{
-            if ( args.length != 1 ) throw exception("%s: Expected one arguments. Got %d", uri, args.length);
+            if ( args.length != 1 ) throw evalException("%s: Expected one arguments. Got %d", uri, args.length);
             return function.exec(args[0]);
         };
         mapDispatch.put(uri, call);
@@ -384,14 +383,14 @@ import org.seaborne.jena.shacl_rules.sys.P;
                 return maker1.build(exprs[0]);
             if ( exprs.length == 2 )
                 return maker2.build(exprs[0], exprs[1]);
-            throw new ShaclException("Wrong number of argum ents expressions: expected 1 or 2, got "+exprs.length);
+            throw buildException("Wrong number of argum ents expressions: expected 1 or 2, got "+exprs.length);
         };
         ExprCall call = args->{
             if ( args.length == 1 )
                 return function1.exec(args[0]);
             if ( args.length == 2 )
                 return function2.exec(args[0], args[1]);
-            throw exception("%s: Expected one or two arguments. Got %d", uri, args.length);
+            throw evalException("%s: Expected one or two arguments. Got %d", uri, args.length);
         };
         mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
@@ -405,11 +404,11 @@ import org.seaborne.jena.shacl_rules.sys.P;
         String uri = expandName(uriName);
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 2 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
             return maker.build(exprs[0], exprs[1]);
         };
         ExprCall call = args->{
-            if ( args.length != 2 ) throw exception("%s: Expected two arguments. Got %d", uri, args.length);
+            if ( args.length != 2 ) throw evalException("%s: Expected two arguments. Got %d", uri, args.length);
             return function.exec(args[0], args[1]);
         };
         mapDispatch.put(uri, call);
@@ -428,14 +427,14 @@ import org.seaborne.jena.shacl_rules.sys.P;
                 return maker2.build(exprs[0], exprs[1]);
             if ( exprs.length == 3 )
                 return maker3.build(exprs[0], exprs[1], exprs[2]);
-            throw new ShaclException("Wrong number of arguments expressions: expected 2 or 3, got "+exprs.length);
+            throw buildException("Wrong number of arguments expressions: expected 2 or 3, got "+exprs.length);
         };
         ExprCall call = args->{
             if ( args.length == 2 )
                 return function2.exec(args[0], args[1]);
             if ( args.length == 3 )
                 return function3.exec(args[0], args[1], args[2]);
-            throw exception("%s: Expected two or three arguments. Got %d", uri, args.length);
+            throw evalException("%s: Expected two or three arguments. Got %d", uri, args.length);
         };
         mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
@@ -449,11 +448,11 @@ import org.seaborne.jena.shacl_rules.sys.P;
         String uri = expandName(uriName);
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 3 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
             return maker.build(exprs[0], exprs[1], exprs[2]);
         };
         ExprCall call = args->{
-            if ( args.length != 1 ) throw exception("%s: Expected three arguments. Got %d", uri, args.length);
+            if ( args.length != 1 ) throw evalException("%s: Expected three arguments. Got %d", uri, args.length);
             return function.exec(args[0], args[1], args[2]);
         };
         mapDispatch.put(uri, call);
@@ -472,14 +471,14 @@ import org.seaborne.jena.shacl_rules.sys.P;
                 return maker4.build(exprs[0], exprs[1], exprs[2],null);
             if ( exprs.length == 4 )
                 return maker4.build(exprs[0], exprs[1], exprs[3], exprs[4]);
-            throw new ShaclException("Wrong number of arguments expressions: expected 3 or 4, got "+exprs.length);
+            throw buildException("Wrong number of arguments expressions: expected 3 or 4, got "+exprs.length);
         };
         ExprCall call = args->{
             if ( args.length == 3 )
                 return function3.exec(args[0], args[1], args[2]);
             if ( args.length == 4 )
                 return function4.exec(args[0], args[1], args[2], args[3]);
-            throw exception("%s: Expected two or three arguments. Got %d", uri, args.length);
+            throw evalException("%s: Expected two or three arguments. Got %d", uri, args.length);
         };
         mapDispatch.put(uri, call);
         mapBuild.put(uri, build);
@@ -492,12 +491,12 @@ import org.seaborne.jena.shacl_rules.sys.P;
         String uri = expandName(uriName);
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 4 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             return maker.build(exprs[0], exprs[1], exprs[2], exprs[3]);
         };
         ExprCall call = args->{
             if ( args.length != 4 )
-                throw exception("%s: Expected four arguments. Got %d", uri, args.length);
+                throw evalException("%s: Expected four arguments. Got %d", uri, args.length);
             return function.exec(args[0], args[1], args[2], args[3]);
         };
         mapDispatch.put(uri, call);
@@ -513,7 +512,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         String uri = expandName(uriName);
         BuildSyntax build = (_, exprs) ->{
             if ( exprs.length != 4 )
-                throw new ShaclException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
+                throw buildException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             ExprList exprList = ExprList.create(exprs);
             return maker.build(exprList);
         };
@@ -535,7 +534,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         if ( maker != null ) {
             BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 1 )
-                    throw new ShaclException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
+                    throw buildException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
                 return maker.build();
             };
             mapBuild.put(uri, build);
@@ -543,7 +542,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 0 )
                 return functionForm0.exec(graph, node, env, row);
-            throw exception("%s: Expected zero arguments. Got %d", uri, args.length);
+            throw evalException("%s: Expected zero arguments. Got %d", uri, args.length);
         };
         mapDispatchFF.put(uri, call);
         if ( implClass != null )
@@ -558,7 +557,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         if ( maker != null ) {
             BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 2 )
-                    throw new ShaclException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
+                    throw buildException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
                 return maker.build(exprs[0]);
             };
             mapBuild.put(uri, build);
@@ -566,7 +565,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 1 )
                 return functionForm1.exec(graph, node, env, row, args[0]);
-            throw exception("%s: Expected one argument. Got %d", uri, args.length);
+            throw evalException("%s: Expected one argument. Got %d", uri, args.length);
         };
         mapDispatchFF.put(uri, call);
         if ( implClass != null )
@@ -581,7 +580,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         if ( maker != null ) {
             BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 2 )
-                    throw new ShaclException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
+                    throw buildException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
                 return maker.build(exprs[0], exprs[1]);
             };
             mapBuild.put(uri, build);
@@ -589,7 +588,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 2 )
                 return functionForm2.exec(graph, node, env, row, args[0], args[1]);
-            throw exception("%s: Expected two arguments. Got %d", uri, args.length);
+            throw evalException("%s: Expected two arguments. Got %d", uri, args.length);
         };
         mapDispatchFF.put(uri, call);
         if ( implClass != null )
@@ -604,7 +603,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         if ( maker != null ) {
             BuildSyntax build = (_, exprs) ->{
                 if ( exprs.length != 3 )
-                    throw new ShaclException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
+                    throw buildException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
                 return maker.build(exprs[0], exprs[1], exprs[2]);
             };
             mapBuild.put(uri, build);
@@ -612,7 +611,7 @@ import org.seaborne.jena.shacl_rules.sys.P;
         ExprCallFF call = (graph, node, env, row, args) -> {
             if ( args.length == 3 )
                 return functionForm3.exec(graph, node, env, row, args[0], args[1], args[2]);
-            throw exception("%s: Expected three arguments. Got %d", uri, args.length);
+            throw evalException("%s: Expected three arguments. Got %d", uri, args.length);
         };
         mapDispatchFF.put(uri, call);
         if ( implClass != null )
@@ -640,10 +639,16 @@ import org.seaborne.jena.shacl_rules.sys.P;
             mapFunctionURI.put(implClass, uri);
     }
 
-    private static RuntimeException exception(String format, Object...args) {
+    private static RuntimeException evalException(String format, Object...args) {
         String msg = String.format(format, args);
-        return new EvalException(msg);
+        return new NodeExprEvalException(msg);
     }
+
+    private static RuntimeException buildException(String format, Object...args) {
+        String msg = String.format(format, args);
+        return new NodeExprException(msg);
+    }
+
 
     // Used to construct SPARQL Expr - ARQ expression syntax objects.
     // Usually, though not required, constructors.
