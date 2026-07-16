@@ -19,18 +19,9 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.shacl_rules.lang;
+package org.seaborne.jena.shacl_rules.sys;
 
-import org.apache.jena.graph.Triple;
-import org.seaborne.jena.shacl_rules.tuples.Tuple;
-
-public sealed interface RuleHeadElement  {
-    public void visit(RuleVisitor ruleVisitor);
-
-    public record EltTripleTemplate(Triple tripleTemplate) implements RuleHeadElement {
-        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
-    }
-    public record EltTupleTemplate(Tuple tupleTemplate) implements RuleHeadElement {
-        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
-    }
+public class SrlTransform {
+    // Rewrite AST
+    // Visitor pattern or walk?
 }

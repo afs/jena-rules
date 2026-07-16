@@ -29,11 +29,30 @@ import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public sealed interface RuleBodyElement  {
-    public record EltTriplePattern(Triple triplePattern) implements RuleBodyElement {}
-    public record EltTuplePattern(Tuple tuplePattern) implements RuleBodyElement {}
-    public record EltNegation(List<RuleBodyElement> inner, boolean grounded) implements RuleBodyElement {}
-    public record EltFilter(Expr condition) implements RuleBodyElement {}
-    public record EltAssignment(Var var, Expr expression) implements RuleBodyElement {}
-//    public record EltAggregation(Var var, Expr expression) implements RuleElement {}
+    public void visit(RuleVisitor ruleVisitor);
 
+    public record EltTriplePattern(Triple triplePattern) implements RuleBodyElement {
+        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+    }
+
+    public record EltTuplePattern(Tuple tuplePattern) implements RuleBodyElement  {
+        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+    }
+
+    public record EltNegation(List<RuleBodyElement> inner, boolean grounded) implements RuleBodyElement {
+        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+    }
+
+    public record EltFilter(Expr condition) implements RuleBodyElement {
+        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+    }
+
+    public record EltAssignment(Var var, Expr expression) implements RuleBodyElement {
+        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+    }
+
+//    public record EltAggregation(Var var, Expr expression) implements RuleElement {
+//        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+//        public RuleBodyElement transform(EltAggregation eltAssignment, Var var, Expr expression) { return null; }
+//    }
 }

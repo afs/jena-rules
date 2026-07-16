@@ -102,7 +102,7 @@ class RulesExecLib {
      * Single evaluation pass over a list of rules, executing rule once,
      * and in the order in the list.
      */
-    public static Evaluation evalRulesOnce(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet) {
+    public static Evaluation _unused_evalRulesOnce(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet) {
         RulesExecCxt rCxt = RulesExecCxt.create();
         AppendGraph allGraph = AppendGraph.create(baseGraph);
         AppendTupleStore allTuples = AppendTupleStore.create(tupleStore);
@@ -119,14 +119,13 @@ class RulesExecLib {
         return new Evaluation(baseGraph, ruleSet, allGraph.getAdded(), allGraph, allTuples.getAdded());
     }
 
-
     private static Iterator<Binding> evalBody(Graph graph, TupleStore tupleStore, Rule rule, RulesExecCxt rCxt) {
         Binding binding = BindingFactory.binding();
-        return buildEvalBody(graph, tupleStore, binding, rule.getBodyElements(), rCxt);
+        return evalBodyBinding(graph, tupleStore, binding, rule.getBodyElements(), rCxt);
     }
 
-    private static Iterator<Binding> buildEvalBody(Graph graph, TupleStore tupleStore, Binding binding, List<RuleBodyElement> ruleElts,
-                                                   RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalBodyBinding(Graph graph, TupleStore tupleStore, Binding binding, List<RuleBodyElement> ruleElts,
+                                                     RulesExecCxt rCxt) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
         // Extract
         for ( RuleBodyElement elt : ruleElts ) {
@@ -177,7 +176,7 @@ class RulesExecLib {
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
                 // [NOT DATA]
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution -> {
-                    Iterator<Binding> chainInner = buildEvalBody(graph, tupleStore, solution, innerBody, rCxt);
+                    Iterator<Binding> chainInner = evalBodyBinding(graph, tupleStore, solution, innerBody, rCxt);
                     boolean innerMatches = chainInner.hasNext();
                     return !innerMatches;
                 });

@@ -108,12 +108,14 @@ public class Rule {
         private boolean groundedRule = false;
 
         public Builder addHeadElement(RuleHeadElement elt)  {
-            headElts.add(elt);
+            if ( elt != null )
+                headElts.add(elt);
             return this;
         }
 
         public Builder addBodyElement(RuleBodyElement elt)  {
-            bodyElts.add(elt);
+            if ( elt != null )
+                bodyElts.add(elt);
             return this;
         }
 

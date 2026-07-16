@@ -21,16 +21,18 @@
 
 package org.seaborne.jena.shacl_rules.lang;
 
-import org.apache.jena.graph.Triple;
-import org.seaborne.jena.shacl_rules.tuples.Tuple;
+import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement.EltTupleTemplate;
 
-public sealed interface RuleHeadElement  {
-    public void visit(RuleVisitor ruleVisitor);
+public interface RuleVisitor {
 
-    public record EltTripleTemplate(Triple tripleTemplate) implements RuleHeadElement {
-        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
-    }
-    public record EltTupleTemplate(Tuple tupleTemplate) implements RuleHeadElement {
-        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
-    }
+    public default void visit(EltTripleTemplate eltTripleTemplate) {}
+    public default void visit(EltTupleTemplate eltTupleTemplate) {}
+
+    public default void visit(EltTriplePattern eltTriplePattern) {}
+    public default void visit(EltTuplePattern eltTuplePattern) {}
+    public default void visit(EltNegation eltNegation) {}
+    public default void visit(EltFilter eltFilter) {}
+    public default void visit(EltAssignment eltAssignment) {}
 }
