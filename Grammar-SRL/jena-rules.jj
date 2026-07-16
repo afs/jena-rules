@@ -135,7 +135,8 @@ void ImportsDecl() : { String iri ; }
 // ---- Rules
 void Rule() : { }
 {
-   Rule1() | Rule2() | Declaration()
+   Rule1() | Rule2()
+   | Declaration()
 }
 void Rule1() : { Token t; String uri = null; }
 {
@@ -283,8 +284,8 @@ void Declaration() : { Token t; String iriStr ; }
     <LPAREN> iriStr = iri() <RPAREN>
     { transitiveProperty(iriStr); }
   |
-    <LPAREN> iriStr = iri() <RPAREN>
     t = <SYMMETRIC>
+    <LPAREN> iriStr = iri() <RPAREN>
     { symmetricProperty(iriStr); }
   |
     t = <INVERSE>
@@ -1413,7 +1414,7 @@ Expr BuiltInCall() : { Expr expr ;
 // #if 0
 //   | <MD5>         <LPAREN> expr1 = Expression() <RPAREN> { return new E_MD5(expr1) ; }
 //   | <SHA1>        <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA1(expr1) ; }
-// // #if 0
+// // #if 0h
 // //   | <SHA224>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA224(expr1) ; }
 // // #endif
 //   | <SHA256>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA256(expr1) ; }

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -453,15 +454,21 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void transitiveProperty(String iriStr) {
+        if ( true )
+            throw new NotImplemented("TRANSITIVE");
         // Add once.
         addOnce(transitiveProperties, iriStr);
     }
 
     protected void symmetricProperty(String iriStr) {
+        if ( true )
+            throw new NotImplemented("SYMMETRIC");
         addOnce(symmetricProperties, iriStr);
     }
 
     protected void inverseProperties(String iriStr1, String iriStr2) {
+        if ( true )
+            throw new NotImplemented("INVERSE");
         addOnce(inverseProperties, Pair.create(iriStr1,  iriStr2));
     }
 

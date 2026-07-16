@@ -2,8 +2,8 @@
 ## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 BASE="shapes-rule-language"
-##DEST="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-rules/"
-DEST="$HOME/W3C/SHACL/shacl-wg/shacl12-rules/"
+DEST="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-rules/"
+##DEST="$HOME/W3C/SHACL/shacl-wg/shacl12-rules/"
 
 ## Local step names
 OUT_HTML='rules-grammar.html'

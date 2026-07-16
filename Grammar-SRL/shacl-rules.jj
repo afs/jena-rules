@@ -125,7 +125,7 @@ void ImportsDecl() : { String iri ; }
 // ---- Rules
 void Rule() : { }
 {
-   Rule1() | Rule2() | Declaration()
+   Rule1() | Rule2()
 }
 void Rule1() : { Token t; String uri = null; }
 {
@@ -263,23 +263,6 @@ void Assignment() : { Var v ; Expr expr ; }
     expr = Expression()
     <RPAREN>
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
-}
-void Declaration() : { Token t; String iriStr ; }
-{
-  (
-    t = <TRANSITIVE>
-    <LPAREN> iriStr = iri() <RPAREN>
-    { transitiveProperty(iriStr); }
-  |
-    <LPAREN> iriStr = iri() <RPAREN>
-    t = <SYMMETRIC>
-    { symmetricProperty(iriStr); }
-  |
-    t = <INVERSE>
-    { String iriStr1 ; String iriStr2 ; }
-    <LPAREN> iriStr1 = iri() <COMMA> iriStr2 = iri() <RPAREN>
-    { inverseProperties(iriStr1, iriStr2); }
-  )
 }
 // -----------------------
 // Production organisation.
@@ -1340,7 +1323,7 @@ Expr BuiltInCall() : { Expr expr ;
 // #if 0
 //   | <MD5>         <LPAREN> expr1 = Expression() <RPAREN> { return new E_MD5(expr1) ; }
 //   | <SHA1>        <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA1(expr1) ; }
-// // #if 0
+// // #if 0h
 // //   | <SHA224>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA224(expr1) ; }
 // // #endif
 //   | <SHA256>      <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA256(expr1) ; }

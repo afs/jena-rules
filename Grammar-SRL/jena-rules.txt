@@ -257,7 +257,7 @@ NON-TERMINALS
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	( Filter | TuplePattern )
 	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
-	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <LPAREN> iri <RPAREN> <SYMMETRIC> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
+	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 // -----------------------
 // Production organisation.
 // DataTriplesBlock  - rules of the form *Data - no variables

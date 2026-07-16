@@ -223,7 +223,6 @@ NON-TERMINALS
 // ---- Rules
 	Rule	:=	Rule1
 		|	Rule2
-		|	Declaration
 	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
 	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
 // Withdrawn.
@@ -250,7 +249,6 @@ NON-TERMINALS
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	Filter
 	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
-	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <LPAREN> iri <RPAREN> <SYMMETRIC> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 // -----------------------
 // Production organisation.
 // DataTriplesBlock  - rules of the form *Data - no variables
