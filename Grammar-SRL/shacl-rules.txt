@@ -60,6 +60,7 @@ TOKENS
 | <VERSION: "version">
 | <WHERE: "where">
 | <SET: "set">
+| <FOR: "for">
 | <LET: "let">
 | <ASSIGN: ":=">
 | <TRIPLE: "TRIPLE">
@@ -223,8 +224,8 @@ NON-TERMINALS
 // ---- Rules
 	Rule	:=	Rule1
 		|	Rule2
-	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
-	Rule2	:=	<IF> BodyPattern <THEN> HeadTemplate
+	Rule1	:=	<RULE> ( iri )? HeadTemplate ( ForClause )? <WHERE> ( <DATA> )? BodyPattern
+	Rule2	:=	<IF> ( iri )? ( ForClause )? ( <DATA> )? BodyPattern <THEN> HeadTemplate
 // Withdrawn.
 // void Rule3() : { Token t; }
 // {
@@ -237,6 +238,7 @@ NON-TERMINALS
 // }
 	Data	:=	<DATA> <LBRACE> ( DataTriplesBlock )? <RBRACE>
 	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? <RBRACE>
+	ForClause	:=	<FOR> Var <IN> iri
 	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
 	BodyNotTriples	:=	( Filter | Negation | Assignment )
 	Filter	:=	<FILTER> Constraint

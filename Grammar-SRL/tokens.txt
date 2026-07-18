@@ -63,8 +63,9 @@
 [<VERSION>]    ::= 'VERSION'
 [<WHERE>]      ::= 'WHERE'
 [<FILTER>]     ::= 'FILTER'
-[<SET>]        ::=    'SET'
-[<NOT>]        ::=    'NOT'
+[<SET>]        ::= 'SET'
+[<NOT>]        ::= 'NOT'
+[<FOR>]        ::= 'FOR'
 
 // [<LIMIT>]      ::= 'LIMIT'
 // [<OFFSET>]     ::= 'OFFSET'

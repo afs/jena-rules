@@ -184,23 +184,28 @@ void Rule() : {  }
 #endif
 }
 
-void Rule1() : { Token t; String uri = null; }
+void Rule1() : { Token t; String uriStr = null; }
 {
-   // RULE <iri>? {} WHERE DATA? { }
+   // RULE <iri>? {} FOR? WHERE DATA? { }
    t = <RULE>
-   (uri = iri())?
-   { startRule(uri, t.beginLine, t.beginColumn); }
+   ( uriStr = iri() )?
+   { startRule(uriStr, t.beginLine, t.beginColumn); }
    HeadTemplate()
+   ( ForClause() )?
    <WHERE>
    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
    BodyPattern()
    { finishRule(t.beginLine, t.beginColumn); }
 }
 
-void Rule2() : { Token t; }
+void Rule2() : { Token t;  String uriStr = null; }
 {
+   // IF <iri>? FOR? DATA? {} THEN {}
    t = <IF>
-   { startRule(null, t.beginLine, t.beginColumn); }
+   ( uriStr = iri() )?
+   { startRule(uriStr, t.beginLine, t.beginColumn); }
+   ( ForClause() )?
+   ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
    BodyPattern()
    <THEN>
    HeadTemplate()
@@ -238,6 +243,15 @@ void HeadTemplate() : { Token t ; }
 #endif
     <RBRACE>
     { finishHead(t.beginLine, t.beginColumn); }
+}
+
+void ForClause() : { Token t; Var var; String uriStr;}
+{
+    t = <FOR>
+    var = Var()
+    <IN>
+    uriStr = iri()
+    { emitForClause(var, uriStr, t.beginLine, t.beginColumn); }
 }
 
 void BodyPattern() : { Token t ; }
@@ -1160,8 +1174,8 @@ void DataTuple() : { Token t; Node n; }
    ( <NIL>
    |
      <LPAREN>
-     n = RDFTermData()  { tupleArg(n); }
-     (<COMMA> n = RDFTermData()  { tupleArg(n); } )*
+     n = RDFTermData()  { tupleDataArg(n, t.beginLine, t.beginColumn); }
+     (<COMMA> n = RDFTermData() { tupleDataArg(n, t.beginLine, t.beginColumn); } )*
      <RPAREN>
    )
    { finishDataTuple(t.beginLine, t.beginColumn); }
@@ -1184,8 +1198,8 @@ void TupleWithVars() : { Token t = null ; Node n; }
    ( <NIL>
    |
      <LPAREN>
-     n = TupleArg() { tupleArg(n); }
-     ( <COMMA> n = TupleArg() { tupleArg(n); } )*
+     n = TupleArg() { tupleArg(n, t.beginLine, t.beginColumn); }
+     ( <COMMA> n = TupleArg() { tupleArg(n, t.beginLine, t.beginColumn); } )*
      <RPAREN>
    )
    { finishTuple(t.beginLine, t.beginColumn); }
@@ -1874,6 +1888,7 @@ TOKEN [IGNORE_CASE] :
 //|  < AS:          "as" >
 
 |  < SET:         "set" >
+|  < FOR:         "for" >
 
 |  < LET:         "let" >
 |  < ASSIGN:      ":=" >

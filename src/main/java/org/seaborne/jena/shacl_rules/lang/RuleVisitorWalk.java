@@ -31,33 +31,33 @@ public class RuleVisitorWalk {
      */
 
     public static void walk(RuleSet ruleSet, RuleVisitor ruleVisitor) {
-        walk0(ruleSet, ruleVisitor);
+        walkRuleSet(ruleSet, ruleVisitor);
     }
 
-    private static void walk0(RuleSet ruleSet, RuleVisitor ruleVisitor) {
+    private static void walkRuleSet(RuleSet ruleSet, RuleVisitor ruleVisitor) {
         //ruleSet.getDataTriples().forEach(_triple->{});
 
         ruleSet.getRules().forEach(rule->{
-            walk(rule, ruleVisitor);
+            walkRule(rule, ruleVisitor);
         });
 
         //ruleSet.getDataTuples().forEach(_tuple->{});
     }
 
-    private static void walk(Rule rule, RuleVisitor ruleVisitor) {
+    private static void walkRule(Rule rule, RuleVisitor ruleVisitor) {
         rule.getHeadElements().forEach(headElt->{
-            walk(headElt, ruleVisitor);
+            walkHeadElt(headElt, ruleVisitor);
         });
         rule.getBodyElements().forEach(bodyElt->{
-            walk(bodyElt, ruleVisitor);
+            walkBodyElt(bodyElt, ruleVisitor);
         });
     }
 
-    private static void walk(RuleHeadElement headElt, RuleVisitor ruleVisitor) {
+    private static void walkHeadElt(RuleHeadElement headElt, RuleVisitor ruleVisitor) {
         headElt.visit(ruleVisitor);
     }
 
-    private static void walk(RuleBodyElement bodyElt, RuleVisitor ruleVisitor) {
+    private static void walkBodyElt(RuleBodyElement bodyElt, RuleVisitor ruleVisitor) {
         bodyElt.visit(ruleVisitor);
     }
 }

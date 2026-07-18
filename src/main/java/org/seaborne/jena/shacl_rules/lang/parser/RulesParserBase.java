@@ -224,6 +224,10 @@ public class RulesParserBase extends LangParserBase {
         bodyAcc = new ArrayList<>();
     }
 
+    protected void emitForClause(Var var, String uriStr, int line, int column) {
+        debug("emitForClause", line, column);
+    }
+
     protected void finishBody(int line, int column) {
         debug("finishBody", line, column);
         state = BuildState.RULE;
@@ -263,8 +267,14 @@ public class RulesParserBase extends LangParserBase {
     protected void startTuple(int line, int column) {
         debug("startTuple", line, column);
     }
-    protected void tupleArg(Node n) { tupleArgs.add(n); }
 
+    protected void tupleDataArg(Node n, int line, int column) {
+        tupleArgs.add(n);
+    }
+
+    protected void tupleArg(Node n, int line, int column) {
+        tupleArgs.add(n);
+    }
 
     protected void finishTuple(int line, int column) {
         debug("finishTuple", line, column);

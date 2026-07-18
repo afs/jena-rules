@@ -24,40 +24,38 @@ package org.seaborne.jena.shacl_rules.lang;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Triple;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 public class RuleTransformer {
-
     /*
-     *
+     * To do:
+     *   grounded negation
+     *   transform triple patterns, tuples / head and body
      */
 
     public static void transform(RuleSet ruleSet, RuleTransform transform) {
-        transform0(ruleSet, transform);
+        transformRuleSet(ruleSet, transform);
     }
 
-    private static void transform0(RuleSet ruleSet, RuleTransform transform) {
+    private static void transformRuleSet(RuleSet ruleSet, RuleTransform transform) {
         ruleSet.getData();          // Graph
         ruleSet.getDataTriples();
 
         List<Rule> newRules = new ArrayList<>(ruleSet.getRules().size());
 
         ruleSet.getRules().forEach(rule->{
-            Rule r = transform(rule, transform);
+            Rule r = transformRule(rule, transform);
         });
 
         ruleSet.getDataTuples();
         ruleSet.getTupleStore();    // TupleStore
     }
 
-
-
-
-    private static Rule transform(Rule rule, RuleTransform transform) {
+    private static Rule transformRule(Rule rule, RuleTransform transform) {
+        // Styles.
 //        List<RuleHeadElement> newHeadElts = new ArrayList<>(rule.getHeadElements().size());
 //        rule.getHeadElements().forEach(headElt->{
 //            RuleHeadElement elt = transform(headElt, transform);
@@ -78,13 +76,15 @@ public class RuleTransformer {
 //                    .map(elt->transform(elt, transform))
 //                    .toList();
 
+        // Rule builder
         Rule.Builder builder = Rule.newBuilder();
+        // DRY with handling negation inner pattern
         rule.getHeadElements().forEach(elt->{
-            RuleHeadElement newElt = transform(elt, transform);
+            RuleHeadElement newElt = transformHeadElt(elt, transform);
             builder.addHeadElement(newElt);
         });
         rule.getBodyElements().forEach(elt->{
-            RuleBodyElement newElt = transform(elt, transform);
+            RuleBodyElement newElt = transformBodyElt(elt, transform);
             builder.addBodyElement(newElt);
         });
         builder.ruleIdentifier(rule.getId());
@@ -92,7 +92,7 @@ public class RuleTransformer {
         return builder.build();
     }
 
-    private static RuleHeadElement transform(RuleHeadElement headElt, RuleTransform transform) {
+    private static RuleHeadElement transformHeadElt(RuleHeadElement headElt, RuleTransform transform) {
         return switch(headElt) {
             case RuleHeadElement.EltTripleTemplate x -> {
                 Triple newTriple = x.tripleTemplate();
@@ -103,12 +103,14 @@ public class RuleTransformer {
                 yield transform.transform(x, newTuple);
             }
             case null -> { throw new NullPointerException(); }
-            default -> { throw new InternalErrorException(); }
+            //default -> { throw new InternalErrorException(); }
         };
     }
 
-    private static RuleBodyElement transform(RuleBodyElement bodyElt, RuleTransform transform) {
+    private static RuleBodyElement transformBodyElt(RuleBodyElement bodyElt, RuleTransform transform) {
         switch(bodyElt) {
+            // My Eclipse does not support
+            // case RuleBodyElement.EltTriplePattern(Triple theTriple) x -> { return null; }
             case RuleBodyElement.EltTriplePattern x -> {
                 Triple newTriple = x.triplePattern();
                 return transform.transform(x, newTriple);
@@ -118,8 +120,8 @@ public class RuleTransformer {
                 return transform.transform(x, newTuple);
             }
             case RuleBodyElement.EltNegation x -> {
-                // XXX replace grounded?
-                List<RuleBodyElement> newInner = transform(x.inner(), transform);
+                // Transform inner body.
+                List<RuleBodyElement> newInner = transformBodyEltList(x.inner(), transform);
                 return transform.transform(x, newInner, x.grounded());
             }
             case RuleBodyElement.EltFilter x -> {
@@ -129,14 +131,14 @@ public class RuleTransformer {
                 return transform.transform(x, x.var(), x.expression());
             }
             case null -> { throw new NullPointerException(); }
-            default -> { throw new InternalErrorException(); }
+            //default -> { throw new InternalErrorException(); }
         }
     }
 
-    // XXX Decide consistent style!
-    private static List<RuleBodyElement> transform(List<RuleBodyElement> bodyElts, RuleTransform transform) {
+    // XXX Decide on a consistent style! use at top level processing
+    private static List<RuleBodyElement> transformBodyEltList(List<RuleBodyElement> bodyElts, RuleTransform transform) {
         return bodyElts.stream()
-                        .map(elt->transform(elt, transform))
+                        .map(elt->transformBodyElt(elt, transform))
                         .toList();
     }
 }

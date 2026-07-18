@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-##DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
-DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/rules/"
+hDIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
+##DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/rules/"
 
 function exportDir {
     local SRC="$1"
