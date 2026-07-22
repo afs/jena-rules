@@ -184,6 +184,7 @@ public class GraphToRuleSet {
             return node;
 
         // Maybe a triple term.
+        // We can't use <(( )>> syntax because it doesn't allow [ srl:var "v" ] as a component.
         boolean looksLikeTripleTerm = G.contains(graph, node, V.subject, null);
         if ( looksLikeTripleTerm ) {
             Node st = G.getOneSP(graph, node, V.subject);

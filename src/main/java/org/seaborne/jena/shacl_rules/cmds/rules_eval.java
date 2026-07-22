@@ -152,39 +152,58 @@ public class rules_eval extends CmdRules {
         boolean printInfGraph = true;
         boolean printOutputGraph = true;
 
+        boolean havePrinted = false;
+
         if ( printRuleSet ) {
+            if ( havePrinted )
+                System.out.println();
             System.out.println("## Rules");
             ShaclRulesWriter.write(System.out, ruleSet, false);
+            havePrinted = true;
         }
 
         if ( printBaseGraph ) {
             if ( ! data.isEmpty() ) {
+                if ( havePrinted )
+                    System.out.println();
+
                 System.out.println("## Data graph");
                 print(System.out, data);
                 System.out.println();
+                havePrinted = true;
             }
         }
 
         if ( printRulesData ) {
             Graph d = ruleSet.getData();
             if ( d != null && !d.isEmpty() ) {
+                if ( havePrinted )
+                    System.out.println();
                 System.out.println("## Ruleset data graph");
                 print(System.out, ruleSet.getData());
-                System.out.println();
+                havePrinted = true;
             }
         }
 
         if ( printInfGraph ) {
+            if ( havePrinted )
+                System.out.println();
             System.out.println("## Inferred");
             print(System.out, accGraph);
-            System.out.println();
+            havePrinted = true;
         }
 
         if ( printOutputGraph ) {
+            if ( havePrinted )
+                System.out.println();
             System.out.println("## Output graph");
             print(System.out, output);
-            System.out.println();
+            havePrinted = true;
         }
+
+        // Exit
+        if ( havePrinted )
+            System.out.println();
     }
 
     /**

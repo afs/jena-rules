@@ -66,7 +66,7 @@ public class TestRulesEval {
                 RULE { :x :result false } WHERE { :x :p1 ?now1 . :x :p2 ?now2. FILTER(?now1 != ?now2) }
                 """);
         Graph outcome = graph(":x :result true.");
-        testContains("eval_2", data, rules, outcome);
+        testContains("eval_now", data, rules, outcome);
     }
 
     // ---- Machinery
