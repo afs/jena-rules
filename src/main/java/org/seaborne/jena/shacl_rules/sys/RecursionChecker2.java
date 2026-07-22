@@ -21,19 +21,27 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
+import org.seaborne.jena.shacl_rules.sys.RecursionChecker.IsRecursive;
 
 /**
  * Checking for illegal recursion - a recursive path that goes through a negation (NOT).
  */
-public class RecursionChecker {
-    // Switch DependencyGraph impls.
-    
+public class RecursionChecker2 {
     // Efficiency: later:
+
+    // Look for recursion fo a rule.
+    // Is the rule negated?
+    // --> error.
+
+    // XXX Only need to test rules with negation rules
 
     // Use Strongly connected components.
     //   which may also help with evaluation (do cycles differently to non-cycles)
@@ -49,9 +57,6 @@ public class RecursionChecker {
     // ("simpler, more expensive")
 
     // Handle shared DAGs by caching at the ruleset level.
-
-    public enum IsRecursive { YES, NO }
-    enum PathIncludesNegation { YES, NO_NEG }
 
     public static class RecursionException extends RulesException {
         private final Deque<Rule> path;
@@ -72,17 +77,77 @@ public class RecursionChecker {
      * This function throws an exception if it finds an illegal recursion.
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph, RulesExecCxt rCxt) {
+        // XXX Change to check only rules which requite strict stratification
+        // Rule with a negation or it is run-once.
+
+        if ( ! SysJenaRules.performRecursionCheck )
+            return;
         for ( Rule rule : depGraph.getRuleSet().getRules()) {
+
+            // XXX Add this test
+            //if ( rule.isRunOnceRule() || rule.hasNegation() )
+
             // Throws an exception on an illegal recursion.
             /*IsRecursive isRecursive = */ RecursionChecker.checkRecursion(depGraph, rule);
         }
     }
 
+
     // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecursive.NO} if not recursive, and
     // throw exception if recursion includes a negation (illegal).
     public static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
-        //return RecursionChecker0.checkRecursion(depGraph, rule);
+        Deque<Rule> visited = new ArrayDeque<>(); // **LinkHashSet:add/remove
+        boolean isRecursive = ruleIsRecursive(depGraph, rule, rule, visited);   //Start.
+        //if ( isRecursive && rule.isGrounded() ) {}
 
-        return RecursionChecker2.checkRecursion(depGraph, rule);
+        if ( isRecursive && rule.hasNegation() )
+            throw new RecursionException("Recursion failure", new ArrayDeque<>());
+        return isRecursive? IsRecursive.YES : IsRecursive.NO ;
+    }
+
+    // A rule is recursive if a walk visits the start node.
+    // NOT is there is a loop somewhere but not including the start.
+
+    private static boolean ruleIsRecursive(DependencyGraph depGraph, Rule topRule, Rule visitRule, Deque<Rule> visited) {
+        visited.push(visitRule);
+        // Go down a level.
+        boolean visitsTop = walk(depGraph, topRule, visitRule, visited);
+        visited.pop();
+        return visitsTop;
+    }
+
+    private static boolean walk(DependencyGraph depGraph, Rule topRule, Rule visitRule, Deque<Rule> visited) {
+        Collection<DependencyEdge> providedBy = depGraph.directDependencies(visitRule);
+        if ( providedBy.isEmpty() ) {
+            return false;
+        }
+
+        // Dev tools: DUMP
+
+        // Go across a level (depth first search).
+        for( DependencyEdge edge : providedBy ) {
+            // Walk
+            Rule next = edge.linkedRule();
+            if ( next == topRule )
+                return true;
+            // Inner loop: don't loop forever.
+            if ( haveVisited(visited, next) ) {
+                continue;
+            }
+            visited.push(next);
+            boolean visitsTop = ruleIsRecursive(depGraph, topRule, next, visited);
+            visited.pop();
+            if ( visitsTop )
+                return true;
+        }
+        return false;
+    }
+
+    private static <X> boolean haveVisited(Collection<X> elts, X x) {
+        for ( X e : elts ) {
+            if ( e == x )
+                return true;
+        }
+        return false;
     }
 }

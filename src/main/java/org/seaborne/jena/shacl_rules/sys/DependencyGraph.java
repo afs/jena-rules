@@ -21,6 +21,7 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Consumer;
@@ -30,17 +31,17 @@ import org.apache.commons.collections4.MultiMapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
 import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
-import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.EltTuplePattern;
+import org.seaborne.jena.shacl_rules.lang.RuleHeadElement;
 import org.seaborne.jena.shacl_rules.tuples.Tuple;
 
 /**
@@ -71,7 +72,7 @@ public class DependencyGraph {
         DepEdgeType(String symbol) { this.symbol = symbol; }
     }
 
-    public record DependencyEdge(Rule rule, DepEdgeType link, Rule linkedRule ) {}
+    public record DependencyEdge(Rule rule, DepEdgeType link, Rule linkedRule) {}
 
     // Rule -> other rules it directly depends on (no path traversal).
     // See also level0 for rules that only depend on the base graph.
@@ -144,8 +145,40 @@ public class DependencyGraph {
         DepEdgeType edgeType = ruleEdgeDependency(rule);
 
         accumulateEdges(connections, rule, edgeType, rule.getBodyElements(), providers, providers2);
-        if ( DEBUG_BUILD )
-            System.out.println(connections.size()+" :: put:"+connections);
+        // XXX Check for duplicates, and also positive AND negative.
+        // [ ] Duplicates should have been done.
+        // XXX Improvement possible
+        // Check for OPEN and CLOSED
+
+        List<DependencyEdge> drops = new ArrayList<>();
+        for ( DependencyEdge depEdge: connections ) {
+            if ( depEdge.link == DepEdgeType.CLOSED ) {
+                // remove opens
+                for ( DependencyEdge depEdge2: connections ) {
+                    if ( depEdge2.link == DepEdgeType.OPEN ) {
+                        if ( depEdge.rule == depEdge2.rule && depEdge.linkedRule == depEdge2.linkedRule ) {
+                            if ( DEBUG_BUILD ) {
+                                System.out.println("Drop    "+depEdge2);
+                                System.out.println("Because "+depEdge);
+                            }
+                            drops.add(depEdge2);
+                        }
+                    }
+                }
+            }
+        }
+
+        drops.forEach(e->{
+            // Remove all.s
+            while(connections.remove(e)) {}
+        });
+
+        if ( DEBUG_BUILD ) {
+            System.out.println(connections.size()+" :: put:");
+            connections.forEach(c -> {
+                edgeStr(System.out, c,null);
+            });
+        }
         return connections;
     }
 
@@ -165,12 +198,15 @@ public class DependencyGraph {
                 case EltTriplePattern(Triple triplePattern) -> {
                     // Using providers.
                     providers.keySet().forEach(tripleTemplate -> {
-                        if ( DEBUG_BUILD ) {
-                            System.out.println("Link type: "+linkType);
-                            System.out.println("Pattern:   "+NodeFmtLib.displayStr(triplePattern));
-                            System.out.println("Template:  "+NodeFmtLib.displayStr(tripleTemplate));
-                            System.out.println(RuleDependencies.dependsOn(triplePattern, tripleTemplate));
-                        }
+//                        if ( DEBUG_BUILD ) {
+//                            System.out.println("Link type: "+linkType);
+//                            System.out.println("Pattern:   "+NodeFmtLib.displayStr(triplePattern));
+//                            System.out.println("Template:  "+NodeFmtLib.displayStr(tripleTemplate));
+//                            System.out.print("  ");
+//                            System.out.println(RuleDependencies.dependsOn(triplePattern, tripleTemplate));
+//                        }
+//                        if ( linkType == DepEdgeType.CLOSED )
+//                            System.out.println("Closed");
 
                         // Possible improvement.
                         // Find triple templates that match triple patterns using e.g. index by predicate. rather then a ruleset scan?
@@ -180,8 +216,15 @@ public class DependencyGraph {
                         if ( RuleDependencies.dependsOn(triplePattern, tripleTemplate) ) {
                             providers.get(tripleTemplate).forEach(r -> {
                                 // Check for duplicates.
-                                if ( freshEdge(accumulator, rule, linkType, r) )
-                                    accumulator.add(new DependencyEdge(rule, linkType, r));
+                                if ( freshEdge(accumulator, rule, linkType, r) ) {
+                                    DependencyEdge depEdge = new DependencyEdge(rule, linkType, r);
+                                    accumulator.add(depEdge);
+                                    if ( DEBUG_BUILD ) {
+                                        System.out.println("ADD");
+                                        edgeStr(System.out, depEdge, null);
+                                    }
+
+                                }
                             });
                         }
                     });
@@ -226,8 +269,15 @@ public class DependencyGraph {
             // Use object identity for "same"
             if ( e.rule == fromRule &&
                  e.link == linkType &&
-                 e.linkedRule == toRule )
+                 e.linkedRule == toRule ) {
+                //System.out.println("** Duplicate");
                 return false;
+            }
+            if ( e.rule == fromRule && e.linkedRule == toRule ) {
+                // Different link type.
+                if ( DEBUG_BUILD )
+                    System.out.println("** Different link type");
+            }
         }
         return true;
     }
@@ -294,8 +344,8 @@ public class DependencyGraph {
 
     public void print() { print(IndentedWriter.stdout.clone()); }
 
-    public void print(PrintStream pStream) {
-        print(new IndentedWriter(pStream));
+    public void print(OutputStream outStream) {
+        print(new IndentedWriter(outStream));
     }
 
     private static int EdgeOffset = 4;
@@ -333,4 +383,16 @@ public class DependencyGraph {
             }
         } finally { out.flush(); }
     }
+
+
+    private static void edgeStr(PrintStream /*IndentedWriter*/ out, DependencyEdge edge, PrefixMap pmap) {
+        out.println("Type = "+edge.link.symbol);
+        out.print("  ");
+        out.print(ShaclRulesWriter.abbreviatedString(edge.rule, pmap));
+        out.println();
+        out.print("->");
+        out.print(ShaclRulesWriter.abbreviatedString(edge.linkedRule, pmap));
+        out.println();
+    }
+
 }

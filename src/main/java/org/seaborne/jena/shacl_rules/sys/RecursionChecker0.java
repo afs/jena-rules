@@ -21,18 +21,27 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RulesException;
+import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
 import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
+import org.seaborne.jena.shacl_rules.sys.RecursionChecker.IsRecursive;
+import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DepEdgeType;
 
 /**
  * Checking for illegal recursion - a recursive path that goes through a negation (NOT).
  */
-public class RecursionChecker {
-    // Switch DependencyGraph impls.
-    
+public class RecursionChecker0 {
+    // Does not seem to work.
+    // Any recursion from a negated rule is an error.
+    // This is wrong.
+    // See RecursionChecker2
+
     // Efficiency: later:
 
     // Use Strongly connected components.
@@ -50,7 +59,7 @@ public class RecursionChecker {
 
     // Handle shared DAGs by caching at the ruleset level.
 
-    public enum IsRecursive { YES, NO }
+//    public enum IsRecursive { YES, NO }
     enum PathIncludesNegation { YES, NO_NEG }
 
     public static class RecursionException extends RulesException {
@@ -74,15 +83,49 @@ public class RecursionChecker {
     public static void checkForIllegalRecursion(DependencyGraph depGraph, RulesExecCxt rCxt) {
         for ( Rule rule : depGraph.getRuleSet().getRules()) {
             // Throws an exception on an illegal recursion.
-            /*IsRecursive isRecursive = */ RecursionChecker.checkRecursion(depGraph, rule);
+            /*IsRecursive isRecursive = */ RecursionChecker0.checkRecursion(depGraph, rule);
         }
     }
 
     // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecursive.NO} if not recursive, and
     // throw exception if recursion includes a negation (illegal).
     public static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
-        //return RecursionChecker0.checkRecursion(depGraph, rule);
+        Deque<Rule> path = new ArrayDeque<>();
+        IsRecursive isRecursive = RecursionChecker0.checkRecursion(depGraph, rule, PathIncludesNegation.NO_NEG, rule, path);
+        return isRecursive;
+    }
 
-        return RecursionChecker2.checkRecursion(depGraph, rule);
+    private static IsRecursive checkRecursion(DependencyGraph depGraph, Rule topRule, PathIncludesNegation seenNegation, Rule rule, Deque<Rule> path) {
+        if ( path.contains(rule) ) {
+            if ( seenNegation == PathIncludesNegation.YES ) {
+                // Need abbreviates rule e.g.RULE { head } WHERE ...
+                String ruleStr = ShaclRulesWriter.abbreviatedString(rule, depGraph.getRuleSet().getPrefixMap());
+                //String ruleStr = "Rule ["+rule.localId+"]";
+                throw new RecursionException(ruleStr, path);
+            }
+            return IsRecursive.YES;
+        }
+        path.push(rule);
+        IsRecursive isRecursive = RecursionChecker0.checkRecursionStep(depGraph, topRule, seenNegation, rule, path) ;
+        path.pop();
+        return isRecursive;
+    }
+
+    // topRule is the overall rule we are testing. */
+    private static IsRecursive checkRecursionStep(DependencyGraph depGraph, Rule topRule, PathIncludesNegation seenNegation, Rule visitRule, Deque<Rule> visited) {
+        Collection<DependencyEdge> providedBy = depGraph.directDependencies(visitRule);
+        if ( providedBy.isEmpty() )
+            return IsRecursive.NO;
+
+        boolean recursion = false;
+        for( DependencyEdge edge : providedBy ) {
+            PathIncludesNegation seen = seenNegation;
+            if ( edge.link() == DepEdgeType.CLOSED )
+                seen = PathIncludesNegation.YES;
+            IsRecursive stepIsRecursive = checkRecursion(depGraph, topRule, seen, edge.linkedRule(), visited);
+            if ( stepIsRecursive == IsRecursive.YES )
+                recursion = true;
+        }
+        return recursion ? IsRecursive.YES : IsRecursive.NO;
     }
 }

@@ -32,12 +32,9 @@ public class SysJenaRules {
     /** Allow blank node in templates in recursive rules */
     public static boolean allowUnsafeTemplates = false;
 
+    /** Allow blank node in templates in recursive rules */
+    public static boolean performRecursionCheck = true;
+
     /** Role triples for RDF syntax */
     public static boolean useRoleTriples = true;
-
-//    /**
-//     * Whether run-=once rules are strictly stratified
-//     * (whether DependencyGraph makes a run-once style rule positive or negatives
-//     */
-//    public static boolean safeDependencies() { return  !allowUnsafeAssigmments && !allowUnsafeTemplates; }
 }
