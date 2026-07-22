@@ -21,7 +21,13 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
+import java.util.Iterator;
+
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.Query;
+import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
@@ -30,16 +36,14 @@ import org.seaborne.jena.shacl_rules.ShaclRulesExec;
 import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /**
- * A simple rules engine that can be easily understood.
+ * A simple rules engine that translates the body to a SPARQL query.
  * <p>
- * This is used for testing by running an engine under test and this
- * engine then comparing the results.
- * <p>
- * Supports: SRL: recursion, negation, run-once, tuples.
+ * Supports: SRL (recursion. negation, run-once)
+ * Does not support: tuples
  */
-public class RulesEngineFwdSimple extends AbstractRulesEngineFwdSimple implements RulesEngine {
+public class RulesEngineFwdSimpleSparqlConstruct extends AbstractRulesEngineFwdSimple implements RulesEngine {
 
-    public static final RulesEngineFactory factory = RulesEngineFwdSimple::build;
+    public static final RulesEngineFactory factory = RulesEngineFwdSimpleSparqlConstruct::build;
 
     /**
      * Not public.
@@ -49,10 +53,10 @@ public class RulesEngineFwdSimple extends AbstractRulesEngineFwdSimple implement
     private
     static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
         RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
-        return new RulesEngineFwdSimple(graph, tupleStore, ruleSet, rCxt);
+        return new RulesEngineFwdSimpleSparqlConstruct(graph, tupleStore, ruleSet, rCxt);
     }
 
-    private RulesEngineFwdSimple(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
+    private RulesEngineFwdSimpleSparqlConstruct(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
         super(baseGraph, tupleStore, ruleSet, rCxt);
     }
 
@@ -62,7 +66,9 @@ public class RulesEngineFwdSimple extends AbstractRulesEngineFwdSimple implement
      */
     @Override
     protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule) {
-        RuleEval rEval = RulesExecLib.evalRule(rule, graph, evalTupleStore, rCxt);
-        RulesExecLib.accumulateOneRuleHead(rEval, graph, evalTupleStore, rCxt);
+        // Via CONSTRUCT
+        Query query = RulesLibSparql.ruleToConstruct(rule);
+        Iterator<Triple> triples = QueryExec.graph(graph).query(query).build().constructTriples();
+        GraphUtil.add(graph, triples);
     }
 }

@@ -1,0 +1,314 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.seaborne.jena.shacl_rules.exec;
+
+import java.util.Collection;
+import java.util.stream.Stream;
+
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.Prefixes;
+import org.apache.jena.sparql.util.Context;
+import org.seaborne.jena.shacl_rules.*;
+import org.seaborne.jena.shacl_rules.jena.AppendGraph;
+import org.seaborne.jena.shacl_rules.sys.Stratification;
+import org.seaborne.jena.shacl_rules.sys.Stratum;
+import org.seaborne.jena.shacl_rules.tuples.TupleStore;
+
+/**
+ * A framework for simple rules engines
+ */
+public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
+
+    protected final RuleSet ruleSet;
+    protected final Graph baseGraph;
+    protected final TupleStore baseTupleStore;
+    protected final RulesExecCxt rCxt;
+
+    protected AbstractRulesEngineFwdSimple(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
+        this.baseGraph = baseGraph;
+        this.ruleSet = ruleSet;
+        this.baseTupleStore = tupleStore;
+        this.rCxt = rCxt;
+    }
+
+    private boolean TRACE = false;
+    @Override
+    public AbstractRulesEngineFwdSimple setTrace(boolean traceSetting) {
+        TRACE = traceSetting;
+        return this;
+    }
+
+    @Override
+    public EvalAlgorithm engineType() {
+        return EvalAlgorithm.FWD_NAIVE;
+    }
+
+    @Override
+    public Graph baseGraph() {
+        return baseGraph;
+    }
+
+    @Override
+    public Graph materializedGraph() {
+        RuleSetEvaluation e = eval();
+        return e.outputGraph();
+    }
+
+    @Override
+    public RuleSet ruleSet() {
+        return ruleSet;
+    }
+
+    private PrefixMap prefixMap() {
+        return ruleSet.getPrefixMap();
+    }
+
+    /**
+     * This function calculates by all triples, then matches the pattern given.
+     */
+    @Override
+    public Stream<Triple> solve(Node s, Node p, Node o) {
+        // Rather than cache, wrap in a "materialize and match" RulesEngine.
+        RuleSetEvaluation e = eval();
+        Graph g = e.outputGraph();
+        Stream<Triple> stream = g.find(s, p, o).toList().stream();
+        return stream;
+    }
+
+    @Override
+    public Graph infer() {
+        RuleSetEvaluation e = eval();
+        return e.inferredTriples();
+    }
+
+    @Override
+    public RuleSetEvaluation eval() {
+        return evalRuleSet();
+    }
+
+    private RuleSetEvaluation evalRuleSet() {
+        if ( TRACE ) {
+            ruleSet.getRules().forEach(rule->{
+                String s = ShaclRulesWriter.asString(rule, ruleSet.getPrefixMap());
+                rCxt.out().printf("%s %s", ruleSet.labelFor(rule), s);
+            });
+        }
+
+        Stratification stratification = RulesExecLib.prepare(ruleSet, rCxt);
+
+        int maxStratum = stratification.maxStratum(); // Inclusive.
+
+        // NOW()
+        Context.setCurrentDateTime(rCxt.getContext());
+
+        TRACE = TRACE || rCxt.trace();
+
+        // == dataGraph -- base graph + data.
+        // This input graph for the algorithm - baseGraph + DATA.
+        // It grows as execution proceeds
+        AppendGraph dataGraph = AppendGraph.create(baseGraph);
+        // Add DATA
+        Graph ruleSetData = ruleSet.getData() ;
+        if ( ruleSet.hasData() ) {
+            GraphUtil.addInto(dataGraph, ruleSetData);
+        }
+
+        // rCxt.strict
+        TupleStore tupleStore = TupleStore.create();
+        if ( ruleSet.hasTupleData() || baseTupleStore != null ) {
+            if ( ruleSet.hasTupleData() )
+                tupleStore.addAll(ruleSet.getDataTuples());
+            if ( baseTupleStore != null )
+                tupleStore.addAll(baseTupleStore);
+        }
+
+        // Prefixes for the inferred graph.
+        // === Graph of new triples.
+        // Initially, the DATA triples.
+        Graph inferredGraph= dataGraph.getAdded();
+        inferredGraph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
+        inferredGraph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
+
+        if ( TRACE ) {
+            rCxt.out().println("Base graph: size = "+baseGraph.size());
+            rCxt.out().println("Initial inferred graph: size = "+inferredGraph.size());
+        }
+
+        // Execute WHERE DATA rules.
+
+        return evalStratification(dataGraph, stratification, tupleStore);
+    }
+
+    private RuleSetEvaluation evalStratification(AppendGraph dataGraph, Stratification stratification, TupleStore tupleStore) {
+        try {
+            for ( int i = stratification.minStratum() ; i <= stratification.maxStratum() ; i++ ) {
+                Stratum stratum = stratification.getLevel(i);
+                if ( TRACE ) {
+                    rCxt.out().printf("Level %d -- (Once=%d, General=%d) rules\n", i, stratum.runOnce().size(), stratum.runGeneral().size());
+                    rCxt.out().incIndent();
+                    rCxt.out().flush();
+                }
+                int rounds = evalStratum(i, stratum, dataGraph, tupleStore, rCxt);
+
+                if ( TRACE ) {
+                    //rCxt.out().println("Base graph: size = "+baseGraph.size());
+                    rCxt.out().println("Inferred graph: size = "+dataGraph.getAdded().size());
+                }
+
+                if ( TRACE )
+                    rCxt.out().decIndent();
+            }
+        } finally { rCxt.out().flush(); }
+
+        return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);
+    }
+
+    /* Return the number of of the last round that causes more triples */
+    private int evalStratum(int stratumNumber, Stratum stratum, Graph dataGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
+//        if ( TRACE )
+//            rCxt.out().printf("Eval level -- %d rules\n", rules.size());
+
+//        if ( TRACE ) {
+//            rCxt.out().printf("Level %d\n", stratumNumber);
+//            rCxt.out().incIndent();
+//        }
+// ...
+//        if ( TRACE ) {
+//            rCxt.out().decIndent();
+//        }
+
+        /*
+         * dataGraph is a combination of baseGraph, inferred triples, including DATA triples.
+         */
+        /*
+         * graph1 is updated by rules in RuleExec.evalRule.
+         * It starts being baseGraph+DATA and becomes the output graph.
+         * If "flushAfterEachRound", write back to dataGraph after each round
+         * otherwise accumulate over each round.
+         * If "flushAfterEachLevel", write back at the end of evalStratum.
+         * otherwise accumulate over each round.
+         */
+
+        AppendGraph graph1 = AppendGraph.create(dataGraph);
+
+        Collection<Rule> runOnceRules = stratum.runOnce();
+        Collection<Rule> runGeneralRules = stratum.runGeneral();
+
+//        /*
+//         * accumulationGraph (informational, for development) is all inferred triples
+//         * and updated either at the end of a round or end of execution.
+//         * It does not include DATA triples.
+//         * It is primarily for development and maybe removed
+//         */
+//        Graph accumulationGraph = GraphFactory.createGraphMem();
+//        accumulationGraph.getPrefixMapping().setNsPrefixes(dataGraph.getPrefixMapping());
+
+
+        // == Run once
+        if ( !runOnceRules.isEmpty() ) {
+            if ( TRACE ) {
+                rCxt.out().println("Run once: "+runOnceRules.size());
+                rCxt.out().incIndent();
+            }
+            for ( Rule rule : runOnceRules ) {
+                if ( TRACE )
+                    System.out.printf("Eval(once): %s\n", ruleSet.labelFor(rule));
+                executeOneRule(graph1, evalTupleStore, rule);
+                if ( TRACE )
+                    rCxt.out().println("Accumulator: "+graph1.getAdded().size());
+            }
+            flush(graph1);
+
+            if ( TRACE )
+                rCxt.out().decIndent();
+        }
+
+        // One or the other must be true in order to expose the stratum changes.
+        final boolean flushAfterEachRound = true;
+        final boolean flushAfterEachLevel = false;
+
+        int round = 0;
+
+        // == Run all
+        while(true) {
+            round++;
+            int sizeAtRoundStart = graph1.getAdded().size() + evalTupleStore.size();
+
+            if ( TRACE ) {
+                rCxt.out().println("Round: "+round);
+                rCxt.out().incIndent();
+            }
+
+            // Evaluate one round.
+            // This is the "naive" algorithm.
+            // By tracking rules that actually cause change, we can get semi-naive.
+
+            for ( Rule rule : runGeneralRules ) {
+                if ( TRACE )
+                    rCxt.out().printf("Eval: round=%d : %s\n", round, ruleSet.str(rule));
+                executeOneRule(graph1, evalTupleStore, rule);
+
+                if ( TRACE )
+                    rCxt.out().println("Accumulator: "+graph1.getAdded().size());
+            }
+
+            if ( TRACE )
+                rCxt.out().decIndent();
+
+            int sizeAtRoundEnd = graph1.getAdded().size() + evalTupleStore.size();
+            if ( sizeAtRoundStart == sizeAtRoundEnd ) {
+                // No new triples or tuples this round.
+                --round;
+                // Finished.
+                break;
+            }
+
+            // END of round.
+
+            if ( flushAfterEachRound )
+                flush(graph1);
+        }
+
+        // END of execution for this list of rules.
+        if ( flushAfterEachLevel && ! flushAfterEachRound )
+            // If flushAfterEachRound is true, then exiting
+            // the last round did a flush.
+            flush(graph1);
+        if ( TRACE )
+            rCxt.out().flush();
+        return round;
+    }
+
+    private void flush(AppendGraph srcGraph) {
+        srcGraph.flush();
+    }
+
+    /**
+     * One execution of one rule.
+     * The argument graph is updated.
+     */
+    protected abstract void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule);
+}

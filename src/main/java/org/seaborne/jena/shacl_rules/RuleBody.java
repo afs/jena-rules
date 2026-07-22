@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 
-class RuleBody { //implements Iterable<RuleBodyElement>{
+public class RuleBody { //implements Iterable<RuleBodyElement>{
 
     private final List<RuleBodyElement> body;
 
@@ -53,7 +53,7 @@ class RuleBody { //implements Iterable<RuleBodyElement>{
 //        };
 //    }
 
-    List<RuleBodyElement> getBodyElements() {
+    public List<RuleBodyElement> getBodyElements() {
         return body;
     }
 

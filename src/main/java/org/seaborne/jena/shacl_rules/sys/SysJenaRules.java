@@ -21,10 +21,15 @@
 
 package org.seaborne.jena.shacl_rules.sys;
 
+import org.seaborne.jena.shacl_rules.exec.EngineType;
+
 /**
  * System settings.
  */
 public class SysJenaRules {
+
+    /** System default {@link EngineType} */
+    public static final EngineType dftEngineType = EngineType.SIMPLE;
 
     /** Allow assignments in recursive rules */
     public static boolean allowUnsafeAssigments = false;

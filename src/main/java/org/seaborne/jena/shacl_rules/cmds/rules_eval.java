@@ -44,12 +44,12 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.seaborne.jena.shacl_rules.*;
-import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.sys.RecursionChecker.RecursionException;
 import org.seaborne.jena.shacl_rules.sys.Stratification.StratificationException;
+import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 import org.seaborne.jena.shacl_rules.sys.WellFormed.NotWellFormedException;
 
 public class rules_eval extends CmdRules {
@@ -133,7 +133,7 @@ public class rules_eval extends CmdRules {
 
     private static RulesEngine defaultRulesEngine(Graph data, RuleSet ruleSet) {
         RulesEngine engine = RulesEngineRegistry.get()
-                .create(EngineType.SIMPLE, data, null, ruleSet, Rules.getContext());
+                .create(SysJenaRules.dftEngineType, data, null, ruleSet, Rules.getContext());
         return engine;
     }
 

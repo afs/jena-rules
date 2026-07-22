@@ -21,6 +21,16 @@
 
 package org.seaborne.jena.shacl_rules.exec;
 
+// Default : SysJenaRules.dftEngineType
 public enum EngineType {
-    SIMPLE(), BKD_NON_RECURSIVE
+    // As code.
+    SIMPLE,
+    // Body as SELECT
+    SIMPLE_SPARQL,
+    // Rule as SPARQL Update INSERT
+    SIMPLE_SPARQL_INSERT,
+    // Rule as SPARQL CONSTRUCT
+    SIMPLE_SPARQL_CONSTRUCT,
+    // Backwards evaluation.
+    BKD_NON_RECURSIVE
 }

@@ -27,10 +27,10 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.sparql.SystemARQ;
 import org.apache.jena.sparql.util.Symbol;
-import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.shacl_rules.sys.P;
+import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 import org.seaborne.jena.shacl_rules.tuples.TupleStore;
 
 /**
@@ -70,16 +70,15 @@ public class ShaclRules {
      * {@link RuleSetEvaluation}
      */
     public static RuleSetEvaluation evaluation(Graph graph, RuleSet ruleSet) {
-        return ShaclRulesExec.create(EngineType.SIMPLE, graph, ruleSet).eval();
+        return ShaclRulesExec.create(SysJenaRules.dftEngineType, graph, ruleSet).eval();
     }
 
     /**
      * {@link RuleSetEvaluation}
      */
     public static RuleSetEvaluation evaluation(Graph graph, TupleStore inputTupleStore, RuleSet ruleSet) {
-        return ShaclRulesExec.create(EngineType.SIMPLE, graph, inputTupleStore, ruleSet).eval();
+        return ShaclRulesExec.create(SysJenaRules.dftEngineType, graph, inputTupleStore, ruleSet).eval();
     }
-
 
     // -- Parse
 

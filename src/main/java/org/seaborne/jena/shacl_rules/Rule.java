@@ -252,7 +252,7 @@ public class Rule {
 
     // -- Head
 
-    private RuleHead getHead() {
+    public RuleHead getHead() {
         return head;
     }
 
@@ -278,7 +278,7 @@ public class Rule {
         getHead().getHeadElements().forEach(action);
     }
 
-    private RuleBody getBody() {
+    public RuleBody getBody() {
         return body;
     }
 

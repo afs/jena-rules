@@ -34,7 +34,12 @@ public class RulesEngineRegistry {
 
     // System setup.
     private static Map<EngineType, RulesEngineFactory> config =
-            Map.of(EngineType.SIMPLE, RulesEngineFwdSimple.factory);
+            Map.of(EngineType.SIMPLE, RulesEngineFwdSimple.factory,
+                   EngineType.SIMPLE_SPARQL, RulesEngineFwdSimpleSparqlBody.factory,
+                   EngineType.SIMPLE_SPARQL_INSERT, RulesEngineFwdSimpleSparqlInsert.factory,
+                   EngineType.SIMPLE_SPARQL_CONSTRUCT, RulesEngineFwdSimpleSparqlConstruct.factory
+                    );
+
 
     private static RulesEngineRegistry system = new RulesEngineRegistry(config);
 

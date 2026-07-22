@@ -27,8 +27,10 @@ import java.util.function.Function;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
@@ -38,9 +40,7 @@ import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.modify.TemplateLib;
 import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.shacl_rules.Rule;
-import org.seaborne.jena.shacl_rules.RuleSet;
-import org.seaborne.jena.shacl_rules.Rules;
+import org.seaborne.jena.shacl_rules.*;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement;
 import org.seaborne.jena.shacl_rules.lang.RuleBodyElement.*;
@@ -69,14 +69,41 @@ class RulesExecLib {
         return Stratification.create(ruleSet, depGraph, rCxt);
     }
 
+    /** Execute a rule */
     public static RuleEval evalRule(Rule rule, Graph graph, TupleStore tupleStore, RulesExecCxt rCxt) {
-        Iterator<Binding> iter = evalBody(graph, tupleStore, rule, rCxt);
+        Iterator<Binding> iter = evalBody(graph, tupleStore, rule.getBody(), rCxt);
         // XXX Do better - avoid creating arrays that aren't used.
         // XXX Do better - pass around accumulators?
+        RuleEval ruleEval = evalRuleHead(rule.getHead(), iter, rCxt);
+        return ruleEval;
+    }
+
+    public static RuleEval evalRuleHead(RuleHead ruleHead, Iterator<Binding> iter, RulesExecCxt rCxt) {
         List<Triple> accTriple = new ArrayList<>();
         List<Tuple> accTuple = new ArrayList<>();
-        Iter.forEach(iter, solution -> accInstantiateHead(accTriple, accTuple, rule, solution));
+        Iter.forEach(iter, solution -> accInstantiateHead(accTriple, accTuple, ruleHead, solution));
         return new RuleEval(accTriple, accTuple);
+    }
+
+    public static void accumulateOneRuleHead(RuleEval rEval, Graph graph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
+        if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() ) {
+            evalTupleStore.addAll(rEval.tuples());
+        }
+        List<Triple> triples = rEval.triples();
+//        for ( Triple t : triples ) {
+//            if ( ! graph.contains(t) )
+//                System.out.println(t);
+//        }
+
+        if ( true ) {
+            triples.forEach(t-> {
+                if ( !t.isConcrete() )
+                    throw new RulesEvalException("Triple not concrete: "+NodeFmtLib.displayStr(t));
+            });
+        }
+
+        if ( ! triples.isEmpty() )
+            GraphUtil.add(graph, triples);
     }
 
 //    /**
@@ -108,10 +135,10 @@ class RulesExecLib {
         AppendTupleStore allTuples = AppendTupleStore.create(tupleStore);
 
         for ( Rule rule : ruleSet.getRules() ) {
-            Iterator<Binding> iter = evalBody(allGraph, tupleStore, rule, rCxt);
+            Iterator<Binding> iter = evalBody(allGraph, tupleStore, rule.getBody(), rCxt);
             List<Triple> accTriple = new ArrayList<>();
             List<Tuple> accTuple = new ArrayList<>();
-            Iter.forEach(iter, solution -> accInstantiateHead(accTriple, accTuple, rule, solution));
+            Iter.forEach(iter, solution -> accInstantiateHead(accTriple, accTuple, rule.getHead(), solution));
             accTriple.forEach(allGraph::add);
             accTuple.forEach(tupleStore::add);
             // Print progress?
@@ -119,9 +146,9 @@ class RulesExecLib {
         return new Evaluation(baseGraph, ruleSet, allGraph.getAdded(), allGraph, allTuples.getAdded());
     }
 
-    private static Iterator<Binding> evalBody(Graph graph, TupleStore tupleStore, Rule rule, RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalBody(Graph graph, TupleStore tupleStore, RuleBody ruleBody, RulesExecCxt rCxt) {
         Binding binding = BindingFactory.binding();
-        return evalBodyBinding(graph, tupleStore, binding, rule.getBodyElements(), rCxt);
+        return evalBodyBinding(graph, tupleStore, binding, ruleBody.getBodyElements(), rCxt);
     }
 
     private static Iterator<Binding> evalBodyBinding(Graph graph, TupleStore tupleStore, Binding binding, List<RuleBodyElement> ruleElts,
@@ -185,13 +212,13 @@ class RulesExecLib {
         }
     }
 
-    private static void accInstantiateHead(List<Triple> accTriples, List<Tuple> accTuples, Rule rule, Binding solution) {
+    private static void accInstantiateHead(List<Triple> accTriples, List<Tuple> accTuples, RuleHead ruleHead, Binding solution) {
         // Unbound variables shouldn't happen.
         // Make it CONSTRUCT-like (but needs conditions to enable termination)
-        Iterator<Triple> iter = templateInstantiationTriples(rule.getHeadTriples(), solution);
+        Iterator<Triple> iter = templateInstantiationTriples(ruleHead.getHeadTriples(), solution);
         iter.forEachRemaining(accTriples::add);
 
-        Iterator<Tuple> iter2 = templateInstantiationTuples(rule.getHeadTuples(), solution);
+        Iterator<Tuple> iter2 = templateInstantiationTuples(ruleHead.getHeadTuples(), solution);
         iter2.forEachRemaining(accTuples::add);
     }
 
