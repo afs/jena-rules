@@ -43,6 +43,9 @@ import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
     TestRulesStratification.class,
     TestRulesEval.class,
 
+    TestRulesEvalMultipleEngines.class,
+    TestRulesEvalMisc.class,
+
     TestImports.class,
 
     Scripts_RuleSyntax.class,

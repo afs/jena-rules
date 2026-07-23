@@ -117,19 +117,17 @@ public class TestRulesEval {
             PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
             """;
+
     private static final String PREFIXES_DATA = """
             PREFIX :   <http://example/>
             """;
-    private static final String PREFIXES_SHACL = """
-            PREFIX sh:      <http://www.w3.org/ns/shacl#>
+
+    private static final String PREFIXES_RULES = """
             PREFIX srl:     <http://www.w3.org/ns/shacl-rules#>
-            PREFIX shnex:   <http://www.w3.org/ns/shacl-node-expr#>
-            PREFIX sparql:  <http://www.w3.org/ns/sparql#>
-            PREFIX arqnx:   <http://jena.apache.org/ARQ/nx#>
             """;
 
     private RuleSet rules(String string) {
-        String ruleStr = PREFIXES_SHACL+PREFIXES_DATA+string;
+        String ruleStr = PREFIXES_RULES+PREFIXES_DATA+string;
         try {
             return ShaclRulesParser.fromString(ruleStr).parse();
         } catch (ShaclRulesParseException ex) {

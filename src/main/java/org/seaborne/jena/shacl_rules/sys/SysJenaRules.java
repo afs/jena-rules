@@ -22,11 +22,14 @@
 package org.seaborne.jena.shacl_rules.sys;
 
 import org.seaborne.jena.shacl_rules.exec.EngineType;
+import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
 
 /**
  * System settings.
  */
 public class SysJenaRules {
+
+
 
     /** System default {@link EngineType} */
     public static final EngineType dftEngineType = EngineType.SIMPLE;
@@ -42,4 +45,9 @@ public class SysJenaRules {
 
     /** Role triples for RDF syntax */
     public static boolean useRoleTriples = true;
+
+    public static void init() {
+        RulesEngineRegistry.init();
+    }
+
 }
