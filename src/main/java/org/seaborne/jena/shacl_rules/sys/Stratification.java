@@ -27,10 +27,12 @@ import java.util.function.BiConsumer;
 
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.MultiMapUtils;
+import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.shacl_rules.Rule;
 import org.seaborne.jena.shacl_rules.RuleSet;
 import org.seaborne.jena.shacl_rules.RulesException;
 import org.seaborne.jena.shacl_rules.ShaclRulesWriter;
+import org.seaborne.jena.shacl_rules.examine.Examine;
 import org.seaborne.jena.shacl_rules.exec.RulesExecCxt;
 import org.seaborne.jena.shacl_rules.sys.DependencyGraph.DependencyEdge;
 
@@ -220,7 +222,7 @@ public class Stratification {
             Rule rule = entry.getKey();
             Integer stratumNum = entry.getValue();
             if ( rule.isRunOnceRule() ) {
-                // stratumRunOnce.put(stratumNum, rule);
+                // stratumTtestEvalRunOnce.put(stratumNum, rule);
                 // Is it permitted for unsafe evaluation?
                 // If it is run-once because of assignment but does not have
                 // blank node templates, then run as a general rule.
@@ -252,11 +254,13 @@ public class Stratification {
             layers.add(stratum);
         }
 
-        if ( TRACE ) {
+        rCxt.out().setAbsoluteIndent(0);
+
+        if ( TRACE || Examine.EXAMINE ) {
             // Development.
-            rCxt.out().printf("==== Strata (max = %d)\n", maxStratum);
+            rCxt.out().printf("==== Stratification (levels = %d)\n", maxStratum);
             for ( int i = 0 ; i <= maxStratum ; i++ ) {
-                rCxt.out().printf("== Layer %d\n", i);
+                rCxt.out().printf("  == Layer %d\n", i);
                 Stratum layer = layers.get(i);
 
                 Collection<Rule> stratumOnce = layer.runOnce();
@@ -267,20 +271,24 @@ public class Stratification {
                     continue;
                 }
 
-                rCxt.out().printf("Level %d\n", i);
                 stratumOnce.forEach(rule-> {
-                    rCxt.out().print("  ");
-                    ShaclRulesWriter.print(rule, ruleSet.getPrefixMap());
+                    System.out.println(ruleAsStr(rule, ruleSet.getPrefixMap()));
                 });
                 stratumAll.forEach(rule-> {
-                    rCxt.out().print("  ");
-                    ShaclRulesWriter.print(rule, ruleSet.getPrefixMap());
+                    System.out.println(ruleAsStr(rule, ruleSet.getPrefixMap()));
                 });
             }
+            rCxt.out().println();
         }
         int m = maxStratum;
 //        if ( ! seenDataLayer )
 //            m = m - (minDependentStratum-dataStratum);
         return new Stratification(dataStratum, m, layers, ruleSet);
+    }
+
+    private static String ruleAsStr(Rule rule, PrefixMap prefixMap) {
+        String x = ShaclRulesWriter.asString(rule, prefixMap);;
+        x = x.strip();
+        return x;
     }
 }

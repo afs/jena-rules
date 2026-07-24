@@ -41,26 +41,26 @@ import org.seaborne.jena.shacl_rules.tuples.TupleStore;
  */
 public class AccessTuples {
     //  Access.accessGraph
-    public static Iterator<Binding> accessTupleStore(Iterator<Binding> chainIn, TupleStore store, Tuple pattern, RulesExecCxt ruleExecCxt) {
-        return accessTupleStore(chainIn, store, pattern, null, ruleExecCxt);
+    public static Iterator<Binding> accessTupleStore(Iterator<Binding> chainIn, TupleStore tupleStore, Tuple pattern, RulesExecCxt ruleExecCxt) {
+        return accessTupleStore(chainIn, tupleStore, pattern, null, ruleExecCxt);
     }
 
-    private static Iterator<Binding> accessTupleStore(Iterator<Binding> input, TupleStore store, Tuple pattern,
+    private static Iterator<Binding> accessTupleStore(Iterator<Binding> input, TupleStore tupleStore, Tuple pattern,
                                                   Predicate<Tuple> filter, RulesExecCxt ruleExecCxt) {
         if ( filter != null )
             System.err.println("Predicate for accessTuples");
         if ( ! input.hasNext() )
             return Iter.nullIterator();
         return Iter.flatMap(input, binding -> {
-            return accessTuple(binding, store, pattern, filter, ruleExecCxt);
+            return accessTuple(binding, tupleStore, pattern, filter, ruleExecCxt);
         });
     }
 
-    private static Iterator<Binding> accessTuple(Binding binding,  TupleStore store, Tuple pattern, Predicate<Tuple> filter, RulesExecCxt ruleExecCxt) {
+    private static Iterator<Binding> accessTuple(Binding binding,  TupleStore tupleStore, Tuple pattern, Predicate<Tuple> filter, RulesExecCxt ruleExecCxt) {
 
         Tuple groundedPattern =  substituteFlat(pattern, binding) ;
         BindingBuilder resultsBuilder = Binding.builder(binding);
-        Iterator<Tuple> tupleStoreIter = store.find(groundedPattern);
+        Iterator<Tuple> tupleStoreIter = tupleStore.find(groundedPattern);
 
         Iterator<Binding> tuplesIter = Iter.mapRemove(tupleStoreIter, dataTuple -> mapper(resultsBuilder, groundedPattern, dataTuple));
         // Add cancel.

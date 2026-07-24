@@ -24,4 +24,7 @@ package org.seaborne.jena.shacl_rules.examine;
 public class Examine {
     enum Event { PARSE, WELLFORMED, DEPENDENCY, STRATIFICATION, EXECUTION }
     enum LEVEL { MAJOR, MINOR, TRACE } // Both setting and filter.
+
+    public static boolean EXAMINE = false;
+
 }

@@ -22,7 +22,6 @@
 package org.seaborne.jena.shacl_rules.sys;
 
 import org.apache.jena.sys.JenaSubsystemLifecycle;
-import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
 
 public class InitJenaRules implements JenaSubsystemLifecycle {
 

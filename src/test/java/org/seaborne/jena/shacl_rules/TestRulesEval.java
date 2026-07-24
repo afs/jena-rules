@@ -42,19 +42,6 @@ import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
  * @see Scripts_RuleEval
  */
 public class TestRulesEval {
-    @Test public void eval_1() {
-        Graph data = graph();
-        RuleSet rules = rules("RULE {} WHERE {}");
-        Graph outcome = graph();
-        test("eval_1", data, rules, outcome);
-    }
-
-    @Test public void eval_2() {
-        Graph data = graph();
-        RuleSet rules = rules("DATA { :s :p :o }");
-        Graph outcome = graph(":s :p :o .");
-        test("eval_2", data, rules, outcome);
-    }
 
     // Check NOW is stable.
     @Test public void eval_now() {

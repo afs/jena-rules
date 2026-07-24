@@ -23,8 +23,41 @@ package org.seaborne.jena.shacl_rules;
 
 import org.junit.jupiter.api.Test;
 
-// Tests due to go to the spec, currently in Java.s
+// Tests due to go to the spec, currently in Java.
 public class TestRulesEval_Spec {
+
+
+
+    // tests SET
+    // [ ] RULE { :x :q 999 } WHERE { SET(?o1 := 1/0) }
+    // ==== TESTS
+    // [ ] RunOnce!
+    // [ ] Syntax tests
+    // [ ] Eval tests
+    //     RDFS
+    //     link-lorry
+    //     "not connected"
+    //  [ ] For SET(?x) is BIND(?x) FILTER(BOUND(?x))
+    //  [ ] ?x in the head.
+    //  [ ] ?x not in the head, used in pattern.
+
+    // See ~/W3C/SHACL/SRL-examples
+
+    /*
+     *
+     */
+
+
+    /*
+     * ## Test SET filters the whole row
+     * DATA { :s :p 1 . :s :q 1 .  }
+     * RULE { :s ?p ?x . . }
+     * WHERE {
+     *   SET(?x := 1/0) :s ?p ?x
+     * }
+     */
+
+
     static String PREFIXES = """
             PREFIX :        <http://example/>
             """;
@@ -61,7 +94,8 @@ public class TestRulesEval_Spec {
         LibEvalTest.testEval("assign2", baseGraph, rules, expectedInf);
     }
 
-    @Test public void assign3() {
+    // SET filters the row.
+    @Test public void setFilterRow() {
         String baseGraph = PREFIXES+"""
                 :s :p 1 .
                 """;
@@ -76,6 +110,6 @@ public class TestRulesEval_Spec {
                 ## And not
                 ##   :Z :p :z .
                 """;
-        LibEvalTest.testEval("set1", baseGraph, rules, expectedInf);
+        LibEvalTest.testEval("setFilterRow", baseGraph, rules, expectedInf);
     }
 }

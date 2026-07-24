@@ -87,6 +87,8 @@ class RulesExecLib {
 
     public static void accumulateOneRuleHead(RuleEval rEval, Graph graph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
         if ( rEval.tuples() != null && ! rEval.tuples().isEmpty() ) {
+            if ( evalTupleStore == null )
+                throw new RulesEvalException("No tuple store for tuples in rule output");
             evalTupleStore.addAll(rEval.tuples());
         }
         List<Triple> triples = rEval.triples();
@@ -140,8 +142,11 @@ class RulesExecLib {
             List<Tuple> accTuple = new ArrayList<>();
             Iter.forEach(iter, solution -> accInstantiateHead(accTriple, accTuple, rule.getHead(), solution));
             accTriple.forEach(allGraph::add);
+            if ( ! accTuple.isEmpty() ) {
+                if ( tupleStore == null )
+                    throw new RulesEvalException("No tuple store for tuple outcomes");
+            }
             accTuple.forEach(tupleStore::add);
-            // Print progress?
         }
         return new Evaluation(baseGraph, ruleSet, allGraph.getAdded(), allGraph, allTuples.getAdded());
     }
@@ -151,8 +156,8 @@ class RulesExecLib {
         return evalBodyBinding(graph, tupleStore, binding, ruleBody.getBodyElements(), rCxt);
     }
 
-    private static Iterator<Binding> evalBodyBinding(Graph graph, TupleStore tupleStore, Binding binding, List<RuleBodyElement> ruleElts,
-                                                     RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalBodyBinding(Graph graph, TupleStore tupleStore, Binding binding,
+                                                     List<RuleBodyElement> ruleElts, RulesExecCxt rCxt) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
         // Extract
         for ( RuleBodyElement elt : ruleElts ) {
@@ -167,13 +172,16 @@ class RulesExecLib {
         return chain;
     }
 
-    private static Iterator<Binding> evalOneRuleElement(Graph graph, TupleStore tupleStore, Iterator<Binding> chainIn, RuleBodyElement elt,
-                                                        RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalOneRuleElement(Graph graph, TupleStore tupleStore, Iterator<Binding> chainIn,
+                                                        RuleBodyElement elt, RulesExecCxt rCxt) {
         switch (elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 return Access.accessGraph(chainIn, graph, triplePattern);
             }
             case EltTuplePattern(Tuple tuplePattern) -> {
+                if ( tupleStore == null )
+                    throw new RulesEvalException("No tuple store for tuple pattern: "+tuplePattern);
+
                 return AccessTuples.accessTupleStore(chainIn, tupleStore, tuplePattern, rCxt);
             }
             case EltFilter(Expr condition) -> {
@@ -217,7 +225,6 @@ class RulesExecLib {
         // Make it CONSTRUCT-like (but needs conditions to enable termination)
         Iterator<Triple> iter = templateInstantiationTriples(ruleHead.getHeadTriples(), solution);
         iter.forEachRemaining(accTriples::add);
-
         Iterator<Tuple> iter2 = templateInstantiationTuples(ruleHead.getHeadTuples(), solution);
         iter2.forEachRemaining(accTuples::add);
     }

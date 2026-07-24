@@ -32,6 +32,7 @@ import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.shacl_rules.*;
+import org.seaborne.jena.shacl_rules.examine.Examine;
 import org.seaborne.jena.shacl_rules.jena.AppendGraph;
 import org.seaborne.jena.shacl_rules.sys.Stratification;
 import org.seaborne.jena.shacl_rules.sys.Stratum;
@@ -166,7 +167,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
         try {
             for ( int i = stratification.minStratum() ; i <= stratification.maxStratum() ; i++ ) {
                 Stratum stratum = stratification.getLevel(i);
-                if ( TRACE ) {
+                if ( Examine.EXAMINE || TRACE ) {
                     rCxt.out().printf("Level %d -- (Once=%d, General=%d) rules\n", i, stratum.runOnce().size(), stratum.runGeneral().size());
                     rCxt.out().incIndent();
                     rCxt.out().flush();
@@ -178,10 +179,13 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
                     rCxt.out().println("Inferred graph: size = "+dataGraph.getAdded().size());
                 }
 
-                if ( TRACE )
+                if ( Examine.EXAMINE || TRACE )
                     rCxt.out().decIndent();
             }
-        } finally { rCxt.out().flush(); }
+        } finally {
+            if ( Examine.EXAMINE )
+                rCxt.out().println();
+            rCxt.out().flush(); }
 
         return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);
     }
@@ -273,6 +277,12 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
+
+                if ( Examine.EXAMINE ) {
+                    int added = graph1.getAdded().size();
+                    String count = added == 0 ? "*" : Integer.toString(added);
+                    rCxt.out().printf("Eval: round=%d : triples=%s : %s\n", round, count, ruleSet.str(rule));
+                }
             }
 
             if ( TRACE )
@@ -308,7 +318,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
     /**
      * One execution of one rule.
-     * The argument graph is updated.
+     * The arguments graph and tupleStore are updated.
      */
     protected abstract void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule);
 }

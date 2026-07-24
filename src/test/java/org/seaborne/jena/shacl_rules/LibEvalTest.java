@@ -35,11 +35,13 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 
+/*8 Function in support of testing */
 public class LibEvalTest {
 
     static void testEval(String label, String baseGraphStr, String rulesStr, String expectedInfStr) {
@@ -64,7 +66,6 @@ public class LibEvalTest {
 //        printTest(label, baseGraphStr, rulesStr, expectedInfStr);
 
         testEval(engineType, baseGraph, ruleSet, expectedInf);
-
     }
 
     static void printTest(String label, String baseGraph, String ruleSet, String expectedInf) {
@@ -117,5 +118,17 @@ public class LibEvalTest {
 
     static void writeGraph(OutputStream out, Graph graph) {
         RDFWriter.source(graph).format(RDFFormat.TURTLE_FLAT).output(out);
+    }
+
+    /** Immutable, empty graph */
+    static Graph emptyGraph() { return GraphZero.instance(); }
+
+    /** prepend prefixes */
+    static String withPrefixes(String prefixes, String string) {
+        if (prefixes == null )
+            return string;
+        if ( prefixes.endsWith("\n") )
+            return prefixes+string;
+        return prefixes+"\n"+string;
     }
 }

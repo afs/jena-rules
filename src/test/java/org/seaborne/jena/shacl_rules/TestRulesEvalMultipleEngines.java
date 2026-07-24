@@ -21,6 +21,9 @@
 
 package org.seaborne.jena.shacl_rules;
 
+import static org.seaborne.jena.shacl_rules.LibEvalTest.testEval;
+import static org.seaborne.jena.shacl_rules.LibEvalTest.withPrefixes;
+
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -54,7 +57,6 @@ public class TestRulesEvalMultipleEngines {
     public TestRulesEvalMultipleEngines(String name, EngineType engineType) {
         this.engineType = engineType;
     }
-
     //Find/add basic tests.
 
     // Like RuleEvalTest but in Java.
@@ -64,27 +66,6 @@ public class TestRulesEvalMultipleEngines {
     // Extract the machinery so we can have several TestXXX
 
 
-    // tests SET
-    // [ ] RULE { :x :q 999 } WHERE { SET(?o1 := 1/0) }
-    // ==== TESTS
-    // [ ] RunOnce!
-    // [ ] Syntax tests
-    // [ ] Eval tests
-    //     RDFS
-    //     link-lorry
-    //  [ ] For SET(?x) is BIND(?x) FILTER(BOUND(?x))
-    //  [ ] ?x in the head.
-    //  [ ] ?x not in the head, used in pattern.
-
-
-    /*
-     * ## Test SET filters the whole row
-     * DATA { :s :p 1 . :s :q 1 .  }
-     * RULE { :s ?p ?x . . }
-     * WHERE {
-     *   SET(?x := 1/0) :s ?p ?x
-     * }
-     */
 
     static String PREFIXES = """
             PREFIX :        <http://example/>
@@ -99,142 +80,157 @@ public class TestRulesEvalMultipleEngines {
             """;
 
 
+
+    @Test public void eval_1() {
+        String rules ="RULE {} WHERE {}";
+        String outcome = "";
+        testEval("eval_1", null, rules, outcome);
+    }
+
+    @Test public void eval_2() {
+        String rules = withPrefixes(PREFIXES, "DATA { :s :p :o }");
+        String outcome = withPrefixes(PREFIXES, ":s :p :o");
+        testEval("eval_2", "", rules, outcome);
+    }
+
     @Test public void assign1() {
-        String rules = PREFIXES+"""
-                RULE { :s :p ?v } WHERE { SET( ?v := 1 ) }
-                """;
-        String expectedInf = PREFIXES+"""
-                :s :p 1 .
-                """;
-        LibEvalTest.testEval("assign1", null, rules, expectedInf);
+        String rules = withPrefixes(PREFIXES, "RULE { :s :p ?v } WHERE { SET( ?v := 1 ) }");
+        String expectedInf = withPrefixes(PREFIXES, ":s :p 1 .");
+        testEval("assign1", null, rules, expectedInf);
     }
 
     @Test public void assign2() {
-        String baseGraph = PREFIXES+"""
-                :x :xv 1
-                """;
-        String rules = PREFIXES+"""
-                RULE { :s :p ?v1 } WHERE { :x :xv ?v SET( ?v1 := ?v + 1 ) }
-                """;
-        String expectedInf = PREFIXES+"""
-                :s :p 2 .
-                """;
-        LibEvalTest.testEval("assign2", engineType, baseGraph, rules, expectedInf);
+        String baseGraph = withPrefixes(PREFIXES, ":x :xv 1");
+        String rules = withPrefixes(PREFIXES,
+                """
+                  RULE { :s :p ?v1 } WHERE { :x :xv ?v SET( ?v1 := ?v + 1 ) }
+                """);
+        String expectedInf = withPrefixes(PREFIXES, ":s :p 2 .");
+        testEval("assign2", engineType, baseGraph, rules, expectedInf);
     }
 
     @Test public void assign3() {
-        String baseGraph = PREFIXES+"""
-                :s :p 1 .
-                """;
-        String rules = PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES, ":s :p 1 .");
+        String rules = withPrefixes(PREFIXES,
+                """
                 ## Test SET filters the whole row
                 RULE { :Z ?p :z  . } WHERE {
                      SET(?x := 1/0)
                      :s ?p ?x
                      }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,
+                """
                 ## And not
                 ##   :Z :p :z .
-                """;
-        LibEvalTest.testEval("set1", engineType, baseGraph, rules, expectedInf);
+                """);
+        testEval("set1", engineType, baseGraph, rules, expectedInf);
     }
 
     @Test public void rdfsDomain1() {
-        String baseGraph = PREFIXES_RDF+PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES_RDF+PREFIXES,
+                """
                 :s :p :z .
                 :p rdfs:domain :D .
                 :p rdfs:range :R .
-                """;
-        String rules = PREFIXES_RDF+PREFIXES+"""
+                """);
+        String rules = withPrefixes(PREFIXES_RDF+PREFIXES,
+                """
                 RULE { ?s rdf:type ?T }
                 WHERE { ?s ?p ?o . ?p rdfs:domain ?T . }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,
+                """
                 :s a :D .
-                """;
-        LibEvalTest.testEval("rdfsDomain1", engineType, baseGraph, rules, expectedInf);
+                """);
+        testEval("rdfsDomain1", engineType, baseGraph, rules, expectedInf);
     }
 
     @Test public void rdfsDomain2() {
-        String baseGraph = PREFIXES_RDF+PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES_RDF+PREFIXES,
+                """
                 :s :p :z1 .
                 :s :q :z2 .
                 :p rdfs:domain :D1 .
                 :q rdfs:domain :D2 .
-                """;
-        String rules = PREFIXES_RDF+PREFIXES+"""
+                """);
+        String rules = withPrefixes(PREFIXES_RDF+PREFIXES,
+                """
                 RULE { ?s rdf:type ?T }
                 WHERE { ?s ?p ?o . ?p rdfs:domain ?T . }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,
+                """
                 :s a :D1 .
                 :s a :D2 .
-                """;
-        LibEvalTest.testEval("rdfsDomain1", baseGraph, rules, expectedInf);
+                """);
+        testEval("rdfsDomain1", baseGraph, rules, expectedInf);
     }
 
     @Test public void rdfsDomain3() {
-        String baseGraph = PREFIXES_RDF+PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 :s :q :z .
                 :p rdfs:domain :D .
-                """;
-        String rules = PREFIXES_RDF+PREFIXES+"""
+                """);
+        String rules = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 RULE { ?s rdf:type ?T }
                 WHERE { ?s ?p ?o . ?p rdfs:domain ?T . }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,"""
                 # Empty
-                """;
-        LibEvalTest.testEval("rdfsDomain1", engineType, baseGraph, rules, expectedInf);
+                """);
+        testEval("rdfsDomain1", engineType, baseGraph, rules, expectedInf);
     }
 
     @Test public void rdfsRange1() {
-        String baseGraph = PREFIXES_RDF+PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 :s :p :z .
                 :p rdfs:domain :D .
                 :p rdfs:range :R .
-                """;
-        String rules = PREFIXES_RDF+PREFIXES+"""
+                """);
+        String rules = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 RULE { ?o rdf:type ?T }
                 WHERE { ?s ?p ?o . ?p rdfs:range ?T . }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,"""
                 :z a :R .
-                """;
-        LibEvalTest.testEval("rdfsRange1", engineType, baseGraph, rules, expectedInf);
+                """);
+        testEval("rdfsRange1", engineType, baseGraph, rules, expectedInf);
     }
 
     @Test public void rdfsRange2() {
-        String baseGraph = PREFIXES_RDF+PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 :s :p :z1 .
                 :s :q :z2 .
                 :p rdfs:range :R1 .
                 :q rdfs:range :R2 .
-                """;
-        String rules = PREFIXES_RDF+PREFIXES+"""
+                """);
+        String rules = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 RULE { ?o rdf:type ?T }
                 WHERE { ?s ?p ?o . ?p rdfs:range ?T . }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,"""
                 :z1 a :R1 .
                 :z2 a :R2 .
-                """;
-        LibEvalTest.testEval("rdfsRange1", engineType, baseGraph, rules, expectedInf);
+                """);
+        testEval("rdfsRange1", engineType, baseGraph, rules, expectedInf);
     }
 
     @Test public void rdfsRange3() {
-        String baseGraph = PREFIXES_RDF+PREFIXES+"""
+        String baseGraph = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 :s :q :z .
                 :p rdfs:range :R .
-                """;
-        String rules = PREFIXES_RDF+PREFIXES+"""
+                """);
+        String rules = withPrefixes(PREFIXES_RDF+PREFIXES,"""
                 RULE { ?o rdf:type ?T }
                 WHERE { ?s ?p ?o . ?p rdfs:range ?T . }
-                """;
-        String expectedInf = PREFIXES+"""
+                """);
+        String expectedInf = withPrefixes(PREFIXES,"""
                 # Empty
-                """;
-        LibEvalTest.testEval("rdfsRange1", engineType, baseGraph, rules, expectedInf);
+                """);
+        testEval("rdfsRange1", engineType, baseGraph, rules, expectedInf);
     }
+
+    // XXX subClassOf
+    // XXX subPropertyOf
 }
