@@ -28,7 +28,11 @@ import org.junit.jupiter.api.*;
 import org.apache.jena.arq.junit.Scripts;
 import org.seaborne.jena.shacl_rules.junit.RuleTests;
 
-public class Scripts_AllRuleTests {
+public class Scripts_SRL {
+
+    // The WG test suite as it in in tests/ area.
+    // 2026-07 -- Currently, there is significant overlap with the files/tests/tests-* so they run twice.
+    // At this stage, better to be safe than miss tests.
 
     @BeforeAll
     public static void beforeClass() {}
@@ -36,10 +40,9 @@ public class Scripts_AllRuleTests {
     @AfterAll
     public static void afterClass() {}
 
-    // All.
     @TestFactory
-    @DisplayName("Jena Rules")
-    public Stream<DynamicNode> t() {
+    @DisplayName("SRL")
+    public Stream<DynamicNode> execution() {
         return Scripts.manifestTestFactory("src/test/files/manifest-rules.ttl", RuleTests::makeRuleTest);
     }
 }

@@ -1,0 +1,19 @@
+#!/usr/bin/bash
+
+cd examples
+
+for N in 1 2 3 4 5
+do
+    echo "==== Example $N"
+    echo "== Data"
+    riot --sink example-$N-data.ttl
+
+    echo "== SRL"
+    rules p example-$N.srl
+    
+    echo "== Inf"
+    riot --sink example-$N-inf.ttl
+done
+
+echo "==== manifest.ttl"
+riot --sink manifest.ttl

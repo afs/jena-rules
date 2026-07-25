@@ -52,6 +52,7 @@ import org.seaborne.jena.shacl_rules.sys.TestAppendGraph;
     Scripts_Wellformed.class,
     Scripts_Stratification.class,
     Scripts_RuleEval.class,
+    Scripts_SRL.class,
 
     // Or combined
     //Scripts_RuleTests.class
