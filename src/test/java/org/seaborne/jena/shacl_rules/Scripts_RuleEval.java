@@ -39,6 +39,7 @@ public class Scripts_RuleEval {
     @TestFactory
     @DisplayName("Jena Rules (Execution - spec)")
     public Stream<DynamicNode> execution() {
+        // System default engine type.
         return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", RuleTests::makeRuleTest);
     }
 }

@@ -27,7 +27,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.SplitIRI;
+import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.lang.ShaclRulesSyntax;
+import org.seaborne.jena.shacl_rules.sys.SysJenaRules;
 import org.seaborne.jena.shacl_rules.tests.RulesEvalTest;
 import org.seaborne.jena.shacl_rules.tests.RulesStratificationTest;
 import org.seaborne.jena.shacl_rules.tests.RulesSyntaxTest;
@@ -37,6 +39,10 @@ public class RuleTests {
 
     /** Create a Rules test - or return null for "unrecognized" */
     public static Runnable makeRuleTest(ManifestEntry entry) {
+        return makeRuleTestByEngine(entry, SysJenaRules.dftEngineType);
+    }
+
+    public static Runnable makeRuleTestByEngine(ManifestEntry entry, EngineType engineType) {
         //Resource manifest = entry.getManifest();
         Node item = entry.getEntry();
         String testName = entry.getName();
@@ -86,9 +92,9 @@ public class RuleTests {
 
             // == Eval
             if ( testType.equals(VocabRulesTests.TestPositiveEvalRules) )
-                return new RulesEvalTest(entry, testURI, true);
+                return new RulesEvalTest(entry, testURI, engineType, true);
             if ( testType.equals(VocabRulesTests.TestNegativeEvalRules) )
-                return new RulesEvalTest(entry, testURI, false);
+                return new RulesEvalTest(entry, testURI, engineType, false);
 
             Log.warn(RuleTests.class, "Test not classified - "+entry.getName()+" <"+entry.getURI()+"> Type:"+NodeFmtLib.displayStr(testType));
 

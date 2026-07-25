@@ -38,8 +38,10 @@ import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.apache.jena.system.G;
 import org.seaborne.jena.shacl_rules.RuleSet;
+import org.seaborne.jena.shacl_rules.RulesEngine;
 import org.seaborne.jena.shacl_rules.ShaclRulesExec;
 import org.seaborne.jena.shacl_rules.ShaclRulesParser;
+import org.seaborne.jena.shacl_rules.examine.Examine;
 import org.seaborne.jena.shacl_rules.exec.EngineType;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.junit.VocabRulesTests;
@@ -48,19 +50,22 @@ import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
 public class RulesEvalTest implements Runnable {
 
     private final ManifestEntry testItem;
+    private final EngineType engineType;
     private final boolean positiveTest;
 
-    public RulesEvalTest(ManifestEntry entry, String base, boolean positiveTest) {
+    public RulesEvalTest(ManifestEntry entry, String base, EngineType engineType, boolean positiveTest) {
         this.testItem = entry;
+        this.engineType = engineType;
         this.positiveTest = positiveTest;
     }
 
     @Override
     public void run() {
-        run(EngineType.SIMPLE);
+        run(engineType);
     }
 
-    public void run(EngineType engineType) {
+    private void run(EngineType engineType) {
+        //System.out.println(engineType);
         Graph itemGraph = testItem.getGraph();
         String itemName = testItem.getName();
         Node action = testItem.getAction();
@@ -81,8 +86,10 @@ public class RulesEvalTest implements Runnable {
         Node nData = G.getOneSP(itemGraph, action, VocabRulesTests.data);
         Graph input = ( nData == null ) ? GraphZero.instance() : read(nData);
 
-        boolean verbose = false;
-        RuleSetEvaluation e = ShaclRulesExec.create(engineType, input, ruleSet).setTrace(verbose).eval();
+        Examine.EXAMINE = false;
+        RulesEngine rulesEngine = ShaclRulesExec.create(engineType, input, ruleSet);
+
+        RuleSetEvaluation e = rulesEngine.eval();
 
         Graph outcome = e.inferredTriples();
         Node nResult = testItem.getResult();

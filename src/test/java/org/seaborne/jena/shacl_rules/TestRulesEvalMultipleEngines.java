@@ -39,10 +39,8 @@ import org.seaborne.jena.shacl_rules.exec.EngineType;
 
 public class TestRulesEvalMultipleEngines {
 
-    // XXX Convert to cross product of engine type and manifest!
-    // Or find base in-java tests
-
-    // Easier : In Scripts_RuleEval, write up the engine type.
+    // XXX Convert to cross product of engine type and manifest so that the ROL test suite can be run.
+    // Easier : In Scripts_SRL, wire up the engine type.
 
     private static Stream<Arguments> provideArgs() {
         List<Arguments> x = List.of(Arguments.of("Simple (Java)", EngineType.SIMPLE),

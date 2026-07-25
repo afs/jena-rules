@@ -43,6 +43,7 @@ public class Scripts_SRL {
     @TestFactory
     @DisplayName("SRL")
     public Stream<DynamicNode> execution() {
+        // All SRL tests, using the system default query engine for eval tests.
         return Scripts.manifestTestFactory("src/test/files/manifest-rules.ttl", RuleTests::makeRuleTest);
     }
 }
