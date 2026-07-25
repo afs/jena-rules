@@ -40,8 +40,18 @@ public class SysJenaRules {
     /** Allow blank node in templates in recursive rules */
     public static boolean allowUnsafeTemplates = false;
 
+//    /** Allow blank node in templates in general/recursive rules */
+//    // [XXX] Decide on Skolem then remove
+//    public static boolean allowSkolemTemplates = true;
+    // Covered by allowUnsafeTemplates?
+
     /** Allow blank node in templates in recursive rules */
     public static boolean performRecursionCheck = true;
+
+//    /**
+//     * Whether run-once rules are strictly stratified
+//     */
+//    public static boolean safeDependencies() { return  !allowUnsafeAssigmments && !allowUnsafeTemplates; }
 
     /** Role triples for RDF syntax */
     public static boolean useRoleTriples = true;

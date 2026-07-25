@@ -231,12 +231,12 @@ public class DependencyGraph {
                 }
                 case EltTuplePattern(Tuple tuplePattern) -> {
                     providers2.keySet().forEach(tupleTemplate -> {
-//                        if ( DEBUG_BUILD ) {
-//                            System.out.println("Link type: "+linkType);
-//                            System.out.println("Pattern:   "+NodeFmtLib.displayStr(tupleTemplate));
-//                            System.out.println("Template:  "+NodeFmtLib.displayStr(tupleTemplate));
-//                            System.out.println(RuleDependencies.dependsOn(tuplePattern, tupleTemplate));
-//                        }
+                        if ( DEBUG_BUILD ) {
+                            System.out.println("Link type: "+linkType);
+                            System.out.println("Pattern:   "+tuplePattern.toString(P.prefixMap()));
+                            System.out.println("Template:  "+tupleTemplate.toString(P.prefixMap()));
+                            System.out.println(RuleDependencies.dependsOn(tuplePattern, tupleTemplate));
+                        }
                         if ( RuleDependencies.dependsOn(tuplePattern, tupleTemplate) ) {
                             providers2.get(tupleTemplate).forEach(r -> {
                                 if ( freshEdge(accumulator, rule, linkType, r) )
