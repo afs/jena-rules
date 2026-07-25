@@ -1,0 +1,347 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.seaborne.jena.srl.lang.writer;
+
+import static org.seaborne.jena.srl.lang.writer.RSE.*;
+
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.irix.IRIx;
+import org.apache.jena.riot.out.NodeFormatter;
+import org.apache.jena.riot.out.NodeFormatterTTL;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.PrefixMapZero;
+import org.apache.jena.riot.system.Prefixes;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.serializer.SerializationContext;
+import org.apache.jena.sparql.sse.writers.WriterExpr;
+import org.seaborne.jena.srl.Rule;
+import org.seaborne.jena.srl.RuleSet;
+import org.seaborne.jena.srl.lang.RuleBodyElement;
+import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
+import org.seaborne.jena.srl.tuples.Tuple;
+
+/**
+ * Write a ruleset as an abstract syntax tree.
+ */
+public class RuleSetASTWriter {
+
+    public static void write(RuleSet ruleSet) {
+        //IndentedWriter w = IndentedWriter.stdout.clone().setEndOfLineMarker(" NL");
+        IndentedWriter w = IndentedWriter.stdout.clone();
+
+        try ( w ) {
+            ASTWriterEngine astw = new ASTWriterEngine(w, ruleSet.getPrefixMap(), ruleSet.getBase());
+            astw.writeRuleSet(ruleSet);
+        } finally { w.flush(); }
+    }
+
+    public static void write(Rule rule, PrefixMap prefixMap) {
+        IndentedWriter w = IndentedWriter.stdout.clone();
+        try ( w ) {
+            ASTWriterEngine astw = new ASTWriterEngine(w, prefixMap, null);
+            astw.writeRule(rule);
+        } finally { w.flush(); }
+    }
+
+//    // There is little value in using the visitor pattern due to detailed control of space between items.
+//    private RuleSetASTWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI) {
+//        if  (prefixMap == null )
+//            prefixMap = PrefixMapZero.empty; // Prefixes.empty()
+//
+//        this.out = Objects.requireNonNull(output);
+//        this.prefixMap = prefixMap;
+//        this.base = baseIRI;
+//        String baseStr = (baseIRI == null) ?null : baseIRI.str();
+//        this.nodeFormatter = new NodeFormatterTTL(baseStr, prefixMap);
+//    }
+
+    static class ASTWriterEngine {
+        private final IndentedWriter out;
+        private final PrefixMap prefixMap;
+        private final IRIx base;
+        private final NodeFormatter nodeFormatter;
+
+        ASTWriterEngine(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI) {
+            if  (prefixMap == null )
+                prefixMap = PrefixMapZero.empty; // Prefixes.empty()
+
+            this.out = Objects.requireNonNull(output);
+            this.prefixMap = prefixMap;
+            this.base = baseIRI;
+            String baseStr = (baseIRI == null) ?null : baseIRI.str();
+            this.nodeFormatter = new NodeFormatterTTL(baseStr, prefixMap);
+        }
+
+        public void writeRuleSet(RuleSet ruleSet) {
+            Objects.requireNonNull(ruleSet);
+
+            int depth = 0;
+
+            // WriterBasePrefix but update for PrefixMap.
+
+            if ( base != null ) {
+                writeBase(base);
+                depth++ ;
+            }
+            if ( prefixMap != null && !prefixMap.isEmpty() ) {
+                writePrefixes(prefixMap);
+                depth++ ;
+            }
+
+            out.print("(");
+            out.print(tagRuleSet);
+            out.println();
+            out.incIndent();
+
+            writeData(ruleSet);
+            writeRules(ruleSet);
+            out.decIndent();
+            out.println(")");
+            for ( int i = 0 ; i < depth ; i++ ) {
+                out.decIndent();
+                out.println(")");
+            }
+        }
+
+        private void writeRules(RuleSet ruleSet) {
+            List<Rule> rules = ruleSet.getRules();
+            boolean blankLine = false;//ruleSet.hasData();
+            for ( Rule rule : rules ) {
+                if ( blankLine ) {
+                    out.println();
+                }
+                //blankLine = true;
+                writeRule(rule);
+            }
+        }
+
+        public void writeRule(Rule rule) {
+            writeRule(rule, -1);
+        }
+
+        private void writeRule(Rule rule,int idx) {
+
+            out.print("(");
+            out.print(tagRule);
+            if ( rule.getId() != null ) {
+                out.print(" ");
+                nodeFormatter.format(out, rule.getId());
+            }
+            if ( idx >= 0 )
+                out.printf(" [%s]", idx);
+            out.println();
+            out.incIndent();
+
+            writeHead(rule);
+            writeBody(rule);
+
+            out.decIndent();
+            out.println(")");
+        }
+
+        private void writeHead(Rule rule) {
+            out.print("(");
+            out.println(tagHead);
+            out.incIndent();
+
+            rule.getHeadElements().forEach(elt -> {
+                switch(elt) {
+                    case EltTripleTemplate(Triple triple) -> { writeTriple(triple); }
+                    case EltTupleTemplate(Tuple tuple) -> { writeTuple(tuple); }
+                }
+                out.println();
+            });
+
+            out.decIndent();
+            out.println(")");
+        }
+
+        private void writeBody(Rule rule) {
+            out.print("(");
+            out.print(tagBody);
+            if ( rule.isGrounded() ) {
+                out.print(" ");
+                out.print(tagData);
+            }
+            out.println();
+
+            out.incIndent();
+
+            writeRuleElements(rule.getBodyElements());
+            out.ensureStartOfLine();
+
+            out.decIndent();
+            out.println(")");
+        }
+
+        private void writeRuleElements(List<RuleBodyElement> bodyElements) {
+                // Without braces.
+                boolean first = true;
+                for ( RuleBodyElement elt : bodyElements ) {
+                    //if ( ! first ) {}
+                    first = false;
+
+                    switch (elt) {
+                        case EltTriplePattern(Triple triplePattern) -> {
+                            writeTriple(triplePattern);
+                        }
+                        case EltTuplePattern(Tuple tuplePattern) -> {
+                            writeTuple(tuplePattern);
+                        }
+
+                        case EltFilter(Expr condition) -> {
+                            out.print("(");
+                            out.print(tagFilter);
+                            out.print(" ");
+                            writeExpr(condition);
+                            out.print(")");
+
+                            // Multi-line
+    //                        out.println("(");
+    //                        out.println(tagFilter);
+    //                        out.incIndent();
+    //                        writeExpr(condition);
+    //                        out.println();
+    //                        out.decIndent();
+    //                        out.print(")");
+                        }
+                        case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                            final int indentLevelNegation = 2 ;
+                            out.print("(");
+                            out.print(tagNot);
+                            if ( grounded ) {
+                                out.print(" ");
+                                out.print(tagData);
+                            }
+                            out.println();
+                            out.incIndent(indentLevelNegation);
+                            writeRuleElements(inner);
+                            out.decIndent(indentLevelNegation);
+                            out.print(")");
+                        }
+                        case EltAssignment(Var var, Expr expression) -> {
+                            out.print("(");
+                            out.print(tagSet);
+                            nodeFormatter.format(out, var);
+                            out.print(" := ");
+                            writeExpr(expression);
+                            out.print(")");
+                        }
+                        case null -> {
+                            throw new InternalErrorException();
+                        }
+                    }
+                    out.println();
+                }
+            }
+
+        private void printURI(String uriStr) {
+            out.print("<");
+            out.print(uriStr);
+            out.print(">");
+        }
+
+        private void writeData(RuleSet ruleSet) {
+            if ( ! ruleSet.hasData() )
+                return;
+
+            out.print("(");
+            out.println(tagData);
+            out.incIndent();
+
+            List<Triple> data = ruleSet.getDataTriples();
+
+            data.forEach(triple->{
+                writeTriple(triple);
+                out.println();
+            });
+
+            out.decIndent();
+            out.println(")");
+        }
+
+        private void writeBase(IRIx base) {
+            out.print("(");
+            out.print(tagBase);
+            out.print(" ");
+            printURI(base.str());
+            out.incIndent();
+            out.println();
+        }
+
+        private void writePrefixes(PrefixMap prefixMap) {
+            out.print("(");
+            out.print(tagPrefixes);
+            // Indent 2 levels
+            out.incIndent();
+            out.print(" (");
+            out.incIndent();
+            prefixMap.forEach((prefix, uriStr) -> {
+                // Base relative URI = but not prefix mappings!
+                out.println();
+                out.print("(");
+                out.print(prefix);
+                out.print(": ");
+                printURI(uriStr);
+                out.print(")");
+            });
+            out.println(")");
+            // Only one back
+            out.decIndent();
+            out.ensureStartOfLine();
+        }
+
+        // Space then triple.
+        private void writeTriple(Triple triple) {
+            nodeFormatter.format(out, triple.getSubject());
+            out.print(" ");
+            nodeFormatter.format(out, triple.getPredicate());
+            out.print(" ");
+            nodeFormatter.format(out, triple.getObject());
+            out.print(" .");
+        }
+
+        private void writeTuple(Tuple tuple) {
+            out.print(" $(");
+            boolean first = true;
+            for ( int i = 0 ; i < tuple.size() ; i++ ) {
+                if ( ! first )
+                    out.print(", ");
+            nodeFormatter.format(out, tuple.get(i));
+            }
+            out.print(")");
+        }
+
+        private void writeExpr(Expr expr) {
+            SerializationContext sCxt = new SerializationContext(Prefixes.adapt(prefixMap));
+            WriterExpr.output(out, expr, sCxt);
+        }
+    }
+}

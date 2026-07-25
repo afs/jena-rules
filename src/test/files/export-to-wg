@@ -19,6 +19,7 @@ function exportArea {
 ## exportArea wellformed
 ## exportArea stratification
 ## exportArea eval
+exportArea examples
 
 
 ## rm -f $DIR/README.md

@@ -1,0 +1,38 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.seaborne.jena.srl.lang;
+
+import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
+
+public interface RuleVisitor {
+
+    public default void visit(EltTripleTemplate eltTripleTemplate) {}
+    public default void visit(EltTupleTemplate eltTupleTemplate) {}
+
+    public default void visit(EltTriplePattern eltTriplePattern) {}
+    public default void visit(EltTuplePattern eltTuplePattern) {}
+    public default void visit(EltNegation eltNegation) {}
+    public default void visit(EltFilter eltFilter) {}
+    public default void visit(EltAssignment eltAssignment) {}
+}

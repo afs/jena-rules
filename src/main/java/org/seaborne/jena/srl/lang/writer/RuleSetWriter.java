@@ -1,0 +1,426 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.seaborne.jena.srl.lang.writer;
+
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.irix.IRIx;
+import org.apache.jena.query.ARQ;
+import org.apache.jena.riot.out.NodeFormatter;
+import org.apache.jena.riot.system.*;
+import org.apache.jena.riot.writer.DirectiveStyle;
+import org.apache.jena.riot.writer.TurtleShell;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.serializer.FmtExprSPARQL;
+import org.apache.jena.sparql.serializer.SerializationContext;
+import org.seaborne.jena.srl.Rule;
+import org.seaborne.jena.srl.RuleSet;
+import org.seaborne.jena.srl.ShaclRulesWriter.Style;
+import org.seaborne.jena.srl.lang.RuleBodyElement;
+import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.tuples.Tuple;
+
+public class RuleSetWriter {
+    private final IndentedWriter out;
+    private final PrefixMap prefixMap;
+    private final IRIx base;
+    private final NodeFormatter nodeFormatter;
+
+    private final Style styleRuleSet;
+
+    /** Write a rule set in multi-line style */
+    public static void write(IndentedWriter out, RuleSet ruleSet) {
+        write(out, ruleSet, Style.MultiLine);
+    }
+
+    /** Write a rule set */
+    public static void write(IndentedWriter out, RuleSet ruleSet, Style style) {
+        IRIx baseIRI = ruleSet.getBase();
+        PrefixMap prefixMap = ruleSet.getPrefixMap();
+        if ( prefixMap == null )
+            // Helps switching to/from PrefixMappings.
+            prefixMap = PrefixMapFactory.create();
+        try ( out ) {
+            write(out, ruleSet, prefixMap, baseIRI, style);
+        } finally { out.flush(); }
+    }
+
+    /** Write a rule set */
+    public static void write(IndentedWriter output, RuleSet ruleSet, PrefixMap prefixMap, IRIx baseIRI, Style style) {
+        RuleSetWriter srw = new RuleSetWriter(output, prefixMap, baseIRI, style);
+        output.setLineNumbers(true);
+        output.setFlushOnNewline(true);
+        srw.writeRuleSet(ruleSet);
+    }
+
+    /** Write a an abbreviated string for the rule e.g. for error messages */
+    public static void writeAbbrev(IndentedWriter output, Rule rule, PrefixMap prefixMap) {
+        RuleSetWriter srw = new RuleSetWriter(output, prefixMap, null, Style.Flat);
+        output.setLineNumbers(false);
+        output.setFlushOnNewline(true);
+        srw.writeRuleAbbrev(rule);
+    }
+
+//
+//    /** Write a rule set */
+//    public static void write(IndentedWriter out,  RuleSet ruleSet, Style style, PrefixMap prefixMap, IRIx baseIRI) {
+//        RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, style);
+//        try {
+//            srw.writeRuleSet(ruleSet);
+//        } finally {
+//            out.flush();
+//        }
+//    }
+
+    /** Write a rule */
+    public static void write(IndentedWriter out, Rule rule, PrefixMap prefixMap, IRIx baseIRI, Style style) {
+        RuleSetWriter srw = new RuleSetWriter(out, prefixMap, baseIRI, style);
+        try {
+            srw.writeRule(rule);
+        } finally {
+            out.flush();
+        }
+    }
+
+    // There is little value in using the visitor pattern due to detailed control of space between items.
+    private RuleSetWriter(IndentedWriter output, PrefixMap prefixMap, IRIx baseIRI, Style style) {
+        if  (prefixMap == null )
+            prefixMap = PrefixMapZero.empty; // Prefixes.empty()
+
+        this.out = Objects.requireNonNull(output);
+        this.prefixMap = prefixMap;
+        this.base = baseIRI;
+        String baseStr = (baseIRI == null) ? null : baseIRI.str();
+
+        //this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
+        // Quick fix: Every bnode is short but a different label across rules.
+        this.nodeFormatter = TurtleShell.createNodeFormatter(prefixMap, baseStr, ARQ.getContext());
+        this.styleRuleSet = Objects.requireNonNull(style);
+    }
+
+    public void writeRuleSet(RuleSet ruleSet) {
+        Objects.requireNonNull(ruleSet);
+
+        boolean hasBeenOutput = false;
+        if ( base != null ) {
+            RiotLib.writeBase(out, base.str(), DirectiveStyle.KEYWORD);
+            hasBeenOutput = true;
+        }
+        if ( prefixMap != null ) {
+            RiotLib.writePrefixes(out, prefixMap, DirectiveStyle.KEYWORD);
+            hasBeenOutput |= ! prefixMap.isEmpty();
+        }
+
+        out.flush();
+
+//        if ( hasBeenOutput )
+//            out.println();
+
+        if ( ruleSet.hasImports() ) {
+            for ( var importURI : ruleSet.getImports() ) {
+               out.printf("IMPORT ");
+
+               if ( prefixMap != null ) {
+                   String x = prefixMap.abbreviate(importURI);
+                   if ( x != null ) {
+                       out.println(x);
+                       continue;
+                   }
+               }
+               out.print('<');
+               out.print(importURI);
+               out.print('>');
+               out.println();
+            }
+        }
+
+        hasBeenOutput |= writeData(ruleSet);
+        hasBeenOutput |= writeTupleData(ruleSet);
+
+        List<Rule> rules = ruleSet.getRules();
+        boolean blankLine = hasBeenOutput;
+
+        if ( ! rules.isEmpty() ) {
+            for ( Rule rule : rules ) {
+                if ( blankLine ) {
+                    out.println();
+                }
+                blankLine = true;
+                writeRule(rule);
+            }
+        }
+    }
+
+    private boolean writeData(RuleSet ruleSet) {
+        if ( ! ruleSet.hasData() )
+            return false;
+        List<Triple> data = ruleSet.getDataTriples();
+
+        out.print("DATA {");
+        if ( styleRuleSet == Style.Flat || data.size() == 1 ) {
+            data.forEach(triple->{
+                out.print(" ");
+                writeTriple(triple);
+            });
+            out.println(" }");
+            return true;
+        }
+        out.println();
+        out.incIndent();
+        data.forEach(triple->{
+            writeTriple(triple);
+            out.println();
+        });
+        out.decIndent();
+        out.println("}");
+        return true;
+    }
+
+    private boolean writeTupleData(RuleSet ruleSet) {
+        if ( ! ruleSet.hasTupleData() )
+            return false;
+        List<Tuple> tuples = ruleSet.getDataTuples();
+        out.print("TUPLES {");
+        //if ( styleRuleSet == Style.Flat || tuples.size() == 1 ) {
+        if ( tuples.size() == 1 ) {
+            tuples.forEach(tuple->{
+                out.print(" ");
+                writeTuple(tuple);
+            });
+            out.println(" }");
+            return true;
+        }
+        out.println();
+        out.incIndent();
+        tuples.forEach(tuple->{
+            writeTuple(tuple);
+            out.println();
+        });
+        out.decIndent();
+        out.println("}");
+        return true;
+    }
+
+    public void writeRule(Rule rule) {
+        Style styleHead = this.styleRuleSet;
+        Style styleBody = rule.getBodyElements().size() > 2 ? Style.MultiLine : Style.Flat ;
+        out.print("RULE ");
+        if ( rule.getId() != null ) {
+            nodeFormatter.format(out, rule.getId());
+            out.print(" ");
+        }
+        writeHead(rule, styleHead);
+        if ( styleRuleSet == Style.MultiLine )
+            out.println();
+        else
+            out.print(" ");
+        out.print("WHERE ");
+        if ( rule.isGrounded() )
+            out.print("DATA ");
+        writeBody(rule, styleBody);
+    }
+
+    private void writeRuleAbbrev(Rule rule) {
+        Style styleHead = Style.Flat ;
+        out.print("RULE ");
+        if ( rule.getId() != null ) {
+            nodeFormatter.format(out, rule.getId());
+            out.print(" ");
+        }
+        writeHead(rule, styleHead);
+        if ( styleRuleSet == Style.MultiLine )
+            out.println();
+        else
+            out.print(" ");
+        out.print("WHERE ...");
+    }
+
+    private void writeHead(Rule rule, Style styleRule) {
+        out.print("{");
+        rule.getHeadTriples().forEach(triple -> {
+            out.print(" ");
+            writeTriple(triple);
+        });
+        rule.getHeadTuples().forEach(tuple -> {
+            out.print(" ");
+            writeTuple(tuple);
+        });
+        out.print(" }");
+    }
+
+    private void writeBody(Rule rule, Style styleBody) {
+        switch(styleBody) {
+            case Flat->{
+                writeBodyBlock(rule, styleBody);
+            }
+            case MultiLine->{
+                int initIndent = out.getAbsoluteIndent();
+                int offset = out.getCol()-6;
+                out.setAbsoluteIndent(offset);
+                try {
+                    writeBodyBlock(rule, styleBody);
+                } finally {
+                    out.setAbsoluteIndent(initIndent);
+                }
+            }
+        }
+    }
+
+    private void writeBodyBlock(Rule rule, Style styleBody) {
+        int indent = 2;
+
+        switch(styleBody) {
+            case Flat -> {
+                out.setFlatMode(true);
+                out.print("{ ");
+            }
+            case MultiLine -> {
+                out.print("{");
+                out.println();
+                out.incIndent(indent);
+            }
+        }
+
+        writeRuleElements(rule.getBodyElements(), styleBody);
+
+        switch(styleBody) {
+            case Flat -> {
+                out.print(" }");
+                out.setFlatMode(false);
+            }
+            case MultiLine ->{
+                out.decIndent(indent);
+                out.println();
+                out.print("}");
+            }
+        }
+
+        out.ensureStartOfLine();
+
+        out.flush();
+    }
+
+    private void writeRuleElements(List<RuleBodyElement> bodyElements, Style styleBody) {
+        // Without braces.
+        boolean first = true;
+        for ( RuleBodyElement elt : bodyElements ) {
+            if ( ! first ) {
+                if ( styleBody == Style.MultiLine )
+                    out.println();
+                else
+                    out.print(" ");
+            }
+            first = false;
+
+            switch (elt) {
+                case EltTriplePattern(Triple triplePattern) -> {
+                    writeTriple(triplePattern);
+                }
+                case EltTuplePattern(Tuple tuplePattern) -> {
+                    writeTuple(tuplePattern);
+                }
+
+                case EltFilter(Expr condition) -> {
+                    out.write("FILTER");
+                    writeExpr(condition);
+                }
+                case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                    out.write("NOT ");
+                    if ( grounded )
+                        out.write("DATA ");
+                    out.write("{");
+                    out.println();
+                    final int indentLevelNegation = 4 ;
+                    out.incIndent(indentLevelNegation);
+                    writeRuleElements(inner, styleBody);
+                    out.decIndent(indentLevelNegation);
+                    out.println();
+                    out.write(" }");
+                }
+                case EltAssignment(Var var, Expr expression) -> {
+                    out.write("SET( ");
+                    nodeFormatter.format(out, var);
+                    out.write(" := ");
+                    writeExpr(expression);
+                    out.write(" )");
+                }
+                case null -> {
+                    throw new InternalErrorException();
+                }
+            }
+        }
+    }
+
+    // Space then triple.
+    private void writeTriple(Triple triple) {
+        nodeFormatter.format(out, triple.getSubject());
+        out.print(" ");
+        nodeFormatter.format(out, triple.getPredicate());
+        out.print(" ");
+        nodeFormatter.format(out, triple.getObject());
+        out.print(" .");
+    }
+
+    private void writeTuple(Tuple tuple) {
+        out.print("$(");
+        boolean first = true;
+        for ( int i = 0 ; i < tuple.size() ; i++ ) {
+            if ( ! first )
+                out.print(", ");
+            else
+                first = false;
+            nodeFormatter.format(out, tuple.get(i));
+        }
+        out.print(")");
+    }
+
+    private void writeExpr(Expr expr) {
+        SerializationContext sCxt = new SerializationContext(Prefixes.adapt(prefixMap));
+        FmtExprSPARQL v = new FmtExprSPARQL(out, sCxt);
+
+//            public FmtExprSPARQL(IndentedWriter writer, PrefixMap pmap) {
+//                visitor = new FmtExprARQVisitor(writer, Prefixes.adapt(pmap));
+//            }
+//
+//            FmtExprSPARQL v = new FmtExprSPARQL(out, prefixMap);
+
+        boolean addParens = false;
+        if ( expr.isVariable() )
+            addParens = true;
+        if ( expr.isConstant() )
+            addParens = true;
+
+        if ( addParens )
+            out.print("( ");
+
+        // no expr if node value.
+
+        v.format(expr); // DOES NOT PRINT!
+        if ( addParens )
+            out.print(" )");
+    }
+    }

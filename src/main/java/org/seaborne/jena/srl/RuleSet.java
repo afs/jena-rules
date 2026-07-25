@@ -1,0 +1,325 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *   SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.seaborne.jena.srl;
+
+import java.util.*;
+import java.util.function.BiConsumer;
+
+import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.atlas.lib.tuple.TupleFactory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.irix.IRIx;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.Prefixes;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.IsoMatcher;
+import org.seaborne.jena.srl.tuples.Tuple;
+import org.seaborne.jena.srl.tuples.TupleStore;
+
+public class RuleSet {
+
+    private final IRIx base;
+    private final PrefixMap prefixMap;
+    private final List<Rule> rules;
+    private final List<Triple> dataTriples;
+    private final List<Tuple> dataTuples;
+    private final Graph data;
+    private final TupleStore tuples;
+    private final Set<String> imports;
+
+    /**
+     * Are two rule sets1 equivalent for execution purposes?
+     */
+    static boolean equivalentRuleSets(RuleSet ruleSet1, RuleSet ruleSet2) {
+        Objects.requireNonNull(ruleSet1);
+        Objects.requireNonNull(ruleSet2);
+        if ( ruleSet1 == ruleSet2 )
+            return true;
+
+        List<Rule> r1 = ruleSet1.getRules();
+        List<Rule> r2 = ruleSet2.getRules();
+
+        if ( r1.size() != r2.size () )
+            return false;
+        int N = r1.size();
+
+        // Copy.
+        List<Rule> checked = new ArrayList<>(r2);
+
+        for ( Rule rule1 : r1 ) {
+            boolean matched = false;
+            for ( Rule rule2 : checked ) {
+                if ( rule1.equivalent(rule2) ) {
+                    // Match for rule2.
+                    // Remove so it does not get matched again.
+                    checked.remove(rule2);
+                    matched = true;
+                    break;
+                }
+            }
+            // Did not match rule1 => false
+            if ( ! matched )
+                return false;
+        }
+        // matched checked should be empty.
+        if ( !checked.isEmpty() )
+            throw new InternalErrorException("Expected 'checked' to be empty");
+
+        // Now check data.
+        Graph d1 = ruleSet1.getData();
+        Graph d2 = ruleSet2.getData();
+        if ( d1 == null && d2 == null )
+            return true;
+        if ( d1 == null || d2 == null )
+            return false;
+        if ( ! IsoMatcher.isomorphic(d1, d2) )
+            return false;
+
+        // Now check tuples data.
+        if ( ruleSet1.hasTupleData() != ruleSet2.hasTupleData() )
+            return false;
+
+        if ( ruleSet1.hasTupleData() && ruleSet2.hasTupleData() ) {
+            List<Tuple> tuples1 = ruleSet1.getDataTuples();
+            List<Tuple> tuples2 = ruleSet1.getDataTuples();
+
+            // Convert to general tuples.
+
+            List<org.apache.jena.atlas.lib.tuple.Tuple<Node>> x1 = tuples1.stream().map(t->TupleFactory.create(t.terms())).toList();
+            List<org.apache.jena.atlas.lib.tuple.Tuple<Node>> x2 = tuples2.stream().map(t->TupleFactory.create(t.terms())).toList();
+           if ( ! IsoMatcher.isomorphicTuples(x1, x2) )
+               return false;
+        }
+        return true;
+    }
+
+    // Morph in to RulSetParser?
+    private static class Builder {
+        IRIx base;
+        PrefixMap prefixMap;
+        List<Rule> rules;
+        List<Triple> dataTriples;
+        List<Tuple> dataTuples;
+    }
+
+    public static RuleSet create(IRIx base,
+                          PrefixMap prefixMap,
+                          Set<String> imports,
+                          List<Rule> rules,
+                          List<Triple> dataTriples, List<Tuple> dataTuples) {
+        return new RuleSet(base, prefixMap, imports, rules, dataTriples, dataTuples);
+    }
+
+    private RuleSet(IRIx base, PrefixMap prefixMap, Set<String> imports, List<Rule> rules, List<Triple> dataTriples, List<Tuple> dataTuples) {
+        this.base = base;
+        this.prefixMap = Objects.requireNonNull(prefixMap);
+        this.imports = imports;
+        this.rules = Objects.requireNonNull(rules);
+        this.dataTriples = dataTriples;
+        this.dataTuples = dataTuples;
+
+        Graph graph = null;
+        if ( dataTriples != null && ! dataTriples.isEmpty() ) {
+            graph = GraphFactory.createDefaultGraph();
+            GraphUtil.add(graph, dataTriples);
+            if ( prefixMap != null ) {
+                graph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(prefixMap));
+            }
+        }
+        this.data = graph;
+
+        TupleStore tupleStore = null ;
+
+        if ( dataTuples != null && ! dataTuples.isEmpty() ) {
+            tupleStore = TupleStore.create();
+            tupleStore.addAll(dataTuples);
+        }
+        tuples = tupleStore;
+    }
+
+    public PrefixMap getPrefixMap() {
+        return prefixMap;
+    }
+
+    public boolean hasPrefixMap() {
+        if ( prefixMap == null )
+            return false;
+        return ! prefixMap.isEmpty();
+    }
+
+    /**
+     * Return the base URI if it was explicitly declared during parsing.
+     * Return null if parsing did not see {@code BASE} in the input.
+     * <p>
+     * Warning: a rule set file may have several {@code BASE} declarations.
+     * It is not determined which is returned,
+     * only that the same one will be returned each call.
+     */
+    public IRIx getBase() {
+        return base;
+    }
+
+    public boolean hasRules() {
+        return rules != null && ! rules.isEmpty();
+    }
+
+    public List<Rule> getRules() {
+        return rules;
+    }
+
+    /**
+     * Apply an action to each (index, rule).
+     * This is primarily to aid development.
+     * It gives a view of the rules set with local identifiers for each rule.
+     * For example, printing the full rule when explaining execution is too verbose.
+     */
+    //public
+    private void applyRules(BiConsumer<Integer, Rule> action) {
+        List<Rule> x = getRules();
+        int N = x.size();
+        for ( int idx = 0 ; idx < N ; idx++ ) {
+            action.accept(idx, x.get(idx));
+        }
+    }
+
+    /**
+     * Return a rule from the rule set by looking for it by id (a URI).
+     */
+    public Rule getRule(Node ruleId) {
+        if ( ruleId == null )
+            return null;
+        for ( Rule r : rules ) {
+            if ( r.getId() != null ) {
+                if ( r.getId().sameTermAs(ruleId) )
+                    return r;
+            }
+        }
+        return null;
+    }
+
+//    @Override
+//    public Iterator<Rule> iterator() {
+//        return rules.iterator();
+//    }
+
+    public Graph getData() {
+        return data;
+    }
+
+    public boolean hasData() {
+        if ( dataTriples == null )
+            return false;
+        return ! dataTriples.isEmpty();
+    }
+
+    /** The list of triples as given - may include duplicates */
+    public List<Triple> getDataTriples() {
+        return dataTriples;
+    }
+
+    public boolean hasTupleData() {
+        if ( dataTuples == null )
+            return false;
+        return ! dataTuples.isEmpty();
+    }
+
+    /** The list of tuples as given - may include duplicates */
+    public List<Tuple> getDataTuples() {
+        return dataTuples;
+    }
+
+    public TupleStore getTupleStore() {
+        return tuples;
+    }
+
+    public boolean hasImports() {
+        return imports != null && ! imports.isEmpty();
+    }
+
+    public Collection<String> getImports() {
+        return imports;
+    }
+
+    /** Any rules? */
+    public boolean isEmpty() {
+        return rules.isEmpty();
+    }
+
+    public int numRules() {
+        return rules.size();
+    }
+
+    @Override
+    public String toString() {
+        return rules.toString();
+    }
+
+    /** String for a rule */
+    public String str(Rule rule) {
+        return String.format("%s %s", labelFor(rule), ShaclRulesWriter.abbreviatedString(rule, getPrefixMap()));
+    }
+
+    // Labelling and tracing.
+
+    private boolean labellingInitialized = false;
+    private Map<Rule, String> ruleToLabel = null;
+    private Map<Rule, Integer> ruleToIndex = null;
+    private Map<String, Rule> labelToRule = null;
+    /**
+     * Return a label to identify a rule within the rule set.
+     * This is for tracing and and logging.
+     */
+    public String labelFor(Rule rule) {
+        initLabelling();
+        return ruleToLabel.get(rule);
+    }
+
+    public int indexFor(Rule rule) {
+        initLabelling();
+        return ruleToIndex.get(rule);
+    }
+
+    public Rule ruleForLabel(String label) {
+        initLabelling();
+        return labelToRule.get(label);
+    }
+
+    private void initLabelling() {
+        if ( ! labellingInitialized  ) {
+            // Avoid total packed.
+            int N = Math.round(1.25f*rules.size());
+            ruleToLabel = new IdentityHashMap<>(N);
+            labelToRule = new IdentityHashMap<>(N);
+            ruleToIndex = new IdentityHashMap<>(N);
+            labellingInitialized = true;
+            this.applyRules((idx, rule)->{
+                String label = String.format("[%s]", idx);
+                ruleToLabel.put(rule, label);
+                labelToRule.put(label, rule);
+                ruleToIndex.put(rule, idx);
+            });
+        }
+    }
+}
