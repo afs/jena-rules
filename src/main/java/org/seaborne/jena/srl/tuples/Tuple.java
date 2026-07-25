@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.core.Var;
 
 public class Tuple implements Iterable<Node> {
@@ -84,6 +85,14 @@ public class Tuple implements Iterable<Node> {
         StringJoiner sj = new StringJoiner(", ", "$(", ")");
         for ( Node n : items ) {
             sj.add(NodeFmtLib.displayStr(n));
+        }
+        return sj.toString() ;
+    }
+
+    public String toString(PrefixMap prefixMap) {
+        StringJoiner sj = new StringJoiner(", ", "$(", ")");
+        for ( Node n : items ) {
+            sj.add(NodeFmtLib.str(n, prefixMap));
         }
         return sj.toString() ;
     }
