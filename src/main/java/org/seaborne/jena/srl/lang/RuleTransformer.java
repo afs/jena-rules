@@ -25,8 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
+import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public class RuleTransformer {
@@ -90,6 +95,56 @@ public class RuleTransformer {
         builder.ruleIdentifier(rule.getId());
         builder.groundedRule(rule.isGrounded()); // ???
         return builder.build();
+    }
+
+    static class Worker {
+        static RuleHeadElement transform(RuleTransform transform, RuleHeadElement original,
+                                         EltTripleTemplate eltTripleTemplate, Triple tripleTemplate) {
+            RuleHeadElement newElt = transform.transform(eltTripleTemplate, tripleTemplate);
+            if ( original == newElt )
+                return original;
+            switch(newElt) {
+                case RuleHeadElement.EltTripleTemplate(Triple _tripleTemplate) -> {
+                    if ( _tripleTemplate == tripleTemplate )
+                        // No change
+                        return original;
+                }
+                // Was triple, now tuple -> must be different.
+                case RuleHeadElement.EltTupleTemplate(Tuple _tupleTemplate) -> { return newElt; }
+                //case null -> {}
+                //default -> {}
+            }
+            return newElt;
+        }
+
+        public static RuleHeadElement transform(RuleTransform transform, RuleHeadElement original,
+                                                EltTupleTemplate eltTupleTemplate, Tuple tupleTemplate) {
+            RuleHeadElement newElt = transform.transform(eltTupleTemplate, tupleTemplate);
+            if ( original == newElt )
+                return original;
+            switch(newElt) {
+                // Was tuple, now triple -> must be different.
+                case RuleHeadElement.EltTripleTemplate(Triple _tripleTemplate) -> { return newElt ; }
+                case RuleHeadElement.EltTupleTemplate(Tuple _tupleTemplate) -> {
+                    if ( _tupleTemplate == tupleTemplate )
+                        // No change
+                        return original;
+                }
+                //case null -> {}
+                //default -> {}
+            }
+            return newElt;
+        }
+
+        public static RuleBodyElement transform(EltTriplePattern eltTriplePattern,Triple triplePattern) { return null; }
+
+        public static RuleBodyElement transform(EltTuplePattern eltTuplePattern, Tuple tuplePattern) { return null; }
+
+        public static RuleBodyElement transform(EltNegation eltNegation, List<RuleBodyElement> inner, boolean grounded) { return null; }
+
+        public static RuleBodyElement transform(EltFilter eltFilter, Expr expr) { return null; }
+
+        public static RuleBodyElement transform(EltAssignment eltAssignment, Var var, Expr value) { return null; }
     }
 
     private static RuleHeadElement transformHeadElt(RuleHeadElement headElt, RuleTransform transform) {
