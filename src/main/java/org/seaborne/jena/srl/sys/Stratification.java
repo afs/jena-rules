@@ -60,6 +60,7 @@ public class Stratification {
     // from rule with rule dependencies.
     static Integer minDependentStratum = Integer.valueOf(1);
 
+    final private RuleSet ruleSet;
     final private int minStratum;
     final private int maxStratum;
     final private List<Stratum> stratumLevels;
@@ -81,9 +82,14 @@ public class Stratification {
     private Stratification(int minStratum, int maxStratum, List<Stratum> stratumLevels, RuleSet ruleSet) {
         if ( minStratum < 0 )
             throw new IllegalArgumentException("Negative minStratum");
+        this.ruleSet = ruleSet;
         this.minStratum = minStratum;
         this.maxStratum = maxStratum;
         this.stratumLevels = stratumLevels;
+    }
+
+    public RuleSet ofRuleSet() {
+        return ruleSet;
     }
 
     public Stratum getLevel(int i) {

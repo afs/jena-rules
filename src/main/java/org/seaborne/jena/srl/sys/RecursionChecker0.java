@@ -81,7 +81,7 @@ public class RecursionChecker0 {
      * This function throws an exception if it finds an illegal recursion.
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph, RulesExecCxt rCxt) {
-        for ( Rule rule : depGraph.getRuleSet().getRules()) {
+        for ( Rule rule : depGraph.ofRuleSet().getRules()) {
             // Throws an exception on an illegal recursion.
             /*IsRecursive isRecursive = */ RecursionChecker0.checkRecursion(depGraph, rule);
         }
@@ -99,7 +99,7 @@ public class RecursionChecker0 {
         if ( path.contains(rule) ) {
             if ( seenNegation == PathIncludesNegation.YES ) {
                 // Need abbreviates rule e.g.RULE { head } WHERE ...
-                String ruleStr = ShaclRulesWriter.abbreviatedString(rule, depGraph.getRuleSet().getPrefixMap());
+                String ruleStr = ShaclRulesWriter.abbreviatedString(rule, depGraph.ofRuleSet().getPrefixMap());
                 //String ruleStr = "Rule ["+rule.localId+"]";
                 throw new RecursionException(ruleStr, path);
             }

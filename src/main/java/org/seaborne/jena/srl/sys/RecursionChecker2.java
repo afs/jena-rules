@@ -82,7 +82,7 @@ public class RecursionChecker2 {
 
         if ( ! SysJenaRules.performRecursionCheck )
             return;
-        for ( Rule rule : depGraph.getRuleSet().getRules()) {
+        for ( Rule rule : depGraph.ofRuleSet().getRules()) {
 
             // XXX Add this test
             //if ( rule.isRunOnceRule() || rule.hasNegation() )

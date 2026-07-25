@@ -72,7 +72,7 @@ public class RecursionChecker {
      * This function throws an exception if it finds an illegal recursion.
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph, RulesExecCxt rCxt) {
-        for ( Rule rule : depGraph.getRuleSet().getRules()) {
+        for ( Rule rule : depGraph.ofRuleSet().getRules()) {
             // Throws an exception on an illegal recursion.
             /*IsRecursive isRecursive = */ RecursionChecker.checkRecursion(depGraph, rule);
         }

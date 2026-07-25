@@ -36,6 +36,7 @@ import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
 import org.seaborne.jena.srl.ShaclRulesWriter;
+import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
@@ -95,7 +96,10 @@ public class DependencyGraph {
 
     private DependencyGraph(RuleSet ruleSet, RulesExecCxt rCxt) {
         this.ruleSet = ruleSet;
+        build(ruleSet, rCxt);
+    }
 
+    private void build(RuleSet ruleSet2, RulesExecCxt rCxt) {
         // Head triple template to rule.
         // Keep?
         MultiValuedMap<Triple, Rule> providers = MultiMapUtils.newListValuedHashMap();
@@ -120,6 +124,10 @@ public class DependencyGraph {
                 direct.putAll(rule, connections);
             }
         });
+
+        if ( Examine.EXAMINE ) {
+            print(rCxt.out());
+        }
     }
 
     // ---- Calculate the direct edge set.
@@ -282,7 +290,7 @@ public class DependencyGraph {
         return true;
     }
 
-    public RuleSet getRuleSet() {
+    public RuleSet ofRuleSet() {
         return ruleSet;
     }
 
