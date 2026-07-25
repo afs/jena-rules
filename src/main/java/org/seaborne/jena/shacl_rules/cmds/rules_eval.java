@@ -44,6 +44,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.seaborne.jena.shacl_rules.*;
+import org.seaborne.jena.shacl_rules.examine.Examine;
 import org.seaborne.jena.shacl_rules.exec.RuleSetEvaluation;
 import org.seaborne.jena.shacl_rules.exec.RulesEngineRegistry;
 import org.seaborne.jena.shacl_rules.lang.parser.ShaclRulesParseException;
@@ -106,8 +107,12 @@ public class rules_eval extends CmdRules {
         }
 
         boolean verbose = super.isVerbose();
+        if ( verbose ) {
+            Examine.EXAMINE = true;
+        }
+
         try {
-            RulesEngine engine = defaultRulesEngine(data, ruleSet).setTrace(verbose);
+            RulesEngine engine = defaultRulesEngine(data, ruleSet); //.setTrace(verbose);
             exec(ruleSet, data, engine);
         }
         catch (NotWellFormedException ex) {
@@ -131,13 +136,29 @@ public class rules_eval extends CmdRules {
         throw new TerminationException(rc);
     }
 
-    private static RulesEngine defaultRulesEngine(Graph data, RuleSet ruleSet) {
+    private static RulesEngine defaultRulesEngine(Graph baseGraph, RuleSet ruleSet) {
         RulesEngine engine = RulesEngineRegistry.get()
-                .create(SysJenaRules.dftEngineType, data, null, ruleSet, Rules.getContext());
+                .create(SysJenaRules.dftEngineType, baseGraph, null, ruleSet, Rules.getContext());
         return engine;
     }
 
-    private static void exec(RuleSet ruleSet, Graph data, RulesEngine engine) {
+    private static void exec(RuleSet ruleSet, Graph baseGraph, RulesEngine engine) {
+        boolean printRuleSet = Examine.EXAMINE;
+        boolean printBaseGraph = true;
+        boolean printRulesData = false;
+        boolean printInfGraph = true;
+        boolean printOutputGraph = true;
+
+        boolean havePrinted = false;
+        if ( printRuleSet ) {
+            if ( havePrinted )
+                System.out.println();
+            System.out.println("==== Rules");
+            ShaclRulesWriter.write(System.out, ruleSet, false);
+            System.out.println();
+            havePrinted = true;
+        }
+
         RuleSetEvaluation e = engine.eval();
         Graph accGraph = e.inferredTriples();
         Graph output = e.outputGraph();
@@ -146,30 +167,13 @@ public class rules_eval extends CmdRules {
 //            System.out.println();
 //        }
 
-        boolean printRuleSet = true;
-        boolean printBaseGraph = true;
-        boolean printRulesData = ! printRuleSet;
-        boolean printInfGraph = true;
-        boolean printOutputGraph = true;
-
-        boolean havePrinted = false;
-
-        if ( printRuleSet ) {
-            if ( havePrinted )
-                System.out.println();
-            System.out.println("## Rules");
-            ShaclRulesWriter.write(System.out, ruleSet, false);
-            havePrinted = true;
-        }
-
         if ( printBaseGraph ) {
-            if ( ! data.isEmpty() ) {
+            if ( ! baseGraph.isEmpty() ) {
                 if ( havePrinted )
                     System.out.println();
 
                 System.out.println("## Data graph");
-                print(System.out, data);
-                System.out.println();
+                print(System.out, baseGraph);
                 havePrinted = true;
             }
         }
@@ -185,12 +189,16 @@ public class rules_eval extends CmdRules {
             }
         }
 
-        if ( printInfGraph ) {
-            if ( havePrinted )
-                System.out.println();
-            System.out.println("## Inferred");
-            print(System.out, accGraph);
-            havePrinted = true;
+
+        if ( ! baseGraph.isEmpty() ) {
+            // If the base graph is empty, "inferred" and "output" are the same
+            if ( printInfGraph ) {
+                if ( havePrinted )
+                    System.out.println();
+                System.out.println("## Inferred");
+                print(System.out, accGraph);
+                havePrinted = true;
+            }
         }
 
         if ( printOutputGraph ) {
@@ -201,9 +209,9 @@ public class rules_eval extends CmdRules {
             havePrinted = true;
         }
 
-        // Exit
-        if ( havePrinted )
-            System.out.println();
+//        // Exit
+//        if ( havePrinted )
+//            System.out.println();
     }
 
     /**

@@ -164,6 +164,10 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
     }
 
     private RuleSetEvaluation evalStratification(AppendGraph dataGraph, Stratification stratification, TupleStore tupleStore) {
+
+        if ( Examine.EXAMINE )
+            rCxt.out().println("==== Evaluation");
+
         try {
             for ( int i = stratification.minStratum() ; i <= stratification.maxStratum() ; i++ ) {
                 Stratum stratum = stratification.getLevel(i);
@@ -183,8 +187,6 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
                     rCxt.out().decIndent();
             }
         } finally {
-            if ( Examine.EXAMINE )
-                rCxt.out().println();
             rCxt.out().flush(); }
 
         return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);

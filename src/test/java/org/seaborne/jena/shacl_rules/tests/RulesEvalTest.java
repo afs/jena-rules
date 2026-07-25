@@ -28,6 +28,7 @@ import java.io.PrintStream;
 
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RDFFormat;
@@ -111,8 +112,12 @@ public class RulesEvalTest implements Runnable {
     }
 
     private static Graph read(Node g) {
-        return RDFParser.source(g.getURI()).toGraph();
+        String URI = g.getURI();
+        String FN = IRILib.IRIToFilename(URI);
+        if ( ! FileOps.exists(FN) ) {
+            System.err.println("No such file: "+FN);
+            throw new RuntimeException("No such file: "+FN);
+        }
+        return RDFParser.source(URI).toGraph();
     }
-
-
 }

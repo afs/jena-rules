@@ -258,7 +258,8 @@ public class Stratification {
 
         if ( TRACE || Examine.EXAMINE ) {
             // Development.
-            rCxt.out().printf("==== Stratification (levels = %d)\n", maxStratum);
+            // From zero (base graph strata)
+            rCxt.out().printf("==== Stratification (levels = %d)\n", maxStratum+1);
             for ( int i = 0 ; i <= maxStratum ; i++ ) {
                 rCxt.out().printf("  == Layer %d\n", i);
                 Stratum layer = layers.get(i);
