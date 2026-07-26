@@ -28,6 +28,7 @@ import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.exec.RulesEngineRegistry;
+import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.sys.SysJenaRules;
 import org.seaborne.jena.srl.tuples.TupleStore;
 
@@ -46,7 +47,7 @@ public class ShaclRulesExec {
      * Create a rules engine for the graph data and the rule set.
      */
     public static RulesEngine create(EngineType engineType, Graph graph, RuleSet ruleSet) {
-        return RulesEngineRegistry.get().create(engineType, graph, null, ruleSet, Rules.getContext());
+        return RulesEngineRegistry.get().create(engineType, graph, null, ruleSet, SysSRL.getContext());
     }
 
     /**
@@ -108,7 +109,7 @@ public class ShaclRulesExec {
             require(ruleSet, "Required: ruleset");
             require(engineType, "Required: engineType");
 
-            Context cxt = (context==null) ? Rules.getContext().copy() : context;
+            Context cxt = (context==null) ? SysSRL.getContext().copy() : context;
 
             RulesEngine ruleEngine = RulesEngineRegistry.get().create(engineType, baseGraph, tupleStore, ruleSet, context);
             if ( ruleEngine == null )

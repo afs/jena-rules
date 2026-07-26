@@ -50,6 +50,7 @@ import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.sys.DependencyGraph;
 import org.seaborne.jena.srl.sys.RuleDependencies;
+import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.tuples.Tuple;
 import org.seaborne.jena.srl.tuples.TupleStore;
 
@@ -76,7 +77,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             throw new RuleEvalException("Tuples not supported for "+RulesEngineBkdNonRecursive.class.getSimpleName());
         if ( ruleSet.hasTupleData() && ruleSet.getDataTuples().isEmpty() )
             throw new RuleEvalException("Tuples in rule set : not supported for "+RulesEngineBkdNonRecursive.class.getSimpleName());
-        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(Rules.getContext());
+        RulesExecCxt rCxt = RulesExecCxt.create(SysSRL.getContext());
         RulesExecLib.prepare(ruleSet, rCxt);
         return new RulesEngineBkdNonRecursive(graph, ruleSet);
     }
@@ -275,7 +276,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 }
                 case EltFilter(Expr condition) -> {
                     chain = Iter.filter(chain, solution-> {
-                        FunctionEnv functionEnv = new FunctionEnvBase(Rules.getContext());
+                        FunctionEnv functionEnv = new FunctionEnvBase(SysSRL.getContext());
                         // ExprNode.isSatisfied converts ExprEvalException to false.
                         return condition.isSatisfied(solution, functionEnv);
                     });

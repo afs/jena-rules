@@ -48,7 +48,7 @@ public class RulesEngineFwdSimple extends AbstractRulesEngineFwdSimple implement
      */
     private
     static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
-        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
+        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
         return new RulesEngineFwdSimple(graph, tupleStore, ruleSet, rCxt);
     }
 
@@ -61,7 +61,7 @@ public class RulesEngineFwdSimple extends AbstractRulesEngineFwdSimple implement
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule) {
+    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
         RuleEval rEval = RulesExecLib.evalRule(rule, graph, evalTupleStore, rCxt);
         RulesExecLib.accumulateOneRuleHead(rEval, graph, evalTupleStore, rCxt);
     }

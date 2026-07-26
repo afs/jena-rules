@@ -25,11 +25,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.ShaclRules;
+import org.seaborne.jena.srl.sys.SysSRL;
 
 /**
  * Rule execution environment.
@@ -51,17 +51,18 @@ public class RulesExecCxt implements FunctionEnv {
 
     /* A general purpose setting */
     private static RulesExecCxt global = RulesExecCxt.create();
-    /* A general purpose setting */
+    /** RulesExecCxt - not prepared for execution */
     public static RulesExecCxt get() { return global; }
 
     public static RulesExecCxt create() {
-        return create(ARQ.getContext());
+        return create(SysSRL.getContext());
     }
 
     public static RulesExecCxt create(Context context) {
         // Always isolate.
         // Be careful not to copy too many times!
         Context context1 = context.copy();
+        // XXX Replacement: Context.setCurrentDateTimeIfUndef(context1);
         Context.setCurrentDateTime(context1);
         AtomicBoolean cancelSignal = new AtomicBoolean(false);
         return new RulesExecCxt(context1, cancelSignal);

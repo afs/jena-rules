@@ -55,7 +55,7 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      */
     private
     static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
-        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
+        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
         return new RulesEngineFwdSimpleSparqlBody(graph, tupleStore, ruleSet, rCxt);
     }
 
@@ -68,22 +68,25 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule) {
-        execAccRuleSPARQL(graph, evalTupleStore, rule);
+    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
+        execAccRuleSPARQL(graph, evalTupleStore, rule, rCxt);
     }
 
     /**
      * One execution of one rule.
      * The argument graph is updated.
      */
-    private void execAccRuleSPARQL(Graph graph, TupleStore evalTupleStore, Rule rule) {
+    private void execAccRuleSPARQL(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
         // Can cache the query!
         Query query = RulesLibSparql.ruleBodyToQuery(rule.getBody());
 
         // Prefixes.adapt(query.getPrefixMapping()).putAll(P.prefixMap());
         // System.out.println(query);
-
-        RowSet rowSet = QueryExec.graph(graph).query(query).select();
+        QueryExec qExec = QueryExec.graph(graph)
+                .query(query)
+                .context(rCxt.getContext())
+                .build();
+        RowSet rowSet = qExec.select();
         Iterator<Binding> iter = rowSet;
 
         if ( true ) {

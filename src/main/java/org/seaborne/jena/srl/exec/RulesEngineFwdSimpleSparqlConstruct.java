@@ -52,7 +52,7 @@ public class RulesEngineFwdSimpleSparqlConstruct extends AbstractRulesEngineFwdS
      */
     private
     static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
-        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
+        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
         return new RulesEngineFwdSimpleSparqlConstruct(graph, tupleStore, ruleSet, rCxt);
     }
 
@@ -65,10 +65,14 @@ public class RulesEngineFwdSimpleSparqlConstruct extends AbstractRulesEngineFwdS
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule) {
+    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
         // Via CONSTRUCT
         Query query = RulesLibSparql.ruleToConstruct(rule);
-        Iterator<Triple> triples = QueryExec.graph(graph).query(query).build().constructTriples();
+        Iterator<Triple> triples = QueryExec.graph(graph)
+                .query(query)
+                .context(rCxt.getContext())
+                .build()
+                .constructTriples();
         GraphUtil.add(graph, triples);
     }
 }

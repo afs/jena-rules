@@ -39,8 +39,10 @@ import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.modify.TemplateLib;
-import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.srl.*;
+import org.seaborne.jena.srl.Rule;
+import org.seaborne.jena.srl.RuleBody;
+import org.seaborne.jena.srl.RuleHead;
+import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
@@ -258,16 +260,17 @@ class RulesExecLib {
         return Iter.flatMap(binding, mapper);
     }
 
-    /**
-     * Create a {@link RulesExecCxt} from a {@link Context}. The argument context is
-     * copied - the caller does not need to provide a safe copy.
-     */
-    static RulesExecCxt rulesExecCxt(Context cxt) {
-        if ( cxt == null )
-            cxt = Rules.getContext();
-        // Isolated.
-        cxt = cxt.copy();
-        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
-        return rCxt;
-    }
+    // Use RulesExecCxt.create
+//    /**
+//     * Create a {@link RulesExecCxt} from a {@link Context}. The argument context is
+//     * copied - the caller does not need to provide a safe copy.
+//     */
+//    static RulesExecCxt rulesExecCxt(Context cxt) {
+//        if ( cxt == null )
+//            cxt = Rules.getContext();
+//        // Isolated.
+//        cxt = cxt.copy();
+//        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
+//        return rCxt;
+//    }
 }

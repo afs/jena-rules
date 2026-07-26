@@ -22,9 +22,9 @@
 package org.seaborne.jena.srl.exec;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.exec.UpdateExec;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.update.Update;
-import org.apache.jena.update.UpdateAction;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesEngine;
@@ -48,7 +48,7 @@ public class RulesEngineFwdSimpleSparqlInsert extends AbstractRulesEngineFwdSimp
      */
     private
     static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
-        RulesExecCxt rCxt = RulesExecLib.rulesExecCxt(cxt);
+        RulesExecCxt rCxt = RulesExecCxt.create(cxt);
         return new RulesEngineFwdSimpleSparqlInsert(graph, tupleStore, ruleSet, rCxt);
     }
 
@@ -61,8 +61,12 @@ public class RulesEngineFwdSimpleSparqlInsert extends AbstractRulesEngineFwdSimp
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule) {
+    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
         Update insert = RulesLibSparql.ruleToInsert(rule);
-        UpdateAction.execute(insert, graph);
+
+        UpdateExec.graph(graph)
+            .update(insert)
+            .context(rCxt.getContext())
+            .execute();
     }
 }

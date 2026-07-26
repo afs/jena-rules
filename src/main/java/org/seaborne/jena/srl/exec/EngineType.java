@@ -21,16 +21,30 @@
 
 package org.seaborne.jena.srl.exec;
 
+import org.apache.jena.sparql.util.Symbol;
+import org.seaborne.jena.srl.sys.SysSRL;
+
 // Default : SysJenaRules.dftEngineType
 public enum EngineType {
     // As code.
-    SIMPLE,
+    SIMPLE("csimpleEngineType"),
     // Body as SELECT
-    SIMPLE_SPARQL,
+    SIMPLE_SPARQL("srl:simpleSparqlBody"),
     // Rule as SPARQL Update INSERT
-    SIMPLE_SPARQL_INSERT,
+    SIMPLE_SPARQL_INSERT("srl:simpleSparqlInsert"),
     // Rule as SPARQL CONSTRUCT
-    SIMPLE_SPARQL_CONSTRUCT,
+    SIMPLE_SPARQL_CONSTRUCT("srl:simpleSparqConstruct"),
     // Backwards evaluation.
-    BKD_NON_RECURSIVE
+    BKD_NON_RECURSIVE("srl:backwardNonRecursive");
+
+    // This enum defined the names within jena-rules.
+    // Symbols are "open ended enums" - extensions can register with the RulesEngineRegistry by using a symbol.
+
+    private final Symbol symbol;
+
+    EngineType(String string) {
+        symbol = SysSRL.allocSymbol(string);
+    }
+
+    public Symbol symbol() { return symbol; }
 }

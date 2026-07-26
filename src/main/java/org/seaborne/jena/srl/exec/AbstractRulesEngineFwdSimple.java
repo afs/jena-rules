@@ -242,7 +242,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
             for ( Rule rule : runOnceRules ) {
                 if ( TRACE )
                     System.out.printf("Eval(once): %s\n", ruleSet.labelFor(rule));
-                executeOneRule(graph1, evalTupleStore, rule);
+                executeOneRule(graph1, evalTupleStore, rule, rCxt);
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
             }
@@ -275,7 +275,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
             for ( Rule rule : runGeneralRules ) {
                 if ( TRACE )
                     rCxt.out().printf("Eval: round=%d : %s\n", round, ruleSet.str(rule));
-                executeOneRule(graph1, evalTupleStore, rule);
+                executeOneRule(graph1, evalTupleStore, rule, rCxt);
 
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
@@ -322,5 +322,5 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
      * One execution of one rule.
      * The arguments graph and tupleStore are updated.
      */
-    protected abstract void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule);
+    protected abstract void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt);
 }

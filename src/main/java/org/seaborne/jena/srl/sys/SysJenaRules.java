@@ -29,8 +29,6 @@ import org.seaborne.jena.srl.exec.RulesEngineRegistry;
  */
 public class SysJenaRules {
 
-
-
     /** System default {@link EngineType} */
     public static final EngineType dftEngineType = EngineType.SIMPLE;
 
@@ -59,5 +57,4 @@ public class SysJenaRules {
     public static void init() {
         RulesEngineRegistry.init();
     }
-
 }

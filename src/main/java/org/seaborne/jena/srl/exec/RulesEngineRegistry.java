@@ -25,7 +25,9 @@ import java.util.Map;
 
 import org.apache.jena.atlas.lib.Registry;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.util.Context;
+import org.apache.jena.sparql.util.Symbol;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesEngine;
 import org.seaborne.jena.srl.tuples.TupleStore;
@@ -43,7 +45,6 @@ public class RulesEngineRegistry {
                         );
     }
 
-
     public static void init() {
         //config = setup();
     }
@@ -54,18 +55,36 @@ public class RulesEngineRegistry {
         return system;
     }
 
-    private Registry<EngineType, RulesEngineFactory> registry = new Registry<>();
+    private Registry<Symbol, RulesEngineFactory> registry = new Registry<>();
 
     private RulesEngineRegistry(Map<EngineType, RulesEngineFactory> setup) {
-        setup.forEach(registry::put);
+        setup.forEach((eType, factory) -> put(eType, factory));
+    }
+
+    public RulesEngineRegistry put(EngineType engineType, RulesEngineFactory factory) {
+        return put(engineType.symbol(), factory);
+    }
+
+
+    public RulesEngineRegistry put(Symbol engineType, RulesEngineFactory factory) {
+        registry.put(engineType, factory);
+        return this;
     }
 
     /** Create a RulesEngine */
     public RulesEngine create(EngineType engineType, Graph dataGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
+        return create(engineType.symbol(), dataGraph, tupleStore, ruleSet, context);
+    }
+
+    /** Create a RulesEngine */
+    public RulesEngine create(Symbol engineType, Graph dataGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
         RulesEngineFactory f = registry.get(engineType);
         if (f == null)
             return null;
-        return f.create(dataGraph, tupleStore, ruleSet, context.copy());
+        Context cxt = context.copy();
+        cxt.remove(ARQConstants.sysCurrentTime);
+        cxt.remove(ARQConstants.sysCurrentAlgebra);
+        cxt.remove(ARQConstants.sysCurrentQuery);
+        return f.create(dataGraph, tupleStore, ruleSet, cxt);
     }
-
 }

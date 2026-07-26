@@ -21,14 +21,7 @@
 
 package org.seaborne.jena.srl;
 
-import org.apache.jena.query.ARQ;
-import org.apache.jena.sparql.util.Context;
-
 public class Rules {
-
-    public static Context getContext() {
-        return ARQ.getContext();
-    }
 
     /**
      * Rule equivalence is defined as two rules being the same for execution.

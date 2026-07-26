@@ -28,7 +28,6 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.irix.IRIx;
-import org.apache.jena.query.ARQ;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.system.*;
 import org.apache.jena.riot.writer.DirectiveStyle;
@@ -42,6 +41,7 @@ import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.ShaclRulesWriter.Style;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public class RuleSetWriter {
@@ -118,7 +118,7 @@ public class RuleSetWriter {
 
         //this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
         // Quick fix: Every bnode is short but a different label across rules.
-        this.nodeFormatter = TurtleShell.createNodeFormatter(prefixMap, baseStr, ARQ.getContext());
+        this.nodeFormatter = TurtleShell.createNodeFormatter(prefixMap, baseStr, SysSRL.getContext());
         this.styleRuleSet = Objects.requireNonNull(style);
     }
 

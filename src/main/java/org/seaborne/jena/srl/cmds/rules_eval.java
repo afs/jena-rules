@@ -48,6 +48,7 @@ import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.exec.RulesEngineRegistry;
 import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.sys.SysJenaRules;
 import org.seaborne.jena.srl.sys.RecursionChecker.RecursionException;
 import org.seaborne.jena.srl.sys.Stratification.StratificationException;
@@ -138,7 +139,7 @@ public class rules_eval extends CmdRules {
 
     private static RulesEngine defaultRulesEngine(Graph baseGraph, RuleSet ruleSet) {
         RulesEngine engine = RulesEngineRegistry.get()
-                .create(SysJenaRules.dftEngineType, baseGraph, null, ruleSet, Rules.getContext());
+                .create(SysJenaRules.dftEngineType, baseGraph, null, ruleSet, SysSRL.getContext());
         return engine;
     }
 
