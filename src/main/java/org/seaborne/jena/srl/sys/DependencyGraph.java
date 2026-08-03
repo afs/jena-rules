@@ -361,7 +361,7 @@ public class DependencyGraph {
     public void print(IndentedWriter out) {
         //out.setEndOfLineMarker(" NL");
         try ( out ) {
-            out.println("[DependencyGraph]");
+            out.println("==== DependencyGraph");
             if ( ! level0.isEmpty() ) {
                 out.println("Level0 ");
                 out.incIndent();

@@ -258,7 +258,7 @@ public class RuleSet {
         return imports != null && ! imports.isEmpty();
     }
 
-    public Collection<String> getImports() {
+    public Set<String> getImports() {
         return imports;
     }
 

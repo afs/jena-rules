@@ -41,25 +41,25 @@ public class RuleTransformer {
      *   transform triple patterns, tuples / head and body
      */
 
-    public static void transform(RuleSet ruleSet, RuleTransform transform) {
-        transformRuleSet(ruleSet, transform);
+    public static RuleSet transform(RuleSet ruleSet, RuleTransform transform) {
+        return transformRuleSet(ruleSet, transform);
     }
 
-    private static void transformRuleSet(RuleSet ruleSet, RuleTransform transform) {
-        ruleSet.getData();          // Graph
-        ruleSet.getDataTriples();
+    static RuleSet transformRuleSet(RuleSet ruleSet, RuleTransform transform) {
+        List<Triple> newData = ruleSet.getDataTriples();          // Graph
+        List<Tuple> newTuples = ruleSet.getDataTuples();
 
         List<Rule> newRules = new ArrayList<>(ruleSet.getRules().size());
 
         ruleSet.getRules().forEach(rule->{
             Rule r = transformRule(rule, transform);
+            newRules.add(r);
         });
 
-        ruleSet.getDataTuples();
-        ruleSet.getTupleStore();    // TupleStore
+        return RuleSet.create(ruleSet.getBase(), ruleSet.getPrefixMap(), ruleSet.getImports(), newRules, newData, newTuples);
     }
 
-    private static Rule transformRule(Rule rule, RuleTransform transform) {
+    static Rule transformRule(Rule rule, RuleTransform transform) {
         // Styles.
 //        List<RuleHeadElement> newHeadElts = new ArrayList<>(rule.getHeadElements().size());
 //        rule.getHeadElements().forEach(headElt->{
@@ -81,16 +81,18 @@ public class RuleTransformer {
 //                    .map(elt->transform(elt, transform))
 //                    .toList();
 
-        // Rule builder
+        // Rule (re)builder
         Rule.Builder builder = Rule.newBuilder();
         // DRY with handling negation inner pattern
         rule.getHeadElements().forEach(elt->{
             RuleHeadElement newElt = transformHeadElt(elt, transform);
-            builder.addHeadElement(newElt);
+            if ( newElt != null )
+                builder.addHeadElement(newElt);
         });
         rule.getBodyElements().forEach(elt->{
             RuleBodyElement newElt = transformBodyElt(elt, transform);
-            builder.addBodyElement(newElt);
+            if ( newElt != null )
+                builder.addBodyElement(newElt);
         });
         builder.ruleIdentifier(rule.getId());
         builder.groundedRule(rule.isGrounded()); // ???

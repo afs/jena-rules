@@ -26,11 +26,22 @@ import java.util.List;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
+import org.seaborne.jena.srl.Rule;
+import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
-import org.seaborne.jena.srl.lang.RuleHeadElement.*;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
+import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public interface RuleTransform {
+
+    public default RuleSet transform(RuleSet ruleSet) {
+        return RuleTransformer.transformRuleSet(ruleSet, this);
+    }
+
+    public default Rule transform(Rule rule) {
+        return RuleTransformer.transformRule(rule, this);
+    }
 
     public default RuleHeadElement transform(EltTripleTemplate eltTripleTemplate, Triple tripleTemplate) { return null; }
 

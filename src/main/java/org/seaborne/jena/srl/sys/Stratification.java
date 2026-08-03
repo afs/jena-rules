@@ -27,6 +27,7 @@ import java.util.function.BiConsumer;
 
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.MultiMapUtils;
+import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
@@ -56,8 +57,8 @@ public class Stratification {
     // Setting used to have data rules (no dependencies)
     // separate rules with rule dependencies in level 0.
     static Integer dataStratum = Integer.valueOf(0);
-    // Setting uses to have separate data rules (no dependencies)
-    // from rule with rule dependencies.
+    // All runOnce.
+    // Level 1 is the rules that depend on other rules.
     static Integer minDependentStratum = Integer.valueOf(1);
 
     final private RuleSet ruleSet;
@@ -110,6 +111,7 @@ public class Stratification {
 
     /**
      * Apply an action to each (stratum, rule) pair.
+     * The action is called in increasing stratum numbering.
      */
     public void forEach(BiConsumer<Integer, Stratum> action) {
         for ( int i = 0 ; i < stratumLevels.size() ; i++ ) {
@@ -262,40 +264,47 @@ public class Stratification {
 
         rCxt.out().setAbsoluteIndent(0);
 
-        if ( TRACE || Examine.EXAMINE ) {
-            // Development.
-            // From zero (base graph strata)
-            rCxt.out().printf("==== Stratification (levels = %d)\n", maxStratum+1);
-            for ( int i = 0 ; i <= maxStratum ; i++ ) {
-                rCxt.out().printf("  == Layer %d\n", i);
-                Stratum layer = layers.get(i);
-
-                Collection<Rule> stratumOnce = layer.runOnce();
-                Collection<Rule> stratumAll = layer.runGeneral();
-
-                if ( stratumOnce.isEmpty() && stratumAll.isEmpty() && i > 0 ) {
-                    rCxt.out().printf("No rules at level %d\n", i);
-                    continue;
-                }
-
-                stratumOnce.forEach(rule-> {
-                    System.out.println(ruleAsStr(rule, ruleSet.getPrefixMap()));
-                });
-                stratumAll.forEach(rule-> {
-                    System.out.println(ruleAsStr(rule, ruleSet.getPrefixMap()));
-                });
-            }
-            rCxt.out().println();
-        }
         int m = maxStratum;
+        // Stratum zero can be empty.
 //        if ( ! seenDataLayer )
 //            m = m - (minDependentStratum-dataStratum);
-        return new Stratification(dataStratum, m, layers, ruleSet);
+
+        Stratification stratification = new Stratification(dataStratum, m, layers, ruleSet);
+
+        if ( TRACE || Examine.EXAMINE )
+            stratification.print(rCxt.out());
+
+        return stratification;
     }
 
     private static String ruleAsStr(Rule rule, PrefixMap prefixMap) {
         String x = ShaclRulesWriter.asString(rule, prefixMap);;
         x = x.strip();
         return x;
+    }
+
+    public void print(AWriter out) {
+        out.printf("==== Stratification (levels = %d)\n", maxStratum+1);
+        for ( int i = 0 ; i <= maxStratum ; i++ ) {
+            out.printf("  == Layer %d\n", i);
+            Stratum layer = stratumLevels.get(i);
+
+            Collection<Rule> stratumOnce = layer.runOnce();
+            Collection<Rule> stratumAll = layer.runGeneral();
+
+            if ( stratumOnce.isEmpty() && stratumAll.isEmpty() && i > 0 ) {
+                out.printf("No rules at level %d\n", i);
+                continue;
+            }
+
+            stratumOnce.forEach(rule-> {
+                System.out.println(ruleAsStr(rule, ruleSet.getPrefixMap()));
+            });
+            stratumAll.forEach(rule-> {
+                System.out.println(ruleAsStr(rule, ruleSet.getPrefixMap()));
+            });
+        }
+        out.println();
+        out.flush();
     }
 }

@@ -27,7 +27,7 @@ import org.seaborne.jena.srl.sys.SysSRL;
 // Default : SysJenaRules.dftEngineType
 public enum EngineType {
     // As code.
-    SIMPLE("csimpleEngineType"),
+    SIMPLE("srl:simpleEngineType"),
     // Body as SELECT
     SIMPLE_SPARQL("srl:simpleSparqlBody"),
     // Rule as SPARQL Update INSERT
@@ -42,7 +42,7 @@ public enum EngineType {
 
     private final Symbol symbol;
 
-    EngineType(String string) {
+    private EngineType(String string) {
         symbol = SysSRL.allocSymbol(string);
     }
 
