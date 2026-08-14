@@ -26,10 +26,14 @@ import org.junit.jupiter.api.Test;
 // Tests due to go to the spec, currently in Java.
 public class TestRulesEval_Spec {
 
+    // ** WHERE DATA, NOT DATA
 
+    // [ ] test for blank nodes in pattern.
+    // DATA { :s :p :o } RULE { :x :yes "YES" } WHERE { [] ?p ?o }
 
     // tests SET
     // [ ] RULE { :x :q 999 } WHERE { SET(?o1 := 1/0) }
+
     // ==== TESTS
     // [ ] RunOnce!
     // [ ] Syntax tests
@@ -41,22 +45,20 @@ public class TestRulesEval_Spec {
     //  [ ] ?x in the head.
     //  [ ] ?x not in the head, used in pattern.
 
+    // [ ] Tests: WHERE DATA, NOT DATA
+
     // See ~/W3C/SHACL/SRL-examples
 
-    /*
-     *
-     */
+    // [ ] Is this bad test covered?
+    //           RULE { :x :p 11 } WHERE { NOT { :x :p ?v } }
+    // [x] Update tests (BIND/SET)
+
+    // See also
+    // TestRulesEvalMisc for local "interesting tests"
 
 
-    /*
-     * ## Test SET filters the whole row
-     * DATA { :s :p 1 . :s :q 1 .  }
-     * RULE { :s ?p ?x . . }
-     * WHERE {
-     *   SET(?x := 1/0) :s ?p ?x
-     * }
-     */
-
+    // Remove if real tests added!
+    @Test public void dummy() {}
 
     static String PREFIXES = """
             PREFIX :        <http://example/>
@@ -71,45 +73,45 @@ public class TestRulesEval_Spec {
             """;
 
 
-    @Test public void assign1() {
-        String rules = PREFIXES+"""
-                RULE { :s :p ?v } WHERE { SET( ?v := 1 ) }
-                """;
-        String expectedInf = PREFIXES+"""
-                :s :p 1 .
-                """;
-        LibEvalTest.testEval("assign1", null, rules, expectedInf);
-    }
-
-    @Test public void assign2() {
-        String baseGraph = PREFIXES+"""
-                :x :xv 1
-                """;
-        String rules = PREFIXES+"""
-                RULE { :s :p ?v1 } WHERE { :x :xv ?v SET( ?v1 := ?v + 1 ) }
-                """;
-        String expectedInf = PREFIXES+"""
-                :s :p 2 .
-                """;
-        LibEvalTest.testEval("assign2", baseGraph, rules, expectedInf);
-    }
-
-    // SET filters the row.
-    @Test public void setFilterRow() {
-        String baseGraph = PREFIXES+"""
-                :s :p 1 .
-                """;
-        String rules = PREFIXES+"""
-                ## Test SET filters the whole row
-                RULE { :Z ?p :z  . } WHERE {
-                     SET(?x := 1/0)
-                     :s ?p ?x
-                     }
-                """;
-        String expectedInf = PREFIXES+"""
-                ## And not
-                ##   :Z :p :z .
-                """;
-        LibEvalTest.testEval("setFilterRow", baseGraph, rules, expectedInf);
-    }
+//    @Test public void assign1() {
+//        String rules = PREFIXES+"""
+//                RULE { :s :p ?v } WHERE { SET( ?v := 1 ) }
+//                """;
+//        String expectedInf = PREFIXES+"""
+//                :s :p 1 .
+//                """;
+//        LibEvalTest.testEval("assign1", null, rules, expectedInf);
+//    }
+//
+//    @Test public void assign2() {
+//        String baseGraph = PREFIXES+"""
+//                :x :xv 1
+//                """;
+//        String rules = PREFIXES+"""
+//                RULE { :s :p ?v1 } WHERE { :x :xv ?v SET( ?v1 := ?v + 1 ) }
+//                """;
+//        String expectedInf = PREFIXES+"""
+//                :s :p 2 .
+//                """;
+//        LibEvalTest.testEval("assign2", baseGraph, rules, expectedInf);
+//    }
+//
+//    // SET filters the row.
+//    @Test public void setFilterRow() {
+//        String baseGraph = PREFIXES+"""
+//                :s :p 1 .
+//                """;
+//        String rules = PREFIXES+"""
+//                ## Test SET filters the whole row
+//                RULE { :Z ?p :z  . } WHERE {
+//                     SET(?x := 1/0)
+//                     :s ?p ?x
+//                     }
+//                """;
+//        String expectedInf = PREFIXES+"""
+//                ## And not
+//                ##   :Z :p :z .
+//                """;
+//        LibEvalTest.testEval("setFilterRow", baseGraph, rules, expectedInf);
+//    }
 }

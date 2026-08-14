@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-hDIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
+DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
 ##DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/rules/"
 
 function exportDir {
@@ -15,12 +15,12 @@ function exportArea {
     exportDir "$AREA"
 }
 
-## exportArea syntax
-## exportArea wellformed
-## exportArea stratification
-## exportArea eval
+exportArea syntax
+exportArea wellformed
+exportArea stratification
+exportArea eval
+exportArea eval2
 exportArea examples
-
 
 ## rm -f $DIR/README.md
 ## rm -f $DIR/manifest*

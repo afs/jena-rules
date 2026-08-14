@@ -1,4 +1,6 @@
-PREFIX : <http://example/>
+PREFIX :  <http://example/>
+
+# eval-negation-02b.srl has the same rules written in a different order.
 
 ## Level 0
 RULE { :x :level0 123 } WHERE { :x1 :data 123 }

@@ -1,6 +1,4 @@
-# SHACL 1.2 Rules Tests
-
-
+# SPARQL-RL 1.2 Rules Tests
 
 ## Manifests
 

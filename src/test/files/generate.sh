@@ -23,7 +23,7 @@ function setup_dir {
     cd $DIR
     clean
     source $HERE/tests-syntax.sh
-    createManifest "SHACL Rules - Syntax" '<manifest#>'
+    createManifest "SPARQL-RL - Syntax" '<manifest#>'
 )
 
 (
@@ -35,7 +35,7 @@ function setup_dir {
     cd $DIR
     clean
     source $HERE/tests-wellformed.sh
-    createManifest "SHACL Rules - Well-formedness" '<manifest#>'
+    createManifest "SPARQL-RL - Well-formedness" '<manifest#>'
 )
 
 (
@@ -47,7 +47,7 @@ function setup_dir {
     cd $DIR
     clean
     source $HERE/tests-stratification.sh
-    createManifest "SHACL Rules - Stratification" '<manifest#>'
+    createManifest "SPARQL-RL - Stratification" '<manifest#>'
 )
 
 (
@@ -59,5 +59,5 @@ function setup_dir {
     cd $DIR
     clean
     source $HERE/tests-syntax-ext.sh
-    createManifest "SHACL Rules - Syntax - Jena" '<manifest#>'
+    createManifest "SPARQL-RL - Syntax - Jena" '<manifest#>'
 )

@@ -1,5 +1,7 @@
 PREFIX :  <http://example/>
 
+# eval-negation-02a.srl has the same rules written in a different order.
+
 ## Level 2
 RULE { :X :p 'AAA' } WHERE { NOT { ?x :q 123 } }
 

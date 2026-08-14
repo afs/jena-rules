@@ -17,7 +17,7 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
 
 
 <#>  rdf:type mf:Manifest ;
-   rdfs:label "SHACL 1.2 Rules Evaluation Tests - Development" ;
+   rdfs:label "SHACL 1.2 Rules Evaluation Tests - Example tests" ;
    mf:assumedTestBase <https://w3c.github.io/rdf-tests/shacl/shacl12/> ;
 #   dct:issued "2023-07-20"^^xsd:date ; 
 #   dct:modified "2023-07-20"^^xsd:date ; 
@@ -26,49 +26,30 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
 
     mf:entries
     (
-        :eval-neg-02a
-        :eval-neg-02b
-        :eval-filter-error-1
-        :eval-assign-error-1
+       :link-path-1
+       :link-path-2
     ) .
-
-## Negation
-
-# stratification
-
-:eval-neg-02a rdf:type srt:RulesEvalTest ;
-    mf:name "Eval-negation-02a";
+    
+:link-path-1 rdf:type srt:RulesEvalTest ;
+    mf:name "Link path 1";
     mf:action
-         [ srt:ruleset  <eval-negation-02a.srl> ;
-           srt:data     <data-negation-02.ttl> ;
-         ] ;
-    mf:result  <eval-negation-02-results.ttl>
+         [ srt:ruleset  <link-1-path.srl> ;
+           srt:data     <link-1-data.ttl> ] ;
+    mf:result  <link-1-results.ttl> ;
     .
 
-:eval-neg-02b rdf:type srt:RulesEvalTest ;
-    ## Reverse order of rules.
-    mf:name "Eval-negation-02b";
+:link-path-2 rdf:type srt:RulesEvalTest ;
+    mf:name "Link path 2";
     mf:action
-         [ srt:ruleset  <eval-negation-02b.srl> ;
-           srt:data     <data-negation-02.ttl> ;
-         ] ;
-    mf:result  <eval-negation-02-results.ttl>
+         [ srt:ruleset  <link-1-path.srl> ;
+           srt:data     <link-1-data.ttl> ] ;
+    mf:result  <link-1-results.ttl> ;
     .
-
-:eval-filter-error-1  rdf:type srt:RulesEvalTest ;
-    mf:name "Eval-filter-error-1";
+:eval-assign-01 rdf:type srt:RulesEvalTest ;
+    mf:name "Eval-assign-01";
     mf:action
-         [ srt:ruleset  <eval-filter-error-1.srl> ;
-           srt:data     <data-error-1.ttl> ;
-         ] ;
-    mf:result  <eval-filter-error-1-results.ttl>
+         [ srt:ruleset  <eval-assign-01.srl> ;
+           srt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-assign-01-results.ttl> ;
     .
-
-:eval-assign-error-1  rdf:type srt:RulesEvalTest ;
-    mf:name "Eval-assign-error-1";
-    mf:action
-         [ srt:ruleset  <eval-assign-error-1.srl> ;
-           srt:data     <data-error-1.ttl> ;
-         ] ;
-    mf:result  <eval-assign-error-1-results.ttl>
-    .
+    
