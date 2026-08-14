@@ -24,8 +24,12 @@ package org.seaborne.jena.srl.lang.parser;
 public class ParserLib {
 
     public static String formatMessage(String msg, int line, int column) {
-        if ( line == -1 || column == -1 )
+        if ( line == -1 & column == -1 )
             return msg;
+        if ( line == -1 )
+            return String.format("[line: %d] " + msg, line);
+        if ( column == -1 )
+            return String.format("[col: %d] " + msg, column);
         return String.format("[line: %d, col: %d] " + msg, line, column);
     }
 }

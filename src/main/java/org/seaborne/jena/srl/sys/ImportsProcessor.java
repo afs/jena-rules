@@ -30,6 +30,7 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.riot.*;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
+import org.apache.jena.riot.system.streammgr.LocationMapper;
 import org.apache.jena.riot.system.streammgr.StreamManager;
 import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.shacl.sys.ShaclSystem;
@@ -53,8 +54,27 @@ public class ImportsProcessor {
 
     public static final String connegAcceptHeader = ShaclRules.mtShapeRuleLanguage+","+WebContent.defaultGraphAcceptHeader;
 
+    private static final LocationMapper mapSHACL = new LocationMapper();
+    static {
+        // Inclusion in this list does not imply that the shapes file is parseable or actually works!
+        // mapSHACL.addAltEntry("http://topbraid.org/tosh",    "http://topbraid.org/tosh.ttl");
+        // mapSHACL.addAltEntry("http://datashapes.org/dash",  "http://datashapes.org/dash.ttl");
+        // mapSHACL.addAltEntry("https://topbraid.org/tosh",   "https://topbraid.org/tosh.ttl");
+        // mapSHACL.addAltEntry("https://datashapes.org/dash", "https://datashapes.org/dash.ttl");
+        // mapSHACL.addAltEntry("http://www.w3.org/ns/shacl",  "https://www.w3.org/ns/shacl");
+    }
+
+    private static StreamManager makeStreamManager() {
+        StreamManager sMgr = StreamManager.get().clone();
+        if ( ! mapSHACL.isEmpty() )
+            sMgr.locationMapper(mapSHACL.clone());
+        return sMgr;
+    }
+
+    private static StreamManager importsStreamManager = makeStreamManager();
+
     public static ImportsProcessor create() {
-        return new ImportsProcessor(null);
+        return new ImportsProcessor(importsStreamManager);
     }
 
     public static RuleSet mergeClosure(RuleSet ruleSet) {
@@ -155,6 +175,7 @@ public class ImportsProcessor {
         String scheme = IRIs.scheme(url);
         if ( "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme) )
             return loadHttp1(url);
+        // Streammanager
         return ShaclRules.parseFile(url);
     }
 

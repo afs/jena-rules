@@ -1,5 +1,5 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
+TDevShaclrules * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -44,6 +44,7 @@ import org.apache.jena.sparql.ARQInternalErrorException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.VarAlloc;
 import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.lang.LabelToNodeMap;
 import org.apache.jena.sparql.path.P_Link;
 import org.apache.jena.sparql.path.Path;
 import org.apache.jena.vocabulary.RDF;
@@ -138,6 +139,14 @@ public class RulesParserBase extends LangParserBase {
     private boolean hasAssignment;
     private boolean hasAggregation;
 
+    // Blank nodes/variables.
+    // label => bNode for construct templates patterns
+    private final LabelToNodeMap bNodeLabels = LabelToNodeMap.createBNodeMap();
+
+    // label => bNode (as variable) for graph patterns
+    //private LabelToNodeMap anonVarLabels = null;
+    protected LabelToNodeMap activeLabelMap = bNodeLabels;
+
     private void clearState() {
         headAcc = null;
         bodyAcc = null;
@@ -222,6 +231,8 @@ public class RulesParserBase extends LangParserBase {
         debug("startBody", line, column);
         state = BuildState.BODY;
         bodyAcc = new ArrayList<>();
+        // New each rules.
+        activeLabelMap = LabelToNodeMap.createVarMap();
     }
 
     protected void emitForClause(Var var, String uriStr, int line, int column) {
@@ -231,6 +242,7 @@ public class RulesParserBase extends LangParserBase {
     protected void finishBody(int line, int column) {
         debug("finishBody", line, column);
         state = BuildState.RULE;
+        activeLabelMap = bNodeLabels;
     }
 
     protected void startBodyBasic(int line, int column) {
@@ -390,7 +402,23 @@ public class RulesParserBase extends LangParserBase {
         hasAssignment = true;
     }
 
-    private VarAlloc varAlloc = new VarAlloc(ARQConstants.allocPathVariables);
+    // ---- Blank nodes
+
+    // Unlabelled bNode.
+    @Override
+    protected Node createBNode(int line, int column) {
+        return activeLabelMap.allocNode();
+    }
+
+    // Labelled bNode.
+    @Override
+    protected Node createBNode(String label, int line, int column) {
+        return activeLabelMap.asNode(label);
+    }
+
+    // ---- Paths nodes: XXX reset across rules?
+
+    private VarAlloc pathVarAlloc = new VarAlloc(ARQConstants.allocPathVariables);
 
     protected void emitTriple(Node s, Node p, Path path, Node o, int line, int column) {
         debug("emitTriple", line, column);
@@ -403,7 +431,7 @@ public class RulesParserBase extends LangParserBase {
             accTriple(s, p, o, line, column);
             return;
         }
-        PathExpand.pathExpand(varAlloc, s, path, o, (_s,_p,_o)->accTriple(_s, _p, _o, line, column));
+        PathExpand.pathExpand(pathVarAlloc, s, path, o, (_s,_p,_o)->accTriple(_s, _p, _o, line, column));
     }
 
     @Override
@@ -493,6 +521,7 @@ public class RulesParserBase extends LangParserBase {
     // --
 
     protected RulesException createParseException(String msg, int line, int column) {
+        // XXX ParserLib/formatMessage
         return new ShaclRulesParseException(msg, line, column);
     }
 
@@ -510,8 +539,11 @@ public class RulesParserBase extends LangParserBase {
                 innerBodyAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
             }
             case DATA -> {
-                if ( ! triple.isConcrete() )
-                    throw createParseException("Triple must be concrete (no variables): "+triple, line, column);
+                if ( ! triple.isConcrete() ) {
+                    String msg = "Triple must be concrete (no variables): "+triple;
+                    profile.getErrorHandler().error(msg, line, column);
+                    throw createParseException(msg, line, column);
+                }
                 data.add(triple);
             }
             default -> {

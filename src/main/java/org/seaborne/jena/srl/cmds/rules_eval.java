@@ -47,6 +47,7 @@ import org.seaborne.jena.srl.*;
 import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.exec.RulesEngineRegistry;
+import org.seaborne.jena.srl.lang.parser.ParserLib;
 import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
 import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.sys.SysJenaRules;
@@ -95,8 +96,7 @@ public class rules_eval extends CmdRules {
         try {
             ruleSet = ShaclRulesParser.parseFile(rulesFile);
         } catch (ShaclRulesParseException ex) {
-            System.err.println("Syntax error");
-            throw messageAndTerminate(ex, 1);
+            throw messageParseErrorAndTerminate(ex, 1);
         }
         Graph data = GraphMemFactory.createDefaultGraph();
 
@@ -130,12 +130,21 @@ public class rules_eval extends CmdRules {
         }
     }
 
+    private static RuntimeException messageParseErrorAndTerminate(ShaclRulesParseException ex, int rc) {
+        String msg = ParserLib.formatMessage(ex.getMessage(), ex.getLine(), ex.getColumn());
+        System.err.print("  ");
+        System.err.print(msg);
+        System.err.println();
+        throw new TerminationException(rc);
+    }
+
     private static RuntimeException messageAndTerminate(RuntimeException ex, int rc) {
         System.err.print("  ");
         System.err.print(ex.getMessage());
         System.err.println();
         throw new TerminationException(rc);
     }
+
 
     private static RulesEngine defaultRulesEngine(Graph baseGraph, RuleSet ruleSet) {
         RulesEngine engine = RulesEngineRegistry.get()
