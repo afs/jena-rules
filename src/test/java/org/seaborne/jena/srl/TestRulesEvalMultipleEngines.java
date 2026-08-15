@@ -39,7 +39,7 @@ import org.seaborne.jena.srl.exec.EngineType;
 
 public class TestRulesEvalMultipleEngines {
 
-    // XXX Convert to cross product of engine type and manifest so that the ROL test suite can be run.
+    // XXX Convert to cross product of engine type and manifest so that the test suite can be run.
     // Easier : In Scripts_SRL, wire up the engine type.
 
     private static Stream<Arguments> provideArgs() {

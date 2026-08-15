@@ -41,17 +41,17 @@ import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.sys.SysJenaRules;
 
-/*8 Function in support of testing */
+/** Functions in support of testing */
 public class LibEvalTest {
 
-    static void testEval(String label, String baseGraphStr, String rulesStr, String expectedInfStr) {
+    public static void testEval(String label, String baseGraphStr, String rulesStr, String expectedInfStr) {
         Graph baseGraph = (baseGraphStr == null)
                 ? GraphFactory.emptyGraph()
                 : RDFParser.fromString(baseGraphStr, Lang.TURTLE).toGraph();
         Graph expectedInf = RDFParser.fromString(expectedInfStr, Lang.TURTLE).toGraph();
         RuleSet ruleSet = ShaclRulesParser.parseString(rulesStr);
 
-//        printTest(label, baseGraphStr, rulesStr, expectedInfStr);
+        //printTest(label, baseGraphStr, rulesStr, expectedInfStr);
 
         testEval(SysJenaRules.dftEngineType, baseGraph, ruleSet, expectedInf);
     }

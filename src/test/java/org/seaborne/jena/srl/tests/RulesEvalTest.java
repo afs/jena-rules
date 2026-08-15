@@ -23,12 +23,10 @@ package org.seaborne.jena.srl.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
-import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.graph.Graph;
@@ -76,21 +74,9 @@ public class RulesEvalTest implements Runnable {
         String testFilename = FileOps.basename(nRuleSet.getURI());
         RuleSet ruleSet;
 
-
-        String FN = IRILib.IRIToFilename(nRuleSet.getURI());
-        if ( ! FileOps.exists(FN) ) {
-            System.err.println("No such file: "+FN);
-            throw new RuntimeException("No such file: "+FN);
-        }
+        String URI = checkForFile(nRuleSet);
         try {
-            ruleSet = ShaclRulesParser.parseFile(nRuleSet.getURI());
-        } catch ( RuntimeIOException ex) {
-            if ( ex.getCause() instanceof FileNotFoundException ) {
-                System.out.println("** RuleSet not found: "+nRuleSet.getURI());
-                fail("RuleSet not found ("+testFilename+")");
-            }
-            ruleSet = null;
-            throw ex;
+            ruleSet = ShaclRulesParser.parseFile(URI);
         } catch ( ShaclRulesParseException parseEx) {
             System.out.println("** Parse error ("+testFilename+")");
             ruleSet = null;
@@ -133,13 +119,18 @@ public class RulesEvalTest implements Runnable {
         RDFWriter.source(graph).format(RDFFormat.TURTLE_FLAT).output(out);
     }
 
-    private static Graph read(Node g) {
-        String URI = g.getURI();
+    private static String checkForFile(Node file) {
+        String URI = file.getURI();
         String FN = IRILib.IRIToFilename(URI);
         if ( ! FileOps.exists(FN) ) {
             System.err.println("No such file: "+FN);
             throw new RuntimeException("No such file: "+FN);
         }
+        return URI;
+    }
+
+    private static Graph read(Node g) {
+        String URI = checkForFile(g);
         return RDFParser.source(URI).toGraph();
     }
 }

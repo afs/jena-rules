@@ -57,3 +57,16 @@ RULE { [] :q ?o } WHERE { ?s :p ?o }
 RULE { ?s :p "Rule" } WHERE { ?s ?p "Rule" }
 RULE { ?s :q "Rule" } WHERE { ?s :q ?o }
 EOF
+
+N=$((N+1)) ; testBad $(fname "stratification-bad-" $N) <<EOF
+## The base data test with no WHERE DATA or NOT DATA
+PREFIX :        <http://example/>
+PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+RULE { ?x :distanceKm ?kilometers }
+WHERE {
+    ?x :distanceMiles ?miles
+    NOT { ?x :distanceKm ?km }
+    SET ( ?kilometers := xsd:integer(?miles * 1.60934) )
+}
+EOF
