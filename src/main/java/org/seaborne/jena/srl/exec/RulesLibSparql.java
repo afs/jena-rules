@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.expr.E_Bound;
@@ -61,7 +60,7 @@ class RulesLibSparql {
                     Element inner = ruleBodyToElementGroup(innerBody);
                     Element negationElt = new ElementFilter(new E_NotExists(inner));
                     if ( grounded ) {
-                        Node n = NodeFactory.createURI("arq:baseGraph");
+                        Node n = EvalConst.srlBaseDataGraph;
                         negationElt = new ElementNamedGraph(n, negationElt);
                     }
                     group.addElement(negationElt);

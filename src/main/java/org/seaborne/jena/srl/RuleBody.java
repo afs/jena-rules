@@ -31,9 +31,11 @@ import org.seaborne.jena.srl.lang.RuleBodyElement;
 public class RuleBody { //implements Iterable<RuleBodyElement>{
 
     private final List<RuleBodyElement> body;
+    private final  boolean isGrounded;
 
-    public RuleBody(List<RuleBodyElement> ruleElts) {
+    public RuleBody(List<RuleBodyElement> ruleElts, boolean isGrounded) {
         this.body = ruleElts;
+        this.isGrounded = isGrounded;
     }
 
     // XXX No longer needed?
@@ -56,6 +58,8 @@ public class RuleBody { //implements Iterable<RuleBodyElement>{
     public List<RuleBodyElement> getBodyElements() {
         return body;
     }
+
+    public boolean isGrounded() { return isGrounded; }
 
     public void forEach(Consumer<RuleBodyElement> action) {
         body.forEach(action);

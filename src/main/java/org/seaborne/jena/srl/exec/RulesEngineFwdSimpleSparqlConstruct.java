@@ -65,14 +65,14 @@ public class RulesEngineFwdSimpleSparqlConstruct extends AbstractRulesEngineFwdS
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
+    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
         // Via CONSTRUCT
         Query query = RulesLibSparql.ruleToConstruct(rule);
-        Iterator<Triple> triples = QueryExec.graph(graph)
+        Iterator<Triple> triples = QueryExec.graph(evalGraph)
                 .query(query)
                 .context(rCxt.getContext())
                 .build()
                 .constructTriples();
-        GraphUtil.add(graph, triples);
+        GraphUtil.add(evalGraph, triples);
     }
 }

@@ -52,7 +52,6 @@ public class Rule {
 
     public final Node ruleIdentifier;
 
-    private final boolean isGrounded;
     private final boolean hasAssignment;
     private final boolean hasNegation;
     //boolean final hasAggregation;
@@ -211,10 +210,9 @@ public class Rule {
                  //, boolean hasAggregation
                  ) {
         this.head = new RuleHead(headElts);
-        this.body = new RuleBody(bodyElts);
+        this.body = new RuleBody(bodyElts, isGrounded);
         this.ruleIdentifier = ruleIdenifier;
 
-        this.isGrounded = isGrounded;
         this.hasAssignment = hasAssignment;
         this.hasNegation = hasNegation;
         //this.hasAggregation = hasAggregation;
@@ -222,7 +220,7 @@ public class Rule {
     }
 
     public boolean isRunOnceRule() {
-        return hasAssignment || hasTemplateBNodes || isGrounded;
+        return hasAssignment || hasTemplateBNodes || isGrounded();
     }
 
     public boolean hasAssignment() {
@@ -243,7 +241,7 @@ public class Rule {
     }
 
     public boolean isGrounded() {
-        return isGrounded;
+        return body.isGrounded();
     }
 
     public Node getId() {

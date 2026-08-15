@@ -44,6 +44,7 @@ import org.seaborne.jena.srl.tuples.TupleStore;
 public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
     protected final RuleSet ruleSet;
+    // The input graph. This does not contain the data block triples.
     protected final Graph baseGraph;
     protected final TupleStore baseTupleStore;
     protected final RulesExecCxt rCxt;
@@ -160,10 +161,10 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
         // Execute WHERE DATA rules.
 
-        return evalStratification(dataGraph, stratification, tupleStore);
+        return evalStratification(dataGraph, baseGraph, stratification, tupleStore);
     }
 
-    private RuleSetEvaluation evalStratification(AppendGraph dataGraph, Stratification stratification, TupleStore tupleStore) {
+    private RuleSetEvaluation evalStratification(AppendGraph dataGraph, Graph baseGraph, Stratification stratification, TupleStore tupleStore) {
 
         if ( Examine.EXAMINE )
             rCxt.out().println("==== Evaluation");
@@ -176,7 +177,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
                     rCxt.out().incIndent();
                     rCxt.out().flush();
                 }
-                int rounds = evalStratum(i, stratum, dataGraph, tupleStore, rCxt);
+                int rounds = evalStratum(dataGraph, i, stratum, baseGraph, tupleStore, rCxt);
 
                 if ( TRACE ) {
                     //rCxt.out().println("Base graph: size = "+baseGraph.size());
@@ -193,7 +194,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
     }
 
     /* Return the number of of the last round that causes more triples */
-    private int evalStratum(int stratumNumber, Stratum stratum, Graph dataGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
+    private int evalStratum(Graph evalGraph, int stratumNumber, Stratum stratum, Graph baseGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
 //        if ( TRACE )
 //            rCxt.out().printf("Eval level -- %d rules\n", rules.size());
 
@@ -218,7 +219,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
          * otherwise accumulate over each round.
          */
 
-        AppendGraph graph1 = AppendGraph.create(dataGraph);
+        AppendGraph graph1 = AppendGraph.create(evalGraph);
 
         Collection<Rule> runOnceRules = stratum.runOnce();
         Collection<Rule> runGeneralRules = stratum.runGeneral();
@@ -242,7 +243,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
             for ( Rule rule : runOnceRules ) {
                 if ( TRACE )
                     System.out.printf("Eval(once): %s\n", ruleSet.labelFor(rule));
-                executeOneRule(graph1, evalTupleStore, rule, rCxt);
+                executeOneRule(graph1, evalTupleStore, baseGraph, rule, rCxt);
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
             }
@@ -274,8 +275,8 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
             for ( Rule rule : runGeneralRules ) {
                 if ( TRACE )
-                    rCxt.out().printf("Eval: round=%d : %s\n", round, ruleSet.str(rule));
-                executeOneRule(graph1, evalTupleStore, rule, rCxt);
+                    rCxt.out().printf("Eval(general): round=%d : %s\n", round, ruleSet.str(rule));
+                executeOneRule(graph1, evalTupleStore, baseGraph, rule, rCxt);
 
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
@@ -322,5 +323,5 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
      * One execution of one rule.
      * The arguments graph and tupleStore are updated.
      */
-    protected abstract void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt);
+    protected abstract void executeOneRule(Graph matchGraph, TupleStore evalTupleStore, Graph baseGraph, Rule rule, RulesExecCxt rCxt);
 }

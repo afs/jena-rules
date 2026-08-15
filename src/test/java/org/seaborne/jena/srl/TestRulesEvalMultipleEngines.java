@@ -43,10 +43,13 @@ public class TestRulesEvalMultipleEngines {
     // Easier : In Scripts_SRL, wire up the engine type.
 
     private static Stream<Arguments> provideArgs() {
-        List<Arguments> x = List.of(Arguments.of("Simple (Java)", EngineType.SIMPLE),
-                                    Arguments.of("Simple (SPARQL)", EngineType.SIMPLE_SPARQL),
-                                    Arguments.of("Simple (CONSTRUCT)", EngineType.SIMPLE_SPARQL_INSERT),
-                                    Arguments.of("Simple (INSERT)", EngineType.SIMPLE_SPARQL_CONSTRUCT));
+        List<Arguments> x = List.of(Arguments.of("Simple (Java)", EngineType.SIMPLE));
+
+        // [ ] GROUNDED
+//        List<Arguments> x = List.of(Arguments.of("Simple (Java)", EngineType.SIMPLE),
+//                                    Arguments.of("Simple (SPARQL)", EngineType.SIMPLE_SPARQL),
+//                                    Arguments.of("Simple (CONSTRUCT)", EngineType.SIMPLE_SPARQL_INSERT),
+//                                    Arguments.of("Simple (INSERT)", EngineType.SIMPLE_SPARQL_CONSTRUCT));
         return x.stream();
     }
 

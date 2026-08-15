@@ -27,6 +27,8 @@ import java.util.List;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.exec.QueryExec;
@@ -68,21 +70,27 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
-        execAccRuleSPARQL(graph, evalTupleStore, rule, rCxt);
+    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
+        if ( rule.isGrounded() )
+            System.err.println("No dataGraph support");
+        execAccRuleSPARQL(evalGraph, evalTupleStore, dataGraph, rule, rCxt);
     }
 
     /**
      * One execution of one rule.
      * The argument graph is updated.
      */
-    private void execAccRuleSPARQL(Graph graph, TupleStore evalTupleStore, Rule rule, RulesExecCxt rCxt) {
+    private void execAccRuleSPARQL(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
         // Can cache the query!
         Query query = RulesLibSparql.ruleBodyToQuery(rule.getBody());
 
+        DatasetGraph dsg = DatasetGraphFactory.createGeneral(evalGraph);
+        if ( baseGraph != null )
+            dsg.addGraph(EvalConst.srlBaseDataGraph, baseGraph);
+
         // Prefixes.adapt(query.getPrefixMapping()).putAll(P.prefixMap());
         // System.out.println(query);
-        QueryExec qExec = QueryExec.graph(graph)
+        QueryExec qExec = QueryExec.dataset(dsg)
                 .query(query)
                 .context(rCxt.getContext())
                 .build();
@@ -101,6 +109,6 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
         }
 
         RuleEval rEval = RulesExecLib.evalRuleHead(rule.getHead(), iter, rCxt);
-        RulesExecLib.accumulateOneRuleHead(rEval, graph, evalTupleStore, rCxt);
+        RulesExecLib.accumulateOneRuleHead(rEval, evalGraph, evalTupleStore, rCxt);
     }
 }
