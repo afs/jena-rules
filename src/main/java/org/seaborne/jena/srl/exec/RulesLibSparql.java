@@ -24,9 +24,11 @@ package org.seaborne.jena.srl.exec;
 import java.util.List;
 
 import org.apache.jena.atlas.lib.NotImplemented;
-import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.expr.E_Bound;
 import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.expr.Expr;
@@ -41,28 +43,25 @@ import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 
 /** This class is not API */
-class RulesLibSparql {
+public class RulesLibSparql {
 
     /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */
     public static ElementGroup ruleBodyToElementGroup(RuleBody ruleBody) {
-        return ruleBodyToElementGroup(ruleBody.getBodyElements());
+        return ruleBodyToElementGroup(ruleBody.getBodyElements(), ruleBody.isGrounded());
     }
 
-    private static ElementGroup ruleBodyToElementGroup(List<RuleBodyElement> ruleElts) {
+    private static ElementGroup ruleBodyToElementGroup(List<RuleBodyElement> ruleElts, boolean groundedPattern) {
         ElementGroup group = new ElementGroup();
         ElementTriplesBlock tBlk = null;
         for ( RuleBodyElement rElt : ruleElts ) {
             switch (rElt) {
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
-                case EltTuplePattern(var tuple) -> { throw new NotImplemented(); }
+                case EltTuplePattern(var tuple) -> { throw new NotImplemented("Tuples in SPARQL translation"); }
                 case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody, boolean grounded ) -> {
-                    Element inner = ruleBodyToElementGroup(innerBody);
+                    // NOT DATA handled by ruleBodyToElementGroup
+                    ElementGroup inner = ruleBodyToElementGroup(innerBody, grounded);
                     Element negationElt = new ElementFilter(new E_NotExists(inner));
-                    if ( grounded ) {
-                        Node n = EvalConst.srlBaseDataGraph;
-                        negationElt = new ElementNamedGraph(n, negationElt);
-                    }
                     group.addElement(negationElt);
                 }
                 case EltAssignment(var assignedVar, var expr) -> {
@@ -74,6 +73,14 @@ class RulesLibSparql {
                 }
             }
         }
+
+        if ( groundedPattern ) {
+            Element eltGraph = new ElementNamedGraph(EvalConst.srlBaseDataGraph, group);
+            ElementGroup eltGroup = new ElementGroup();
+            eltGroup.addElement(eltGraph);
+            group = eltGroup;
+        }
+
         return group;
     }
 
@@ -89,6 +96,8 @@ class RulesLibSparql {
 
     /** Rule(rule head and rule body) to a SPARQL CONSTRUCT Query. */
     public static Query ruleToConstruct(Rule rule) {
+        if ( ! rule.getHeadTuples().isEmpty() )
+            throw new NotImplemented("Tuples in SPARQL translation");
         Element elt = RulesLibSparql.ruleBodyToElementGroup(rule.getBody());
         Query query = new Query();
         query.setQueryPattern(elt);
@@ -98,7 +107,6 @@ class RulesLibSparql {
         query.setQueryConstructType();
         return query;
     }
-
 
     /** Rule(rule head and rule body) to a SPARQL INSERT Update */
     public static Update ruleToInsert(Rule rule) {
@@ -139,5 +147,11 @@ class RulesLibSparql {
 //        return Collections.unmodifiableList(triples);
 //    }
 
+    /*package*/ static DatasetGraph buildDataset(Graph evalGraph, Graph dataGraph) {
+        DatasetGraph dsg = DatasetGraphFactory.createGeneral(evalGraph);
+        if ( dataGraph != null )
+            dsg.addGraph(EvalConst.srlBaseDataGraph, dataGraph);
+        return dsg;
+    }
 
 }

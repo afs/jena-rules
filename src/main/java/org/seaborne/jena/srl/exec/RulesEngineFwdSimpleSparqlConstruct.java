@@ -27,6 +27,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.Rule;
@@ -51,9 +52,9 @@ public class RulesEngineFwdSimpleSparqlConstruct extends AbstractRulesEngineFwdS
      * with {@link EngineType#SIMPLE} which goes via the RulesEngineRegistry
      */
     private
-    static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
+    static RulesEngine build(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
         RulesExecCxt rCxt = RulesExecCxt.create(cxt);
-        return new RulesEngineFwdSimpleSparqlConstruct(graph, tupleStore, ruleSet, rCxt);
+        return new RulesEngineFwdSimpleSparqlConstruct(baseGraph, tupleStore, ruleSet, rCxt);
     }
 
     private RulesEngineFwdSimpleSparqlConstruct(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
@@ -68,7 +69,9 @@ public class RulesEngineFwdSimpleSparqlConstruct extends AbstractRulesEngineFwdS
     protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
         // Via CONSTRUCT
         Query query = RulesLibSparql.ruleToConstruct(rule);
-        Iterator<Triple> triples = QueryExec.graph(evalGraph)
+        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, dataGraph);
+
+        Iterator<Triple> triples = QueryExec.dataset(dsg)
                 .query(query)
                 .context(rCxt.getContext())
                 .build()

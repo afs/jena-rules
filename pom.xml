@@ -29,7 +29,7 @@
   <groupId>org.seaborne.rules</groupId>
   <artifactId>jena-rules</artifactId>
   <packaging>jar</packaging>
-  <name>Jena Rules 2</name>
+  <name>Jena SRL</name>
   <version>0.0.0-SNAPSHOT</version>
 
   <description>jena-rules/2</description>

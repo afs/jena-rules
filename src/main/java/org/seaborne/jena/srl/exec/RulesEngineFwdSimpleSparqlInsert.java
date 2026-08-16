@@ -22,6 +22,7 @@
 package org.seaborne.jena.srl.exec;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.exec.UpdateExec;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.update.Update;
@@ -64,7 +65,8 @@ public class RulesEngineFwdSimpleSparqlInsert extends AbstractRulesEngineFwdSimp
     protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
         Update insert = RulesLibSparql.ruleToInsert(rule);
 
-        UpdateExec.graph(evalGraph)
+        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, dataGraph);
+        UpdateExec.dataset(dsg)
             .update(insert)
             .context(rCxt.getContext())
             .execute();

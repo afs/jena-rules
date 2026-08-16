@@ -218,7 +218,6 @@ public class RuleSetToGraph {
                     items.add(x1);
                 }
                 case EltNegation(var innerBody, boolean grounded) ->{
-                    // [NOT DATA]
                     Node nInnerBody = writeBodyElements(graph, innerBody);
                     Node x1 = NodeFactory.createBlankNode();
                     graph.add(x1, V.negation, nInnerBody);

@@ -28,7 +28,6 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.exec.QueryExec;
@@ -56,9 +55,9 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      * with {@link EngineType#SIMPLE} which goes via the RulesEngineRegistry
      */
     private
-    static RulesEngine build(Graph graph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
+    static RulesEngine build(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, Context cxt) {
         RulesExecCxt rCxt = RulesExecCxt.create(cxt);
-        return new RulesEngineFwdSimpleSparqlBody(graph, tupleStore, ruleSet, rCxt);
+        return new RulesEngineFwdSimpleSparqlBody(baseGraph, tupleStore, ruleSet, rCxt);
     }
 
     private RulesEngineFwdSimpleSparqlBody(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
@@ -71,8 +70,6 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      */
     @Override
     protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
-        if ( rule.isGrounded() )
-            System.err.println("No dataGraph support");
         execAccRuleSPARQL(evalGraph, evalTupleStore, dataGraph, rule, rCxt);
     }
 
@@ -83,10 +80,7 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
     private void execAccRuleSPARQL(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
         // Can cache the query!
         Query query = RulesLibSparql.ruleBodyToQuery(rule.getBody());
-
-        DatasetGraph dsg = DatasetGraphFactory.createGeneral(evalGraph);
-        if ( baseGraph != null )
-            dsg.addGraph(EvalConst.srlBaseDataGraph, baseGraph);
+        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, dataGraph);
 
         // Prefixes.adapt(query.getPrefixMapping()).putAll(P.prefixMap());
         // System.out.println(query);
