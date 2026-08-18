@@ -37,10 +37,7 @@ import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.apache.jena.system.G;
-import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.RulesEngine;
-import org.seaborne.jena.srl.ShaclRulesExec;
-import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.*;
 import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
@@ -90,22 +87,35 @@ public class RulesEvalTest implements Runnable {
         Examine.EXAMINE = false;
         RulesEngine rulesEngine = ShaclRulesExec.create(engineType, input, ruleSet);
 
-        RuleSetEvaluation e = rulesEngine.eval();
+        RuleSetEvaluation evaluation = rulesEngine.eval();
 
-        Graph outcome = e.inferredTriples();
+        Graph outcome = evaluation.inferredTriples();
         Node nResult = testItem.getResult();
         Graph resultsExpected = read(nResult);
 
         boolean pass = IsoMatcher.isomorphic(resultsExpected, outcome);
         if (! pass ) {
-            printFailedEvalTest(testItem, resultsExpected, outcome);
+            printFailedEvalTest(testItem, ruleSet, evaluation, resultsExpected, outcome);
             fail("Results do not match: " + testItem.getName());
         }
     }
 
-    private void printFailedEvalTest(ManifestEntry entry, Graph expected, Graph actual) {
+    private void printFailedEvalTest(ManifestEntry entry, RuleSet ruleSet, RuleSetEvaluation e, Graph expected, Graph actual) {
         PrintStream out = System.out;
+
         out.println("=======================================");
+        ShaclRulesWriter.print(ruleSet);
+
+        if ( true ) {
+            out.println("---------------------------------------");
+            System.out.println("-- Base graph");
+            write(System.out, e.baseGraph());
+            System.out.println("-- Inferred graph");
+            write(System.out, e.inferredTriples());
+            System.out.println("-- Output graph");
+            write(System.out, e.outputGraph());
+        }
+        out.println("---------------------------------------");
         out.println("---- Failure: " + entry.getName());
         out.println("---- Actual:");
         write(System.out, actual);

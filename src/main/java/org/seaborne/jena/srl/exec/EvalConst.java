@@ -27,6 +27,7 @@ import org.apache.jena.graph.NodeFactory;
 class EvalConst {
     // SysSRL?
 
+    // The input graph in the evaluation dataset.
     static Node srlBaseDataGraph = NodeFactory.createURI("srl:baseGraph");
 
 }

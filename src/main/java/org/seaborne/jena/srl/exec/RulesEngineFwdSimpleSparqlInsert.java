@@ -62,10 +62,10 @@ public class RulesEngineFwdSimpleSparqlInsert extends AbstractRulesEngineFwdSimp
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
+    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph inputGraph, Rule rule, RulesExecCxt rCxt) {
         Update insert = RulesLibSparql.ruleToInsert(rule);
 
-        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, dataGraph);
+        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, inputGraph);
         UpdateExec.dataset(dsg)
             .update(insert)
             .context(rCxt.getContext())

@@ -72,8 +72,8 @@ class RulesExecLib {
     }
 
     /** Execute a rule */
-    public static RuleEval evalRule(Rule rule, Graph graph, TupleStore tupleStore, Graph dataGraph, RulesExecCxt rCxt) {
-        Iterator<Binding> iter = evalBody(graph, tupleStore,  dataGraph, rule.getBody(), rCxt);
+    public static RuleEval evalRule(Rule rule, Graph graph, TupleStore tupleStore, Graph inputGraph, RulesExecCxt rCxt) {
+        Iterator<Binding> iter = evalBody(graph, tupleStore,  inputGraph, rule.getBody(), rCxt);
         // XXX Do better - avoid creating arrays that aren't used.
         // XXX Do better - pass around accumulators?
         RuleEval ruleEval = evalRuleHead(rule.getHead(), iter, rCxt);
@@ -133,13 +133,13 @@ class RulesExecLib {
      * Single evaluation pass over a list of rules, executing rule once,
      * and in the order in the list.
      */
-    public static Evaluation _unused_evalRulesOnce(Graph evalGraph, TupleStore tupleStore, Graph dataGraph, RuleSet ruleSet) {
+    public static Evaluation _unused_evalRulesOnce(Graph evalGraph, TupleStore tupleStore, Graph inputGraph, RuleSet ruleSet) {
         RulesExecCxt rCxt = RulesExecCxt.create();
         AppendGraph allGraph = AppendGraph.create(evalGraph);
         AppendTupleStore allTuples = AppendTupleStore.create(tupleStore);
 
         for ( Rule rule : ruleSet.getRules() ) {
-            Iterator<Binding> iter = evalBody(allGraph, tupleStore, dataGraph, rule.getBody(), rCxt);
+            Iterator<Binding> iter = evalBody(allGraph, tupleStore, inputGraph, rule.getBody(), rCxt);
             List<Triple> accTriple = new ArrayList<>();
             List<Tuple> accTuple = new ArrayList<>();
             Iter.forEach(iter, solution -> accInstantiateHead(accTriple, accTuple, rule.getHead(), solution));
@@ -153,20 +153,20 @@ class RulesExecLib {
         return new Evaluation(evalGraph, ruleSet, allGraph.getAdded(), allGraph, allTuples.getAdded());
     }
 
-    private static Iterator<Binding> evalBody(Graph evalGraph, TupleStore tupleStore, Graph dataGraph, RuleBody ruleBody, RulesExecCxt rCxt) {
+    private static Iterator<Binding> evalBody(Graph evalGraph, TupleStore tupleStore, Graph inputGraph, RuleBody ruleBody, RulesExecCxt rCxt) {
         Binding binding = BindingFactory.binding();
-        // If WHERE DATA, then pass down the dataGraph
-        Graph matchGraph = ruleBody.isGrounded() ? dataGraph : evalGraph ;
-        return evalBodyBinding(matchGraph, tupleStore, dataGraph, binding, ruleBody.getBodyElements(), rCxt);
+        // If WHERE DATA, then pass down the inputGraph
+        Graph matchGraph = ruleBody.isGrounded() ? inputGraph : evalGraph ;
+        return evalBodyBinding(matchGraph, tupleStore, inputGraph, binding, ruleBody.getBodyElements(), rCxt);
     }
 
-    private static Iterator<Binding> evalBodyBinding(Graph evalGraph, TupleStore tupleStore, Graph dataGraph, Binding binding,
+    private static Iterator<Binding> evalBodyBinding(Graph evalGraph, TupleStore tupleStore, Graph inputGraph, Binding binding,
                                                      List<RuleBodyElement> ruleElts, RulesExecCxt rCxt) {
         Iterator<Binding> chain = Iter.singletonIterator(binding);
         // Extract
         for ( RuleBodyElement elt : ruleElts ) {
             Iterator<Binding> chainIn = chain;
-            Iterator<Binding> chainOut = evalOneRuleElement(evalGraph, tupleStore, dataGraph, chainIn, elt, rCxt);
+            Iterator<Binding> chainOut = evalOneRuleElement(evalGraph, tupleStore, inputGraph, chainIn, elt, rCxt);
             chain = chainOut;
             if ( false ) {
                 FmtLog.info(RulesExecLib.class, "chain: ");
@@ -176,9 +176,9 @@ class RulesExecLib {
         return chain;
     }
 
-    private static Iterator<Binding> evalOneRuleElement(Graph evalGraph, TupleStore tupleStore, Graph dataGraph, Iterator<Binding> chainIn,
+    private static Iterator<Binding> evalOneRuleElement(Graph evalGraph, TupleStore tupleStore, Graph inputGraph, Iterator<Binding> chainIn,
                                                         RuleBodyElement elt, RulesExecCxt rCxt) {
-        // evalGraph will be the dataGraph if this is a grounded evaluation.
+        // evalGraph will be the inputGraph if this is a grounded evaluation.
         switch (elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 return Access.accessGraph(chainIn, evalGraph, triplePattern);
@@ -214,10 +214,10 @@ class RulesExecLib {
                 return Iter.iter(chainIn).map(mapper).removeNulls()/* .get() */;
             }
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
-                // If NOT DATA, then match on the dataGraph (baseGraph + data block).
-                Graph matchGraph = (grounded) ? dataGraph : evalGraph;
+                // If NOT DATA, then match on the inputGraph baseGraph.
+                Graph matchGraph = (grounded) ? inputGraph : evalGraph;
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution -> {
-                    Iterator<Binding> chainInner = evalBodyBinding(matchGraph, tupleStore, dataGraph, solution, innerBody, rCxt);
+                    Iterator<Binding> chainInner = evalBodyBinding(matchGraph, tupleStore, inputGraph, solution, innerBody, rCxt);
                     boolean innerMatches = chainInner.hasNext();
                     return !innerMatches;
                 });

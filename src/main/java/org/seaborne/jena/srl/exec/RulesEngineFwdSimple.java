@@ -61,9 +61,9 @@ public class RulesEngineFwdSimple extends AbstractRulesEngineFwdSimple implement
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph matchGraph, TupleStore evalTupleStore, Graph baseGraph, Rule rule, RulesExecCxt rCxt) {
+    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph inputGraph, Rule rule, RulesExecCxt rCxt) {
         //sSystem.out.println("Execute: "+rule);
-        RuleEval rEval = RulesExecLib.evalRule(rule, matchGraph, evalTupleStore, baseGraph, rCxt);
-        RulesExecLib.accumulateOneRuleHead(rEval, matchGraph, evalTupleStore, rCxt);
+        RuleEval rEval = RulesExecLib.evalRule(rule, evalGraph, evalTupleStore, inputGraph, rCxt);
+        RulesExecLib.accumulateOneRuleHead(rEval, evalGraph, evalTupleStore, rCxt);
     }
 }

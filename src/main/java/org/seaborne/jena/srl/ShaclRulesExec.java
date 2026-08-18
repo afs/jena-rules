@@ -90,7 +90,7 @@ public class ShaclRulesExec {
             return this;
         }
 
-        public Builder dataGraph(Graph baseGraph) {
+        public Builder baseGraph(Graph baseGraph) {
             this.baseGraph = baseGraph;
             return this;
         }
@@ -136,7 +136,7 @@ public class ShaclRulesExec {
     }
 
     public static RuleSetEvaluation execute(RuleSet ruleSet, Graph baseGraph) {
-        RulesEngine srExec = ShaclRulesExec.newBuilder().ruleSet(ruleSet).dataGraph(baseGraph).engine(SysJenaRules.dftEngineType).build();
+        RulesEngine srExec = ShaclRulesExec.newBuilder().ruleSet(ruleSet).baseGraph(baseGraph).engine(SysJenaRules.dftEngineType).build();
         return srExec.eval();
     }
 

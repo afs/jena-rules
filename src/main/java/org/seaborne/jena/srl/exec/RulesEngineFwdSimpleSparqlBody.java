@@ -69,18 +69,18 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      * The argument graph is updated.
      */
     @Override
-    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
-        execAccRuleSPARQL(evalGraph, evalTupleStore, dataGraph, rule, rCxt);
+    protected void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph inputGraph, Rule rule, RulesExecCxt rCxt) {
+        execAccRuleSPARQL(evalGraph, evalTupleStore, inputGraph, rule, rCxt);
     }
 
     /**
      * One execution of one rule.
-     * The argument graph is updated.
+     * The argument evalGraph is updated.
      */
-    private void execAccRuleSPARQL(Graph evalGraph, TupleStore evalTupleStore, Graph dataGraph, Rule rule, RulesExecCxt rCxt) {
+    private static void execAccRuleSPARQL(Graph evalGraph, TupleStore evalTupleStore, Graph baseGraph, Rule rule, RulesExecCxt rCxt) {
         // Can cache the query!
         Query query = RulesLibSparql.ruleBodyToQuery(rule.getBody());
-        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, dataGraph);
+        DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, baseGraph);
 
         // Prefixes.adapt(query.getPrefixMapping()).putAll(P.prefixMap());
         // System.out.println(query);

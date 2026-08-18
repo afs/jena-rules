@@ -30,6 +30,7 @@ import org.apache.jena.sparql.util.Context;
 import org.apache.jena.sparql.util.Symbol;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesEngine;
+import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.tuples.TupleStore;
 
 public class RulesEngineRegistry {
@@ -72,19 +73,21 @@ public class RulesEngineRegistry {
     }
 
     /** Create a RulesEngine */
-    public RulesEngine create(EngineType engineType, Graph dataGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
-        return create(engineType.symbol(), dataGraph, tupleStore, ruleSet, context);
+    public RulesEngine create(EngineType engineType, Graph inputGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
+        return create(engineType.symbol(), inputGraph, tupleStore, ruleSet, context);
     }
 
     /** Create a RulesEngine */
-    public RulesEngine create(Symbol engineType, Graph dataGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
+    public RulesEngine create(Symbol engineType, Graph inputGraph, TupleStore tupleStore, RuleSet ruleSet, Context context) {
         RulesEngineFactory f = registry.get(engineType);
         if (f == null)
             return null;
-        Context cxt = context.copy();
+        Context cxt = (context == null)
+                ? SysSRL.getContext().copy()
+                : context.copy();
         cxt.remove(ARQConstants.sysCurrentTime);
         cxt.remove(ARQConstants.sysCurrentAlgebra);
         cxt.remove(ARQConstants.sysCurrentQuery);
-        return f.create(dataGraph, tupleStore, ruleSet, cxt);
+        return f.create(inputGraph, tupleStore, ruleSet, cxt);
     }
 }

@@ -59,7 +59,8 @@ public class RulesLibSparql {
                 case EltTuplePattern(var tuple) -> { throw new NotImplemented("Tuples in SPARQL translation"); }
                 case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody, boolean grounded ) -> {
-                    // NOT DATA handled by ruleBodyToElementGroup
+                    // NOT DATA handled by ruleBodyToElementGroup which will wrap the innerBody in a GRAPH <
+
                     ElementGroup inner = ruleBodyToElementGroup(innerBody, grounded);
                     Element negationElt = new ElementFilter(new E_NotExists(inner));
                     group.addElement(negationElt);
@@ -73,14 +74,12 @@ public class RulesLibSparql {
                 }
             }
         }
-
         if ( groundedPattern ) {
             Element eltGraph = new ElementNamedGraph(EvalConst.srlBaseDataGraph, group);
             ElementGroup eltGroup = new ElementGroup();
             eltGroup.addElement(eltGraph);
             group = eltGroup;
         }
-
         return group;
     }
 
@@ -119,38 +118,10 @@ public class RulesLibSparql {
     }
 
 
-//    /** Get triple patters out of an ElementGroup built by {@link #ruleEltsToElementGroup} */
-//    private static List<Triple> elementToTriples(ElementGroup eltGroup) {
-//        List<Triple> triples = new ArrayList<>();
-//
-//        for ( Element e : eltGroup.getElements() ) {
-//            switch(e) {
-//                case ElementTriplesBlock tBlk -> {
-//                    triples.addAll(tBlk.getPattern().getList());
-//                }
-//                case ElementPathBlock pBlk -> {
-//                    BasicPattern bodyTriplePattern = new BasicPattern();
-//                    pBlk.getPattern().forEach(triplePath->{
-//                        // Better - sort out seq and alt.
-//                        Triple t = triplePath.asTriple();
-//                        if ( t == null )
-//                            throw new ShaclException("Path expression triples: "+triplePath);
-//                        triples.add(t);
-//                    });
-//                }
-//                case ElementFilter fBlk -> {/*ignore*/}
-//                default -> {
-//                    throw new ShaclException("Not supported for RDF output: "+e.getClass().getSimpleName());
-//                }
-//            }
-//        }
-//        return Collections.unmodifiableList(triples);
-//    }
-
-    /*package*/ static DatasetGraph buildDataset(Graph evalGraph, Graph dataGraph) {
+    /*package*/ static DatasetGraph buildDataset(Graph evalGraph, Graph inputGraph) {
         DatasetGraph dsg = DatasetGraphFactory.createGeneral(evalGraph);
-        if ( dataGraph != null )
-            dsg.addGraph(EvalConst.srlBaseDataGraph, dataGraph);
+        if ( inputGraph != null )
+            dsg.addGraph(EvalConst.srlBaseDataGraph, inputGraph);
         return dsg;
     }
 

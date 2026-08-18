@@ -22,6 +22,7 @@
 package org.seaborne.jena.srl.exec;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Graph;
@@ -30,6 +31,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
+import org.apache.jena.sparql.graph.GraphReadOnly;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.*;
 import org.seaborne.jena.srl.examine.Examine;
@@ -45,9 +47,9 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
     protected final RuleSet ruleSet;
     // The input graph. This does not contain the data block triples.
-    protected final Graph baseGraph;
-    protected final TupleStore baseTupleStore;
-    protected final RulesExecCxt rCxt;
+    private final Graph baseGraph;
+    private final TupleStore baseTupleStore;
+    private final RulesExecCxt rCxt;
 
     protected AbstractRulesEngineFwdSimple(Graph baseGraph, TupleStore tupleStore, RuleSet ruleSet, RulesExecCxt rCxt) {
         this.baseGraph = baseGraph;
@@ -128,15 +130,17 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 
         TRACE = TRACE || rCxt.trace();
 
-        // == dataGraph -- base graph + data.
-        // This input graph for the algorithm - baseGraph + DATA.
-        // It grows as execution proceeds
-        AppendGraph dataGraph = AppendGraph.create(baseGraph);
-        // Add DATA
-        Graph ruleSetData = ruleSet.getData() ;
-        if ( ruleSet.hasData() ) {
-            GraphUtil.addInto(dataGraph, ruleSetData);
-        }
+        // == inputGraph -- base graph
+        //   Immutable
+        // == evalGraph -- the working graph of the algorithm
+        //   It grows as execution proceeds.
+
+        Graph inputGraph = readOnly(baseGraph);
+
+        AppendGraph evalGraph = AppendGraph.create(baseGraph);
+        // Add DATA to seed the evaluation graph
+        if ( ruleSet.hasData() )
+            GraphUtil.addInto(evalGraph, ruleSet.getData());
 
         // rCxt.strict
         TupleStore tupleStore = TupleStore.create();
@@ -148,9 +152,8 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
         }
 
         // Prefixes for the inferred graph.
-        // === Graph of new triples.
-        // Initially, the DATA triples.
-        Graph inferredGraph= dataGraph.getAdded();
+        // === View graph of new triples.
+        Graph inferredGraph = evalGraph.getAdded();
         inferredGraph.getPrefixMapping().setNsPrefixes(Prefixes.adapt(ruleSet.getPrefixMap()));
         inferredGraph.getPrefixMapping().setNsPrefixes(baseGraph.getPrefixMapping());
 
@@ -159,12 +162,10 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
             rCxt.out().println("Initial inferred graph: size = "+inferredGraph.size());
         }
 
-        // Execute WHERE DATA rules.
-
-        return evalStratification(dataGraph, baseGraph, stratification, tupleStore);
+        return evalStratification(evalGraph, inputGraph, stratification, tupleStore);
     }
 
-    private RuleSetEvaluation evalStratification(AppendGraph dataGraph, Graph baseGraph, Stratification stratification, TupleStore tupleStore) {
+    private RuleSetEvaluation evalStratification(AppendGraph evalGraph, Graph inputGraph, Stratification stratification, TupleStore tupleStore) {
 
         if ( Examine.EXAMINE )
             rCxt.out().println("==== Evaluation");
@@ -177,11 +178,11 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
                     rCxt.out().incIndent();
                     rCxt.out().flush();
                 }
-                int rounds = evalStratum(dataGraph, i, stratum, baseGraph, tupleStore, rCxt);
+                int rounds = evalStratum(evalGraph, i, stratum, inputGraph, tupleStore, rCxt);
 
                 if ( TRACE ) {
                     //rCxt.out().println("Base graph: size = "+baseGraph.size());
-                    rCxt.out().println("Inferred graph: size = "+dataGraph.getAdded().size());
+                    rCxt.out().println("Inferred graph: size = "+evalGraph.getAdded().size());
                 }
 
                 if ( Examine.EXAMINE || TRACE )
@@ -190,11 +191,11 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
         } finally {
             rCxt.out().flush(); }
 
-        return new Evaluation(baseGraph, ruleSet, dataGraph.getAdded(), dataGraph, tupleStore);
+        return new Evaluation(baseGraph, ruleSet, evalGraph.getAdded(), evalGraph, tupleStore);
     }
 
-    /* Return the number of of the last round that causes more triples */
-    private int evalStratum(Graph evalGraph, int stratumNumber, Stratum stratum, Graph baseGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
+    /* Return the number of the last round that causes more triples */
+    private int evalStratum(Graph evalGraph, int stratumNumber, Stratum stratum, Graph inputGraph, TupleStore evalTupleStore, RulesExecCxt rCxt) {
 //        if ( TRACE )
 //            rCxt.out().printf("Eval level -- %d rules\n", rules.size());
 
@@ -208,12 +209,9 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
 //        }
 
         /*
-         * dataGraph is a combination of baseGraph, inferred triples, including DATA triples.
-         */
-        /*
          * graph1 is updated by rules in RuleExec.evalRule.
          * It starts being baseGraph+DATA and becomes the output graph.
-         * If "flushAfterEachRound", write back to dataGraph after each round
+         * If "flushAfterEachRound", write back to evalGraph after each round
          * otherwise accumulate over each round.
          * If "flushAfterEachLevel", write back at the end of evalStratum.
          * otherwise accumulate over each round.
@@ -224,16 +222,6 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
         Collection<Rule> runOnceRules = stratum.runOnce();
         Collection<Rule> runGeneralRules = stratum.runGeneral();
 
-//        /*
-//         * accumulationGraph (informational, for development) is all inferred triples
-//         * and updated either at the end of a round or end of execution.
-//         * It does not include DATA triples.
-//         * It is primarily for development and maybe removed
-//         */
-//        Graph accumulationGraph = GraphFactory.createGraphMem();
-//        accumulationGraph.getPrefixMapping().setNsPrefixes(dataGraph.getPrefixMapping());
-
-
         // == Run once
         if ( !runOnceRules.isEmpty() ) {
             if ( TRACE ) {
@@ -243,7 +231,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
             for ( Rule rule : runOnceRules ) {
                 if ( TRACE )
                     System.out.printf("Eval(once): %s\n", ruleSet.labelFor(rule));
-                executeOneRule(graph1, evalTupleStore, baseGraph, rule, rCxt);
+                executeRule(graph1, evalTupleStore, inputGraph, rule, rCxt);
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
             }
@@ -276,7 +264,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
             for ( Rule rule : runGeneralRules ) {
                 if ( TRACE )
                     rCxt.out().printf("Eval(general): round=%d : %s\n", round, ruleSet.str(rule));
-                executeOneRule(graph1, evalTupleStore, baseGraph, rule, rCxt);
+                executeRule(graph1, evalTupleStore, inputGraph, rule, rCxt);
 
                 if ( TRACE )
                     rCxt.out().println("Accumulator: "+graph1.getAdded().size());
@@ -319,9 +307,23 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
         srcGraph.flush();
     }
 
+    // Helper - wrap in a graph implementation that blocks add/delete.
+    private static Graph readOnly(Graph graph) {
+       return new GraphReadOnly(graph);
+    }
+
+    private void executeRule(Graph evalGraph, TupleStore evalTupleStore, Graph inputGraph, Rule rule, RulesExecCxt rCxt) {
+        Objects.requireNonNull(evalGraph);
+        Objects.requireNonNull(rule);
+        Objects.requireNonNull(inputGraph);
+        Objects.requireNonNull(rCxt);
+        // Readonly wrappers for checking.
+        executeOneRule(evalGraph, evalTupleStore, inputGraph, rule, rCxt);
+    }
+
     /**
      * One execution of one rule.
-     * The arguments graph and tupleStore are updated.
+     * The arguments evalGraph and evalTupleStore are updated.
      */
-    protected abstract void executeOneRule(Graph matchGraph, TupleStore evalTupleStore, Graph baseGraph, Rule rule, RulesExecCxt rCxt);
+    protected abstract void executeOneRule(Graph evalGraph, TupleStore evalTupleStore, Graph inputGraph, Rule rule, RulesExecCxt rCxt);
 }

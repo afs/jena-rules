@@ -35,5 +35,5 @@ import org.seaborne.jena.srl.tuples.TupleStore;
  */
 @FunctionalInterface
 public interface RulesEngineFactory {
-    RulesEngine create(Graph dataGraph, TupleStore dataTuples, RuleSet ruleSet, Context cxt);
+    RulesEngine create(Graph inputGraph, TupleStore dataTuples, RuleSet ruleSet, Context cxt);
 }

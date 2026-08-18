@@ -225,7 +225,7 @@ public class RuleSet {
 //    }
 
     public Graph getData() {
-        return data;
+        return (data == null) ? GraphFactory.emptyGraph() : data ;
     }
 
     public boolean hasData() {
