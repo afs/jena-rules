@@ -2,7 +2,7 @@
 local/
 
 # Intermediate files.
-Grammar-SRL/rules-grammar.*
+Grammar-SRL/sparql-rl-grammar.*
 Grammar-SRL/dev-*
 Grammar-SRL/dev.bnf
 

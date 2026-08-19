@@ -2,25 +2,24 @@
 ## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 BASE="sparql-rl-grammar"
-DEST="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-rules/"
-##DEST="$HOME/W3C/SHACL/shacl-wg/shacl12-rules/"
+DEST="$HOME/W3C/SHACL/rules-shacl-wg/sparql12-rl/"
 
 ## Local step names
-OUT_HTML='rules-grammar.html'
-OUT_BNF='rules-grammar.bnf'
+OUT_HTML='sparql-rl-grammar.html'
+OUT_BNF='sparql-rl-grammar.bnf'
 
 echo "Grammar to HTML"
 
 (
     echo "<!-- GRAMMAR -->"
-    jj2html 'shacl-rules.txt' 'tokens.txt'
+    jj2html 'sparql-rl.txt' 'tokens.txt'
     echo "<!-- GRAMMAR -->"
 ) > $OUT_HTML
 
 echo "Grammar to BNF"
 
 (
-    jj2bnf 'shacl-rules.txt' 'tokens.txt'
+    jj2bnf 'sparql-rl.txt' 'tokens.txt'
 ) > $OUT_BNF
 
 # To spec
