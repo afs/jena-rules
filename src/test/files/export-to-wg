@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/rules/"
-##DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/rules/"
+DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/sparql-rl/"
+##DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/sparql-rl/"
 
 function exportDir {
     local SRC="$1"
@@ -26,4 +26,3 @@ exportArea examples
 ## rm -f $DIR/manifest*
 ##cp manifest-rules.ttl $DIR
 ##cp README.md $DIR
-

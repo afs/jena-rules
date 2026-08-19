@@ -16,8 +16,8 @@ function setup_dir {
     
 (
     DIR="syntax"
-    POSTIVE_SYNTAX="srt:RulesPositiveSyntaxTest"
-    NEGATIVE_SYNTAX="srt:RulesNegativeSyntaxTest"
+    POSTIVE_SYNTAX="srlt:RulesPositiveSyntaxTest"
+    NEGATIVE_SYNTAX="srlt:RulesNegativeSyntaxTest"
 
     setup_dir $DIR
     cd $DIR
@@ -28,8 +28,8 @@ function setup_dir {
 
 (
     DIR="wellformed"
-    POSTIVE_SYNTAX="srt:RulesPositiveWellFormednessTest"
-    NEGATIVE_SYNTAX="srt:RulesNegativeWellFormednessTest"
+    POSTIVE_SYNTAX="srlt:RulesPositiveWellFormednessTest"
+    NEGATIVE_SYNTAX="srlt:RulesNegativeWellFormednessTest"
 
     setup_dir $DIR
     cd $DIR
@@ -40,8 +40,8 @@ function setup_dir {
 
 (
     DIR="stratification"
-    POSTIVE_SYNTAX="srt:RulesPositiveStratificationTest"
-    NEGATIVE_SYNTAX="srt:RulesNegativeStratificationTest"
+    POSTIVE_SYNTAX="srlt:RulesPositiveStratificationTest"
+    NEGATIVE_SYNTAX="srlt:RulesNegativeStratificationTest"
 
     setup_dir $DIR
     cd $DIR
@@ -52,8 +52,8 @@ function setup_dir {
 
 (
     DIR="syntax-jena"
-    POSTIVE_SYNTAX="srt:JenaRulesPositiveSyntaxTest"
-    NEGATIVE_SYNTAX="srt:JenaRulesNegativeSyntaxTest"
+    POSTIVE_SYNTAX="srlt:JenaRulesPositiveSyntaxTest"
+    NEGATIVE_SYNTAX="srlt:JenaRulesNegativeSyntaxTest"
 
     setup_dir $DIR
     cd $DIR

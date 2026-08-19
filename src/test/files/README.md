@@ -1,4 +1,4 @@
-# SPARQL-RL 1.2 Rules Tests
+# SPARQL 1.2 RL Tests
 
 ## Manifests
 
@@ -7,21 +7,19 @@ vocabulary.
 
 ```
 PREFIX mf:   <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
-PREFIX srt:  <http://www.w3.org/ns/shacl-rules-test#>
+PREFIX srlt: <http://www.w3.org/ns/sparql-rl-tests#>
 ```
 
 Each directory has a test manifest. A manifest file may contain `mf:include` to load
 tests from another manifest files.
+
+The top level manifest is `manifest-sparql-rl.ttl`.
 
 ## Test types
 
 ### Syntax tests
 
 Good and bad syntax tests, regardless of well-formedness and stratification.
-
-### Translation tests
-
-Translate between SRL and RDF syntax forms.
 
 ### Well-formedness tests
 
@@ -40,3 +38,12 @@ These test rule sets to detect where the stratification condition is violated.
 All the test are syntactically legal and well-formed.
 
 ## Evaluation tests
+
+The result of an evaluation test is the inference graph. 
+
+There are two directories of evaluation tests. `eval/` has feature
+tests and `eval2/` has some larger tests.
+
+## Examples
+
+Some examples from the SPARQL-RL spec.

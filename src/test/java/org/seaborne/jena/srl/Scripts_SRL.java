@@ -30,9 +30,7 @@ import org.seaborne.jena.srl.junit.RuleTests;
 
 public class Scripts_SRL {
 
-    // The WG test suite as it in in tests/ area.
-    // 2026-07 -- Currently, there is significant overlap with the files/tests/tests-* so they run twice.
-    // At this stage, better to be safe than miss tests.
+    // The WG test suite as it in the WG tests/ area.
 
     @BeforeAll
     public static void beforeClass() {}
@@ -44,6 +42,6 @@ public class Scripts_SRL {
     @DisplayName("SRL")
     public Stream<DynamicNode> execution() {
         // All SRL tests, using the system default query engine for eval tests.
-        return Scripts.manifestTestFactory("src/test/files/manifest-rules.ttl", RuleTests::makeRuleTest);
+        return Scripts.manifestTestFactory("src/test/files/manifest-sparql-rl.ttl", RuleTests::makeRuleTest);
     }
 }

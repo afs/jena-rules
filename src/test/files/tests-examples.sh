@@ -195,7 +195,7 @@ PREFIX mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
 
 PREFIX :       <https://w3c.github.io/rdf-tests/shacl/shacl12/>
 
-PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
+PREFIX srlt:   <http://www.w3.org/ns/shacl-rules-test#>
 
 <#>  rdf:type mf:Manifest ;
    rdfs:label "SRL Examples"@en ;
@@ -214,11 +214,11 @@ for X in 1 2 3 4 5
 do
     cat >> manifest.ttl<<EOF
 
-:example-$X rdf:type srt:RulesEvalTest ;
+:example-$X rdf:type srlt:RulesEvalTest ;
     mf:name "Example $X" ;
     mf:action
-         [ srt:ruleset  <example-$X.srl> ;
-           srt:data     <example-$X-data.ttl> ] ;
+         [ srlt:ruleset  <example-$X.srl> ;
+           srlt:data     <example-$X-data.ttl> ] ;
     mf:result  <example-$X-inf.ttl> ;
     .
 EOF

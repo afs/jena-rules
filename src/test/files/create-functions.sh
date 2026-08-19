@@ -8,7 +8,7 @@ EXT="srl"
 ## setup ()
 function clean
 {
-    rm -f *.srl manifets.ttl
+    rm -f *.srl manifest.ttl
 }
 
 ## fname ( "basename" Number [extension] )
@@ -121,8 +121,7 @@ PREFIX :       $URI
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#>
-PREFIX srl:    <http://www.w3.org/ns/shacl-rules#>
-PREFIX srt:    <http://www.w3.org/ns/shacl-rules-test#>
+PREFIX srlt:   <http://www.w3.org/ns/sparql-rl-tests#>
 
 <>  rdf:type mf:Manifest ;
     rdfs:comment "$LABEL" ;

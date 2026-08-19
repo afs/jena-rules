@@ -25,7 +25,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 
 public class VocabRulesTests {
-    public static final String SRT =  "http://www.w3.org/ns/shacl-rules-test#";
+    public static final String SRT =  "http://www.w3.org/ns/sparql-rl-tests#";
 
     public static final Node TestPositiveSyntaxRules      = uri("RulesPositiveSyntaxTest");
     public static final Node TestNegativeSyntaxRules      = uri("RulesNegativeSyntaxTest");
