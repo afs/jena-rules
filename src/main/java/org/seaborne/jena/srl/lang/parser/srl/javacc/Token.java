@@ -20,7 +20,7 @@
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.srl.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.srl.lang.parser.srl.javacc;
 
 /**
  * Describes the input token stream.
@@ -149,4 +149,4 @@ public class Token implements java.io.Serializable {
   }
 
 }
-/* JavaCC - OriginalChecksum=88f6a35482be34ac87ddd8f09e39b450 (do not edit this line) */
+/* JavaCC - OriginalChecksum=10433a281399bc30cdb205780996d88a (do not edit this line) */

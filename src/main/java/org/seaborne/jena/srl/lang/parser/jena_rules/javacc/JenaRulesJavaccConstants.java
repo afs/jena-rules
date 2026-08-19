@@ -73,29 +73,29 @@ public interface JenaRulesJavaccConstants {
   /** RegularExpression Id. */
   int INFER = 26;
   /** RegularExpression Id. */
-  int TRANSITIVE = 27;
+  int IMPORTS = 27;
   /** RegularExpression Id. */
-  int SYMMETRIC = 28;
+  int ASSIGN = 28;
   /** RegularExpression Id. */
-  int INVERSE = 29;
+  int TRANSITIVE = 29;
   /** RegularExpression Id. */
-  int IMPORTS = 30;
+  int SYMMETRIC = 30;
   /** RegularExpression Id. */
-  int BASE = 31;
+  int INVERSE = 31;
   /** RegularExpression Id. */
-  int PREFIX = 32;
+  int BASE = 32;
   /** RegularExpression Id. */
-  int VERSION = 33;
+  int PREFIX = 33;
   /** RegularExpression Id. */
-  int WHERE = 34;
+  int VERSION = 34;
   /** RegularExpression Id. */
-  int SET = 35;
+  int WHERE = 35;
   /** RegularExpression Id. */
-  int FOR = 36;
+  int SET = 36;
   /** RegularExpression Id. */
-  int LET = 37;
+  int FOR = 37;
   /** RegularExpression Id. */
-  int ASSIGN = 38;
+  int LET = 38;
   /** RegularExpression Id. */
   int TRIPLE = 39;
   /** RegularExpression Id. */
@@ -387,10 +387,11 @@ public interface JenaRulesJavaccConstants {
     "\"tuples\"",
     "\"data\"",
     "\"infer\"",
+    "\"imports\"",
+    "\":=\"",
     "\"transitive\"",
     "\"symmetric\"",
     "\"inverse\"",
-    "\"imports\"",
     "\"base\"",
     "\"prefix\"",
     "\"version\"",
@@ -398,7 +399,6 @@ public interface JenaRulesJavaccConstants {
     "\"set\"",
     "\"for\"",
     "\"let\"",
-    "\":=\"",
     "\"TRIPLE\"",
     "\"isTRIPLE\"",
     "\"SUBJECT\"",

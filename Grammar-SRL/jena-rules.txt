@@ -43,7 +43,7 @@ TOKENS
 <KW_A: "a">
 }
 
-// SHACL
+// SPARQL-RL
 <DEFAULT> TOKEN [IGNORE_CASE] : {
 <RULE: "rule">
 | <THEN: "then">
@@ -51,10 +51,11 @@ TOKENS
 | <TUPLES: "tuples">
 | <DATA: "data">
 | <INFER: "infer">
+| <IMPORTS: "imports">
+| <ASSIGN: ":=">
 | <TRANSITIVE: "transitive">
 | <SYMMETRIC: "symmetric">
 | <INVERSE: "inverse">
-| <IMPORTS: "imports">
 }
 
 <DEFAULT> TOKEN [IGNORE_CASE] : {
@@ -65,7 +66,6 @@ TOKENS
 | <SET: "set">
 | <FOR: "for">
 | <LET: "let">
-| <ASSIGN: ":=">
 | <TRIPLE: "TRIPLE">
 | <IS_TRIPLE: "isTRIPLE">
 | <SUBJECT: "SUBJECT">

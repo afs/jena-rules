@@ -48,7 +48,7 @@ import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.exec.RulesEngineRegistry;
 import org.seaborne.jena.srl.lang.parser.ParserLib;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.sys.SysJenaRules;
 import org.seaborne.jena.srl.sys.RecursionChecker.RecursionException;
@@ -95,7 +95,7 @@ public class rules_eval extends CmdRules {
         RuleSet ruleSet;
         try {
             ruleSet = ShaclRulesParser.parseFile(rulesFile);
-        } catch (ShaclRulesParseException ex) {
+        } catch (SRLParseException ex) {
             throw messageParseErrorAndTerminate(ex, 1);
         }
         Graph data = GraphMemFactory.createDefaultGraph();
@@ -130,7 +130,7 @@ public class rules_eval extends CmdRules {
         }
     }
 
-    private static RuntimeException messageParseErrorAndTerminate(ShaclRulesParseException ex, int rc) {
+    private static RuntimeException messageParseErrorAndTerminate(SRLParseException ex, int rc) {
         String msg = ParserLib.formatMessage(ex.getMessage(), ex.getLine(), ex.getColumn());
         System.err.print("  ");
         System.err.print(msg);

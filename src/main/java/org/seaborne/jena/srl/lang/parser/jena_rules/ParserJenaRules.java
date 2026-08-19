@@ -34,7 +34,7 @@ import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.ShaclRulesParser;
 import org.seaborne.jena.srl.lang.parser.ParserRules;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.lang.parser.jena_rules.javacc.JenaRulesJavacc;
 import org.seaborne.jena.srl.lang.parser.jena_rules.javacc.ParseException;
 import org.seaborne.jena.srl.lang.parser.jena_rules.javacc.TokenMgrError;
@@ -88,14 +88,14 @@ public class ParserJenaRules extends ParserRules {
         }
         catch (ParseException ex) {
             parserProfile.getErrorHandler().error(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
-            throw new ShaclRulesParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
+            throw new SRLParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
         }
         catch (TokenMgrError tErr) {
             // Last valid token : not the same as token error message - but this should not happen
             int col = parser.token.endColumn;
             int line = parser.token.endLine;
             parserProfile.getErrorHandler().error(tErr.getMessage(), line, col);
-            throw new ShaclRulesParseException(tErr.getMessage(), line, col);
+            throw new SRLParseException(tErr.getMessage(), line, col);
         }
     }
 }

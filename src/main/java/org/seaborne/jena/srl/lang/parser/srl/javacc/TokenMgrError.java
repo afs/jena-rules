@@ -20,7 +20,7 @@
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.srl.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.srl.lang.parser.srl.javacc;
 
 /** Token Manager Error. */
 public class TokenMgrError extends Error
@@ -164,4 +164,4 @@ public class TokenMgrError extends Error
     this(LexicalErr(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);
   }
 }
-/* JavaCC - OriginalChecksum=b5f3a1faa7761d10b57f2c54c13d84c4 (do not edit this line) */
+/* JavaCC - OriginalChecksum=2abf7753ede148dc563e14c62befdf8c (do not edit this line) */

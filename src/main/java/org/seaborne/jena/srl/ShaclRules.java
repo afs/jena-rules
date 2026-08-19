@@ -28,7 +28,7 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.sparql.SystemARQ;
 import org.apache.jena.sparql.util.Symbol;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.sys.P;
 import org.seaborne.jena.srl.sys.SysJenaRules;
 import org.seaborne.jena.srl.tuples.TupleStore;
@@ -84,7 +84,7 @@ public class ShaclRules {
 
     /** Parse from a string, and return a {@link RuleSet}
      * @param string
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseString(String string) {
         return ShaclRulesParser.fromString(string).parse();
@@ -116,7 +116,7 @@ public class ShaclRules {
     /**
      * Parse a file or web document, and return a {@link RuleSet}
      * @param filenameOrURI
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseFile(String filenameOrURI) {
         String base = IRIs.resolve(filenameOrURI);
@@ -128,7 +128,7 @@ public class ShaclRules {
      * @param filenameOrURI or URI
      * @param baseURI
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseFile(String filenameOrURI, String baseURI) {
         return ShaclRulesParser.from(filenameOrURI).baseURI(baseURI).parse();
@@ -151,7 +151,7 @@ public class ShaclRules {
      * @param input
      * @param baseURI
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parse(InputStream input, String baseURI) {
         return ShaclRulesParser.from(input).baseURI(baseURI).parse();

@@ -33,9 +33,9 @@ import org.apache.jena.riot.system.streammgr.StreamManager;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
 import org.seaborne.jena.srl.lang.parser.ParserRules;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.lang.parser.jena_rules.ParserJenaRules;
-import org.seaborne.jena.srl.lang.parser.shacl_rules.ParserShaclRules;
+import org.seaborne.jena.srl.lang.parser.srl.ParserSrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +95,7 @@ public class ShaclRulesParser {
     }
 
     /**
-    * @throws ShaclRulesParseException
+    * @throws SRLParseException
     */
     public RuleSet parse() {
         if ( !canUseThisParser )
@@ -128,7 +128,7 @@ public class ShaclRulesParser {
 
     /** Parse from a string, and return a {@link RuleSet}
      * @param string
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseString(String string) {
         return fromString(string).parse();
@@ -139,7 +139,7 @@ public class ShaclRulesParser {
      * @param string
      * @param rulesSyntax
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseString(String string, ShaclRulesSyntax rulesSyntax) {
         return fromString(string).syntax(rulesSyntax).parse();
@@ -151,7 +151,7 @@ public class ShaclRulesParser {
      * @param baseURI
      * @param rulesSyntax
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseString(String string, String baseURI, ShaclRulesSyntax rulesSyntax) {
         return fromString(string).baseURI(baseURI).syntax(rulesSyntax).parse();
@@ -160,7 +160,7 @@ public class ShaclRulesParser {
     /**
      * Parse a file or web document, and return a {@link RuleSet}
      * @param filenameOrURI
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseFile(String filenameOrURI) {
         return from(filenameOrURI).parse();
@@ -171,7 +171,7 @@ public class ShaclRulesParser {
      * @param filenameOrURI or URI
      * @param baseURI
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseFile(String filenameOrURI, String baseURI) {
         return from(filenameOrURI).baseURI(baseURI).parse();
@@ -183,7 +183,7 @@ public class ShaclRulesParser {
      * @param baseURI
      * @param rulesSyntax
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parseFile(String filenameOrURI, String baseURI, ShaclRulesSyntax rulesSyntax) {
         return from(filenameOrURI).baseURI(baseURI).syntax(rulesSyntax).parse();
@@ -194,7 +194,7 @@ public class ShaclRulesParser {
      * @param input
      * @param baseURI
      * @return RuleSet
-     * @throws ShaclRulesParseException
+     * @throws SRLParseException
      */
     public static RuleSet parse(InputStream input, String baseURI) {
         return parse(input, baseURI, defaultRulesSyntax);
@@ -206,7 +206,7 @@ public class ShaclRulesParser {
 
     private static RuleSet parseJavaReader(StringReader jr, String baseURI, ErrorHandler errorHandler, ShaclRulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
-            case SHACL->ParserShaclRules.parse(jr, baseURI, errorHandler);
+            case SHACL->ParserSrl.parse(jr, baseURI, errorHandler);
             case JENA->ParserJenaRules.parse(jr, baseURI, errorHandler);
             default -> { throw new IllegalArgumentException("Syntax"); }
         };
@@ -214,7 +214,7 @@ public class ShaclRulesParser {
 
     static RuleSet parseInputStream(InputStream in, String baseURI, ErrorHandler errorHandler, ShaclRulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
-            case SHACL->ParserShaclRules.parse(in, baseURI, errorHandler);
+            case SHACL->ParserSrl.parse(in, baseURI, errorHandler);
             case JENA->ParserJenaRules.parse(in, baseURI, errorHandler);
             default -> { throw new IllegalArgumentException("Syntax"); }
         };

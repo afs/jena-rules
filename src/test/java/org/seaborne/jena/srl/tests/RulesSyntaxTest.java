@@ -32,7 +32,7 @@ import org.apache.jena.riot.RiotException;
 import org.apache.jena.shared.NotFoundException;
 import org.seaborne.jena.srl.ShaclRulesParser;
 import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 
 public class RulesSyntaxTest implements Runnable {
 
@@ -74,7 +74,7 @@ public class RulesSyntaxTest implements Runnable {
                 printFile(filename);
                 fail("Parsing succeeded in a bad syntax test");
             }
-        } catch(ShaclRulesParseException | RiotException ex) {
+        } catch(SRLParseException | RiotException ex) {
             if ( expectLegalSyntax ) {
                 printFile(filename);
                 //ex.printStackTrace();

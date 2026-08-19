@@ -23,20 +23,20 @@ package org.seaborne.jena.srl.lang.parser;
 
 import org.seaborne.jena.srl.RulesException;
 
-public class ShaclRulesParseException extends RulesException {
+public class SRLParseException extends RulesException {
     private int line ;
     private int column ;
 
 //    public ShaclParseException(int line, int column)
 //    { this(null, null, line, column) ; }
 
-    public ShaclRulesParseException(Throwable cause, int line, int column)
+    public SRLParseException(Throwable cause, int line, int column)
     { this(null, cause, line, column) ; }
 
-    public ShaclRulesParseException(String msg, int line, int column)
+    public SRLParseException(String msg, int line, int column)
     { this(msg, null, line, column) ; }
 
-    public ShaclRulesParseException(String msg, Throwable cause, int line, int column)
+    public SRLParseException(String msg, Throwable cause, int line, int column)
     {
         //super(formatMessage(msg, line, column), cause) ;
         super(msg, cause) ;

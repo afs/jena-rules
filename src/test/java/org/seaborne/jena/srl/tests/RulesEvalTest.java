@@ -42,7 +42,7 @@ import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.junit.VocabRulesTests;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 
 public class RulesEvalTest implements Runnable {
 
@@ -74,7 +74,7 @@ public class RulesEvalTest implements Runnable {
         String URI = checkForFile(nRuleSet);
         try {
             ruleSet = ShaclRulesParser.parseFile(URI);
-        } catch ( ShaclRulesParseException parseEx) {
+        } catch ( SRLParseException parseEx) {
             System.out.println("** Parse error ("+testFilename+")");
             ruleSet = null;
             fail("Parse error in rule set ("+testFilename+")");

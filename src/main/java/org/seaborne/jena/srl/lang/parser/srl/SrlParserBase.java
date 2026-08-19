@@ -19,8 +19,8 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang.parser.shacl_rules;
+package org.seaborne.jena.srl.lang.parser.srl;
 
 import org.seaborne.jena.srl.lang.parser.RulesParserBase;
 
-public class ShaclRulesParserBase extends RulesParserBase {}
+public class SrlParserBase extends RulesParserBase {}

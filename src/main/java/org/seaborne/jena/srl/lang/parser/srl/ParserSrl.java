@@ -19,7 +19,7 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang.parser.shacl_rules;
+package org.seaborne.jena.srl.lang.parser.srl;
 
 import java.io.InputStream;
 import java.io.StringReader;
@@ -34,29 +34,29 @@ import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.ShaclRulesParser;
 import org.seaborne.jena.srl.lang.parser.ParserRules;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
-import org.seaborne.jena.srl.lang.parser.shacl_rules.javacc.ParseException;
-import org.seaborne.jena.srl.lang.parser.shacl_rules.javacc.ShaclRulesJavacc;
-import org.seaborne.jena.srl.lang.parser.shacl_rules.javacc.TokenMgrError;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
+import org.seaborne.jena.srl.lang.parser.srl.javacc.ParseException;
+import org.seaborne.jena.srl.lang.parser.srl.javacc.SrlJavacc;
+import org.seaborne.jena.srl.lang.parser.srl.javacc.TokenMgrError;
 import org.slf4j.Logger;
 
 // Class specific parser code
-public class ParserShaclRules extends ParserRules {
+public class ParserSrl extends ParserRules {
 
     public static RuleSet parse(InputStream in, String baseURI, ErrorHandler errorHandler) {
-        ShaclRulesJavacc parser = new ShaclRulesJavacc(in);
+        SrlJavacc parser = new SrlJavacc(in);
         return parse(parser, baseURI, errorHandler);
     }
 
     public static RuleSet parse(StringReader strReader, String baseURI, ErrorHandler errorHandler) {
-        ShaclRulesJavacc parser = new ShaclRulesJavacc(strReader);
+        SrlJavacc parser = new SrlJavacc(strReader);
         return parse(parser, baseURI, errorHandler);
     }
 
      private final static Logger parserLogger = ShaclRulesParser.parserLogger;
 
     // Parser to RuleSet
-    private static RuleSet parse(ShaclRulesJavacc parser, String baseURI, ErrorHandler errorHandler) {
+    private static RuleSet parse(SrlJavacc parser, String baseURI, ErrorHandler errorHandler) {
         IRIxResolver resolver =
                 (baseURI == null) ? IRIs.stdResolver().clone() : IRIs.resolver(baseURI);
 
@@ -86,14 +86,14 @@ public class ParserShaclRules extends ParserRules {
         }
         catch (ParseException ex) {
             parserProfile.getErrorHandler().error(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
-            throw new ShaclRulesParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
+            throw new SRLParseException(ex.getMessage(), ex.currentToken.beginLine, ex.currentToken.beginColumn);
         }
         catch (TokenMgrError tErr) {
             // Last valid token : not the same as token error message - but this should not happen
             int col = parser.token.endColumn;
             int line = parser.token.endLine;
             parserProfile.getErrorHandler().error(tErr.getMessage(), line, col);
-            throw new ShaclRulesParseException(tErr.getMessage(), line, col);
+            throw new SRLParseException(tErr.getMessage(), line, col);
         }
    }
 }

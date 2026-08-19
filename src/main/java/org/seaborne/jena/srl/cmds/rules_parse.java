@@ -43,7 +43,7 @@ import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.ShaclRulesParser;
 import org.seaborne.jena.srl.ShaclRulesWriter;
 import org.seaborne.jena.srl.lang.parser.RulesParserBase;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.srl.rdf_syntax.RuleSetToGraph;
 
@@ -177,7 +177,7 @@ public class rules_parse extends CmdRules {
             ruleSet = ShaclRulesParser.parseFile(rulesFile);
             if ( debug )
                 System.out.println();
-        } catch ( ShaclRulesParseException parseEx) {
+        } catch ( SRLParseException parseEx) {
             if ( multipleFiles )
                 System.err.println(rulesFile+" : ");
             System.out.println("** Parse error");

@@ -20,7 +20,7 @@
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.srl.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.srl.lang.parser.srl.javacc;
 
 /**
  * This exception is thrown when parse errors are encountered.
@@ -212,4 +212,4 @@ public class ParseException extends Exception {
    }
 
 }
-/* JavaCC - OriginalChecksum=c7129c582e2f5c6d5259ff8e6b08ac09 (do not edit this line) */
+/* JavaCC - OriginalChecksum=4ccaa7ecc111cc04646cb9e419728912 (do not edit this line) */

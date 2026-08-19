@@ -20,7 +20,7 @@
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.srl.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.srl.lang.parser.srl.javacc;
 
 /**
  * An implementation of interface CharStream, where the stream is assumed to
@@ -489,4 +489,4 @@ public class SimpleCharStream
   boolean getTrackLineColumn() { return trackLineColumn; }
   void setTrackLineColumn(boolean tlc) { trackLineColumn = tlc; }
 }
-/* JavaCC - OriginalChecksum=a292c474e766a1773d5722ba1b258ade (do not edit this line) */
+/* JavaCC - OriginalChecksum=71bd15da7d401aea335540636ecde066 (do not edit this line) */

@@ -522,7 +522,7 @@ public class RulesParserBase extends LangParserBase {
 
     protected RulesException createParseException(String msg, int line, int column) {
         // XXX ParserLib/formatMessage
-        return new ShaclRulesParseException(msg, line, column);
+        return new SRLParseException(msg, line, column);
     }
 
     protected void throwInternalStateException(String msg) {

@@ -34,7 +34,7 @@ import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 
 /**
  * Java-written evaluation tests.
@@ -117,7 +117,7 @@ public class TestRulesEval {
         String ruleStr = PREFIXES_RULES+PREFIXES_DATA+string;
         try {
             return ShaclRulesParser.fromString(ruleStr).parse();
-        } catch (ShaclRulesParseException ex) {
+        } catch (SRLParseException ex) {
             System.err.println(ex.getMessage());
             throw ex;
         }

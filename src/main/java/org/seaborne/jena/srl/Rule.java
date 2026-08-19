@@ -36,7 +36,7 @@ import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltAssignment;
-import org.seaborne.jena.srl.lang.parser.ShaclRulesParseException;
+import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.srl.sys.P;
 import org.seaborne.jena.srl.tuples.Tuple;
@@ -68,9 +68,9 @@ public class Rule {
     public static Rule parseRule(String str) {
         RuleSet ruleset = ShaclRules.parseString(str);
         if ( ruleset.hasData() || ruleset.hasImports() || ruleset.hasTupleData() )
-            throw new ShaclRulesParseException("String has other items", -1, -1);
+            throw new SRLParseException("String has other items", -1, -1);
         if ( ruleset.getRules().size() != 1 )
-            throw new ShaclRulesParseException("String does not have exactly one rule", -1, -1);
+            throw new SRLParseException("String does not have exactly one rule", -1, -1);
         return ruleset.getRules().getFirst();
     }
 

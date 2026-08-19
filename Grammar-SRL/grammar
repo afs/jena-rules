@@ -17,7 +17,7 @@
 ##
 ##   SPDX-License-Identifier: Apache-2.0
 
-GRAMMAR="${GRAMMAR:-main-shacl-rules.jj}"
+GRAMMAR="${GRAMMAR:-main-sparql-rl.jj}"
 
 # --------------------------------------------------------
 
@@ -30,7 +30,7 @@ function grammar
 ##     NAME="$(echo $N | tr '[:lower:]' '[:upper:]')"
 ##     DIR1="$(echo $N | tr '[:upper:]' '[:lower:]')"
     
-    DIR="../src/main/java/org/seaborne/jena/shacl_rules/lang/parser/$PKG/javacc"
+    DIR="../src/main/java/org/seaborne/jena/srl/lang/parser/$PKG/javacc"
     rm -rf $DIR
     mkdir -p $DIR
 
@@ -91,13 +91,13 @@ function grammar
 # --------------------------------------------------------
 
 ## Grammar names
-##  shacl_rules
+##  sparqlrl
 ##  jena_rules
 
 if [ $# == 0 ]
 then
-    set -- shacl_rules jena_rules
-    ## echo "Usage: grammar [jena_rules|shacl_rules]" 1>&2
+    set -- sparqlrl jena_rules
+    ## echo "Usage: grammar [jena_rules|sparqlrl]" 1>&2
     ## exit 1
 fi
 
@@ -109,10 +109,10 @@ CPP_ARGS="-P -C -nostdinc"
 for G in "$@"
 do
   case "$G" in
-      shacl_rules)
+      sparqlrl)
           # The parser that is exactly the working group grammar.
-          cat "$GRAMMAR" | cpp $CPP_ARGS -DSTD - > shacl-rules.jj
-          grammar shacl-rules.jj shacl_rules ShaclRulesJavacc
+          cat "$GRAMMAR" | cpp $CPP_ARGS -DSTD - > sparql-rl.jj
+          grammar sparql-rl.jj srl SrlJavacc
           ;;
 
       jena_rules)

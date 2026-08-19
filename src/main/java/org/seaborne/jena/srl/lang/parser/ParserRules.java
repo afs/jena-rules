@@ -87,13 +87,13 @@ public class ParserRules {
         @Override
         public void error(String message, long line, long col) {
             logError(message, line, col) ;
-            throw new ShaclRulesParseException(message, (int)line, (int)col);
+            throw new SRLParseException(message, (int)line, (int)col);
         }
 
         @Override
         public void fatal(String message, long line, long col) {
             logFatal(message, line, col) ;
-            throw new ShaclRulesParseException(message, (int)line, (int)col);
+            throw new SRLParseException(message, (int)line, (int)col);
         }
     }
 }

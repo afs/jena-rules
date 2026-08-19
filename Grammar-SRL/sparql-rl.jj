@@ -28,7 +28,7 @@ options
 //  DEBUG_PARSER          = true ;
 //  DEBUG_TOKEN_MANAGER   = true ;
 }
-PARSER_BEGIN(ShaclRulesJavacc)
+PARSER_BEGIN(SrlJavacc)
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -49,16 +49,16 @@ PARSER_BEGIN(ShaclRulesJavacc)
  *
  *   SPDX-License-Identifier: Apache-2.0
  */
-package org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.javacc;
+package org.seaborne.jena.srl.lang.parser.srl.javacc;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
-import org.seaborne.jena.shacl_rules.lang.parser.shacl_rules.ShaclRulesParserBase;
-public class ShaclRulesJavacc extends ShaclRulesParserBase
+import org.seaborne.jena.srl.lang.parser.srl.SrlParserBase;
+public class SrlJavacc extends SrlParserBase
 {}
-PARSER_END(ShaclRulesJavacc)
+PARSER_END(SrlJavacc)
 void RuleSet(): { }
 {
   { startRules() ; }
@@ -1254,7 +1254,7 @@ Expr BuiltInCall() : { Expr expr ;
     { return new E_LangDir(expr) ; }
   | <DTYPE> <LPAREN> expr = Expression() <RPAREN>
     { return new E_Datatype(expr) ; }
-// Not in SHACL Rules.
+// Not in SPARQL-RL
 //   | <BOUND> <LPAREN> gn = Var() <RPAREN>
 //     { return new E_Bound(new ExprVar(gn)) ; }
 // #ifdef JENA
@@ -1278,7 +1278,7 @@ Expr BuiltInCall() : { Expr expr ;
     |
       <NIL> { return makeFunction_BNode() ; }
     )
-// Not in SHACL Rules.
+// Not in SPARQL-RL
 //  | <RAND> <NIL> { return new E_Random() ; }
   | <ABS> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumAbs(expr1) ; }
   | <CEIL> <LPAREN> expr1 = Expression() <RPAREN> { return new E_NumCeiling(expr1) ; }
@@ -1332,7 +1332,7 @@ Expr BuiltInCall() : { Expr expr ;
   | <NOW> <NIL> { return new E_Now() ; }
   | <UUID> <NIL> { return new E_UUID() ; }
   | <STRUUID> <NIL> { return new E_StrUUID() ; }
-// Not in SHACL Rules.
+// Not in SPARQL-RL
 // #if 0
 //   | <MD5>         <LPAREN> expr1 = Expression() <RPAREN> { return new E_MD5(expr1) ; }
 //   | <SHA1>        <LPAREN> expr1 = Expression() <RPAREN> { return new E_SHA1(expr1) ; }
@@ -1349,7 +1349,7 @@ Expr BuiltInCall() : { Expr expr ;
 // #ifdef JENA
 //   | <VERSION> <NIL>     { return new E_Version(); }
 // #endif    
-// Not in SHACL Rules
+// Not in SPARQL-RL
 //   | <COALESCE> a = ExpressionList()
 //     { return new E_Coalesce(a) ; }
 // #ifdef JENA
@@ -1465,7 +1465,7 @@ TOKEN:
 // before general things like IDENTIFIER which swallow almost
 // anything
 TOKEN : { <KW_A: "a" > }
-// SHACL
+// SPARQL-RL
 TOKEN [IGNORE_CASE] :
 {
    < RULE: "rule" >
@@ -1473,10 +1473,11 @@ TOKEN [IGNORE_CASE] :
 //|  < RULE_INFER:   ":-" >
 | < DATA: "data" >
 | < INFER: "infer" >
+| < IMPORTS: "imports" >
+| < ASSIGN: ":=" >
 | < TRANSITIVE: "transitive" >
 | < SYMMETRIC: "symmetric" >
 | < INVERSE: "inverse" >
-| < IMPORTS: "imports" >
 }
 TOKEN [IGNORE_CASE] :
 {
@@ -1491,7 +1492,6 @@ TOKEN [IGNORE_CASE] :
 | < SET: "set" >
 | < FOR: "for" >
 | < LET: "let" >
-| < ASSIGN: ":=" >
 | < TRIPLE: "TRIPLE" >
 | < IS_TRIPLE: "isTRIPLE" >
 | < SUBJECT: "SUBJECT" >
