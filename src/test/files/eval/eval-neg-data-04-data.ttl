@@ -1,3 +1,2 @@
 PREFIX :        <http://example/>
 :s :p :o .
-:x :msg ":s :p :o inferred" .
