@@ -50,40 +50,9 @@ EOF
 N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
 PREFIX : <http://example/>
 
-IF <http://example/ruleId>
-FOR ?this IN <http://example/that>
-{ }
-THEN
-{ }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
-PREFIX : <http://example/>
-
 RULE :ruleLN {}
-FOR ?this IN :that
 WHERE
 { }
-EOF
-
-
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
-PREFIX : <http://example/>
-
-RULE :ruleLN {}
-FOR ?this IN :that
-WHERE DATA
-{ }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
-PREFIX : <http://example/>
-
-IF :ruleLN
-FOR ?this IN :that
-DATA
-{}
-THEN { }
 EOF
 
 ## Bad syntax - structure

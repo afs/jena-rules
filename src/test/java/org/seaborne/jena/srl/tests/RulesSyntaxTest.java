@@ -101,7 +101,7 @@ public class RulesSyntaxTest implements Runnable {
             ShaclRulesParser.parseFile(filename, base, rulesSyntax);
             return;
         }
-
+        // Not legal syntax.
         String level = LogCtl.getLevel(ShaclRulesParser.parserLogger);
         LogCtl.withLevel(ShaclRulesParser.parserLogger, "FATAL", ()-> {
             // Expect errors - so don't log them.

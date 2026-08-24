@@ -186,12 +186,11 @@ void Rule() : {  }
 
 void Rule1() : { Token t; String uriStr = null; }
 {
-   // RULE <iri>? {} FOR? WHERE DATA? { }
+   // RULE <iri>? {} WHERE DATA? { }
    t = <RULE>
    ( uriStr = iri() )?
    { startRule(uriStr, t.beginLine, t.beginColumn); }
    HeadTemplate()
-   ( ForClause() )?
    <WHERE>
    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
    BodyPattern()
@@ -200,11 +199,10 @@ void Rule1() : { Token t; String uriStr = null; }
 
 void Rule2() : { Token t;  String uriStr = null; }
 {
-   // IF <iri>? FOR? DATA? {} THEN {}
+   // IF <iri>? DATA? {} THEN {}
    t = <IF>
    ( uriStr = iri() )?
    { startRule(uriStr, t.beginLine, t.beginColumn); }
-   ( ForClause() )?
    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
    BodyPattern()
    <THEN>
@@ -243,15 +241,6 @@ void HeadTemplate() : { Token t ; }
 #endif
     <RBRACE>
     { finishHead(t.beginLine, t.beginColumn); }
-}
-
-void ForClause() : { Token t; Var var; String uriStr;}
-{
-    t = <FOR>
-    var = Var()
-    <IN>
-    uriStr = iri()
-    { emitForClause(var, uriStr, t.beginLine, t.beginColumn); }
 }
 
 void BodyPattern() : { Token t ; }

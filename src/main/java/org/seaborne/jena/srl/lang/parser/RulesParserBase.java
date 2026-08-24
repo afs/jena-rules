@@ -235,10 +235,6 @@ public class RulesParserBase extends LangParserBase {
         activeLabelMap = LabelToNodeMap.createVarMap();
     }
 
-    protected void emitForClause(Var var, String uriStr, int line, int column) {
-        debug("emitForClause", line, column);
-    }
-
     protected void finishBody(int line, int column) {
         debug("finishBody", line, column);
         state = BuildState.RULE;
