@@ -103,12 +103,9 @@ public class RulesSyntaxTest implements Runnable {
         }
 
         String level = LogCtl.getLevel(ShaclRulesParser.parserLogger);
-        LogCtl.setLevel(ShaclRulesParser.parserLogger, "FATAL");
-        try {
+        LogCtl.withLevel(ShaclRulesParser.parserLogger, "FATAL", ()-> {
             // Expect errors - so don't log them.
             ShaclRulesParser.parseFile(filename, base, rulesSyntax);
-        } finally {
-            LogCtl.setLevel(ShaclRulesParser.parserLogger, level);
-        }
+        });
     }
 }
