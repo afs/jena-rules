@@ -123,11 +123,7 @@ void ImportsDecl() : { String iri ; }
   { declareImport(iri); }
 }
 // ---- Rules
-void Rule() : { }
-{
-   Rule1() | Rule2()
-}
-void Rule1() : { Token t; String uriStr = null; }
+void Rule() : { Token t; String uriStr = null; }
 {
    // RULE <iri>? {} WHERE DATA? { }
    t = <RULE>
@@ -139,18 +135,19 @@ void Rule1() : { Token t; String uriStr = null; }
    BodyPattern()
    { finishRule(t.beginLine, t.beginColumn); }
 }
-void Rule2() : { Token t; String uriStr = null; }
-{
-   // IF <iri>? DATA? {} THEN {}
-   t = <IF>
-   ( uriStr = iri() )?
-   { startRule(uriStr, t.beginLine, t.beginColumn); }
-   ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
-   BodyPattern()
-   <THEN>
-   HeadTemplate()
-   { finishRule(t.beginLine, t.beginColumn); }
-}
+// Withdrawn
+// void Rule2() : { Token t;  String uriStr = null; }
+// {
+//    // IF <iri>? DATA? {} THEN {}
+//    t = <IF>
+//    ( uriStr = iri() )?
+//    { startRule(uriStr, t.beginLine, t.beginColumn); }
+//    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
+//    BodyPattern()
+//    <THEN>
+//    HeadTemplate()
+//    { finishRule(t.beginLine, t.beginColumn); }
+// }
 // Withdrawn.
 // void Rule3() : { Token t; }
 // {

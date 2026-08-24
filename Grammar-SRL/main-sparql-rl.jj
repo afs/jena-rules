@@ -122,6 +122,7 @@ void RuleOrData() : {}
     | Data()
 #ifdef JENA    
     | TupleData()
+    | Declaration()
 #endif
     )
 }
@@ -176,15 +177,7 @@ void ImportsDecl() : { String iri ; }
 
 // ---- Rules
 
-void Rule() : {  }
-{
-   Rule1() | Rule2()
-#if JENA
-   | Declaration()
-#endif
-}
-
-void Rule1() : { Token t; String uriStr = null; }
+void Rule() : {  Token t; String uriStr = null; }
 {
    // RULE <iri>? {} WHERE DATA? { }
    t = <RULE>
@@ -197,18 +190,19 @@ void Rule1() : { Token t; String uriStr = null; }
    { finishRule(t.beginLine, t.beginColumn); }
 }
 
-void Rule2() : { Token t;  String uriStr = null; }
-{
-   // IF <iri>? DATA? {} THEN {}
-   t = <IF>
-   ( uriStr = iri() )?
-   { startRule(uriStr, t.beginLine, t.beginColumn); }
-   ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
-   BodyPattern()
-   <THEN>
-   HeadTemplate()
-   { finishRule(t.beginLine, t.beginColumn); }
-}
+// Withdrawn
+// void Rule2() : { Token t;  String uriStr = null; }
+// {
+//    // IF <iri>? DATA? {} THEN {}
+//    t = <IF>
+//    ( uriStr = iri() )?
+//    { startRule(uriStr, t.beginLine, t.beginColumn); }
+//    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
+//    BodyPattern()
+//    <THEN>
+//    HeadTemplate()
+//    { finishRule(t.beginLine, t.beginColumn); }
+// }
 
 // Withdrawn.
 // void Rule3() : { Token t; }
@@ -352,6 +346,7 @@ void Assignment() : {  Var v ; Expr expr ; }
 }
 
 #if JENA
+// In effect these are special rules
 void Declaration() : { Token t; String iriStr ; }
 {
   (

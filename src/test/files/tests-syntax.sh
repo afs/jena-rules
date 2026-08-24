@@ -36,16 +36,16 @@ PREFIX ns: <http://example/ns#>
 RULE {} WHERE { :x :p ns:o }
 EOF
 
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
-PREFIX : <http://example/>
-IF {} THEN { }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
-PREFIX : <http://example/>
-IF {} THEN { }
-RULE {} WHERE { }
-EOF
+## N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
+## PREFIX : <http://example/>
+## IF {} THEN { }
+## EOF
+## 
+## N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
+## PREFIX : <http://example/>
+## IF {} THEN { }
+## RULE {} WHERE { }
+## EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
 PREFIX : <http://example/>

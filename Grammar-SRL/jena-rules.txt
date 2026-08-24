@@ -219,7 +219,7 @@ NON-TERMINALS
 	ByteOrderMark	:=	( <BOM> )?
 	RuleSet	:=	RuleOrDataBlock <EOF>
 	RuleOrDataBlock	:=	Prologue ( ( RuleOrData )+ ( Prologue1 ( RuleOrData )? )* )?
-	RuleOrData	:=	( Rule | Data | TupleData )
+	RuleOrData	:=	( Rule | Data | TupleData | Declaration )
 // ---- Prologue
 	Prologue	:=	( Prologue1 )*
 	Prologue1	:=	( BaseDecl | PrefixDecl | VersionDecl | ImportsDecl )
@@ -229,11 +229,20 @@ NON-TERMINALS
 	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
 	ImportsDecl	:=	<IMPORTS> iri
 // ---- Rules
-	Rule	:=	Rule1
-		|	Rule2
-		|	Declaration
-	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
-	Rule2	:=	<IF> ( iri )? ( <DATA> )? BodyPattern <THEN> HeadTemplate
+	Rule	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
+// Withdrawn
+// void Rule2() : { Token t;  String uriStr = null; }
+// {
+//    // IF <iri>? DATA? {} THEN {}
+//    t = <IF>
+//    ( uriStr = iri() )?
+//    { startRule(uriStr, t.beginLine, t.beginColumn); }
+//    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
+//    BodyPattern()
+//    <THEN>
+//    HeadTemplate()
+//    { finishRule(t.beginLine, t.beginColumn); }
+// }
 // Withdrawn.
 // void Rule3() : { Token t; }
 // {
@@ -258,6 +267,7 @@ NON-TERMINALS
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	( Filter | TuplePattern )
 	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
+// In effect these are special rules
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 // -----------------------
 // Production organisation.

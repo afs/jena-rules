@@ -222,10 +222,20 @@ NON-TERMINALS
 	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
 	ImportsDecl	:=	<IMPORTS> iri
 // ---- Rules
-	Rule	:=	Rule1
-		|	Rule2
-	Rule1	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
-	Rule2	:=	<IF> ( iri )? ( <DATA> )? BodyPattern <THEN> HeadTemplate
+	Rule	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
+// Withdrawn
+// void Rule2() : { Token t;  String uriStr = null; }
+// {
+//    // IF <iri>? DATA? {} THEN {}
+//    t = <IF>
+//    ( uriStr = iri() )?
+//    { startRule(uriStr, t.beginLine, t.beginColumn); }
+//    ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
+//    BodyPattern()
+//    <THEN>
+//    HeadTemplate()
+//    { finishRule(t.beginLine, t.beginColumn); }
+// }
 // Withdrawn.
 // void Rule3() : { Token t; }
 // {
