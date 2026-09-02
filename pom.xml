@@ -93,15 +93,6 @@
     </dependency>
     -->
 
-    <!--
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-cmds</artifactId>
-      <classifier>tests</classifier>
-      <version>${ver.jena}</version>
-    </dependency>
-    -->
-
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-base</artifactId>
