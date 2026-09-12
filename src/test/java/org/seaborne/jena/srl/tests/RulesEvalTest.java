@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+import org.apache.jena.arq.junit.manifest.AbstractManifestTest;
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
@@ -44,25 +45,26 @@ import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.junit.VocabRulesTests;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 
-public class RulesEvalTest implements Runnable {
+public class RulesEvalTest extends AbstractManifestTest {
 
-    private final ManifestEntry testItem;
     private final EngineType engineType;
     private final boolean positiveTest;
 
     public RulesEvalTest(ManifestEntry entry, String base, EngineType engineType, boolean positiveTest) {
-        this.testItem = entry;
+        super(entry);
         this.engineType = engineType;
         this.positiveTest = positiveTest;
     }
 
     @Override
-    public void run() {
+    public void runTest() {
         run(engineType);
     }
 
     private void run(EngineType engineType) {
         //System.out.println(engineType);
+        ManifestEntry testItem = super.manifestEntry;
+
         Graph itemGraph = testItem.getGraph();
         String itemName = testItem.getName();
         Node action = testItem.getAction();

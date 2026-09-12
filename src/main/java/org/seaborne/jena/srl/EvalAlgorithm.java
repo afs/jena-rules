@@ -30,8 +30,8 @@ package org.seaborne.jena.srl;
 public enum EvalAlgorithm {
     FWD_NAIVE("Naive")
     , FWD_NAIVE_JACOBI("Naive (Jacobi)")
-    , FWD_NAIVE_GUASS_SEIDEL("Naive (GUASS_SEIDEL)")
-    , FWD_SEMINAIVE("Seminaive")
+    , FWD_NAIVE_GUASS_SEIDEL("Naive (Guass-Seidel)")
+    , FWD_SEMINAIVE("Semi-naive")
     , BKD_NON_RECURSIVE_SLD("SLD (Non-recursive)")
     , BKD_QSQR("QSQR")
     , BKD_QSQI("QSQI")

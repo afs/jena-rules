@@ -23,6 +23,7 @@ package org.seaborne.jena.srl.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.apache.jena.arq.junit.manifest.AbstractManifestTest;
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
@@ -32,16 +33,15 @@ import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.ShaclRulesParser;
 import org.seaborne.jena.srl.sys.WellFormed;
 
-public class RulesWellFormednessTest implements Runnable {
+public class RulesWellFormednessTest extends AbstractManifestTest {
 
     final private boolean expectLegalSyntax;
-    final private ManifestEntry testEntry;
     final private String testBase;
     //final private Lang lang;
     final private String filename;
 
     public RulesWellFormednessTest(ManifestEntry entry, String base, boolean positiveTest) {
-        this.testEntry = entry;
+        super(entry);
         this.testBase = base;
         this.expectLegalSyntax = positiveTest;
         this.filename = entry.getAction().getURI();
@@ -50,7 +50,7 @@ public class RulesWellFormednessTest implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void runTest() {
         // Check so the parse step does not confuse missing with bad syntax.
         String fn = IRILib.IRIToFilename(filename);
         if ( ! FileOps.exists(fn) ) {
