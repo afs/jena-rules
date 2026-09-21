@@ -126,6 +126,12 @@ TOKENS
 | <NOW: "NOW">
 | <UUID: "UUID">
 | <STRUUID: "STRUUID">
+| <COUNT: "COUNT">
+| <DISTINCT: "DISTINCT">
+| <SUM: "SUM">
+| <MIN: "MIN">
+| <MAX: "MAX">
+| <AGG: "AGG">
 | <TRUE: "true">
 | <FALSE: "false">
 }
@@ -266,7 +272,7 @@ NON-TERMINALS
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	( Filter | TuplePattern )
-	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
+	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> ( Expression | Aggregate ) <RPAREN>
 // In effect these are special rules
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 // -----------------------
@@ -449,6 +455,8 @@ NON-TERMINALS
 		|	<MINUS> PrimaryExpression
 		|	PrimaryExpression
 	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
+	Aggregate	:=	( <COUNT> ( <DISTINCT> )? AggregateBody | <SUM> <LPAREN> Expression <RPAREN> AggregateBody | <MIN> <LPAREN> Expression <RPAREN> AggregateBody | <MAX> <LPAREN> Expression <RPAREN> AggregateBody )
+	AggregateBody	:=	<LBRACE> BodyBasic <RBRACE>
 // See also FunctionCall.
 	iriOrFunction	:=	iri ( ArgList )?
 	ExprTripleTerm	:=	<L_TRIPLE> ExprTripleTermSubject Verb ExprTripleTermObject <R_TRIPLE>

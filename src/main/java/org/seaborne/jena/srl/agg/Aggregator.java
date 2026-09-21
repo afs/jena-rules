@@ -19,9 +19,25 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import java.util.Iterator;
+
+import org.apache.jena.sparql.engine.binding.Binding;
+
+/**
+ * Interface to the aggregation process.
+ */
+public interface Aggregator {
+
+    Collector gatherer();
+    Iterator<Binding> eval(Collector collector);
+
+    //Expr asExpr() { return null; }
+
+    // Receive a solution sequence
+
+
+    // Create a group-ed  solution sequence
+
 }

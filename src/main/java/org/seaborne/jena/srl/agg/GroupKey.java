@@ -19,9 +19,17 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
-}
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+
+class GroupKey {
+
+        //Map<Var, NodeValue> map = null;
+
+        void addToBinding(BindingBuilder builder) {
+//            map.forEach((v,nv)->{
+//                builder.add(aggVar, nv.asNode());
+//            });
+        }
+    }

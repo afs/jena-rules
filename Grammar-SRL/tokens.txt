@@ -67,6 +67,13 @@
 [<NOT>]        ::= 'NOT'
 [<FOR>]        ::= 'FOR'
 
+[<COUNT>]      ::= 'COUNT'
+[<DISTINCT>]   ::= 'DISTINCT' 
+[<SUM>]        ::= 'SUM'
+[<MIN>]        ::= 'MIN'
+[<MAX>]        ::= 'MAX'
+[<AGG>]        ::= 'AGG'
+
 // [<LIMIT>]      ::= 'LIMIT'
 // [<OFFSET>]     ::= 'OFFSET'
 // [<ORDER>]      ::= 'ORDER'

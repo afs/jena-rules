@@ -43,6 +43,9 @@ import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleBody;
 import org.seaborne.jena.srl.RuleHead;
 import org.seaborne.jena.srl.RuleSet;
+import org.seaborne.jena.srl.agg.Aggregator;
+import org.seaborne.jena.srl.agg.Collector;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
@@ -198,6 +201,24 @@ class RulesExecLib {
                 return chain2;
             }
             case EltAssignment(Var var, Expr expression) -> {
+                if ( expression instanceof ExprReduce exprReducer) {
+                    // XXX Assumes aggregates only as ":= aggregate"
+                    Aggregator aggregator = exprReducer.aggregator(var);
+                    Reducer reducer = aggregator.reducer();
+                    reducer.startReceive();
+
+                    chainIn.forEachRemaining(row->{
+                        Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, inputGraph, row, exprReducer.innerBody(), rCxt);
+                        chainInner.forEachRemaining(binding->{
+                            reducer.receive(binding);
+                        });
+                    });
+
+                    reducer.finishReceive();
+                    return reducer.eval();
+                }
+
+                // Otherwise it's a function expression on the current row.
                 Function<Binding, Binding> mapper = row -> {
                     FunctionEnv funcEnv = rCxt;
                     try {
@@ -211,7 +232,7 @@ class RulesExecLib {
                         return null;
                     }
                 };
-                return Iter.iter(chainIn).map(mapper).removeNulls()/* .get() */;
+                return Iter.iter(chainIn).map(mapper).removeNulls();
             }
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
                 // If NOT DATA, then match on the inputGraph baseGraph.

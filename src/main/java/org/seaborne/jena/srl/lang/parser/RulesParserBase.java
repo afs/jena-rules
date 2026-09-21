@@ -51,6 +51,10 @@ import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RulesException;
 import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.agg.ExprReduceCount;
+import org.seaborne.jena.srl.agg.ExprReduceMax;
+import org.seaborne.jena.srl.agg.ExprReduceMin;
+import org.seaborne.jena.srl.agg.ExprReduceSum;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
 import org.seaborne.jena.srl.tuples.Tuple;
@@ -343,6 +347,51 @@ public class RulesParserBase extends LangParserBase {
         debug("finishNegation", line, column);
         state = BuildState.BODY;
     }
+
+    // ---- Aggrgates
+
+    protected void startAggregate(int line, int column) {
+        debug("startAggregate", line, column);
+    }
+
+    protected void startAggregateBody(int line, int column) {
+        debug("startAggregateBody", line, column);
+        state = BuildState.INNER;
+        // Aggregates require close dependencies
+        hasNegation = true;
+        innerBodyAcc = new ArrayList<>();
+    }
+
+    protected void finishAggregateBody(int line, int column) {
+        debug("finishAggregateBody", line, column);
+        state = BuildState.BODY;
+    }
+
+    protected Expr exprReduceCount(boolean distinct) {
+        return new ExprReduceCount(distinct, innerBodyAcc);
+    }
+
+    protected Expr exprReduceSum(Expr expr) {
+        return new ExprReduceSum(expr, innerBodyAcc);
+    }
+
+    protected Expr exprReduceMin(Expr expr) {
+        return new ExprReduceMin(expr, innerBodyAcc);
+    }
+
+    protected Expr exprReduceMax(Expr expr) {
+        return new ExprReduceMax(expr, innerBodyAcc);
+    }
+
+    protected Expr exprReduceAgg(String iri, Expr expr) {
+        return new ExprReduceMax(expr, innerBodyAcc);
+    }
+
+    protected void finishAggregate(int line, int column) {
+        debug("startAggregate", line, column);
+    }
+
+    // ----
 
     private void addHeadEltTriple(Triple tripleTemplate) {
         requireNonNull(tripleTemplate);

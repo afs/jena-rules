@@ -19,9 +19,26 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import java.util.List;
+
+import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
+import org.seaborne.jena.srl.lang.RuleBodyElement;
+
+public class ExprReduceSum extends ExprReduce {
+
+    private final Expr expr;
+
+    public ExprReduceSum(Expr expr, List<RuleBodyElement> innerBody) {
+        super(innerBody);
+        this.expr = expr;
+    }
+
+    @Override
+    public Aggregator aggregator(Var resultVar) {
+        throw new NotImplemented("aggregator-sum");
+    }
 }

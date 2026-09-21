@@ -340,7 +340,14 @@ void Assignment() : {  Var v ; Expr expr ; }
     <LPAREN>
     v = Var()
     <ASSIGN>
+#ifdef STD
     expr = Expression()
+#endif
+#ifdef JENA
+    ( expr = Expression()
+    | expr = Aggregate()
+    )
+#endif
     <RPAREN>
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
 }
@@ -1352,7 +1359,6 @@ Expr ConditionalOrExpression() : { Expr expr1, expr2 ; }
     { expr1 = new E_LogicalOr(expr1, expr2) ; } 
   )*
     { return expr1 ; }
-    
 }
 
 Expr ConditionalAndExpression() : { Expr expr1, expr2 ;}
@@ -1469,7 +1475,7 @@ Expr UnaryExpression() : { Expr expr ; }
 Expr PrimaryExpression() : { Expr expr ; Node n ; }
 {
   ( expr = BrackettedExpression() { return expr ; }
-  | expr = BuiltInCall()   { return expr ; }  
+  | expr = BuiltInCall()   { return expr ; }
   | expr = iriOrFunction() { return expr ; }
   
 // Not this:
@@ -1485,6 +1491,73 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm()  { return asExpr(n) ; }
   )
 }
+
+#ifdef JENA
+Expr Aggregate() : { Token t; Expr expr; boolean distinct = false; String iri = null; }
+{
+    // TODO  Explicit group-by
+    ( t = <COUNT>
+      { startAggregate(t.beginLine, t.beginColumn); }
+//       [LBRACKET]
+//       group keys
+//       [RBRACKET]
+      (<DISTINCT> { distinct = true; })?
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceCount(distinct);
+      }
+    | t = <SUM>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceSum(expr);
+      }
+      
+    | t = <MIN>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceMin(expr);
+      }
+    | t = <MAX>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceMax(expr);
+      }
+//       
+//     | t = <AGG>
+//       { startAggregate(t.beginLine, t.beginColumn); }
+//       iri = iri()
+//       // No need for DISTINCT - part of the IRI
+//       // ( <COMMA> <DISTINCT>  { distinct = true; })?
+//       // Expression?
+//       <LPAREN> expr = Expression() <RPAREN>
+//       AggregateBody()
+//       { finishAggregate(t.beginLine, t.beginColumn);
+//         return exprReduceAgg(iri, expr);
+//       } 
+    )
+    { return null; }
+}
+
+void AggregateBody() : { Token t1; Token t2;}
+{
+   t1 = <LBRACE>
+   { startAggregateBody(t1.beginLine, t1.beginColumn); }
+   BodyBasic()
+   t2 = <RBRACE>
+   { finishAggregateBody(t2.beginLine, t2.beginColumn); }
+}
+
+
+#endif
 
 // See also FunctionCall.
 
@@ -1956,6 +2029,15 @@ TOKEN [IGNORE_CASE] :
 |  < UUID:        "UUID" >
 |  < STRUUID:     "STRUUID" >
 
+#ifdef JENA
+|  < COUNT:       "COUNT" >
+|  < DISTINCT:    "DISTINCT" >
+|  < SUM:         "SUM" >
+|  < MIN:         "MIN" >
+|  < MAX:         "MAX" >
+|  < AGG:         "AGG" >
+#endif
+
 // | < MD5:          "MD5" >
 // | < SHA1:         "SHA1" >
 // | < SHA224:       "SHA224" >
@@ -1965,6 +2047,9 @@ TOKEN [IGNORE_CASE] :
 
 |  < TRUE:        "true" >
 |  < FALSE:       "false" >
+
+
+
 }
 
 // -------------------------------------------------

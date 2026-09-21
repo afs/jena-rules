@@ -273,7 +273,9 @@ void Assignment() : { Var v ; Expr expr ; }
     <LPAREN>
     v = Var()
     <ASSIGN>
-    expr = Expression()
+    ( expr = Expression()
+    | expr = Aggregate()
+    )
     <RPAREN>
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
 }
@@ -1269,6 +1271,66 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm() { return asExpr(n) ; }
   )
 }
+Expr Aggregate() : { Token t; Expr expr; boolean distinct = false; String iri = null; }
+{
+    // TODO  Explicit group-by
+    ( t = <COUNT>
+      { startAggregate(t.beginLine, t.beginColumn); }
+//       [LBRACKET]
+//       group keys
+//       [RBRACKET]
+      (<DISTINCT> { distinct = true; })?
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceCount(distinct);
+      }
+    | t = <SUM>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceSum(expr);
+      }
+    | t = <MIN>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceMin(expr);
+      }
+    | t = <MAX>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceMax(expr);
+      }
+//       
+//     | t = <AGG>
+//       { startAggregate(t.beginLine, t.beginColumn); }
+//       iri = iri()
+//       // No need for DISTINCT - part of the IRI
+//       // ( <COMMA> <DISTINCT>  { distinct = true; })?
+//       // Expression?
+//       <LPAREN> expr = Expression() <RPAREN>
+//       AggregateBody()
+//       { finishAggregate(t.beginLine, t.beginColumn);
+//         return exprReduceAgg(iri, expr);
+//       } 
+    )
+    { return null; }
+}
+void AggregateBody() : { Token t1; Token t2;}
+{
+   t1 = <LBRACE>
+   { startAggregateBody(t1.beginLine, t1.beginColumn); }
+   BodyBasic()
+   t2 = <RBRACE>
+   { finishAggregateBody(t2.beginLine, t2.beginColumn); }
+}
 // See also FunctionCall.
 Expr iriOrFunction() : { String iri ; ExprList a = null ; }
 {
@@ -1641,6 +1703,12 @@ TOKEN [IGNORE_CASE] :
 | < NOW: "NOW" >
 | < UUID: "UUID" >
 | < STRUUID: "STRUUID" >
+| < COUNT: "COUNT" >
+| < DISTINCT: "DISTINCT" >
+| < SUM: "SUM" >
+| < MIN: "MIN" >
+| < MAX: "MAX" >
+| < AGG: "AGG" >
 // | < MD5:          "MD5" >
 // | < SHA1:         "SHA1" >
 // | < SHA224:       "SHA224" >
