@@ -69,9 +69,9 @@ public class RuleTests {
 
             // == Syntax
             if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules) )
-                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.SHACL, true);
+                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.SPARQL_RL, true);
             if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules) )
-                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.SHACL, false);
+                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.SPARQL_RL, false);
             if ( testType.equals(VocabRulesTests.TestPositiveSyntaxJenaRules) )
                 return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.JENA, true);
             if ( testType.equals(VocabRulesTests.TestNegativeSyntaxJenaRules) )

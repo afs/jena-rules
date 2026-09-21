@@ -33,6 +33,7 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltAssignment;
@@ -53,6 +54,7 @@ public class Rule {
     public final Node ruleIdentifier;
 
     private final boolean hasAssignment;
+    private final boolean hasAggregation;
     private final boolean hasNegation;
     //boolean final hasAggregation;
     private final boolean hasTemplateBNodes;
@@ -101,6 +103,7 @@ public class Rule {
         private String localId;
 
         private boolean hasAssignment = false;
+        private boolean hasAggregation = false;
         private boolean hasNegation = false;
         //boolean final hasAggregation;
         private boolean hasTemplateBNodes = false;
@@ -168,7 +171,7 @@ public class Rule {
             // Rules don't always come from the SRL parser.
             boolean _hasAssignment = false;
             boolean _hasNegation = false;
-            //boolean final hasAggregation;
+            boolean _hasAggregation = false;
 
             // Look for assignment and negation
             for ( RuleBodyElement elt : bodyElts ) {
@@ -177,7 +180,12 @@ public class Rule {
                     // case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
                     case RuleBodyElement.EltNegation(List<RuleBodyElement> inner, boolean grounded) -> { _hasNegation = true; }
                     // case RuleBodyElement.EltFilter(Expr condition) -> {}
-                    case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
+                    case EltAssignment(Var var, Expr expression) ->
+                    {
+                        _hasAssignment = true;
+                        if ( expression instanceof ExprReduce )
+                            _hasAggregation = true;
+                    }
                     case null -> {}
                     default -> {}
                 };
@@ -199,14 +207,14 @@ public class Rule {
 
             return new Rule(ruleIdentifier, headElts, bodyElts,
                             groundedRule,
-                            _hasAssignment, _hasNegation, _hasHeadBNodes);
+                            _hasAssignment, _hasAggregation, _hasNegation, _hasHeadBNodes);
         }
 
     }
 
     private Rule(Node ruleIdenifier, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts,
                  boolean isGrounded,
-                 boolean hasAssignment, boolean hasNegation, boolean hasTemplateBNodes
+                 boolean hasAssignment, boolean hasAggregation, boolean hasNegation, boolean hasTemplateBNodes
                  //, boolean hasAggregation
                  ) {
         this.head = new RuleHead(headElts);
@@ -214,6 +222,7 @@ public class Rule {
         this.ruleIdentifier = ruleIdenifier;
 
         this.hasAssignment = hasAssignment;
+        this.hasAggregation = hasAggregation;
         this.hasNegation = hasNegation;
         //this.hasAggregation = hasAggregation;
         this.hasTemplateBNodes = hasTemplateBNodes;
@@ -225,6 +234,10 @@ public class Rule {
 
     public boolean hasAssignment() {
         return hasAssignment;
+    }
+
+    public boolean hasAggregation() {
+        return hasAggregation;
     }
 
     public boolean hasNegation() {
@@ -240,6 +253,7 @@ public class Rule {
         return hasTemplateBNodes;
     }
 
+    /** This rule matches against the base data */
     public boolean isGrounded() {
         return body.isGrounded();
     }

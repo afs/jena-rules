@@ -56,6 +56,7 @@ import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
 import org.seaborne.jena.srl.lang.parser.jena_rules.JenaRulesParserBase;
+import java.util.*;
 public class JenaRulesJavacc extends JenaRulesParserBase
 {}
 PARSER_END(JenaRulesJavacc)
@@ -273,7 +274,9 @@ void Assignment() : { Var v ; Expr expr ; }
     <LPAREN>
     v = Var()
     <ASSIGN>
-    expr = Expression()
+    ( expr = Expression()
+    | expr = Aggregate()
+    )
     <RPAREN>
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
 }
@@ -1269,6 +1272,73 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm() { return asExpr(n) ; }
   )
 }
+Expr Aggregate() : { Token t; Expr expr; List<Var> groupByVars = null; boolean distinct = false; String iri = null; }
+{
+    ( t = <COUNT>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      (<DISTINCT> { distinct = true; })?
+      (groupByVars = groupBy())?
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceCount(distinct, groupByVars);
+      }
+    | t = <SUM>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceSum(expr, groupByVars);
+      }
+    | t = <MIN>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      // Explicit group-by?
+      (groupByVars = groupBy())?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceMin(expr, groupByVars);
+      }
+    | t = <MAX>
+      { startAggregate(t.beginLine, t.beginColumn); }
+      (groupByVars = groupBy())?
+      <LPAREN> expr = Expression() <RPAREN>
+      AggregateBody()
+      { finishAggregate(t.beginLine, t.beginColumn);
+        return exprReduceMax(expr, groupByVars);
+      }
+//       
+//     | t = <AGG>
+//       { startAggregate(t.beginLine, t.beginColumn); }
+//       iri = iri()
+//       // No need for DISTINCT - part of the IRI
+//       // ( <COMMA> <DISTINCT>  { distinct = true; })?
+//       (groupByVars = groupBy())?
+//       // Expression?
+//       <LPAREN> expr = Expression() <RPAREN>
+//       AggregateBody()
+//       { finishAggregate(t.beginLine, t.beginColumn);
+//         return exprReduceAgg(iri, expr, groupByVars);
+//       } 
+    )
+    { return null; }
+}
+List<Var> groupBy() : { Var v; List<Var> vars = new ArrayList<>(); }
+{
+    <LBRACKET>
+      v = Var() { vars.add(v); }
+      ( <COMMA> v = Var() { vars.add(v); } )*
+    <RBRACKET>
+    { return vars; }
+}
+void AggregateBody() : { Token t1; Token t2;}
+{
+   t1 = <LBRACE>
+   { startAggregateBody(t1.beginLine, t1.beginColumn); }
+   BodyBasic()
+   t2 = <RBRACE>
+   { finishAggregateBody(t2.beginLine, t2.beginColumn); }
+}
 // See also FunctionCall.
 Expr iriOrFunction() : { String iri ; ExprList a = null ; }
 {
@@ -1641,6 +1711,12 @@ TOKEN [IGNORE_CASE] :
 | < NOW: "NOW" >
 | < UUID: "UUID" >
 | < STRUUID: "STRUUID" >
+| < COUNT: "COUNT" >
+| < DISTINCT: "DISTINCT" >
+| < SUM: "SUM" >
+| < MIN: "MIN" >
+| < MAX: "MAX" >
+| < AGG: "AGG" >
 // | < MD5:          "MD5" >
 // | < SHA1:         "SHA1" >
 // | < SHA224:       "SHA224" >

@@ -51,8 +51,10 @@ import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RulesException;
 import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.agg.*;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
+import org.seaborne.jena.srl.sys.Scope;
 import org.seaborne.jena.srl.tuples.Tuple;
 import org.slf4j.Logger;
 
@@ -343,6 +345,65 @@ public class RulesParserBase extends LangParserBase {
         debug("finishNegation", line, column);
         state = BuildState.BODY;
     }
+
+    // ---- Aggrgates
+
+    protected void startAggregate(int line, int column) {
+        debug("startAggregate", line, column);
+    }
+
+    protected void startAggregateBody(int line, int column) {
+        debug("startAggregateBody", line, column);
+        state = BuildState.INNER;
+        // Aggregates require close dependencies
+        hasNegation = true;
+        innerBodyAcc = new ArrayList<>();
+    }
+
+    protected void finishAggregateBody(int line, int column) {
+        debug("finishAggregateBody", line, column);
+        state = BuildState.BODY;
+    }
+
+    // XXX Not good - setting the group-by scope only works for parsed rules.
+
+    protected Expr exprReduceCount(boolean distinct, List<Var> groupByVars) {
+        Scope scope = determineGroupBy(bodyAcc, groupByVars);
+        return new ExprReduceCount(distinct, scope, innerBodyAcc);
+    }
+
+    protected Expr exprReduceSum(Expr expr, List<Var> groupByVars) {
+        Scope scope = determineGroupBy(bodyAcc, groupByVars);
+        return new ExprReduceSum(expr, scope, innerBodyAcc);
+    }
+
+    protected Expr exprReduceMin(Expr expr, List<Var> groupByVars) {
+        Scope scope = determineGroupBy(bodyAcc, groupByVars);
+        return new ExprReduceMin(expr, scope, innerBodyAcc);
+    }
+
+    protected Expr exprReduceMax(Expr expr, List<Var> groupByVars) {
+        Scope scope = determineGroupBy(bodyAcc, groupByVars);
+        return new ExprReduceMax(expr, scope, innerBodyAcc);
+    }
+
+    protected Expr exprReduceAgg(String iri, Expr expr, List<Var> groupByVars) {
+        Scope scope = determineGroupBy(bodyAcc, groupByVars);
+        return new ExprReduceAgg(iri, expr, scope, innerBodyAcc);
+    }
+
+    private static Scope determineGroupBy(List<RuleBodyElement> bodyAcc, List<Var> groupByVars) {
+        if ( groupByVars != null) {
+            return Scope.scope(Set.copyOf(groupByVars));
+        } else
+            return Scope.scope(bodyAcc);
+    }
+
+    protected void finishAggregate(int line, int column) {
+        debug("startAggregate", line, column);
+    }
+
+    // ----
 
     private void addHeadEltTriple(Triple tripleTemplate) {
         requireNonNull(tripleTemplate);

@@ -19,9 +19,20 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+
+/**
+ *  A group is the values needed for a group.
+ *  i.e. it is the map key for the grouping  key -> list bindings
+ */
+public interface GroupKey {
+    void addToBinding(BindingBuilder builder);
+//    @Override
+//    public abstract int hashCode();
+//    @Override
+//    public boolean equals(Object other) { return equalGroupKey((GroupKey)other); }
+//
+//    public abstract boolean equalGroupKey(GroupKey other);
 }

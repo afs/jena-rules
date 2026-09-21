@@ -196,21 +196,23 @@ public class rules_parse extends CmdRules {
                 System.out.println("- - - -");
         }
 
-        Graph graph = RuleSetToGraph.asGraph(ruleSet);
+        if ( false ) {
+            // Round trip through a graph
+            Graph graph = RuleSetToGraph.asGraph(ruleSet);
 
-        if ( printRDF ) {
-            RDFWriter.source(graph).format(RDFFormat.TURTLE_LONG).output(System.out);
-        }
-
-        boolean RTT = false;
-        if ( RTT ) {
-            RuleSet ruleSet2 = GraphToRuleSet.parse(graph);
-            if ( true ) {
-                //  print text
-                ShaclRulesWriter.print(ruleSet2);
-                System.out.println("- - - -");
+            if ( printRDF ) {
+                RDFWriter.source(graph).format(RDFFormat.TURTLE_LONG).output(System.out);
             }
 
+            boolean RTT = false;
+            if ( RTT ) {
+                RuleSet ruleSet2 = GraphToRuleSet.parse(graph);
+                if ( true ) {
+                    //  print text
+                    ShaclRulesWriter.print(ruleSet2);
+                    System.out.println("- - - -");
+                }
+            }
         }
     }
 

@@ -19,9 +19,18 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import java.util.Collection;
+
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+
+/**
+ * Create group keys
+ */
+public interface GroupSplitter {
+    Collection<Var> groupKeys();
+    // Function<Binding, GroupKey> with an appropriate operation name.
+    GroupKey groupKey(Binding binding);
 }

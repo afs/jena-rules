@@ -19,9 +19,29 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import java.util.List;
+
+import org.apache.jena.sparql.core.Var;
+import org.seaborne.jena.srl.exec.RulesExecCxt;
+import org.seaborne.jena.srl.lang.RuleBodyElement;
+import org.seaborne.jena.srl.sys.Scope;
+
+/**
+ * An expression that marks consuming its input
+ * That is, it is a syntax element for a "reduce".
+ */
+public class ExprReduceCount extends ExprReduce {
+
+    private boolean distinct;
+
+    public ExprReduceCount(boolean distinct, Scope scope, List<RuleBodyElement> innerBody) {
+        super(innerBody, scope.inScope());
+        this.distinct = distinct;
+    }
+
+    @Override
+    public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
+        return new AggCount(resultVar, distinct, super.groupBy, super.innerBody, rCxt); }
 }

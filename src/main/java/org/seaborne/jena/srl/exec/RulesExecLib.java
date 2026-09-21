@@ -43,6 +43,9 @@ import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleBody;
 import org.seaborne.jena.srl.RuleHead;
 import org.seaborne.jena.srl.RuleSet;
+import org.seaborne.jena.srl.agg.Aggregator;
+import org.seaborne.jena.srl.agg.ExprReduce;
+import org.seaborne.jena.srl.agg.Reducer;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
@@ -198,6 +201,11 @@ class RulesExecLib {
                 return chain2;
             }
             case EltAssignment(Var var, Expr expression) -> {
+                if ( expression instanceof ExprReduce exprReducer) {
+                    return aggregateAssignment(evalGraph, tupleStore, chainIn, var, exprReducer, rCxt);
+                }
+
+                // Otherwise it's a function expression on the current row.
                 Function<Binding, Binding> mapper = row -> {
                     FunctionEnv funcEnv = rCxt;
                     try {
@@ -211,7 +219,7 @@ class RulesExecLib {
                         return null;
                     }
                 };
-                return Iter.iter(chainIn).map(mapper).removeNulls()/* .get() */;
+                return Iter.iter(chainIn).map(mapper).removeNulls();
             }
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
                 // If NOT DATA, then match on the inputGraph baseGraph.
@@ -224,6 +232,38 @@ class RulesExecLib {
                 return chain2;
             }
         }
+    }
+
+    private static Iterator<Binding> aggregateAssignment(Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn, Var var, ExprReduce exprReducer, RulesExecCxt rCxt) {
+        // XXX Assumes aggregates only as ":= aggregate"
+        // GROUP BY
+        // Cat find from input (!)
+
+        Aggregator aggregator = exprReducer.aggregator(var, rCxt);
+        Reducer reducer = aggregator.reducer();
+        reducer.startReceive();
+
+        chainIn.forEachRemaining(row->{
+            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row, exprReducer.innerBody(), rCxt);
+            chainInner.forEachRemaining(binding->{
+                reducer.receive(binding);
+            });
+        });
+
+//            if ( chainInner.hasNext()) {
+//                chainInner.forEachRemaining(binding->{
+//                    reducer.receive(binding);
+//                });
+//            } else {
+//                // No inner body - pass on row.
+//                reducer.receiveEmpty(row);
+//            }
+//        });
+        // At this point, we have a map of group key to list of bindings.
+
+        reducer.finishReceive();
+        // Not adding to input.
+        return reducer.eval();
     }
 
     private static void accInstantiateHead(List<Triple> accTriples, List<Tuple> accTuples, RuleHead ruleHead, Binding solution) {

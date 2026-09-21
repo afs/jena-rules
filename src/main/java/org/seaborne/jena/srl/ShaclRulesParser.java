@@ -206,7 +206,7 @@ public class ShaclRulesParser {
 
     private static RuleSet parseJavaReader(StringReader jr, String baseURI, ErrorHandler errorHandler, ShaclRulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
-            case SHACL->ParserSrl.parse(jr, baseURI, errorHandler);
+            case SPARQL_RL->ParserSrl.parse(jr, baseURI, errorHandler);
             case JENA->ParserJenaRules.parse(jr, baseURI, errorHandler);
             default -> { throw new IllegalArgumentException("Syntax"); }
         };
@@ -214,7 +214,7 @@ public class ShaclRulesParser {
 
     static RuleSet parseInputStream(InputStream in, String baseURI, ErrorHandler errorHandler, ShaclRulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
-            case SHACL->ParserSrl.parse(in, baseURI, errorHandler);
+            case SPARQL_RL->ParserSrl.parse(in, baseURI, errorHandler);
             case JENA->ParserJenaRules.parse(in, baseURI, errorHandler);
             default -> { throw new IllegalArgumentException("Syntax"); }
         };

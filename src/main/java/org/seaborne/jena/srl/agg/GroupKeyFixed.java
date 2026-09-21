@@ -19,9 +19,26 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+
+/**
+ * Group key for "no group variables"
+ */
+
+public class GroupKeyFixed implements GroupKey {
+
+    public static final GroupKey instance = new GroupKeyFixed();
+
+    private GroupKeyFixed() {}
+
+    @Override
+    public void addToBinding(BindingBuilder builder) {}
+
+    @Override
+    public String toString() {
+        return "GroupKeyFixed";
+    }
+
 }
