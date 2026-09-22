@@ -21,12 +21,16 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
-import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 
 
@@ -44,16 +48,23 @@ public class AggCount implements Aggregator {
     }
 
     // Count(*)
+    @SuppressWarnings("unused")
     @Override
-    public Collector gatherer() {
+    public Reducer reducer() {
         GroupKey gKey = new GroupKeyStar();
-        return new Collector("COUNT", distinct, aggVar,
-                             _->gKey,
-                             g->NodeValue.makeInteger(g.size()));
+        return new Reducer("COUNT", distinct, aggVar,
+                           ()->NodeConst.nodeZero,
+                           _x->gKey,
+                           rows->evalGroup(rows)
+                );
+    }
+
+    private Node evalGroup(List<Binding> rows) {
+        return NodeFactory.createLiteralDT(rows.size()+"", XSDDatatype.XSDinteger);
     }
 
     @Override
-    public Iterator<Binding> eval(Collector collector) {
+    public Iterator<Binding> eval(Reducer collector) {
         return collector.eval();
     }
 

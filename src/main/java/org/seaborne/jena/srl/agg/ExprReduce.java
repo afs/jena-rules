@@ -33,8 +33,10 @@ import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.graph.NodeTransform;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 
+/**
+ * An {@link Expr} that involves a "reduce" step.
+ */
 public abstract class ExprReduce extends ExprNode {
-
 
     protected final List<RuleBodyElement> innerBody;
 

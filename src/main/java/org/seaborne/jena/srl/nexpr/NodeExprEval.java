@@ -189,9 +189,10 @@ public class NodeExprEval {
             addToFunctionRegistry(reg, map);
         }
 
+        @SuppressWarnings("unused")
         private static void addToFunctionRegistry(FunctionRegistry reg, Map<String, ExprCall> map) {
             FunctionFactory ff = createFunctionFactory();
-            map.forEach((uri,_) -> reg.put(uri, ff));
+            map.forEach((uri,_x) -> reg.put(uri, ff));
         }
 
         private static FunctionFactory createFunctionFactory() {

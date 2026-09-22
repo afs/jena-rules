@@ -30,8 +30,8 @@ import org.apache.jena.sparql.engine.binding.Binding;
  */
 public interface Aggregator {
 
-    Collector gatherer();
-    Iterator<Binding> eval(Collector collector);
+    Reducer reducer();
+    Iterator<Binding> eval(Reducer collector);
 
     //Expr asExpr() { return null; }
 

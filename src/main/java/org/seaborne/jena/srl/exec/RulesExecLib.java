@@ -44,7 +44,7 @@ import org.seaborne.jena.srl.RuleBody;
 import org.seaborne.jena.srl.RuleHead;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.agg.Aggregator;
-import org.seaborne.jena.srl.agg.Collector;
+import org.seaborne.jena.srl.agg.Reducer;
 import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
