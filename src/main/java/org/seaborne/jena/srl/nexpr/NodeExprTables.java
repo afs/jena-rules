@@ -317,7 +317,7 @@ import org.seaborne.jena.srl.sys.P;
                                      String uriName, Function0 function) {
         String uri = expandName(uriName);
 
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 0 )
                 throw buildException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
             BuildSyntax0 makerNX0 = ()->new E_Function(uri, ExprList.emptyList);
@@ -338,7 +338,7 @@ import org.seaborne.jena.srl.sys.P;
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    BuildSyntax0 maker, Function0 function) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 0 )
                 throw buildException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
             return maker.build();
@@ -358,7 +358,7 @@ import org.seaborne.jena.srl.sys.P;
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    BuildSyntax1 maker, Function1 function) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 1 )
                 throw buildException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
             return maker.build(exprs[0]);
@@ -378,7 +378,7 @@ import org.seaborne.jena.srl.sys.P;
                                     BuildSyntax1 maker1, Function1 function1,
                                     BuildSyntax2 maker2, Function2 function2) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length == 1 )
                 return maker1.build(exprs[0]);
             if ( exprs.length == 2 )
@@ -402,7 +402,7 @@ import org.seaborne.jena.srl.sys.P;
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    BuildSyntax2 maker, Function2 function) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 2 )
                 throw buildException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
             return maker.build(exprs[0], exprs[1]);
@@ -422,7 +422,7 @@ import org.seaborne.jena.srl.sys.P;
                                     BuildSyntax2 maker2, Function2 function2,
                                     BuildSyntax3 maker3, Function3 function3) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length == 2)
                 return maker2.build(exprs[0], exprs[1]);
             if ( exprs.length == 3 )
@@ -446,7 +446,7 @@ import org.seaborne.jena.srl.sys.P;
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    BuildSyntax3 maker, Function3 function) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 3 )
                 throw buildException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
             return maker.build(exprs[0], exprs[1], exprs[2]);
@@ -466,7 +466,7 @@ import org.seaborne.jena.srl.sys.P;
                                     BuildSyntax3 maker3, Function3 function3,
                                     BuildSyntax4 maker4, Function4 function4) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length == 3)
                 return maker4.build(exprs[0], exprs[1], exprs[2],null);
             if ( exprs.length == 4 )
@@ -489,7 +489,7 @@ import org.seaborne.jena.srl.sys.P;
                                    String uriName, Class<? extends Expr> implClass, String sparqlName,
                                    BuildSyntax4 maker, Function4 function) {
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 4 )
                 throw buildException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             return maker.build(exprs[0], exprs[1], exprs[2], exprs[3]);
@@ -510,7 +510,7 @@ import org.seaborne.jena.srl.sys.P;
                                    String sparqlName, BuildSyntaxN maker, FunctionN function) {
 
         String uri = expandName(uriName);
-        BuildSyntax build = (_, exprs) ->{
+        BuildSyntax build = (_x, exprs) ->{
             if ( exprs.length != 4 )
                 throw buildException("Wrong number of arguments expressions: expected 4, got "+exprs.length);
             ExprList exprList = ExprList.create(exprs);
@@ -532,7 +532,7 @@ import org.seaborne.jena.srl.sys.P;
                                                             BuildSyntax0 maker, FunctionalForm0 functionForm0) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            BuildSyntax build = (_, exprs) ->{
+            BuildSyntax build = (_x, exprs) ->{
                 if ( exprs.length != 1 )
                     throw buildException("Wrong number of arguments expressions: expected 0, got "+exprs.length);
                 return maker.build();
@@ -555,7 +555,7 @@ import org.seaborne.jena.srl.sys.P;
                                                             BuildSyntax1 maker, FunctionalForm1 functionForm1) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            BuildSyntax build = (_, exprs) ->{
+            BuildSyntax build = (_x, exprs) ->{
                 if ( exprs.length != 2 )
                     throw buildException("Wrong number of arguments expressions: expected 1, got "+exprs.length);
                 return maker.build(exprs[0]);
@@ -578,7 +578,7 @@ import org.seaborne.jena.srl.sys.P;
                                                             BuildSyntax2 maker, FunctionalForm2 functionForm2) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            BuildSyntax build = (_, exprs) ->{
+            BuildSyntax build = (_x, exprs) ->{
                 if ( exprs.length != 2 )
                     throw buildException("Wrong number of arguments expressions: expected 2, got "+exprs.length);
                 return maker.build(exprs[0], exprs[1]);
@@ -601,7 +601,7 @@ import org.seaborne.jena.srl.sys.P;
                                                             BuildSyntax3 maker, FunctionalForm3 functionForm3) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            BuildSyntax build = (_, exprs) ->{
+            BuildSyntax build = (_x, exprs) ->{
                 if ( exprs.length != 3 )
                     throw buildException("Wrong number of arguments expressions: expected 3, got "+exprs.length);
                 return maker.build(exprs[0], exprs[1], exprs[2]);
@@ -624,7 +624,7 @@ import org.seaborne.jena.srl.sys.P;
                                                             BuildSyntaxN maker, FunctionalFormN functionFormN) {
         String uri = expandName(uriName);
         if ( maker != null ) {
-            BuildSyntax build = (_, exprs) ->{
+            BuildSyntax build = (_x, exprs) ->{
                 ExprList exprList = ExprList.create(exprs);
                 return maker.build(exprList);
             };

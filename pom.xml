@@ -47,7 +47,7 @@
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <automatic.module.name>org.seaborne.jena.rules</automatic.module.name>
     
-    <java.version>25</java.version>
+    <java.version>21</java.version>
     <maven.compiler.version>${java.version}</maven.compiler.version>
 
     <ver.jena>6.3.0-SNAPSHOT</ver.jena>
