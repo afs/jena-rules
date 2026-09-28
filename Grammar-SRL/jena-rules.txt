@@ -218,7 +218,7 @@ NON-TERMINALS
 	RulesUnit	:=	ByteOrderMark RuleSet
 	ByteOrderMark	:=	( <BOM> )?
 	RuleSet	:=	RuleOrDataBlock <EOF>
-	RuleOrDataBlock	:=	Prologue ( ( RuleOrData )+ ( Prologue1 ( RuleOrData )? )* )?
+	RuleOrDataBlock	:=	Prologue ( ( RuleOrData )+ ( Prologue1 ( RuleOrData )* )* )?
 	RuleOrData	:=	( Rule | Data | TupleData | Declaration )
 // ---- Prologue
 	Prologue	:=	( Prologue1 )*

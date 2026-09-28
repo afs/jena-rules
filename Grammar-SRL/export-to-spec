@@ -2,7 +2,9 @@
 ## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 BASE="sparql-rl-grammar"
+
 DEST="$HOME/W3C/SHACL/rules-shacl-wg/sparql12-rl/"
+##DEST="$HOME/W3C/SHACL/data-shapes-wg/sparql12-rl/"
 
 ## Local step names
 OUT_HTML='sparql-rl-grammar.html'

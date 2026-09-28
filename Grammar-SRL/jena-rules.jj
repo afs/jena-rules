@@ -82,7 +82,7 @@ void RuleOrDataBlock(): { }
     (RuleOrData())+
 //  RuleOrDataBlock() // Recursive, needs separate Prologue1 in Prologue
     // Better - not recursive.
-    (Prologue1() ( RuleOrData() )? )*
+    (Prologue1() ( RuleOrData() )* )*
   )?
 }
 void RuleOrData() : {}

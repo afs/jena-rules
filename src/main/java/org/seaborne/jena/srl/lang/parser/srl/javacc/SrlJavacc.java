@@ -72,15 +72,19 @@ finishRules() ;
           break label_2;
         }
         Prologue1();
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case RULE:
-        case DATA:{
-          RuleOrData();
-          break;
+        label_3:
+        while (true) {
+          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+          case RULE:
+          case DATA:{
+            ;
+            break;
+            }
+          default:
+            jj_la1[2] = jj_gen;
+            break label_3;
           }
-        default:
-          jj_la1[2] = jj_gen;
-          ;
+          RuleOrData();
         }
       }
       break;
@@ -110,7 +114,7 @@ finishRules() ;
 
 // ---- Prologue
   final public void Prologue() throws ParseException {
-    label_3:
+    label_4:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case IMPORTS:
@@ -122,7 +126,7 @@ finishRules() ;
         }
       default:
         jj_la1[5] = jj_gen;
-        break label_3;
+        break label_4;
       }
       Prologue1();
     }
@@ -377,7 +381,7 @@ startBody(t.beginLine, t.beginColumn);
       jj_la1[12] = jj_gen;
       ;
     }
-    label_4:
+    label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SET:
@@ -388,7 +392,7 @@ startBody(t.beginLine, t.beginColumn);
         }
       default:
         jj_la1[13] = jj_gen;
-        break label_4;
+        break label_5;
       }
       BodyNotTriples();
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -561,7 +565,7 @@ emitFilterExpr(c, token.beginLine, token.beginColumn);
       jj_consume_token(LPAREN);
       expr = Expression();
 args.add(expr) ;
-      label_5:
+      label_6:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case COMMA:{
@@ -570,7 +574,7 @@ args.add(expr) ;
           }
         default:
           jj_la1[18] = jj_gen;
-          break label_5;
+          break label_6;
         }
         jj_consume_token(COMMA);
         expr = Expression();
@@ -598,7 +602,7 @@ args.add(expr) ;
       jj_consume_token(LPAREN);
       expr = Expression();
 exprList.add(expr) ;
-      label_6:
+      label_7:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case COMMA:{
@@ -607,7 +611,7 @@ exprList.add(expr) ;
           }
         default:
           jj_la1[20] = jj_gen;
-          break label_6;
+          break label_7;
         }
         jj_consume_token(COMMA);
         expr = Expression();
@@ -683,7 +687,7 @@ startBodyBasic(token.beginLine, token.beginColumn) ;
       jj_la1[23] = jj_gen;
       ;
     }
-    label_7:
+    label_8:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case FILTER:{
@@ -692,7 +696,7 @@ startBodyBasic(token.beginLine, token.beginColumn) ;
         }
       default:
         jj_la1[24] = jj_gen;
-        break label_7;
+        break label_8;
       }
       BodyBasicNotTriples();
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -877,7 +881,7 @@ emitAssignment(v, expr, token.beginLine, token.beginColumn);
   final public void PropertyListNotEmptyData(Node s) throws ParseException {Node p = null ;
     p = VerbData();
     ObjectListData(s, p);
-    label_8:
+    label_9:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SEMICOLON:{
@@ -886,7 +890,7 @@ emitAssignment(v, expr, token.beginLine, token.beginColumn);
         }
       default:
         jj_la1[31] = jj_gen;
-        break label_8;
+        break label_9;
       }
       jj_consume_token(SEMICOLON);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -929,7 +933,7 @@ emitAssignment(v, expr, token.beginLine, token.beginColumn);
 
   final public void ObjectListData(Node s, Node p) throws ParseException {
     ObjectData(s, p);
-    label_9:
+    label_10:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case COMMA:{
@@ -938,7 +942,7 @@ emitAssignment(v, expr, token.beginLine, token.beginColumn);
         }
       default:
         jj_la1[34] = jj_gen;
-        break label_9;
+        break label_10;
       }
       jj_consume_token(COMMA);
       ObjectData(s, p);
@@ -1031,7 +1035,7 @@ Node n = createBNode( t.beginLine, t.beginColumn) ;
   final public Node CollectionData() throws ParseException {Node listHead = nRDFnil ; Node lastCell = null ; Node n ; Token t ;
     t = jj_consume_token(LPAREN);
 int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null;
-    label_10:
+    label_11:
     while (true) {
 Node cell = createListNode( beginLine, beginColumn) ;
       if ( listHead == nRDFnil )
@@ -1072,7 +1076,7 @@ emitTriple(cell, nRDFfirst, n,token.beginLine, token.beginColumn) ;
         }
       default:
         jj_la1[37] = jj_gen;
-        break label_10;
+        break label_11;
       }
     }
     jj_consume_token(RPAREN);
@@ -1083,7 +1087,7 @@ if ( lastCell != null )
 }
 
   final public void AnnotationData(Node s, Node p, Node o) throws ParseException {Node reifId = null ;
-    label_11:
+    label_12:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case L_ANN:
@@ -1093,7 +1097,7 @@ if ( lastCell != null )
         }
       default:
         jj_la1[38] = jj_gen;
-        break label_11;
+        break label_12;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case TILDE:{
@@ -1547,7 +1551,7 @@ finishTriplesTemplate(token.beginLine, token.beginColumn);
   final public void PropertyListNotEmptyTemplate(Node s) throws ParseException {Node p = null ;
     p = Verb();
     ObjectListTemplate(s, p);
-    label_12:
+    label_13:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SEMICOLON:{
@@ -1556,7 +1560,7 @@ finishTriplesTemplate(token.beginLine, token.beginColumn);
         }
       default:
         jj_la1[51] = jj_gen;
-        break label_12;
+        break label_13;
       }
       jj_consume_token(SEMICOLON);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -1579,7 +1583,7 @@ finishTriplesTemplate(token.beginLine, token.beginColumn);
 
   final public void ObjectListTemplate(Node s, Node p) throws ParseException {
     ObjectTemplate(s, p);
-    label_13:
+    label_14:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case COMMA:{
@@ -1588,7 +1592,7 @@ finishTriplesTemplate(token.beginLine, token.beginColumn);
         }
       default:
         jj_la1[53] = jj_gen;
-        break label_13;
+        break label_14;
       }
       jj_consume_token(COMMA);
       ObjectTemplate(s, p);
@@ -1683,7 +1687,7 @@ Node n = createBNode( t.beginLine, t.beginColumn) ;
   final public Node CollectionTemplate() throws ParseException {Node listHead = nRDFnil ; Node lastCell = null ; Node n ; Token t ;
     t = jj_consume_token(LPAREN);
 int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null;
-    label_14:
+    label_15:
     while (true) {
 Node cell = createListNode( beginLine, beginColumn) ;
       if ( listHead == nRDFnil )
@@ -1726,7 +1730,7 @@ emitTriple(cell, nRDFfirst, n,token.beginLine, token.beginColumn) ;
         }
       default:
         jj_la1[56] = jj_gen;
-        break label_14;
+        break label_15;
       }
     }
     jj_consume_token(RPAREN);
@@ -1737,7 +1741,7 @@ if ( lastCell != null )
 }
 
   final public void AnnotationTemplate(Node s, Node p, Node o) throws ParseException {Node reifId = null ;
-    label_15:
+    label_16:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case L_ANN:
@@ -1747,7 +1751,7 @@ if ( lastCell != null )
         }
       default:
         jj_la1[57] = jj_gen;
-        break label_15;
+        break label_16;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case TILDE:{
@@ -1941,7 +1945,7 @@ finishTriplesBlock(token.beginLine, token.beginColumn) ;
       throw new ParseException();
     }
     ObjectListPattern(s, p, path);
-    label_16:
+    label_17:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SEMICOLON:{
@@ -1950,7 +1954,7 @@ finishTriplesBlock(token.beginLine, token.beginColumn) ;
         }
       default:
         jj_la1[64] = jj_gen;
-        break label_16;
+        break label_17;
       }
       jj_consume_token(SEMICOLON);
 path = null ; p = null ;
@@ -1995,7 +1999,7 @@ path = null ; p = null ;
 
   final public void ObjectListPattern(Node s, Node p, Path path) throws ParseException {Node o ;
     ObjectPattern(s, p, path);
-    label_17:
+    label_18:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case COMMA:{
@@ -2004,7 +2008,7 @@ path = null ; p = null ;
         }
       default:
         jj_la1[67] = jj_gen;
-        break label_17;
+        break label_18;
       }
       jj_consume_token(COMMA);
       ObjectPattern(s, p, path);
@@ -2049,7 +2053,7 @@ Node n = createBNode( t.beginLine, t.beginColumn) ;
   final public Node CollectionPattern() throws ParseException {Node listHead = nRDFnil ; Node lastCell = null ; int mark ; Node n ; Token t ;
     t = jj_consume_token(LPAREN);
 int beginLine = t.beginLine; int beginColumn = t.beginColumn; t = null;
-    label_18:
+    label_19:
     while (true) {
 Node cell = createListNode( beginLine, beginColumn) ;
       if ( listHead == nRDFnil )
@@ -2092,7 +2096,7 @@ emitTriple(cell, nRDFfirst, n, token.beginLine, token.beginColumn) ;
         }
       default:
         jj_la1[69] = jj_gen;
-        break label_18;
+        break label_19;
       }
     }
     jj_consume_token(RPAREN);
@@ -2103,7 +2107,7 @@ if ( lastCell != null )
 }
 
   final public void AnnotationPattern(Node s, Node p, Path path, Node o) throws ParseException {Node reifId = null ;
-    label_19:
+    label_20:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case L_ANN:
@@ -2113,7 +2117,7 @@ if ( lastCell != null )
         }
       default:
         jj_la1[70] = jj_gen;
-        break label_19;
+        break label_20;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case TILDE:{
@@ -2555,7 +2559,7 @@ p = nRDFtype ;
 
   final public Path PathSequence() throws ParseException {Path p1 , p2 ;
     p1 = PathEltOrInverse();
-    label_20:
+    label_21:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SLASH:{
@@ -2564,7 +2568,7 @@ p = nRDFtype ;
         }
       default:
         jj_la1[81] = jj_gen;
-        break label_20;
+        break label_21;
       }
       jj_consume_token(SLASH);
       p2 = PathEltOrInverse();
@@ -3073,7 +3077,7 @@ lex = unescapeStr(lex, t.beginLine, t.beginColumn) ;
 
   final public Expr ConditionalOrExpression() throws ParseException {Expr expr1, expr2 ;
     expr1 = ConditionalAndExpression();
-    label_21:
+    label_22:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SC_OR:{
@@ -3082,7 +3086,7 @@ lex = unescapeStr(lex, t.beginLine, t.beginColumn) ;
         }
       default:
         jj_la1[99] = jj_gen;
-        break label_21;
+        break label_22;
       }
       jj_consume_token(SC_OR);
       expr2 = ConditionalAndExpression();
@@ -3094,7 +3098,7 @@ expr1 = new E_LogicalOr(expr1, expr2) ;
 
   final public Expr ConditionalAndExpression() throws ParseException {Expr expr1, expr2 ;
     expr1 = ValueLogical();
-    label_22:
+    label_23:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SC_AND:{
@@ -3103,7 +3107,7 @@ expr1 = new E_LogicalOr(expr1, expr2) ;
         }
       default:
         jj_la1[100] = jj_gen;
-        break label_22;
+        break label_23;
       }
       jj_consume_token(SC_AND);
       expr2 = ValueLogical();
@@ -3203,7 +3207,7 @@ expr1 = new E_NotOneOf(expr1, a) ;
 
   final public Expr AdditiveExpression() throws ParseException {Expr expr1, expr2, expr3 ; boolean addition ; Node n ;
     expr1 = MultiplicativeExpression();
-    label_23:
+    label_24:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case INTEGER_POSITIVE:
@@ -3219,7 +3223,7 @@ expr1 = new E_NotOneOf(expr1, a) ;
         }
       default:
         jj_la1[103] = jj_gen;
-        break label_23;
+        break label_24;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case PLUS:{
@@ -3264,7 +3268,7 @@ n = stripSign(n) ;
           jj_consume_token(-1);
           throw new ParseException();
         }
-        label_24:
+        label_25:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case STAR:
@@ -3274,7 +3278,7 @@ n = stripSign(n) ;
             }
           default:
             jj_la1[105] = jj_gen;
-            break label_24;
+            break label_25;
           }
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case STAR:{
@@ -3313,7 +3317,7 @@ if ( addition )
 
   final public Expr MultiplicativeExpression() throws ParseException {Expr expr1, expr2 ;
     expr1 = UnaryExpression();
-    label_25:
+    label_26:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case STAR:
@@ -3323,7 +3327,7 @@ if ( addition )
         }
       default:
         jj_la1[108] = jj_gen;
-        break label_25;
+        break label_26;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case STAR:{
