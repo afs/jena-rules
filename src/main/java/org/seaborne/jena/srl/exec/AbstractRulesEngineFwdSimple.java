@@ -25,14 +25,13 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphUtil;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.atlas.lib.DateTimeUtils;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.*;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.Prefixes;
+import org.apache.jena.sparql.ARQConstants;
 import org.apache.jena.sparql.graph.GraphReadOnly;
-import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.*;
 import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.jena.AppendGraph;
@@ -122,11 +121,15 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
         }
 
         Stratification stratification = RulesExecLib.prepare(ruleSet, rCxt);
-
         int maxStratum = stratification.maxStratum(); // Inclusive.
 
         // NOW()
-        Context.setCurrentDateTime(rCxt.getContext());
+        // Currently, ARQ sets to the process locale.
+        //Context.setCurrentDateTime(rCxt.getContext());
+
+        // Current time as UTC
+        Node nowNode = NodeFactory.createLiteralDT(DateTimeUtils.nowUTC(), XSDDatatype.XSDdateTime) ;
+        rCxt.getContext().set(ARQConstants.sysCurrentTime, nowNode);
 
         TRACE = TRACE || rCxt.trace();
 
