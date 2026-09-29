@@ -59,11 +59,20 @@ public class RulesLibSparql {
                 case EltTuplePattern(var tuple) -> { throw new NotImplemented("Tuples in SPARQL translation"); }
                 case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody, boolean grounded ) -> {
+
                     // NOT DATA handled by ruleBodyToElementGroup which will wrap the innerBody in a GRAPH <
 
                     ElementGroup inner = ruleBodyToElementGroup(innerBody, grounded);
                     Element negationElt = new ElementFilter(new E_NotExists(inner));
                     group.addElement(negationElt);
+
+                    // Example: RULE {...} WHERE { ?s :p :o . NOT { ?s :q ?y } . ?y :r 123 }
+                    // SPARQL moves filter to the end-of-group. Need to stop FILTER moving right by SPARQL rules.
+                    // Create a new accumulating group with the previous group as its first element.
+                    // (A new well-formedness rule may disallow use of ?y after the NOT inner body.)
+                    ElementGroup group2 = new ElementGroup();
+                    group2.addElement(group);
+                    group = group2;
                 }
                 case EltAssignment(var assignedVar, var expr) -> {
                     // set(?x) is bind(?x) filter(bound(?x))
