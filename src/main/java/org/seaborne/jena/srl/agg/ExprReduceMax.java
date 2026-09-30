@@ -40,6 +40,6 @@ public class ExprReduceMax extends ExprReduce {
 
     @Override
     public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggMax(resultVar, false, expr, innerBody, rCxt);
+        return new AggMax(resultVar, super.groupBy, expr, rCxt);
     }
 }

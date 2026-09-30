@@ -43,5 +43,5 @@ public class ExprReduceCount extends ExprReduce {
 
     @Override
     public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggCount(resultVar, distinct, super.groupBy, super.innerBody, rCxt); }
+        return new AggCount(resultVar, distinct, super.groupBy, rCxt); }
 }

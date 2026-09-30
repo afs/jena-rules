@@ -23,65 +23,68 @@ package org.seaborne.jena.srl.agg;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.nodevalue.XSDFuncOp;
-import org.apache.jena.sparql.function.FunctionEnv;
+import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
 
 
 public class AggSum implements Aggregator {
 
-    private final boolean distinct;
     private final Var aggVar;
     private final Expr expr;
-    private final List<RuleBodyElement> innerBody;
+    private final Collection<Var> groupBy;
     private final RulesExecCxt rCxt;
 
-    public AggSum(Var outputVar, boolean distinct, Expr expr, List<RuleBodyElement> innerBody, RulesExecCxt rCxt) {
-        //super(v, agg);
+    public AggSum(Var outputVar, Collection<Var> groupBy, Expr expr, RulesExecCxt rCxt) {
         this.aggVar = outputVar;
-        this.innerBody = innerBody;
-        this.distinct = distinct;
         this.expr = expr;
+        this.groupBy = groupBy;
         this.rCxt = rCxt;
     }
 
     @Override
     public GroupReducer reducer() {
-        throw new NotImplemented();
-
-//        GroupKey gKey = new GroupKeyStar();
-//        return new Reducer("SUM", distinct, aggVar,
-//                           ()->NodeConst.nodeZero,
-//                           _x->gKey,
-//                           rows->evalGroup(rows, rCxt)
-//                );
+        GroupSplitter groupSplitter = (groupBy.isEmpty()) ? GroupSplitters.splitterStar() : GroupSplitters.splitterVars(groupBy);
+        return new GroupReducer("SUM", aggVar,
+                                ()->NodeConst.nodeZero,
+                                groupSplitter,
+                                k->new AggregateSum(expr, rCxt)
+                               );
     }
 
-    private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
-        NodeValue sum = NodeValue.nvZERO;
-        FunctionEnv functionEnv = rCxt;
-        for ( Binding row : rows ) {
-            NodeValue nv = expr.eval(row, functionEnv);
-            if ( ! nv.isNumber() )
-                throw new ExprEvalException("SUM: Not a number");
+    static class AggregateSum extends AggregateFunction {
+
+        private final Expr expr;
+        private final RulesExecCxt rCxt;
+
+        AggregateSum(Expr expr, RulesExecCxt rCxt) {
+            this.expr = expr;
+            this.rCxt = rCxt;
+        }
+
+        private NodeValue sum = NodeValue.makeInteger(0L);
+
+        @Override
+        public void receive(Binding binding) {
+            NodeValue nv = expr.eval(binding, rCxt);
             sum = XSDFuncOp.numAdd(sum, nv);
         }
-        return sum.asNode();
+
+        @Override
+        public NodeValue aggValue() { return sum; }
+
+        @Override
+        public Node aggNode() { return sum.asNode(); }
     }
 
     @Override
     public Iterator<Binding> eval(GroupReducer reducer) {
-        throw new NotImplemented();
-//        return reducer.eval();
+        return reducer.eval();
     }
 }

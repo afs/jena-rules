@@ -40,6 +40,6 @@ public class ExprReduceSum extends ExprReduce {
 
     @Override
     public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggSum(resultVar, false, expr, innerBody, rCxt);
+        return new AggSum(resultVar, super.groupBy(), expr, rCxt);
     }
 }

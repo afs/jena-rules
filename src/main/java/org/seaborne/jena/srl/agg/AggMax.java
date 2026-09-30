@@ -23,72 +23,89 @@ package org.seaborne.jena.srl.agg;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
-import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
-import org.apache.jena.sparql.function.FunctionEnv;
+import org.seaborne.jena.srl.exec.RulesEvalException;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
 
 
 public class AggMax implements Aggregator {
 
-    private final boolean distinct;
+    private final Collection<Var> groupBy;
     private final Var aggVar;
     private final Expr expr;
-    private final List<RuleBodyElement> innerBody;
     private final RulesExecCxt rCxt;
 
-    public AggMax(Var outputVar, boolean distinct, Expr expr, List<RuleBodyElement> innerBody, RulesExecCxt rCxt) {
+    public AggMax(Var aggVar,  Collection<Var> groupBy, Expr expr, RulesExecCxt rCxt) {
         //super(v, agg);
-        this.aggVar = outputVar;
-        this.innerBody = innerBody;
-        this.distinct = distinct;
+        this.groupBy = groupBy;
+        this.aggVar = aggVar;
         this.expr = expr;
         this.rCxt = rCxt;
     }
 
-    // Count(*)
     @Override
     public GroupReducer reducer() {
-        throw new NotImplemented();
-//
-//        GroupKey gKey = new GroupKeyStar();
-//        return new Reducer("MAX", distinct, aggVar,
-//                           ()->NodeConst.nodeZero,
-//                           _x->gKey,
-//                           rows->evalGroup(rows, rCxt)
-//                );
+        GroupSplitter splitter = GroupSplitters.splitter(groupBy);
+        return new GroupReducer("MAX", aggVar,
+                                ()->{ throw new RulesEvalException("Empty group for MAX"); },
+                                splitter,
+                                factory);
+    }
+
+    static AggregateFunction.Factory factory = k->new AggregateMax();
+
+    static class AggregateMax extends AggregateFunction {
+        // Wrong but compiles!
+        private long counter = 0 ;
+        @Override
+        public void receive(Binding binding) { counter++; }
+
+        @Override
+        public NodeValue aggValue() { return NodeValue.makeInteger(counter); }
+
+        @Override
+        public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
     }
 
     private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
-        // Undef
-        NodeValue max = null;
-        FunctionEnv functionEnv = rCxt;
-        for ( Binding row : rows ) {
-            NodeValue nv = expr.eval(row, functionEnv);
-            if ( max == null )
-                max = nv;
-            else {
-                int cmp = NodeValue.compare(nv, max);
-                if ( cmp == Expr.CMP_GREATER )
-                    max = nv;
-            }
-        }
-        if ( max == null )
-            throw new ExprEvalException("MAX: No elements");
-        return max.asNode();
+        return NodeFactory.createLiteralDT(rows.size()+"", XSDDatatype.XSDinteger);
     }
 
     @Override
     public Iterator<Binding> eval(GroupReducer reducer) {
-        throw new NotImplemented();
-//        return reducer.eval();
+        return reducer.eval();
     }
+//
+//
+//    private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
+//        // Undef
+//        NodeValue max = null;
+//        FunctionEnv functionEnv = rCxt;
+//        for ( Binding row : rows ) {
+//            NodeValue nv = expr.eval(row, functionEnv);
+//            if ( max == null )
+//                max = nv;
+//            else {
+//                int cmp = NodeValue.compare(nv, max);
+//                if ( cmp == Expr.CMP_GREATER )
+//                    max = nv;
+//            }
+//        }
+//        if ( max == null )
+//            throw new ExprEvalException("MAX: No elements");
+//        return max.asNode();
+//    }
+//
+//    @Override
+//    public Iterator<Binding> eval(GroupReducer reducer) {
+//        throw new NotImplemented();
+////        return reducer.eval();
+//    }
 }

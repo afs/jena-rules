@@ -40,6 +40,6 @@ public class ExprReduceMin extends ExprReduce {
 
     @Override
     public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggMin(resultVar, false, expr, innerBody, rCxt);
+        return new AggMin(resultVar, super.groupBy, expr, rCxt);
     }
 }

@@ -21,7 +21,8 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
@@ -31,7 +32,6 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
 
 
 // XXX Roll into ExprReduceCount
@@ -41,59 +41,20 @@ public class AggCount implements Aggregator {
 
     private final boolean distinct;
     private final Var aggVar;
-    private final List<RuleBodyElement> innerBody;
-    private final RulesExecCxt rCxt;
     private final Collection<Var> groupBy;
+    private final RulesExecCxt rCxt;
 
-    public AggCount(Var outputVar, boolean distinct, Collection<Var> groupBy, List<RuleBodyElement> innerBody, RulesExecCxt rCxt) {
+    public AggCount(Var outputVar, boolean distinct, Collection<Var> groupBy, RulesExecCxt rCxt) {
         //super(v, agg);
         this.aggVar = outputVar;
-        this.innerBody = innerBody;
         this.distinct = distinct;
         this.groupBy = groupBy;
         this.rCxt = rCxt;
     }
 
-    // Count(*)
     @Override
     public GroupReducer reducer() {
-        GroupSplitter groupSplitter;
-
-//        protected Reducer(String name, boolean isDistinct, Var outputVar,
-//                          Supplier<Node> onEmpty,
-//                          Function<Binding, GroupKey> groupSplitter,
-//                          Function<Collection<Binding>, Node> groupValue) {
-
-        // Do we need an order group set?
-
-        if ( groupBy.isEmpty() ) {
-            groupSplitter =  new GroupSplitter() {
-                @Override
-                public GroupKey groupKey(Binding binding) { return GroupKeyFixed.instance; }
-
-                @Override
-                public Set<Var> groupKeys() { return Set.of(); }
-            };
-        } else {
-            // Unique (per reducer) order
-            List<Var> keyVars = List.copyOf(groupBy);
-            groupSplitter = new GroupSplitter() {
-                @Override
-                public GroupKey groupKey(Binding binding) {
-                    List<Node> key = new ArrayList<>(groupBy.size());
-                    for ( Var var : keyVars ) {
-                        Node n = binding.get(var);
-                        if ( n == null ) {};
-                        key.add(n);
-                    }
-                    return new GroupKeyList(keyVars, key);
-                }
-                @Override
-                public Collection<Var> groupKeys() {
-                    return groupBy;
-                }
-            };
-        }
+        GroupSplitter groupSplitter = (groupBy.isEmpty()) ? GroupSplitters.splitterStar() : GroupSplitters.splitterVars(groupBy);
         return new GroupReducer("COUNT", aggVar,
                                 ()->NodeConst.nodeZero,
                                 groupSplitter,
