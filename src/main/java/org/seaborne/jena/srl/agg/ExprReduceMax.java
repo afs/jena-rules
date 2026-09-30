@@ -33,8 +33,8 @@ public class ExprReduceMax extends ExprReduce {
 
     private final Expr expr;
 
-    public ExprReduceMax(Expr expr, Scope scope, List<RuleBodyElement> innerBody) {
-        super(innerBody, scope.inScope());
+    public ExprReduceMax(Expr expr, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
+        super("MAX", hasGroupByVars, innerBody, scope.inScope());
         this.expr = expr;
     }
 

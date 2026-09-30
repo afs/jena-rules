@@ -751,14 +751,14 @@ finishBodyBasic(token.beginLine, token.beginColumn) ;
     Filter();
 }
 
-  final public void Assignment() throws ParseException {Var v ; Expr expr ;
+  final public void Assignment() throws ParseException {Var v; Expr expr = null;
     jj_consume_token(SET);
     jj_consume_token(LPAREN);
     v = Var();
     jj_consume_token(ASSIGN);
     expr = Expression();
-    jj_consume_token(RPAREN);
 emitAssignment(v, expr, token.beginLine, token.beginColumn);
+    jj_consume_token(RPAREN);
 }
 
 // -----------------------

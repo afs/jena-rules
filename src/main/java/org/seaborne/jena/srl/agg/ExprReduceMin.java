@@ -33,8 +33,8 @@ public class ExprReduceMin extends ExprReduce {
 
     private final Expr expr;
 
-    public ExprReduceMin(Expr expr, Scope scope, List<RuleBodyElement> innerBody) {
-        super(innerBody, scope.inScope());
+    public ExprReduceMin(Expr expr, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
+        super("MIN", hasGroupByVars, innerBody, scope.inScope());
         this.expr = expr;
     }
 

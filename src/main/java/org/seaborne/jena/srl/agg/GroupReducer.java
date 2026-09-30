@@ -22,11 +22,8 @@
 package org.seaborne.jena.srl.agg;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -34,28 +31,33 @@ import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.seaborne.jena.srl.nexpr.RuleExprEvalException;
 
-// Is this the "reducer"?
-public /*abstract*/ class Reducer {
+/**
+ * A {@link GroupReducer}
+ */
+public /*abstract*/ class GroupReducer {
 
     private final String name;
-    private final boolean isDistinct;
     private final Var aggVar;
     // This may throw an ExprEvalE is "empty " is not acceptable.
     private final Supplier<Node> onEmpty;
 
-    private final MultiValuedMap<GroupKey, Binding> collector = new ArrayListValuedHashMap<>();
+    private final Map<GroupKey, AggregateFunction> collector = new HashMap<>();
     private final GroupSplitter splitter;
-    private final Function<Collection<Binding>, Node> groupValue;
+
+    // Map + factory? vs all one function
+
+    private final AggregateFunction.Factory aggregatorFactory;
+
+
     private Map<GroupKey, Node> unused_results = null;
     private List<Binding> rows = null;
 
-    protected Reducer(String name, boolean isDistinct, Var outputVar, Supplier<Node> onEmpty, GroupSplitter groupSplitter, Function<Collection<Binding>, Node> groupValue) {
+    protected GroupReducer(String name, Var outputVar, Supplier<Node> onEmpty, GroupSplitter groupSplitter, AggregateFunction.Factory aggregatorFactory) {
         this.name = name;
         this.aggVar = outputVar;
         this.onEmpty = onEmpty;
-        this.isDistinct = isDistinct;
         this.splitter = groupSplitter;
-        this.groupValue = groupValue;
+        this.aggregatorFactory = aggregatorFactory;
     }
 
     public void startReceive() {}
@@ -67,14 +69,11 @@ public /*abstract*/ class Reducer {
             System.err.println("Null group key");
             throw new RuleExprEvalException("Null group key: "+binding);
         }
-        if ( isDistinct ) {
-            // DISTINCT??
-            // XXX What is the right data structure to use here?
-            if ( collector.containsMapping(groupKey, binding) )
-                return;
-        }
-        //System.out.println("put: "+groupKey+" : "+binding);
-        collector.put(groupKey, binding);
+        AggregateFunction aggregator =
+                collector.computeIfAbsent(groupKey,
+                                          k->aggregatorFactory.newAggregateFunction(k));
+        aggregator.receive(binding);
+        //System.out.println("GroupReducer: "+groupKey+" : "+binding);
     }
 
     public void receiveEmpty(Binding inputBinding) {
@@ -86,18 +85,7 @@ public /*abstract*/ class Reducer {
     }
 
     public void finishReceive() {
-        // XXX
-        if ( false ) {
-            Map<GroupKey, Collection<Binding>> map = collector.asMap();
-            System.err.println("Group: keys="+map.keySet().size());
-            map.keySet().forEach(gk->{
-                System.err.print("  "+gk);
-                System.err.println("  "+map.get(gk));
-            });
-        }
-
-        Map<GroupKey, Collection<Binding>> map = collector.asMap();
-        if ( map.isEmpty() ) {
+        if ( collector.isEmpty() ) {
             // No group key so the result is just the aggregate variable.
             Node emptyValue = onEmpty.get();
             BindingBuilder builder = BindingBuilder.create();
@@ -106,15 +94,14 @@ public /*abstract*/ class Reducer {
             rows = List.of(b);
             return;
         }
-        rows = evalAgg(map);
+        rows = evalAgg(collector);
     }
 
-    private List<Binding> evalAgg(Map<GroupKey, Collection<Binding>> map) {
+    private List<Binding> evalAgg(Map<GroupKey, AggregateFunction> collector) {
         Map<GroupKey, Node> results = new HashMap<>();
-        map.keySet().forEach(key->{
-            Collection<Binding> x = map.get(key);
+        collector.keySet().forEach(key->{
             // Project group keys.
-            Node v = groupValue.apply(x);
+            Node v = collector.get(key).aggNode();
             results.put(key, v);
         });
         List<Binding> rows = new ArrayList<>();
@@ -135,5 +122,5 @@ public /*abstract*/ class Reducer {
     }
 
     String name() { return name; }
-    boolean isDistinct() { return isDistinct; }
+    //boolean isDistinct() { return isDistinct; }
 }

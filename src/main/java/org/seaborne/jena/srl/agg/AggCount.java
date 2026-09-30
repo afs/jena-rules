@@ -28,11 +28,13 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 
 
+// XXX Roll into ExprReduceCount
 public class AggCount implements Aggregator {
 
     // Abstract super class?
@@ -54,7 +56,7 @@ public class AggCount implements Aggregator {
 
     // Count(*)
     @Override
-    public Reducer reducer() {
+    public GroupReducer reducer() {
         GroupSplitter groupSplitter;
 
 //        protected Reducer(String name, boolean isDistinct, Var outputVar,
@@ -92,11 +94,25 @@ public class AggCount implements Aggregator {
                 }
             };
         }
-        return new Reducer("COUNT", distinct, aggVar,
-                           ()->NodeConst.nodeZero,
-                           /*splitter*/    groupSplitter,
-                           /*gourpValue*/  rows->evalGroup(rows, rCxt)
-                );
+        return new GroupReducer("COUNT", aggVar,
+                                ()->NodeConst.nodeZero,
+                                groupSplitter,
+                                factory
+                               );
+    }
+
+    static AggregateFunction.Factory factory = k->new AggregateCount();
+
+    static class AggregateCount extends AggregateFunction {
+        private long counter = 0 ;
+        @Override
+        public void receive(Binding binding) { counter++; }
+
+        @Override
+        public NodeValue aggValue() { return NodeValue.makeInteger(counter); }
+
+        @Override
+        public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
     }
 
     private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
@@ -104,7 +120,7 @@ public class AggCount implements Aggregator {
     }
 
     @Override
-    public Iterator<Binding> eval(Reducer reducer) {
+    public Iterator<Binding> eval(GroupReducer reducer) {
         return reducer.eval();
     }
 }

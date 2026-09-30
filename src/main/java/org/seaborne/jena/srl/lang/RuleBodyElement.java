@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public sealed interface RuleBodyElement  {
@@ -50,6 +51,11 @@ public sealed interface RuleBodyElement  {
     public record EltAssignment(Var var, Expr expression) implements RuleBodyElement {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
+
+    public record EltAggregate(Var var, ExprReduce reducer) implements RuleBodyElement {
+        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
+    }
+
 
 //    public record EltAggregation(Var var, Expr expression) implements RuleElement {
 //        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }

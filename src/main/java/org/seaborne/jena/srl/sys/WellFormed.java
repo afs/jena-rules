@@ -27,12 +27,12 @@ import java.util.Set;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.tuples.Tuple;
@@ -116,7 +116,13 @@ public class WellFormed {
                     throw new NotWellFormedException("Assignment variable already defined: "+var);
                 tracker.bodyDefined.add(var);
             }
-            case null -> { throw new ShaclException("Null in rule body"); }
+            case EltAggregate(Var var, ExprReduce reducer) -> {
+                processWellFormedGroupBy(tracker, reducer);
+                if ( tracker.bodyDefined.contains(var) )
+                    throw new NotWellFormedException("Aggregation variable already defined: "+var);
+                tracker.bodyDefined.add(var);
+            }
+            case null -> { throw new RulesException("Null in rule body"); }
         }
     }
 
@@ -135,6 +141,15 @@ public class WellFormed {
             //tracker.bodyMentioned.add(var);
             if ( ! tracker.bodyDefined.contains(var) )
                 throw new NotWellFormedException("Expression variable not defined: "+var);
+        }
+    }
+
+    private static void processWellFormedGroupBy(VarTracker tracker, ExprReduce reducer) {
+        if ( reducer.hasGroupBy() ) {
+            for ( Var var : reducer.groupBy() ) {
+                if ( ! tracker.bodyDefined.contains(var) )
+                    throw new NotWellFormedException("Group variable not defined: "+var);
+            }
         }
     }
 

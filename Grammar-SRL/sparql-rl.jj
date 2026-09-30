@@ -254,15 +254,15 @@ void BodyBasicNotTriples() : {}
 {
    Filter()
 }
-void Assignment() : { Var v ; Expr expr ; }
+void Assignment() : { Var v; Expr expr = null; }
 {
     <SET>
     <LPAREN>
     v = Var()
     <ASSIGN>
     expr = Expression()
-    <RPAREN>
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
+    <RPAREN>
 }
 // -----------------------
 // Production organisation.

@@ -29,6 +29,6 @@ import org.apache.jena.sparql.engine.binding.Binding;
  * Interface to the aggregation process.
  */
 public interface Aggregator {
-    Reducer reducer();
-    Iterator<Binding> eval(Reducer collector);
+    GroupReducer reducer();
+    Iterator<Binding> eval(GroupReducer collector);
 }

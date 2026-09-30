@@ -39,6 +39,7 @@ import org.apache.jena.sparql.syntax.*;
 import org.apache.jena.update.Update;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleBody;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 
@@ -80,6 +81,9 @@ public class RulesLibSparql {
                     Expr v = new ExprVar(assignedVar);
                     Expr bound = new E_Bound(v);
                     group.addElement(new ElementFilter(bound));
+                }
+                case EltAggregate(var aggVar, ExprReduce reducer) -> {
+                    throw new NotImplemented("ruleBodyToElementGroup EltAggregate");
                 }
             }
         }

@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
@@ -45,7 +46,7 @@ import org.seaborne.jena.srl.RuleHead;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.agg.Aggregator;
 import org.seaborne.jena.srl.agg.ExprReduce;
-import org.seaborne.jena.srl.agg.Reducer;
+import org.seaborne.jena.srl.agg.GroupReducer;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
@@ -201,9 +202,9 @@ class RulesExecLib {
                 return chain2;
             }
             case EltAssignment(Var var, Expr expression) -> {
-                if ( expression instanceof ExprReduce exprReducer) {
-                    return aggregateAssignment(evalGraph, tupleStore, chainIn, var, exprReducer, rCxt);
-                }
+                // EltAggregate would be better.
+                if ( expression instanceof ExprReduce exprReducer)
+                    throw new InternalErrorException("ExprReduce for EltAssignment");
 
                 // Otherwise it's a function expression on the current row.
                 Function<Binding, Binding> mapper = row -> {
@@ -221,6 +222,10 @@ class RulesExecLib {
                 };
                 return Iter.iter(chainIn).map(mapper).removeNulls();
             }
+            case EltAggregate(Var aggVar, ExprReduce exprReducer) -> {
+                return aggregateAssignment(evalGraph, tupleStore, chainIn, aggVar, exprReducer, rCxt);
+            }
+
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
                 // If NOT DATA, then match on the inputGraph baseGraph.
                 Graph matchGraph = (grounded) ? inputGraph : evalGraph;
@@ -235,12 +240,8 @@ class RulesExecLib {
     }
 
     private static Iterator<Binding> aggregateAssignment(Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn, Var var, ExprReduce exprReducer, RulesExecCxt rCxt) {
-        // XXX Assumes aggregates only as ":= aggregate"
-        // GROUP BY
-        // Cat find from input (!)
-
         Aggregator aggregator = exprReducer.aggregator(var, rCxt);
-        Reducer reducer = aggregator.reducer();
+        GroupReducer reducer = aggregator.reducer();
         reducer.startReceive();
 
         chainIn.forEachRemaining(row->{
@@ -249,17 +250,6 @@ class RulesExecLib {
                 reducer.receive(binding);
             });
         });
-
-//            if ( chainInner.hasNext()) {
-//                chainInner.forEachRemaining(binding->{
-//                    reducer.receive(binding);
-//                });
-//            } else {
-//                // No inner body - pass on row.
-//                reducer.receiveEmpty(row);
-//            }
-//        });
-        // At this point, we have a map of group key to list of bindings.
 
         reducer.finishReceive();
         // Not adding to input.

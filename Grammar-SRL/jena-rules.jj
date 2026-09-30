@@ -57,6 +57,7 @@ import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
 import org.seaborne.jena.srl.lang.parser.jena_rules.JenaRulesParserBase;
 import java.util.*;
+import org.seaborne.jena.srl.agg.ExprReduce;
 public class JenaRulesJavacc extends JenaRulesParserBase
 {}
 PARSER_END(JenaRulesJavacc)
@@ -268,17 +269,20 @@ void BodyBasicNotTriples() : {}
 {
    ( Filter() | TuplePattern() )
 }
-void Assignment() : { Var v ; Expr expr ; }
+void Assignment() : { Var v; Expr expr = null; }
 {
     <SET>
     <LPAREN>
     v = Var()
     <ASSIGN>
     ( expr = Expression()
-    | expr = Aggregate()
+      { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
+    |
+      { ExprReduce groupExpr; }
+      groupExpr = Aggregate()
+      { emitAggregate(v, groupExpr, token.beginLine, token.beginColumn); }
     )
     <RPAREN>
-    { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
 }
 // In effect these are special rules
 void Declaration() : { Token t; String iriStr ; }
@@ -1272,7 +1276,7 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm() { return asExpr(n) ; }
   )
 }
-Expr Aggregate() : { Token t; Expr expr; List<Var> groupByVars = null; boolean distinct = false; String iri = null; }
+ExprReduce Aggregate() : { Token t; Expr expr; List<Var> groupByVars = null; boolean distinct = false; String iri = null; }
 {
     ( t = <COUNT>
       { startAggregate(t.beginLine, t.beginColumn); }

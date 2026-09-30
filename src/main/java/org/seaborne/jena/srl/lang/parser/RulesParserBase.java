@@ -367,29 +367,29 @@ public class RulesParserBase extends LangParserBase {
 
     // XXX Not good - setting the group-by scope only works for parsed rules.
 
-    protected Expr exprReduceCount(boolean distinct, List<Var> groupByVars) {
+    protected ExprReduce exprReduceCount(boolean distinct, List<Var> groupByVars) {
         Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceCount(distinct, scope, innerBodyAcc);
+        return new ExprReduceCount(distinct, scope, groupByVars!=null, innerBodyAcc);
     }
 
-    protected Expr exprReduceSum(Expr expr, List<Var> groupByVars) {
+    protected ExprReduce exprReduceSum(Expr expr, List<Var> groupByVars) {
         Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceSum(expr, scope, innerBodyAcc);
+        return new ExprReduceSum(expr, scope, groupByVars!=null, innerBodyAcc);
     }
 
-    protected Expr exprReduceMin(Expr expr, List<Var> groupByVars) {
+    protected ExprReduce exprReduceMin(Expr expr, List<Var> groupByVars) {
         Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceMin(expr, scope, innerBodyAcc);
+        return new ExprReduceMin(expr, scope, groupByVars!=null, innerBodyAcc);
     }
 
-    protected Expr exprReduceMax(Expr expr, List<Var> groupByVars) {
+    protected ExprReduce exprReduceMax(Expr expr, List<Var> groupByVars) {
         Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceMax(expr, scope, innerBodyAcc);
+        return new ExprReduceMax(expr, scope, groupByVars!=null, innerBodyAcc);
     }
 
-    protected Expr exprReduceAgg(String iri, Expr expr, List<Var> groupByVars) {
+    protected ExprReduce exprReduceAgg(String iri, Expr expr, List<Var> groupByVars) {
         Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceAgg(iri, expr, scope, innerBodyAcc);
+        return new ExprReduceAgg(iri, expr, scope, groupByVars!=null, innerBodyAcc);
     }
 
     private static Scope determineGroupBy(List<RuleBodyElement> bodyAcc, List<Var> groupByVars) {
@@ -457,6 +457,14 @@ public class RulesParserBase extends LangParserBase {
         requireNonNull(expression);
         addToBody(new RuleBodyElement.EltAssignment(var, expression));
         hasAssignment = true;
+    }
+
+    // Aggregate
+    private void addBodyEltAggregate(Var var, ExprReduce reducer) {
+        requireNonNull(var);
+        requireNonNull(reducer);
+        addToBody(new RuleBodyElement.EltAggregate(var, reducer));
+        hasAggregation = true;
     }
 
     // ---- Blank nodes
@@ -527,6 +535,11 @@ public class RulesParserBase extends LangParserBase {
     protected void emitAssignment(Var var, Expr expr, int line, int column) {
         debug("emitAssignment", line, column);
         addBodyEltAssignment(var, expr);
+    }
+
+    protected void emitAggregate(Var var, ExprReduce reducer, int line, int column) {
+        debug("emitAssignment", line, column);
+        addBodyEltAggregate(var, reducer);
     }
 
     // << x y z >>

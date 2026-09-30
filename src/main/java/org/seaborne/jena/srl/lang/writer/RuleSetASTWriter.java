@@ -41,6 +41,7 @@ import org.apache.jena.sparql.serializer.SerializationContext;
 import org.apache.jena.sparql.sse.writers.WriterExpr;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
@@ -253,6 +254,9 @@ public class RuleSetASTWriter {
                             out.print(" := ");
                             writeExpr(expression);
                             out.print(")");
+                        }
+                        case EltAggregate(Var aggVar, ExprReduce exprReduce) -> {
+                            System.err.println("ASTWriter EltAggregate : Not implemented");
                         }
                         case null -> {
                             throw new InternalErrorException();

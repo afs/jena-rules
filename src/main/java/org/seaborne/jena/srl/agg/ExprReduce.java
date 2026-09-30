@@ -41,12 +41,15 @@ import org.seaborne.jena.srl.lang.RuleBodyElement;
  * all the rows, not just one at a time.
  */
 public abstract class ExprReduce extends ExprNode {
-
-
+    // XXX No longer needs to be an Expr.
     protected final List<RuleBodyElement> innerBody;
     protected final Collection<Var> groupBy;
+    private final String printName;
+    private final boolean hasGroupByVars;
 
-    protected ExprReduce(List<RuleBodyElement> innerBody, Collection<Var> groupBy) {
+    protected ExprReduce(String printName, boolean hasGroupByVars, List<RuleBodyElement> innerBody, Collection<Var> groupBy) {
+        this.printName = printName;
+        this.hasGroupByVars = hasGroupByVars;
         this.innerBody = innerBody;
         this.groupBy = groupBy;
     }
@@ -56,6 +59,10 @@ public abstract class ExprReduce extends ExprNode {
     }
 
     public abstract Aggregator aggregator(Var resultVar, RulesExecCxt rCxt);
+
+    public String printName() { return printName; }
+    public boolean hasGroupBy() { return hasGroupByVars; }
+    public Collection<Var> groupBy() { return groupBy; }
 
     // ---- ExprNode
     @Override
@@ -86,5 +93,4 @@ public abstract class ExprReduce extends ExprNode {
         return null;
     }
     // ---- ExprNode
-
 }

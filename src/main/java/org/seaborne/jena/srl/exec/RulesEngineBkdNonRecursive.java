@@ -45,6 +45,7 @@ import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.*;
+import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
@@ -287,6 +288,9 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 }
 
                 case EltAssignment(Var var, Expr expression) -> {
+                    throw new NotImplemented();
+                }
+                case EltAggregate(Var aggVar, ExprReduce reducer) -> {
                     throw new NotImplemented();
                 }
 //                case null -> {}

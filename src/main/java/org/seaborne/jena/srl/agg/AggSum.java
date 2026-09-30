@@ -56,7 +56,7 @@ public class AggSum implements Aggregator {
     }
 
     @Override
-    public Reducer reducer() {
+    public GroupReducer reducer() {
         throw new NotImplemented();
 
 //        GroupKey gKey = new GroupKeyStar();
@@ -80,7 +80,7 @@ public class AggSum implements Aggregator {
     }
 
     @Override
-    public Iterator<Binding> eval(Reducer reducer) {
+    public Iterator<Binding> eval(GroupReducer reducer) {
         throw new NotImplemented();
 //        return reducer.eval();
     }

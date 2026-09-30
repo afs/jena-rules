@@ -24,6 +24,7 @@ package org.seaborne.jena.srl.lang;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
@@ -187,6 +188,11 @@ public class RuleTransformer {
             case RuleBodyElement.EltAssignment x -> {
                 return transform.transform(x, x.var(), x.expression());
             }
+            case RuleBodyElement.EltAggregate x -> {
+                throw new NotImplemented();
+                //return transform.transform(x, x.var(), x.expression());
+            }
+
             case null -> { throw new NullPointerException(); }
             //default -> { throw new InternalErrorException(); }
         }

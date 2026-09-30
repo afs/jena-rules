@@ -36,8 +36,8 @@ public class ExprReduceCount extends ExprReduce {
 
     private boolean distinct;
 
-    public ExprReduceCount(boolean distinct, Scope scope, List<RuleBodyElement> innerBody) {
-        super(innerBody, scope.inScope());
+    public ExprReduceCount(boolean distinct, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
+        super("COUNT", hasGroupByVars, innerBody, scope.inScope());
         this.distinct = distinct;
     }
 

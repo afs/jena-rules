@@ -29,6 +29,7 @@ package org.seaborne.jena.srl.lang.parser.jena_rules.javacc;
 
 
 
+
 /** Token Manager. */
 public class JenaRulesJavaccTokenManager implements JenaRulesJavaccConstants {
 

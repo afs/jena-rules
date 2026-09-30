@@ -19,21 +19,25 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.agg;
 
-import org.seaborne.jena.srl.lang.RuleBodyElement.*;
-import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
-import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.NodeValue;
 
-public interface RuleVisitor {
+/**
+ * An {@link AggregateFunction} is a processor that receives a stream of bindings for a
+ * given group key and, on request, return the value of the aggregation.
+ */
+public abstract class AggregateFunction {
 
-    public default void visit(EltTripleTemplate eltTripleTemplate) {}
-    public default void visit(EltTupleTemplate eltTupleTemplate) {}
+    public interface Factory {
+        public AggregateFunction newAggregateFunction(GroupKey groupKey);
+    }
 
-    public default void visit(EltTriplePattern eltTriplePattern) {}
-    public default void visit(EltTuplePattern eltTuplePattern) {}
-    public default void visit(EltNegation eltNegation) {}
-    public default void visit(EltFilter eltFilter) {}
-    public default void visit(EltAssignment eltAssignment) {}
-    public default void visit(EltAggregate eltAggregate) {}
+    AggregateFunction() {}
+
+    abstract public void receive(Binding binding);
+    public NodeValue aggValue() { return NodeValue.makeNode(aggNode()); }
+    abstract public Node aggNode();
 }

@@ -33,8 +33,8 @@ public class ExprReduceSum extends ExprReduce {
 
     private final Expr expr;
 
-    public ExprReduceSum(Expr expr, Scope scope, List<RuleBodyElement> innerBody) {
-        super(innerBody, scope.inScope());
+    public ExprReduceSum(Expr expr, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
+        super("SUM", hasGroupByVars, innerBody, scope.inScope());
         this.expr = expr;
     }
 

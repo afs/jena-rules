@@ -35,8 +35,8 @@ public class ExprReduceAgg extends ExprReduce {
     private final String iri;
     private final Expr expr;
 
-    public ExprReduceAgg(String iri, Expr expr, Scope scope, List<RuleBodyElement> innerBody) {
-        super(innerBody, scope.inScope());
+    public ExprReduceAgg(String iri, Expr expr, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
+        super("AGG", hasGroupByVars, innerBody, scope.inScope());
         this.iri = iri;
         this.expr = expr;
     }

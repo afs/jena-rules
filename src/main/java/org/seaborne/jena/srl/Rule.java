@@ -36,6 +36,7 @@ import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
+import org.seaborne.jena.srl.lang.RuleBodyElement.EltAggregate;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
@@ -180,12 +181,8 @@ public class Rule {
                     // case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
                     case RuleBodyElement.EltNegation(List<RuleBodyElement> inner, boolean grounded) -> { _hasNegation = true; }
                     // case RuleBodyElement.EltFilter(Expr condition) -> {}
-                    case EltAssignment(Var var, Expr expression) ->
-                    {
-                        _hasAssignment = true;
-                        if ( expression instanceof ExprReduce )
-                            _hasAggregation = true;
-                    }
+                    case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
+                    case EltAggregate(Var var, ExprReduce reducer) -> { _hasAggregation = true; }
                     case null -> {}
                     default -> {}
                 };

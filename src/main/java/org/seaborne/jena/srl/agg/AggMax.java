@@ -56,7 +56,7 @@ public class AggMax implements Aggregator {
 
     // Count(*)
     @Override
-    public Reducer reducer() {
+    public GroupReducer reducer() {
         throw new NotImplemented();
 //
 //        GroupKey gKey = new GroupKeyStar();
@@ -87,7 +87,7 @@ public class AggMax implements Aggregator {
     }
 
     @Override
-    public Iterator<Binding> eval(Reducer reducer) {
+    public Iterator<Binding> eval(GroupReducer reducer) {
         throw new NotImplemented();
 //        return reducer.eval();
     }

@@ -56,7 +56,7 @@ public class AggMin implements Aggregator {
 
     // Count(*)
     @Override
-    public Reducer reducer() {
+    public GroupReducer reducer() {
         throw new NotImplemented();
 //        GroupKey gKey = new GroupKeyStar();
 //        return new Reducer("MIN", distinct, aggVar,
@@ -86,7 +86,7 @@ public class AggMin implements Aggregator {
     }
 
     @Override
-    public Iterator<Binding> eval(Reducer reducer) {
+    public Iterator<Binding> eval(GroupReducer reducer) {
         throw new NotImplemented();
 //        return reducer.eval();
     }
