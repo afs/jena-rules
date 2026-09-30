@@ -23,6 +23,7 @@ package org.seaborne.jena.srl.lang.writer;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -370,13 +371,34 @@ public class RuleSetWriter {
                     out.write(" )");
                 }
                 case EltAggregate(Var aggVar, ExprReduce exprReduce) -> {
-                    System.err.println("RuleSetWriter EltAggregate : Not implemented");
+                    out.write("SET( ");
+                    nodeFormatter.format(out, aggVar);
+                    out.write(" := ");
+                    out.write(exprReduce.printName());
+                    if ( exprReduce.hasGroupBy() ) {
+                        StringJoiner sj = new StringJoiner(", ", "[", "]");
+                        exprReduce.groupBy().forEach(v->sj.add("?"+v.getVarName()));
+                    }
+                    writeInnerBody(exprReduce.innerBody(), styleBody);
+                    out.write(" )");
                 }
                 case null -> {
                     throw new InternalErrorException();
                 }
             }
         }
+    }
+
+    private void writeInnerBody(List<RuleBodyElement> inner, Style style) {
+        out.write("{");
+        out.println();
+        final int indentLevelNegation = 4 ;
+        out.incIndent(indentLevelNegation);
+        writeRuleElements(inner, style);
+        out.decIndent(indentLevelNegation);
+        out.println();
+        out.write(" }");
+
     }
 
     // Space then triple.

@@ -111,7 +111,7 @@ public /*abstract*/ class GroupReducer {
             gk.addToBinding(builder);
             builder.add(aggVar, v);
             Binding b = builder.build();
-            System.out.println("  "+b);
+            //System.out.println("  "+b);
             rows.add(b);
         });
         return rows;
