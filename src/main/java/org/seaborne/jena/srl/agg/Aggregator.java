@@ -30,5 +30,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
  */
 public interface Aggregator {
     GroupReducer reducer();
-    Iterator<Binding> eval(GroupReducer collector);
+    default Iterator<Binding> eval(GroupReducer reducer) {
+        return reducer.eval();
+    }
 }

@@ -22,18 +22,14 @@
 package org.seaborne.jena.srl.agg;
 
 import java.util.Collection;
-import java.util.Iterator;
 
-import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.seaborne.jena.srl.exec.RulesEvalException;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
-
 
 public class AggMax implements Aggregator {
 
@@ -43,7 +39,6 @@ public class AggMax implements Aggregator {
     private final RulesExecCxt rCxt;
 
     public AggMax(Var aggVar,  Collection<Var> groupBy, Expr expr, RulesExecCxt rCxt) {
-        //super(v, agg);
         this.groupBy = groupBy;
         this.aggVar = aggVar;
         this.expr = expr;
@@ -56,56 +51,35 @@ public class AggMax implements Aggregator {
         return new GroupReducer("MAX", aggVar,
                                 ()->{ throw new RulesEvalException("Empty group for MAX"); },
                                 splitter,
-                                factory);
+                                k->new AggregateMax(expr, rCxt)
+                );
     }
 
-    static AggregateFunction.Factory factory = k->new AggregateMax();
+    private static class AggregateMax extends AggregateFunction {
+        private final Expr expr;
+        private final RulesExecCxt rCxt;
+        private NodeValue max = null;
 
-    static class AggregateMax extends AggregateFunction {
-        // Wrong but compiles!
-        private long counter = 0 ;
+        AggregateMax(Expr expr, RulesExecCxt rCxt) {
+            this.expr = expr;
+            this.rCxt = rCxt;
+        }
         @Override
-        public void receive(Binding binding) { counter++; }
+        public void receive(Binding binding) {
+            NodeValue nv = expr.eval(binding, rCxt);
+            if ( max == null )
+                max = nv;
+            else {
+                int cmp = NodeValue.compare(nv, max);
+                if ( cmp == Expr.CMP_GREATER )
+                    max = nv;
+            }
+        }
 
         @Override
-        public NodeValue aggValue() { return NodeValue.makeInteger(counter); }
+        public NodeValue aggValue() { return max; }
 
         @Override
-        public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
+        public Node aggNode() { return max.asNode(); }
     }
-
-    private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
-        return NodeFactory.createLiteralDT(rows.size()+"", XSDDatatype.XSDinteger);
-    }
-
-    @Override
-    public Iterator<Binding> eval(GroupReducer reducer) {
-        return reducer.eval();
-    }
-//
-//
-//    private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
-//        // Undef
-//        NodeValue max = null;
-//        FunctionEnv functionEnv = rCxt;
-//        for ( Binding row : rows ) {
-//            NodeValue nv = expr.eval(row, functionEnv);
-//            if ( max == null )
-//                max = nv;
-//            else {
-//                int cmp = NodeValue.compare(nv, max);
-//                if ( cmp == Expr.CMP_GREATER )
-//                    max = nv;
-//            }
-//        }
-//        if ( max == null )
-//            throw new ExprEvalException("MAX: No elements");
-//        return max.asNode();
-//    }
-//
-//    @Override
-//    public Iterator<Binding> eval(GroupReducer reducer) {
-//        throw new NotImplemented();
-////        return reducer.eval();
-//    }
 }

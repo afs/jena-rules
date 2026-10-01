@@ -22,7 +22,6 @@
 package org.seaborne.jena.srl.agg;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
@@ -58,7 +57,7 @@ public class AggSum implements Aggregator {
                                );
     }
 
-    static class AggregateSum extends AggregateFunction {
+    private static class AggregateSum extends AggregateFunction {
 
         private final Expr expr;
         private final RulesExecCxt rCxt;
@@ -81,10 +80,5 @@ public class AggSum implements Aggregator {
 
         @Override
         public Node aggNode() { return sum.asNode(); }
-    }
-
-    @Override
-    public Iterator<Binding> eval(GroupReducer reducer) {
-        return reducer.eval();
     }
 }

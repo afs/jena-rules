@@ -22,18 +22,14 @@
 package org.seaborne.jena.srl.agg;
 
 import java.util.Collection;
-import java.util.Iterator;
 
-import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.seaborne.jena.srl.exec.RulesEvalException;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
-
 
 public class AggMin implements Aggregator {
 
@@ -53,32 +49,37 @@ public class AggMin implements Aggregator {
     public GroupReducer reducer() {
         GroupSplitter splitter = GroupSplitters.splitter(groupBy);
         return new GroupReducer("MIN", aggVar,
-                                ()->{ throw new RulesEvalException("Empty group for MIN"); },
+                                ()->{ throw new RulesEvalException("Empty group for MAX"); },
                                 splitter,
-                                factory);
+                                k->new AggregateMax(expr, rCxt)
+                );
     }
 
-    static AggregateFunction.Factory factory = k->new AggregateMin();
+    private static class AggregateMax extends AggregateFunction {
+        private final Expr expr;
+        private final RulesExecCxt rCxt;
+        private NodeValue min = null;
 
-    static class AggregateMin extends AggregateFunction {
-        // Wrong but compiles!
-        private long counter = 0 ;
+        AggregateMax(Expr expr, RulesExecCxt rCxt) {
+            this.expr = expr;
+            this.rCxt = rCxt;
+        }
         @Override
-        public void receive(Binding binding) { counter++; }
+        public void receive(Binding binding) {
+            NodeValue nv = expr.eval(binding, rCxt);
+            if ( min == null )
+                min = nv;
+            else {
+                int cmp = NodeValue.compare(nv, min);
+                if ( cmp == Expr.CMP_LESS )
+                    min = nv;
+            }
+        }
 
         @Override
-        public NodeValue aggValue() { return NodeValue.makeInteger(counter); }
+        public NodeValue aggValue() { return min; }
 
         @Override
-        public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
-    }
-
-    private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
-        return NodeFactory.createLiteralDT(rows.size()+"", XSDDatatype.XSDinteger);
-    }
-
-    @Override
-    public Iterator<Binding> eval(GroupReducer reducer) {
-        return reducer.eval();
+        public Node aggNode() { return min.asNode(); }
     }
 }

@@ -22,7 +22,6 @@
 package org.seaborne.jena.srl.agg;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
@@ -45,7 +44,6 @@ public class AggCount implements Aggregator {
     private final RulesExecCxt rCxt;
 
     public AggCount(Var outputVar, boolean distinct, Collection<Var> groupBy, RulesExecCxt rCxt) {
-        //super(v, agg);
         this.aggVar = outputVar;
         this.distinct = distinct;
         this.groupBy = groupBy;
@@ -64,7 +62,7 @@ public class AggCount implements Aggregator {
 
     static AggregateFunction.Factory factory = k->new AggregateCount();
 
-    static class AggregateCount extends AggregateFunction {
+    private static class AggregateCount extends AggregateFunction {
         private long counter = 0 ;
         @Override
         public void receive(Binding binding) { counter++; }
@@ -74,14 +72,5 @@ public class AggCount implements Aggregator {
 
         @Override
         public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
-    }
-
-    private Node evalGroup(Collection<Binding> rows, RulesExecCxt rCxt) {
-        return NodeFactory.createLiteralDT(rows.size()+"", XSDDatatype.XSDinteger);
-    }
-
-    @Override
-    public Iterator<Binding> eval(GroupReducer reducer) {
-        return reducer.eval();
     }
 }
