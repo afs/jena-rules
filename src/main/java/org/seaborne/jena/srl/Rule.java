@@ -21,6 +21,8 @@
 
 package org.seaborne.jena.srl;
 
+import static org.apache.jena.sparql.core.Var.isVar;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -59,6 +61,11 @@ public class Rule {
     private final boolean hasNegation;
     //boolean final hasAggregation;
     private final boolean hasTemplateBNodes;
+
+    // triple terms - <<(...)>> - variables risk being replaced by another triple term
+    // i.e. a level deeper
+    // which if in a recursion cycle, might lead to infinite depth triple terms.
+    private final boolean hasTemplateVarTripleTerms;
 
     /**
      * Used by the parser and {@link GraphToRuleSet}
@@ -168,6 +175,24 @@ public class Rule {
             return node.isBlank();
         }
 
+        private boolean varTripleTermPresent(Triple triple) {
+            if ( varTripleTermPresent(triple.getSubject()) )
+                return true;
+            if ( varTripleTermPresent(triple.getObject()) )
+                return true;
+            return false;
+        }
+
+        private boolean varTripleTermPresent(Node node) {
+            if (! node.isTripleTerm() )
+                return false;
+            Triple triple = node.getTriple();
+            // Predicate can't be a triple term so not an issue.
+            if ( isVar(triple.getSubject()) || isVar(triple.getObject()) )
+                return true;
+            return varTripleTermPresent(node.getTriple());
+        }
+
         public Rule build() {
             // Rules don't always come from the SRL parser.
             boolean _hasAssignment = false;
@@ -190,11 +215,15 @@ public class Rule {
 
             // Look for blank nodes in the head template
             boolean _hasHeadBNodes = false;
+            boolean _hasHeadVArTripleTermsBNodes = false;
             for ( RuleHeadElement elt : headElts ) {
                 switch (elt) {
                     case RuleHeadElement.EltTripleTemplate(Triple tripleTemplate) -> {
                         if ( blankNodePresent(tripleTemplate ) )
                             _hasHeadBNodes = true;
+                        if ( varTripleTermPresent(tripleTemplate))
+                            _hasHeadVArTripleTermsBNodes = true;
+
                     }
                     //case RuleHeadElement.EltTupleTemplate(Tuple tupleTemplate) -> {}
                     case null -> {}
@@ -204,15 +233,16 @@ public class Rule {
 
             return new Rule(ruleIdentifier, headElts, bodyElts,
                             groundedRule,
-                            _hasAssignment, _hasAggregation, _hasNegation, _hasHeadBNodes);
+                            _hasAssignment, _hasAggregation, _hasNegation,
+                            _hasHeadBNodes, _hasHeadVArTripleTermsBNodes);
         }
 
     }
 
     private Rule(Node ruleIdenifier, List<RuleHeadElement> headElts, List<RuleBodyElement> bodyElts,
                  boolean isGrounded,
-                 boolean hasAssignment, boolean hasAggregation, boolean hasNegation, boolean hasTemplateBNodes
-                 //, boolean hasAggregation
+                 boolean hasAssignment, boolean hasAggregation, boolean hasNegation,
+                 boolean hasTemplateBNodes, boolean hasTemplateVarTripleTerms
                  ) {
         this.head = new RuleHead(headElts);
         this.body = new RuleBody(bodyElts, isGrounded);
@@ -221,8 +251,9 @@ public class Rule {
         this.hasAssignment = hasAssignment;
         this.hasAggregation = hasAggregation;
         this.hasNegation = hasNegation;
-        //this.hasAggregation = hasAggregation;
+
         this.hasTemplateBNodes = hasTemplateBNodes;
+        this.hasTemplateVarTripleTerms = hasTemplateVarTripleTerms;
     }
 
     public boolean isRunOnceRule() {
@@ -241,13 +272,16 @@ public class Rule {
         return hasNegation;
     }
 
-    // boolean final hasAggregation;
     public boolean hasTemplateBNodes() {
         return hasTemplateBNodes;
     }
 
     public boolean hasTemplateBlankNodes() {
         return hasTemplateBNodes;
+    }
+
+    public boolean hasTemplateVarTripleTerms() {
+        return hasTemplateVarTripleTerms;
     }
 
     /** This rule matches against the base data */

@@ -48,6 +48,14 @@ public class TestRulesStratification {
                 """);
     }
 
+    @Test public void stratification_bad_03() {
+        stratificationBad("""
+                PREFIX : <http://example/>
+                DATA { :x :p 1 }
+                RULE { ?x :p <<( ?x :p ?y )>> } WHERE { ?x :p ?y }
+                """);
+    }
+
     private static void stratificationGood(String string) {
         RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
         Stratification s = Stratification.create(ruleSet);

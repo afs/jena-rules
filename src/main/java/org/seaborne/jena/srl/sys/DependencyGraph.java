@@ -196,6 +196,9 @@ public class DependencyGraph {
             return DepEdgeType.CLOSED;
         if ( !SysJenaRules.allowUnsafeTemplates && rule.hasTemplateBlankNodes() )
             return DepEdgeType.CLOSED;
+        if ( rule.hasTemplateVarTripleTerms() )
+            // rule can possibly generate "functors".
+            return DepEdgeType.CLOSED;
         return DepEdgeType.OPEN;
     }
 

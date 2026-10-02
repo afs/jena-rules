@@ -30,6 +30,17 @@ PREFIX : <http://example/>
 RULE { [] :q "Rule" } WHERE { ?s :z ?o }
 EOF
 
+N=$((N+1)) ; testGood $(fname "stratification-" $N) <<EOF
+## Template triple term,no variables.
+PREFIX :        <http://example/>
+RULE { ?x :p <<( :x :p 1 )>> } WHERE { ?x :p 1 }
+EOF
+
+N=$((N+1)) ; testGood $(fname "stratification-" $N) <<EOF
+## Template triple term, variables predicate
+PREFIX :        <http://example/>
+RULE { ?x :p <<( :x ?p :y )>> } WHERE { ?x ?p : }
+EOF
 
 ## Bad
 
@@ -69,4 +80,17 @@ WHERE {
     NOT { ?x :distanceKm ?km }
     SET ( ?kilometers := xsd:integer(?miles * 1.60934) )
 }
+EOF
+
+N=$((N+1)) ; testBad $(fname "stratification-bad-" $N) <<EOF
+## Template triple term in cycle.
+PREFIX :        <http://example/>
+RULE { ?x :p <<( ?x :p ?y )>> } WHERE { ?x :p ?y }
+EOF
+
+N=$((N+1)) ; testBad $(fname "stratification-bad-" $N) <<EOF
+## Template triple term in cycle.
+PREFIX :        <http://example/>
+RULE { ?x :p <<( ?x :p ?y )>> } WHERE { ?x :q ?y }
+RULE { ?a :q ?b } WHERE { ?a :p ?b }
 EOF
