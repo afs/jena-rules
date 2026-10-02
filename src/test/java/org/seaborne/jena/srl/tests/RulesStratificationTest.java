@@ -30,7 +30,7 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.shared.NotFoundException;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.SRLParser;
 import org.seaborne.jena.srl.sys.DependencyGraph;
 import org.seaborne.jena.srl.sys.Stratification;
 import org.seaborne.jena.srl.sys.WellFormed;
@@ -96,7 +96,7 @@ public class RulesStratificationTest extends AbstractManifestTest {
     }
 
     private static RuleSet parseForTest(String filename, String base, boolean allowWarnings) {
-        RuleSet ruleSet = ShaclRulesParser.parseFile(filename);
+        RuleSet ruleSet = SRLParser.parseFile(filename);
         return ruleSet;
     }
 }

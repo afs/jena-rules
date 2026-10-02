@@ -29,7 +29,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.srl.lang.writer.RuleSetWriter;
 
-public class ShaclRulesWriter {
+public class SRLWriter {
 
     public enum Style { Flat, MultiLine }
 

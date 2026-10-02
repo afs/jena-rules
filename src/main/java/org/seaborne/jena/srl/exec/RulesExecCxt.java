@@ -28,7 +28,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.srl.ShaclRules;
+import org.seaborne.jena.srl.SRL;
 import org.seaborne.jena.srl.sys.SysSRL;
 
 /**
@@ -70,7 +70,7 @@ public class RulesExecCxt implements FunctionEnv {
 
     private RulesExecCxt(Context context, AtomicBoolean cancelSignal) {
         this.context = context;
-        this.strict = context.isTrue(ShaclRules.symStrict);
+        this.strict = context.isTrue(SRL.symStrict);
         this.cancelSignal = cancelSignal;
     }
 

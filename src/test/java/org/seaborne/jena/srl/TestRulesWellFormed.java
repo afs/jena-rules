@@ -35,12 +35,12 @@ public class TestRulesWellFormed {
     @Test public void wellformed_bad_01() { wellFormedBad("RULE { ?x ?y ?z } WHERE {}") ; }
 
     private static void wellFormedGood(String string) {
-        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        RuleSet ruleSet = SRLParser.fromString(string).parse();
         WellFormed.checkWellFormed(ruleSet);
     }
 
     private static void wellFormedBad(String string) {
-        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        RuleSet ruleSet = SRLParser.fromString(string).parse();
         assertThrows(WellFormed.NotWellFormedException.class, ()->WellFormed.checkWellFormed(ruleSet));
     }
 }

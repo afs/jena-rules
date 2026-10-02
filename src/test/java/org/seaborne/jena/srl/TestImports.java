@@ -34,7 +34,7 @@ public class TestImports {
     // Convert to manifest
 
     @Test public void imports_01() {
-        RuleSet rs1 = ShaclRules.parseFile("src/test/files/imports/rs1.srl");
+        RuleSet rs1 = SRL.parseFile("src/test/files/imports/rs1.srl");
 
         assertTrue(rs1.hasImports());
         assertEquals(2, rs1.getImports().size());

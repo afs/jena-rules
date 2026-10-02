@@ -39,7 +39,7 @@ import org.apache.jena.sparql.serializer.FmtExprSPARQL;
 import org.apache.jena.sparql.serializer.SerializationContext;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.ShaclRulesWriter.Style;
+import org.seaborne.jena.srl.SRLWriter.Style;
 import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;

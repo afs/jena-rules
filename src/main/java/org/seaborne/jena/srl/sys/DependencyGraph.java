@@ -35,7 +35,7 @@ import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
-import org.seaborne.jena.srl.ShaclRulesWriter;
+import org.seaborne.jena.srl.SRLWriter;
 import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
@@ -137,7 +137,7 @@ public class DependencyGraph {
     // Entry point to calculate the direct edge set.
     static Collection<DependencyEdge> edges(Rule rule, MultiValuedMap<Triple, Rule> providers, MultiValuedMap<Tuple, Rule> providers2) {
         if ( DEBUG_BUILD )
-            ShaclRulesWriter.print(rule);
+            SRLWriter.print(rule);
         if ( rule.isGrounded() ) {
             if ( DEBUG_BUILD )
                 System.out.println("- :: Grounded rule");
@@ -370,7 +370,7 @@ public class DependencyGraph {
                 out.incIndent();
                 for ( Rule r : level0 ) {
                     // Entries with no dependencies.
-                    ShaclRulesWriter.write(out, r, ruleSet.getPrefixMap(), true);
+                    SRLWriter.write(out, r, ruleSet.getPrefixMap(), true);
                 }
                 out.decIndent();
             }
@@ -378,14 +378,14 @@ public class DependencyGraph {
                 out.println("Edges ");
                 out.incIndent();
                 for ( Rule r : direct.keySet() ) {
-                    ShaclRulesWriter.write(out, r, ruleSet.getPrefixMap(), true);
+                    SRLWriter.write(out, r, ruleSet.getPrefixMap(), true);
                     out.ensureStartOfLine();
                     Collection<DependencyEdge> c = direct.get(r);
                     c.forEach(edge -> {
                         out.incIndent(EdgeOffset);
                         out.print(edge.link.symbol);
                         out.print(" ");
-                        ShaclRulesWriter.write(out, edge.linkedRule, ruleSet.getPrefixMap(), true);
+                        SRLWriter.write(out, edge.linkedRule, ruleSet.getPrefixMap(), true);
                         out.decIndent(EdgeOffset);
                         out.ensureStartOfLine();
                     });
@@ -399,10 +399,10 @@ public class DependencyGraph {
     private static void edgeStr(PrintStream /*IndentedWriter*/ out, DependencyEdge edge, PrefixMap pmap) {
         out.println("Type = "+edge.link.symbol);
         out.print("  ");
-        out.print(ShaclRulesWriter.abbreviatedString(edge.rule, pmap));
+        out.print(SRLWriter.abbreviatedString(edge.rule, pmap));
         out.println();
         out.print("->");
-        out.print(ShaclRulesWriter.abbreviatedString(edge.linkedRule, pmap));
+        out.print(SRLWriter.abbreviatedString(edge.linkedRule, pmap));
         out.println();
     }
 

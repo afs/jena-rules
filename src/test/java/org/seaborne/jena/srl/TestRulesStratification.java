@@ -57,13 +57,13 @@ public class TestRulesStratification {
     }
 
     private static void stratificationGood(String string) {
-        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        RuleSet ruleSet = SRLParser.fromString(string).parse();
         Stratification s = Stratification.create(ruleSet);
         assertNotNull(s);
     }
 
     private static void stratificationBad(String string) {
-        RuleSet ruleSet = ShaclRulesParser.fromString(string).parse();
+        RuleSet ruleSet = SRLParser.fromString(string).parse();
         assertThrows(StratificationException.class, ()->Stratification.create(ruleSet));
     }
 }

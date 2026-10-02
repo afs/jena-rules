@@ -32,6 +32,6 @@ public class TestRulesSyntaxBasic {
     @Test public void synatx_02() { parse("RULE {} WHERE {}") ; }
 
     private static void parse(String string) {
-        RuleSet ruleSet = ShaclRulesParser.parseString(string);
+        RuleSet ruleSet = SRLParser.parseString(string);
     }
 }

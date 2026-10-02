@@ -32,7 +32,7 @@ import org.apache.jena.irix.IRIxResolver;
 import org.apache.jena.riot.system.*;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.SRLParser;
 import org.seaborne.jena.srl.lang.parser.ParserRules;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.lang.parser.jena_rules.javacc.JenaRulesJavacc;
@@ -54,7 +54,7 @@ public class ParserJenaRules extends ParserRules {
         return parse(parser, baseURI, errorHandler);
     }
 
-    private final static Logger parserLogger = ShaclRulesParser.parserLogger;
+    private final static Logger parserLogger = SRLParser.parserLogger;
 
     // Parser to RuleSet
     private static RuleSet parse(JenaRulesJavacc parser, String baseURI, ErrorHandler errorHandler) {

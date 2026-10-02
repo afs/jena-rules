@@ -50,7 +50,7 @@ import org.apache.jena.sparql.path.Path;
 import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RulesException;
-import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.SRLParser;
 import org.seaborne.jena.srl.agg.*;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
@@ -166,7 +166,7 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void finishRules() {
-        Logger log = ShaclRulesParser.parserLogger;
+        Logger log = SRLParser.parserLogger;
 
         if ( state != BuildState.OUTER )
             throwInternalStateException("finishRuleSet: Unfinished rule?");

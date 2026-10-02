@@ -36,12 +36,12 @@ import org.seaborne.jena.srl.tuples.TupleStore;
 /**
  * Common operations.
  * <p>
- * @see ShaclRulesParser
- * @see ShaclRulesWriter
- * @see ShaclRulesExec
+ * @see SRLParser
+ * @see SRLWriter
+ * @see SRLExec
  */
 
-public class ShaclRules {
+public class SRL {
 
     // XXX Check name.
     public static String mtShapeRuleLanguage = "application/shape-rules";
@@ -70,14 +70,14 @@ public class ShaclRules {
      * {@link RuleSetEvaluation}
      */
     public static RuleSetEvaluation evaluation(Graph graph, RuleSet ruleSet) {
-        return ShaclRulesExec.create(SysJenaRules.dftEngineType, graph, ruleSet).eval();
+        return SRLExec.create(SysJenaRules.dftEngineType, graph, ruleSet).eval();
     }
 
     /**
      * {@link RuleSetEvaluation}
      */
     public static RuleSetEvaluation evaluation(Graph graph, TupleStore inputTupleStore, RuleSet ruleSet) {
-        return ShaclRulesExec.create(SysJenaRules.dftEngineType, graph, inputTupleStore, ruleSet).eval();
+        return SRLExec.create(SysJenaRules.dftEngineType, graph, inputTupleStore, ruleSet).eval();
     }
 
     // -- Parse
@@ -87,7 +87,7 @@ public class ShaclRules {
      * @throws SRLParseException
      */
     public static RuleSet parseString(String string) {
-        return ShaclRulesParser.fromString(string).parse();
+        return SRLParser.fromString(string).parse();
     }
 
 //    /**
@@ -120,7 +120,7 @@ public class ShaclRules {
      */
     public static RuleSet parseFile(String filenameOrURI) {
         String base = IRIs.resolve(filenameOrURI);
-        return ShaclRulesParser.from(filenameOrURI).baseURI(base).parse();
+        return SRLParser.from(filenameOrURI).baseURI(base).parse();
     }
 
     /**
@@ -131,7 +131,7 @@ public class ShaclRules {
      * @throws SRLParseException
      */
     public static RuleSet parseFile(String filenameOrURI, String baseURI) {
-        return ShaclRulesParser.from(filenameOrURI).baseURI(baseURI).parse();
+        return SRLParser.from(filenameOrURI).baseURI(baseURI).parse();
     }
 
 //    /**
@@ -154,7 +154,7 @@ public class ShaclRules {
      * @throws SRLParseException
      */
     public static RuleSet parse(InputStream input, String baseURI) {
-        return ShaclRulesParser.from(input).baseURI(baseURI).parse();
+        return SRLParser.from(input).baseURI(baseURI).parse();
     }
 
 //    public static RuleSet parse(InputStream input, String baseURI, ShaclRulesSyntax rulesSyntax) {

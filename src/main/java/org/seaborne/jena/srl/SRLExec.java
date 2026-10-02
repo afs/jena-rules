@@ -33,7 +33,7 @@ import org.seaborne.jena.srl.sys.SysJenaRules;
 import org.seaborne.jena.srl.tuples.TupleStore;
 
 /** API - evaluation of a {@link RuleSet} over a {@link Graph baseGraph} */
-public class ShaclRulesExec {
+public class SRLExec {
 
     //XXX Transition from RulesEngine statics.
     /**
@@ -66,7 +66,7 @@ public class ShaclRulesExec {
         return RulesEngineRegistry.get().create(engineType, graph, tupleData, ruleSet, context);
     }
 
-    public static ShaclRulesExec.Builder newBuilder() {
+    public static SRLExec.Builder newBuilder() {
         return new Builder();
     }
 
@@ -125,7 +125,7 @@ public class ShaclRulesExec {
 
     private final RulesEngine engine;
 
-    private ShaclRulesExec(RulesEngine engine) {
+    private SRLExec(RulesEngine engine) {
         this.engine = engine;
     }
 
@@ -136,7 +136,7 @@ public class ShaclRulesExec {
     }
 
     public static RuleSetEvaluation execute(RuleSet ruleSet, Graph baseGraph) {
-        RulesEngine srExec = ShaclRulesExec.newBuilder().ruleSet(ruleSet).baseGraph(baseGraph).engine(SysJenaRules.dftEngineType).build();
+        RulesEngine srExec = SRLExec.newBuilder().ruleSet(ruleSet).baseGraph(baseGraph).engine(SysJenaRules.dftEngineType).build();
         return srExec.eval();
     }
 
@@ -152,7 +152,7 @@ public class ShaclRulesExec {
      */
     public static Graph execute(Rule rule, Graph baseGraph) {
         RuleSet ruleSet = RuleSet.create(null, null, null, List.of(rule), null, null);
-        RuleSetEvaluation e = ShaclRulesExec.create(baseGraph, ruleSet).eval();
+        RuleSetEvaluation e = SRLExec.create(baseGraph, ruleSet).eval();
         return e.inferredTriples();
     }
 

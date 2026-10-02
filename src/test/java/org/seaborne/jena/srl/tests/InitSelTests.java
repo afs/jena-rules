@@ -19,9 +19,20 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.lang;
+package org.seaborne.jena.srl.tests;
 
-public enum ShaclRulesSyntax {
-    SPARQL_RL,  // SPARQL-RL, strict
-    JENA        // SPARQL-RL + extensions
+import org.apache.jena.sys.JenaSubsystemLifecycle;
+
+public class InitSelTests implements JenaSubsystemLifecycle {
+
+        @Override
+        public void start() {
+            System.err.println("SPARQL-RL Rules tests");
+        }
+
+        @Override
+        public void stop() {}
+
+        @Override
+        public int level() { return 5000 ; }
 }

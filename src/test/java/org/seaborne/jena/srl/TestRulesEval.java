@@ -69,7 +69,7 @@ public class TestRulesEval {
 
     private RuleSetEvaluation testEval(String label, Graph data, RuleSet ruleSet) {
         EngineType engineType = EngineType.SIMPLE;
-        RuleSetEvaluation e = ShaclRulesExec.create(engineType, data, ruleSet).setTrace(false).eval();
+        RuleSetEvaluation e = SRLExec.create(engineType, data, ruleSet).setTrace(false).eval();
         return e;
     }
 
@@ -116,7 +116,7 @@ public class TestRulesEval {
     private RuleSet rules(String string) {
         String ruleStr = PREFIXES_RULES+PREFIXES_DATA+string;
         try {
-            return ShaclRulesParser.fromString(ruleStr).parse();
+            return SRLParser.fromString(ruleStr).parse();
         } catch (SRLParseException ex) {
             System.err.println(ex.getMessage());
             throw ex;

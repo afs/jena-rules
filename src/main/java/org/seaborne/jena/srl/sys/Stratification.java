@@ -32,7 +32,7 @@ import org.apache.jena.riot.system.PrefixMap;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
-import org.seaborne.jena.srl.ShaclRulesWriter;
+import org.seaborne.jena.srl.SRLWriter;
 import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 import org.seaborne.jena.srl.sys.DependencyGraph.DependencyEdge;
@@ -278,7 +278,7 @@ public class Stratification {
     }
 
     private static String ruleAsStr(Rule rule, PrefixMap prefixMap) {
-        String x = ShaclRulesWriter.asString(rule, prefixMap);;
+        String x = SRLWriter.asString(rule, prefixMap);;
         x = x.strip();
         return x;
     }

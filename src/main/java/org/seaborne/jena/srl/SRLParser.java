@@ -31,7 +31,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.riot.system.ErrorHandler;
 import org.apache.jena.riot.system.streammgr.StreamManager;
 import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
+import org.seaborne.jena.srl.lang.RulesSyntax;
 import org.seaborne.jena.srl.lang.parser.ParserRules;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.lang.parser.jena_rules.ParserJenaRules;
@@ -39,19 +39,19 @@ import org.seaborne.jena.srl.lang.parser.srl.ParserSrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ShaclRulesParser {
+public class SRLParser {
 
-    public final static Logger parserLogger = LoggerFactory.getLogger(ShaclRulesParser.class);
+    public final static Logger parserLogger = LoggerFactory.getLogger(SRLParser.class);
 
-    static final ShaclRulesSyntax defaultRulesSyntax = ShaclRulesSyntax.JENA;
+    static final RulesSyntax defaultRulesSyntax = RulesSyntax.JENA;
 
-    public static ShaclRulesParserBuilder create() {
-        return ShaclRulesParserBuilder.create();
+    public static SRLParserBuilder create() {
+        return SRLParserBuilder.create();
     }
 
-    public static ShaclRulesParserBuilder fromString(String string) { return create().fromString(string); }
-    public static ShaclRulesParserBuilder from(String filenameorURI) { return create().from(filenameorURI); }
-    public static ShaclRulesParserBuilder from(InputStream input) { return create().from(input); }
+    public static SRLParserBuilder fromString(String string) { return create().fromString(string); }
+    public static SRLParserBuilder from(String filenameorURI) { return create().from(filenameorURI); }
+    public static SRLParserBuilder from(InputStream input) { return create().from(input); }
 
     private final String            filenameOrURI;
     private final Path              path;
@@ -65,16 +65,16 @@ public class ShaclRulesParser {
     // private final boolean           strict;
     private final ErrorHandler      errorHandler;
     private final Context           context;
-    private final ShaclRulesSyntax  rulesSyntax;
+    private final RulesSyntax  rulesSyntax;
 
     // Some cases the parser is reusable (read a file), some are not (input streams).
     private boolean                   canUseThisParser = true;
 
-    /*package*/ ShaclRulesParser(String filenameOrURI, Path path, String content,
+    /*package*/ SRLParser(String filenameOrURI, Path path, String content,
                                  InputStream inputStream, StringReader javaReader,
                                  StreamManager streamManager, String baseURI,
                                  ErrorHandler errorHandler,
-                                 ShaclRulesSyntax rulesSyntax, Context context) {
+                                 RulesSyntax rulesSyntax, Context context) {
         int x = countNonNull(filenameOrURI, path, content, inputStream, javaReader);
         if ( x >= 2 )
             throw new IllegalArgumentException("Only one source allowed: one of uri, path, content, inputStream and javaReader must be set");
@@ -141,7 +141,7 @@ public class ShaclRulesParser {
      * @return RuleSet
      * @throws SRLParseException
      */
-    public static RuleSet parseString(String string, ShaclRulesSyntax rulesSyntax) {
+    public static RuleSet parseString(String string, RulesSyntax rulesSyntax) {
         return fromString(string).syntax(rulesSyntax).parse();
     }
 
@@ -153,7 +153,7 @@ public class ShaclRulesParser {
      * @return RuleSet
      * @throws SRLParseException
      */
-    public static RuleSet parseString(String string, String baseURI, ShaclRulesSyntax rulesSyntax) {
+    public static RuleSet parseString(String string, String baseURI, RulesSyntax rulesSyntax) {
         return fromString(string).baseURI(baseURI).syntax(rulesSyntax).parse();
     }
 
@@ -185,7 +185,7 @@ public class ShaclRulesParser {
      * @return RuleSet
      * @throws SRLParseException
      */
-    public static RuleSet parseFile(String filenameOrURI, String baseURI, ShaclRulesSyntax rulesSyntax) {
+    public static RuleSet parseFile(String filenameOrURI, String baseURI, RulesSyntax rulesSyntax) {
         return from(filenameOrURI).baseURI(baseURI).syntax(rulesSyntax).parse();
     }
 
@@ -200,11 +200,11 @@ public class ShaclRulesParser {
         return parse(input, baseURI, defaultRulesSyntax);
     }
 
-    public static RuleSet parse(InputStream in, String baseURI, ShaclRulesSyntax rulesSyntax) {
+    public static RuleSet parse(InputStream in, String baseURI, RulesSyntax rulesSyntax) {
         return from(in).baseURI(baseURI).syntax(rulesSyntax).parse();
     }
 
-    private static RuleSet parseJavaReader(StringReader jr, String baseURI, ErrorHandler errorHandler, ShaclRulesSyntax rulesSyntax) {
+    private static RuleSet parseJavaReader(StringReader jr, String baseURI, ErrorHandler errorHandler, RulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
             case SPARQL_RL->ParserSrl.parse(jr, baseURI, errorHandler);
             case JENA->ParserJenaRules.parse(jr, baseURI, errorHandler);
@@ -212,7 +212,7 @@ public class ShaclRulesParser {
         };
     }
 
-    static RuleSet parseInputStream(InputStream in, String baseURI, ErrorHandler errorHandler, ShaclRulesSyntax rulesSyntax) {
+    static RuleSet parseInputStream(InputStream in, String baseURI, ErrorHandler errorHandler, RulesSyntax rulesSyntax) {
         return switch (rulesSyntax) {
             case SPARQL_RL->ParserSrl.parse(in, baseURI, errorHandler);
             case JENA->ParserJenaRules.parse(in, baseURI, errorHandler);

@@ -36,7 +36,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.sse.*;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
-import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.SRLParser;
 
 public class Tuples {
     // Consider splitting moving the print/parse operation to a RulesIO class.
@@ -119,7 +119,7 @@ public class Tuples {
      */
     public static List<Tuple> parse(String str) {
         // Use the rule set parser and check that it only has a tuples block.
-        RuleSet ruleSet = ShaclRulesParser.parseString(str);
+        RuleSet ruleSet = SRLParser.parseString(str);
         if ( ! ruleSet.hasData() )
             throw new RulesException("List of tuples: data present");
         if ( ! ruleSet.hasImports() )

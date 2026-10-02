@@ -75,7 +75,7 @@ public class RulesEvalTest extends AbstractManifestTest {
 
         String URI = checkForFile(nRuleSet);
         try {
-            ruleSet = ShaclRulesParser.parseFile(URI);
+            ruleSet = SRLParser.parseFile(URI);
         } catch ( SRLParseException parseEx) {
             System.out.println("** Parse error ("+testFilename+")");
             ruleSet = null;
@@ -87,7 +87,7 @@ public class RulesEvalTest extends AbstractManifestTest {
         Graph input = ( nData == null ) ? GraphZero.instance() : read(nData);
 
         Examine.EXAMINE = false;
-        RulesEngine rulesEngine = ShaclRulesExec.create(engineType, input, ruleSet);
+        RulesEngine rulesEngine = SRLExec.create(engineType, input, ruleSet);
 
         RuleSetEvaluation evaluation = rulesEngine.eval();
 
@@ -106,7 +106,7 @@ public class RulesEvalTest extends AbstractManifestTest {
         PrintStream out = System.out;
 
         out.println("=======================================");
-        ShaclRulesWriter.print(ruleSet);
+        SRLWriter.print(ruleSet);
 
         if ( true ) {
             out.println("---------------------------------------");

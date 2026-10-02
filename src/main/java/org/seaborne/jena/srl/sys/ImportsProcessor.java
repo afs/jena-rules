@@ -38,7 +38,7 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.system.G;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.ShaclRules;
+import org.seaborne.jena.srl.SRL;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.srl.tuples.Tuple;
 import org.seaborne.jena.srl.tuples.TupleStore;
@@ -52,7 +52,7 @@ public class ImportsProcessor {
 
     public static Logger importsLogger = ShaclSystem.shaclSystemLogger;
 
-    public static final String connegAcceptHeader = ShaclRules.mtShapeRuleLanguage+","+WebContent.defaultGraphAcceptHeader;
+    public static final String connegAcceptHeader = SRL.mtShapeRuleLanguage+","+WebContent.defaultGraphAcceptHeader;
 
     private static final LocationMapper mapSHACL = new LocationMapper();
     static {
@@ -176,7 +176,7 @@ public class ImportsProcessor {
         if ( "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme) )
             return loadHttp1(url);
         // Streammanager
-        return ShaclRules.parseFile(url);
+        return SRL.parseFile(url);
     }
 
 
@@ -191,8 +191,8 @@ public class ImportsProcessor {
         }
         String contentTypeStr = input.getContentType();
 
-        if ( ShaclRules.mtShapeRuleLanguage.equalsIgnoreCase(contentTypeStr) ) {
-            return ShaclRules.parse(input, url);
+        if ( SRL.mtShapeRuleLanguage.equalsIgnoreCase(contentTypeStr) ) {
+            return SRL.parse(input, url);
         }
         // RDF or error
         ContentType contentType = WebContent.determineCT(input.getContentType(), null, url);

@@ -76,7 +76,7 @@ public class Rule {
 
     /** Parse a string, expecting prefixes, exactly one rule, and nothing else.  */
     public static Rule parseRule(String str) {
-        RuleSet ruleset = ShaclRules.parseString(str);
+        RuleSet ruleset = SRL.parseString(str);
         if ( ruleset.hasData() || ruleset.hasImports() || ruleset.hasTupleData() )
             throw new SRLParseException("String has other items", -1, -1);
         if ( ruleset.getRules().size() != 1 )
@@ -370,7 +370,7 @@ public class Rule {
     }
 
     public String toString(PrefixMap prefixMap) {
-        String x = ShaclRulesWriter.asString(this, prefixMap);
+        String x = SRLWriter.asString(this, prefixMap);
         return x.trim();
 
 //        String x = body.toString();

@@ -115,7 +115,7 @@ public abstract class AbstractRulesEngineFwdSimple implements RulesEngine {
     private RuleSetEvaluation evalRuleSet() {
         if ( TRACE ) {
             ruleSet.getRules().forEach(rule->{
-                String s = ShaclRulesWriter.asString(rule, ruleSet.getPrefixMap());
+                String s = SRLWriter.asString(rule, ruleSet.getPrefixMap());
                 rCxt.out().printf("%s %s", ruleSet.labelFor(rule), s);
             });
         }

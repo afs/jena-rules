@@ -27,7 +27,7 @@ import org.apache.jena.irix.IRIxResolver;
 import org.apache.jena.riot.RIOT;
 import org.apache.jena.riot.system.*;
 import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.srl.ShaclRulesParser;
+import org.seaborne.jena.srl.SRLParser;
 import org.slf4j.Logger;
 
 /** Not API */
@@ -71,7 +71,7 @@ public class ParserRules {
         }
     }
 
-    public static ErrorHandler defaultErrorHandler() { return new ErrorHandlerRuleParser(ShaclRulesParser.parserLogger); }
+    public static ErrorHandler defaultErrorHandler() { return new ErrorHandlerRuleParser(SRLParser.parserLogger); }
 
     private static class ErrorHandlerRuleParser extends ErrorLogger implements ErrorHandler {
 

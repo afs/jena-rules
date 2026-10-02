@@ -28,7 +28,7 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.SplitIRI;
 import org.seaborne.jena.srl.exec.EngineType;
-import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
+import org.seaborne.jena.srl.lang.RulesSyntax;
 import org.seaborne.jena.srl.sys.SysJenaRules;
 import org.seaborne.jena.srl.tests.RulesEvalTest;
 import org.seaborne.jena.srl.tests.RulesStratificationTest;
@@ -69,13 +69,13 @@ public class RuleTests {
 
             // == Syntax
             if ( testType.equals(VocabRulesTests.TestPositiveSyntaxRules) )
-                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.SPARQL_RL, true);
+                return new RulesSyntaxTest(entry, testURI, RulesSyntax.SPARQL_RL, true);
             if ( testType.equals(VocabRulesTests.TestNegativeSyntaxRules) )
-                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.SPARQL_RL, false);
+                return new RulesSyntaxTest(entry, testURI, RulesSyntax.SPARQL_RL, false);
             if ( testType.equals(VocabRulesTests.TestPositiveSyntaxJenaRules) )
-                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.JENA, true);
+                return new RulesSyntaxTest(entry, testURI, RulesSyntax.JENA, true);
             if ( testType.equals(VocabRulesTests.TestNegativeSyntaxJenaRules) )
-                return new RulesSyntaxTest(entry, testURI, ShaclRulesSyntax.JENA, false);
+                return new RulesSyntaxTest(entry, testURI, RulesSyntax.JENA, false);
 
             // == Wellformedness
             if ( testType.equals(VocabRulesTests.TestPositiveWellFormedness) )

@@ -28,9 +28,9 @@ import java.nio.file.Path;
 import org.apache.jena.riot.system.ErrorHandler;
 import org.apache.jena.riot.system.streammgr.StreamManager;
 import org.apache.jena.sparql.util.Context;
-import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
+import org.seaborne.jena.srl.lang.RulesSyntax;
 
-/*package*/ class ShaclRulesParserBuilder {
+/*package*/ class SRLParserBuilder {
 
     private String              filenameOrURI = null;
     private Path                filePath  = null;
@@ -40,49 +40,49 @@ import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
     private StreamManager       streamManager = null;
     private ErrorHandler        errorHandler = null;
     private String              baseURI = null;
-    private ShaclRulesSyntax    rulesSyntax = null;
+    private RulesSyntax    rulesSyntax = null;
     private Context             context = null;
 
-    ShaclRulesParserBuilder() {}
+    SRLParserBuilder() {}
 
-    public static ShaclRulesParserBuilder create() { return new ShaclRulesParserBuilder() ; }
+    public static SRLParserBuilder create() { return new SRLParserBuilder() ; }
 
-    public ShaclRulesParserBuilder fromString(String string) { this.stringToParse = string; return this; }
-    public ShaclRulesParserBuilder from(String filenameOrURI) { this.filenameOrURI = filenameOrURI ; return this; }
-    public ShaclRulesParserBuilder from(Path filePath) {  this.filePath = filePath ; return this; }
-    public ShaclRulesParserBuilder from(InputStream inputStream) { this.inputStream = inputStream ;return this; }
+    public SRLParserBuilder fromString(String string) { this.stringToParse = string; return this; }
+    public SRLParserBuilder from(String filenameOrURI) { this.filenameOrURI = filenameOrURI ; return this; }
+    public SRLParserBuilder from(Path filePath) {  this.filePath = filePath ; return this; }
+    public SRLParserBuilder from(InputStream inputStream) { this.inputStream = inputStream ;return this; }
 
     /**
      * Set the StreamManager to use when opening a URI (including files by name, but not by {@code Path}).
      * @param streamManager
      * @return this
      */
-    public ShaclRulesParserBuilder streamManager(StreamManager streamManager) {
+    public SRLParserBuilder streamManager(StreamManager streamManager) {
         this.streamManager = streamManager;
         return this;
     }
 
-    public ShaclRulesParserBuilder errorHandler(ErrorHandler errorhandler) {
+    public SRLParserBuilder errorHandler(ErrorHandler errorhandler) {
         this.errorHandler = errorhandler;
         return this;
     }
 
-    public ShaclRulesParserBuilder baseURI(String baseURI) {
+    public SRLParserBuilder baseURI(String baseURI) {
         this.baseURI = baseURI;
         return this;
     }
 
-    public ShaclRulesParserBuilder syntax(ShaclRulesSyntax rulesSyntax) {
+    public SRLParserBuilder syntax(RulesSyntax rulesSyntax) {
         this.rulesSyntax = rulesSyntax;
         return this;
     }
 
-    public ShaclRulesParser build() {
-        ShaclRulesSyntax syntax = this.rulesSyntax;
+    public SRLParser build() {
+        RulesSyntax syntax = this.rulesSyntax;
         if ( syntax == null )
-            syntax = ShaclRulesParser.defaultRulesSyntax;
+            syntax = SRLParser.defaultRulesSyntax;
 
-        return new ShaclRulesParser(filenameOrURI, filePath, stringToParse,
+        return new SRLParser(filenameOrURI, filePath, stringToParse,
                                     inputStream, javaReader, streamManager,
                                     baseURI, errorHandler, syntax, context);
     }

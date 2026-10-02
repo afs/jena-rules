@@ -40,8 +40,8 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.ShaclRulesParser;
-import org.seaborne.jena.srl.ShaclRulesWriter;
+import org.seaborne.jena.srl.SRLParser;
+import org.seaborne.jena.srl.SRLWriter;
 import org.seaborne.jena.srl.lang.parser.RulesParserBase;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
@@ -174,7 +174,7 @@ public class rules_parse extends CmdRules {
         RuleSet ruleSet;
 
         try {
-            ruleSet = ShaclRulesParser.parseFile(rulesFile);
+            ruleSet = SRLParser.parseFile(rulesFile);
             if ( debug )
                 System.out.println();
         } catch ( SRLParseException parseEx) {
@@ -185,13 +185,13 @@ public class rules_parse extends CmdRules {
         }
 
         if ( printText ) {
-            ShaclRulesWriter.print(ruleSet);
+            SRLWriter.print(ruleSet);
             if ( printRDF || printSRL )
                 System.out.println("- - - -");
         }
 
         if ( printSRL ) {
-            ShaclRulesWriter.print(ruleSet);
+            SRLWriter.print(ruleSet);
             if ( printRDF )
                 System.out.println("- - - -");
         }
@@ -209,7 +209,7 @@ public class rules_parse extends CmdRules {
                 RuleSet ruleSet2 = GraphToRuleSet.parse(graph);
                 if ( true ) {
                     //  print text
-                    ShaclRulesWriter.print(ruleSet2);
+                    SRLWriter.print(ruleSet2);
                     System.out.println("- - - -");
                 }
             }

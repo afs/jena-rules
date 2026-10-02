@@ -49,7 +49,7 @@ public class LibEvalTest {
                 ? GraphFactory.emptyGraph()
                 : RDFParser.fromString(baseGraphStr, Lang.TURTLE).toGraph();
         Graph expectedInf = RDFParser.fromString(expectedInfStr, Lang.TURTLE).toGraph();
-        RuleSet ruleSet = ShaclRulesParser.parseString(rulesStr);
+        RuleSet ruleSet = SRLParser.parseString(rulesStr);
 
         //printTest(label, baseGraphStr, rulesStr, expectedInfStr);
 
@@ -61,7 +61,7 @@ public class LibEvalTest {
                 ? GraphFactory.emptyGraph()
                 : RDFParser.fromString(baseGraphStr, Lang.TURTLE).toGraph();
         Graph expectedInf = RDFParser.fromString(expectedInfStr, Lang.TURTLE).toGraph();
-        RuleSet ruleSet = ShaclRulesParser.parseString(rulesStr);
+        RuleSet ruleSet = SRLParser.parseString(rulesStr);
 
 //        printTest(label, baseGraphStr, rulesStr, expectedInfStr);
 
@@ -86,7 +86,7 @@ public class LibEvalTest {
         Objects.requireNonNull(expectedInfGraph);
 
         try {
-            RulesEngine engine = ShaclRulesExec.create(engineType, baseGraph, ruleSet); //.setTrace(verbose);
+            RulesEngine engine = SRLExec.create(engineType, baseGraph, ruleSet); //.setTrace(verbose);
             RuleSetEvaluation rsEval = engine.eval();
             assertNotNull(rsEval.baseGraph());
             assertNotNull(rsEval.inferredTriples());

@@ -94,7 +94,7 @@ public class rules_eval extends CmdRules {
 
         RuleSet ruleSet;
         try {
-            ruleSet = ShaclRulesParser.parseFile(rulesFile);
+            ruleSet = SRLParser.parseFile(rulesFile);
         } catch (SRLParseException ex) {
             throw messageParseErrorAndTerminate(ex, 1);
         }
@@ -164,7 +164,7 @@ public class rules_eval extends CmdRules {
             if ( havePrinted )
                 System.out.println();
             System.out.println("==== Rules");
-            ShaclRulesWriter.write(System.out, ruleSet, false);
+            SRLWriter.write(System.out, ruleSet, false);
             System.out.println();
             havePrinted = true;
         }
@@ -261,7 +261,7 @@ public class rules_eval extends CmdRules {
         IndentedWriter out = IndentedWriter.stdout;
 
         try ( InputStream in = IO.openFile(fn) ) {
-            RuleSet ruleSet = ShaclRulesParser.parse(in, baseURI);
+            RuleSet ruleSet = SRLParser.parse(in, baseURI);
             //addStandardPrefixes(pmap);
             //RulesWriter.write(out, ruleSet);
         } catch (IOException ex) {

@@ -27,7 +27,7 @@ import java.util.Deque;
 
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RulesException;
-import org.seaborne.jena.srl.ShaclRulesWriter;
+import org.seaborne.jena.srl.SRLWriter;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 import org.seaborne.jena.srl.sys.DependencyGraph.DepEdgeType;
 import org.seaborne.jena.srl.sys.DependencyGraph.DependencyEdge;
@@ -99,7 +99,7 @@ public class RecursionChecker0 {
         if ( path.contains(rule) ) {
             if ( seenNegation == PathIncludesNegation.YES ) {
                 // Need abbreviates rule e.g.RULE { head } WHERE ...
-                String ruleStr = ShaclRulesWriter.abbreviatedString(rule, depGraph.ofRuleSet().getPrefixMap());
+                String ruleStr = SRLWriter.abbreviatedString(rule, depGraph.ofRuleSet().getPrefixMap());
                 //String ruleStr = "Rule ["+rule.localId+"]";
                 throw new RecursionException(ruleStr, path);
             }

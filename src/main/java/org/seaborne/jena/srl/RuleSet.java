@@ -278,7 +278,7 @@ public class RuleSet {
 
     /** String for a rule */
     public String str(Rule rule) {
-        return String.format("%s %s", labelFor(rule), ShaclRulesWriter.abbreviatedString(rule, getPrefixMap()));
+        return String.format("%s %s", labelFor(rule), SRLWriter.abbreviatedString(rule, getPrefixMap()));
     }
 
     // Labelling and tracing.

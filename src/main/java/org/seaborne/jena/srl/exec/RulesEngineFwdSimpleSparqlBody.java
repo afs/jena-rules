@@ -36,7 +36,7 @@ import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesEngine;
-import org.seaborne.jena.srl.ShaclRulesExec;
+import org.seaborne.jena.srl.SRLExec;
 import org.seaborne.jena.srl.tuples.TupleStore;
 
 /**
@@ -51,7 +51,7 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
 
     /**
      * Not public.
-     * Preferred: use {@link ShaclRulesExec#create(EngineType, Graph, TupleStore, RuleSet)}
+     * Preferred: use {@link SRLExec#create(EngineType, Graph, TupleStore, RuleSet)}
      * with {@link EngineType#SIMPLE} which goes via the RulesEngineRegistry
      */
     private

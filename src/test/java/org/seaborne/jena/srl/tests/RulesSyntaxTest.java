@@ -31,8 +31,8 @@ import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.shared.NotFoundException;
-import org.seaborne.jena.srl.ShaclRulesParser;
-import org.seaborne.jena.srl.lang.ShaclRulesSyntax;
+import org.seaborne.jena.srl.SRLParser;
+import org.seaborne.jena.srl.lang.RulesSyntax;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 
 public class RulesSyntaxTest extends AbstractManifestTest {
@@ -41,9 +41,9 @@ public class RulesSyntaxTest extends AbstractManifestTest {
     final private String testBase;
     //final private Lang lang;
     final private String filename;
-    private ShaclRulesSyntax rulesSyntax;
+    private RulesSyntax rulesSyntax;
 
-    public RulesSyntaxTest(ManifestEntry entry, String base, ShaclRulesSyntax syntax, boolean positiveTest) {
+    public RulesSyntaxTest(ManifestEntry entry, String base, RulesSyntax syntax, boolean positiveTest) {
         super(entry);
         this.testBase = base;
         this.expectLegalSyntax = positiveTest;
@@ -96,16 +96,16 @@ public class RulesSyntaxTest extends AbstractManifestTest {
             System.err.print("\n");
     }
 
-    private static void parseForTest(String filename, String base, ShaclRulesSyntax rulesSyntax, boolean allowWarnings, boolean expectLegalSyntax) {
+    private static void parseForTest(String filename, String base, RulesSyntax rulesSyntax, boolean allowWarnings, boolean expectLegalSyntax) {
         if ( expectLegalSyntax ) {
-            ShaclRulesParser.parseFile(filename, base, rulesSyntax);
+            SRLParser.parseFile(filename, base, rulesSyntax);
             return;
         }
         // Not legal syntax.
-        String level = LogCtl.getLevel(ShaclRulesParser.parserLogger);
-        LogCtl.withLevel(ShaclRulesParser.parserLogger, "FATAL", ()-> {
+        String level = LogCtl.getLevel(SRLParser.parserLogger);
+        LogCtl.withLevel(SRLParser.parserLogger, "FATAL", ()-> {
             // Expect errors - so don't log them.
-            ShaclRulesParser.parseFile(filename, base, rulesSyntax);
+            SRLParser.parseFile(filename, base, rulesSyntax);
         });
     }
 }
