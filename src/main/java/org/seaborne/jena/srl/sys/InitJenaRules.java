@@ -23,6 +23,11 @@ package org.seaborne.jena.srl.sys;
 
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 
+/**
+ * Initialize the SPARQL-RL rules subsystem.
+ * This is triggered by the standard jena initialization process,
+ * a file in jena-rules/src/main/resources/META-INF/services/org.apache.jena.sys.JenaSubsystemLifecycle
+ */
 public class InitJenaRules implements JenaSubsystemLifecycle {
 
     @Override

@@ -65,10 +65,10 @@ public class SRLParser {
     // private final boolean           strict;
     private final ErrorHandler      errorHandler;
     private final Context           context;
-    private final RulesSyntax  rulesSyntax;
+    private final RulesSyntax       rulesSyntax;
 
     // Some cases the parser is reusable (read a file), some are not (input streams).
-    private boolean                   canUseThisParser = true;
+    private boolean                 canUseThisParser = true;
 
     /*package*/ SRLParser(String filenameOrURI, Path path, String content,
                                  InputStream inputStream, StringReader javaReader,

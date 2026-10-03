@@ -34,12 +34,8 @@ import org.seaborne.jena.srl.sys.RecursionChecker.IsRecursive;
 /**
  * Checking for illegal recursion - a recursive path that goes through a negation (NOT).
  */
-public class RecursionChecker2 {
+public class RecursionCheckerAlg {
     // Efficiency: later:
-
-    // Look for recursion fo a rule.
-    // Is the rule negated?
-    // --> error.
 
     // XXX Only need to test rules with negation rules
 
@@ -73,20 +69,13 @@ public class RecursionChecker2 {
     }
 
     /*
-     * Check for illegal recursion - a recursive path that goes through a negation (NOT).
+     * Check for illegal recursion - a recursive path that goes through a negation (NOT),
+     * or a run-once rule (assignment, aggregation, functor-like triple terms).
      * This function throws an exception if it finds an illegal recursion.
      */
     public static void checkForIllegalRecursion(DependencyGraph depGraph, RulesExecCxt rCxt) {
-        // XXX Change to check only rules which requite strict stratification
-        // Rule with a negation or it is run-once.
-
-        if ( ! SysJenaRules.performRecursionCheck )
-            return;
         for ( Rule rule : depGraph.ofRuleSet().getRules()) {
-
-            // XXX Add this test
             //if ( rule.isRunOnceRule() || rule.hasNegation() )
-
             // Throws an exception on an illegal recursion.
             /*IsRecursive isRecursive = */ RecursionChecker.checkRecursion(depGraph, rule);
         }
@@ -95,7 +84,7 @@ public class RecursionChecker2 {
 
     // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecursive.NO} if not recursive, and
     // throw exception if recursion includes a negation (illegal).
-    public static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
+    /*package*/ static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
         Deque<Rule> visited = new ArrayDeque<>(); // **LinkHashSet:add/remove
         boolean isRecursive = ruleIsRecursive(depGraph, rule, rule, visited);   //Start.
         //if ( isRecursive && rule.isGrounded() ) {}

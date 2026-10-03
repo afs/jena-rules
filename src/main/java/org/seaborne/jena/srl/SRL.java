@@ -28,6 +28,7 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.sparql.SystemARQ;
 import org.apache.jena.sparql.util.Symbol;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
+import org.seaborne.jena.srl.lang.RulesSyntax;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.sys.P;
 import org.seaborne.jena.srl.sys.SysJenaRules;
@@ -84,34 +85,23 @@ public class SRL {
 
     /** Parse from a string, and return a {@link RuleSet}
      * @param string
+     * @return RuleSet
      * @throws SRLParseException
      */
     public static RuleSet parseString(String string) {
         return SRLParser.fromString(string).parse();
     }
 
-//    /**
-//     * Parse from a string and return a {@link RuleSet}
-//     * @param string
-//     * @param rulesSyntax
-//     * @return RuleSet
-//     * @throws ShaclRulesParseException
-//     */
-//    public static RuleSet parseString(String string, ShaclRulesSyntax rulesSyntax) {
-//        return ShaclRulesParser.fromString(string).syntax(rulesSyntax).parse();
-//    }
-//
-//    /**
-//     * Parse from a string and return a {@link RuleSet}
-//     * @param string
-//     * @param baseURI
-//     * @param rulesSyntax
-//     * @return RuleSet
-//     * @throws ShaclRulesParseException
-//     */
-//    public static RuleSet parseString(String string, String baseURI, ShaclRulesSyntax rulesSyntax) {
-//        return ShaclRulesParser.fromString(string).baseURI(baseURI).syntax(rulesSyntax).parse();
-//    }
+  /**
+  * Parse from a string and return a {@link RuleSet}
+  * @param string
+  * @param rulesSyntax
+  * @return RuleSet
+  * @throws SRLParseException
+  */
+    public static RuleSet parseString(String string, RulesSyntax rulesSyntax) {
+        return SRLParser.fromString(string).syntax(rulesSyntax).parse();
+    }
 
     /**
      * Parse a file or web document, and return a {@link RuleSet}
@@ -134,18 +124,6 @@ public class SRL {
         return SRLParser.from(filenameOrURI).baseURI(baseURI).parse();
     }
 
-//    /**
-//     * Parse from file or web document and return a {@link RuleSet}
-//     * @param filenameOrURI
-//     * @param baseURI
-//     * @param rulesSyntax
-//     * @return RuleSet
-//     * @throws ShaclRulesParseException
-//     */
-//    public static RuleSet parseFile(String filenameOrURI, String baseURI, ShaclRulesSyntax rulesSyntax) {
-//        return ShaclRulesParser.from(filenameOrURI).baseURI(baseURI).syntax(rulesSyntax).parse();
-//    }
-
     /**
      * Parse from an {@code InputStream}
      * @param input
@@ -156,8 +134,4 @@ public class SRL {
     public static RuleSet parse(InputStream input, String baseURI) {
         return SRLParser.from(input).baseURI(baseURI).parse();
     }
-
-//    public static RuleSet parse(InputStream input, String baseURI, ShaclRulesSyntax rulesSyntax) {
-//        return ShaclRulesParser.from(input).baseURI(baseURI).syntax(rulesSyntax).parse();
-//    }
 }

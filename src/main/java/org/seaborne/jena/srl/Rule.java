@@ -257,7 +257,7 @@ public class Rule {
     }
 
     public boolean isRunOnceRule() {
-        return hasAssignment || hasTemplateBNodes || isGrounded();
+        return hasAssignment || hasTemplateBNodes || hasTemplateVarTripleTerms || hasAggregation || isGrounded();
     }
 
     public boolean hasAssignment() {

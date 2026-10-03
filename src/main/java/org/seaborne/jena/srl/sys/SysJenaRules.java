@@ -32,27 +32,18 @@ public class SysJenaRules {
     /** System default {@link EngineType} */
     public static final EngineType dftEngineType = EngineType.SIMPLE;
 
-    /** Allow assignments in recursive rules */
-    public static boolean allowUnsafeAssigments = false;
+    /** Allow unsafe recursive rules (development only) */
+    public /*final*/ static boolean allowUnsafe = false;
 
-    /** Allow blank node in templates in recursive rules */
-    public static boolean allowUnsafeTemplates = false;
 
-//    /** Allow blank node in templates in general/recursive rules */
-//    // [XXX] Decide on Skolem then remove
-//    public static boolean allowSkolemTemplates = true;
-    // Covered by allowUnsafeTemplates?
-
-    /** Allow blank node in templates in recursive rules */
-    public static boolean performRecursionCheck = true;
-
-//    /**
-//     * Whether run-once rules are strictly stratified
-//     */
-//    public static boolean safeDependencies() { return  !allowUnsafeAssigmments && !allowUnsafeTemplates; }
-
-    /** Role triples for RDF syntax */
-    public static boolean useRoleTriples = true;
+    /**
+     * Role triples for RDF syntax.
+     * Role triples are {@code srl:triplePattern} and {@code srl:tripleTemplate}.
+     * Otherwise, a triple encoding (a blank node and three triples srl:subject/srl:predicate/srl:object)
+     * is used and whether it is a pattern or template triple is determined by location.
+     * Role triples are preferred.
+     */
+    public static final boolean useRoleTriples = true;
 
     public static void init() {
         RulesEngineRegistry.init();

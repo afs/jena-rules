@@ -40,7 +40,7 @@ import org.seaborne.jena.srl.lang.RulesSyntax;
     private StreamManager       streamManager = null;
     private ErrorHandler        errorHandler = null;
     private String              baseURI = null;
-    private RulesSyntax    rulesSyntax = null;
+    private RulesSyntax         rulesSyntax = null;
     private Context             context = null;
 
     SRLParserBuilder() {}

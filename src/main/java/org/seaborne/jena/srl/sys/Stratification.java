@@ -229,25 +229,11 @@ public class Stratification {
         for ( Entry<Rule, Integer> entry : stratumMap.entrySet() ) {
             Rule rule = entry.getKey();
             Integer stratumNum = entry.getValue();
-            if ( rule.isRunOnceRule() ) {
-                // stratumTtestEvalRunOnce.put(stratumNum, rule);
-                // Is it permitted for unsafe evaluation?
-                // If it is run-once because of assignment but does not have
-                // blank node templates, then run as a general rule.
-                // Similarly, if run-once because blank node templates, but not
-                // assignments, then run as a general rule.
 
-                // XXX Better way?
-                boolean allowAssigmentOnly = SysJenaRules.allowUnsafeAssigments && rule.hasAssignment() && !rule.hasTemplateBlankNodes();
-                boolean allowBlankNodeTemplatesOnly = SysJenaRules.allowUnsafeAssigments && rule.hasTemplateBlankNodes() && !rule.hasAssignment();
-                boolean allowBoth = SysJenaRules.allowUnsafeAssigments && SysJenaRules.allowUnsafeTemplates;
+            //SysJenaRules.unsafe
 
-                if ( allowAssigmentOnly || allowBlankNodeTemplatesOnly || allowBoth )
-                    stratumRunGeneral.put(stratumNum, rule);
-                else
-                    // run-once
-                    stratumRunOnce.put(stratumNum, rule);
-
+            if ( rule.isRunOnceRule() && ! SysJenaRules.allowUnsafe) {
+                stratumRunOnce.put(stratumNum, rule);
             } else {
                 stratumRunGeneral.put(stratumNum, rule);
             }

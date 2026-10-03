@@ -32,7 +32,7 @@ import org.seaborne.jena.srl.exec.RulesExecCxt;
  */
 public class RecursionChecker {
     // Switch DependencyGraph impls.
-    
+
     // Efficiency: later:
 
     // Use Strongly connected components.
@@ -81,8 +81,6 @@ public class RecursionChecker {
     // Return {@code IsRecursive.YES} if safely recursive, return {@link IsRecursive.NO} if not recursive, and
     // throw exception if recursion includes a negation (illegal).
     public static IsRecursive checkRecursion(DependencyGraph depGraph, Rule rule) {
-        //return RecursionChecker0.checkRecursion(depGraph, rule);
-
-        return RecursionChecker2.checkRecursion(depGraph, rule);
+        return RecursionCheckerAlg.checkRecursion(depGraph, rule);
     }
 }

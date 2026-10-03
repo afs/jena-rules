@@ -192,12 +192,7 @@ public class DependencyGraph {
 
     /** Whole rule dependency requirement */
     private static DepEdgeType ruleEdgeDependency(Rule rule) {
-        if ( !SysJenaRules.allowUnsafeAssigments && rule.hasAssignment() )
-            return DepEdgeType.CLOSED;
-        if ( !SysJenaRules.allowUnsafeTemplates && rule.hasTemplateBlankNodes() )
-            return DepEdgeType.CLOSED;
-        if ( rule.hasTemplateVarTripleTerms() )
-            // rule can possibly generate "functors".
+        if ( ! SysJenaRules.allowUnsafe && rule.isRunOnceRule() )
             return DepEdgeType.CLOSED;
         return DepEdgeType.OPEN;
     }
