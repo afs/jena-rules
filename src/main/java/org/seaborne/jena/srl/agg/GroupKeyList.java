@@ -24,6 +24,7 @@ package org.seaborne.jena.srl.agg;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
@@ -32,15 +33,19 @@ class GroupKeyList implements GroupKey {
     // list of pairs?
     private final List<Var> vars;
     private final List<Node> values;
+    private final int N;
 
     GroupKeyList(List<Var>vars, List<Node> values) {
-        this.vars = vars;
-        this.values = values;
+        this.vars = Objects.requireNonNull(vars);
+        this.values = Objects.requireNonNull(values);
+        this.N = vars.size();
+        if ( N != values.size() )
+            throw new InternalErrorException("vars length = "+vars.size()+" but values length = "+values.size());
     }
 
     @Override
     public void addToBinding(BindingBuilder builder) {
-        for(int i = 0; i < vars.size() ; i++ ) {
+        for(int i = 0; i < N ; i++ ) {
             Var var = vars.get(i);
             Node val = values.get(i);
             builder.add(var, val);

@@ -29,6 +29,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.E_Bound;
 import org.apache.jena.sparql.expr.E_NotExists;
 import org.apache.jena.sparql.expr.Expr;
@@ -39,9 +40,9 @@ import org.apache.jena.sparql.syntax.*;
 import org.apache.jena.update.Update;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleBody;
-import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 
 /** This class is not API */
 public class RulesLibSparql {
@@ -82,7 +83,7 @@ public class RulesLibSparql {
                     Expr bound = new E_Bound(v);
                     group.addElement(new ElementFilter(bound));
                 }
-                case EltAggregate(var aggVar, ExprReduce reducer) -> {
+                case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
                     throw new NotImplemented("ruleBodyToElementGroup EltAggregate");
                 }
             }

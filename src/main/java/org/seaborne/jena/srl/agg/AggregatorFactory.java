@@ -21,25 +21,21 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.List;
-
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
-import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
-import org.seaborne.jena.srl.sys.Scope;
 
-public class ExprReduceSum extends ExprReduce {
+/**
+ * Make {@link Aggregator} - each group has an {@link Aggregator} for each
+ * assignment.
+ */
+public interface AggregatorFactory {
+    public Aggregator newAggregator(GroupKey groupKey);
 
-    private final Expr expr;
+    /** Outcome if the pattern matching returns no rows. */
+    public Node onEmpty();
 
-    public ExprReduceSum(Expr expr, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
-        super("SUM", hasGroupByVars, innerBody, scope.inScope());
-        this.expr = expr;
-    }
+    public Expr getArgument();
 
-    @Override
-    public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggSum(resultVar, super.groupBy(), expr, rCxt);
-    }
+    public Var assignVar();
 }

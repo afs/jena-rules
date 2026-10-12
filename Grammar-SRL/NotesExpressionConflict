@@ -1,0 +1,38 @@
+== 2026-10-15
+
+Why do expressions run into each other?
+
+Grammar (GROUP BY {} []), then in Assignment()
+Comment out <LPAREN>, <RPAREN>
+
+1/
+Warning: Choice conflict in [...] construct at line 1083, column 3.
+         Expansion nested within construct and expansion following construct
+         have common prefixes, one of which is: "not"
+         Consider using a lookahead of 2 or more for nested expansion.
+
+RelationalExpression()
+Fix: <NOT> <IN> ==> <NOT_IN>
+
+2/
+Warning: Choice conflict in (...)* construct at line 1111, column 3.
+         Expansion nested within construct and expansion following construct
+         have common prefixes, one of which is: <INTEGER_POSITIVE>
+         Consider using a lookahead of 2 or more for nested expansion.
+
+In AdditiveExpression()
++1 ?
+Expanded to "+" "1" or following +1 is subject of a symmetric triple pattern.
+
+3/
+Warning: Choice conflict in [...] construct at line 1262, column 3.
+         Expansion nested within construct and expansion following construct
+         have common prefixes, one of which is: <NIL>
+
+In iriOrFunction()
+On "<uri> ()"
+
+Optional arglist
+PrimaryExpression()
+     expr = iriOrFunction() { return expr ; }
+

@@ -67,11 +67,15 @@ PARSER_BEGIN(CLASS)
 
 package PACKAGE.javacc;
 
+import org.seaborne.jena.srl.lang.parser.* ;
+
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
+
+import java.util.*;
 
 #ifdef STD
 import PACKAGE.SrlParserBase;
@@ -79,8 +83,6 @@ import PACKAGE.SrlParserBase;
 
 #ifdef JENA
 import PACKAGE.JenaRulesParserBase;
-import java.util.*;
-import org.seaborne.jena.srl.agg.ExprReduce;
 #endif
 
 public class CLASS extends PARSERBASE
@@ -255,6 +257,7 @@ void BodyNotTriples() : {}
    ( Filter()
    | Negation()
    | Assignment()
+   | Aggregate()
 #ifdef JENA   
    | TuplePattern()
 #endif
@@ -342,19 +345,8 @@ void Assignment() : {  Var v; Expr expr = null; }
     <LPAREN>
     v = Var()
     <ASSIGN>
-#ifdef STD
     expr = Expression()
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
-#endif
-#ifdef JENA
-    ( expr = Expression()
-      { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
-    |
-      { ExprReduce groupExpr; }
-      groupExpr = Aggregate()
-      { emitAggregate(v, groupExpr, token.beginLine, token.beginColumn); }
-    )
-#endif
     <RPAREN>
 }
 
@@ -1429,12 +1421,12 @@ Expr AdditiveExpression() : { Expr expr1, expr2, expr3 ; boolean addition ; Node
       }
     |
       n = NumericLiteralNegative()
-     { 
+      { 
          n = stripSign(n) ;
          expr2 = asExpr(n) ;
          addition = false ;
-     }
-     )
+      }
+    )
 
     (
       ( <STAR>  expr3 = UnaryExpression() { expr2 = new E_Multiply(expr2, expr3) ; } )
@@ -1498,79 +1490,91 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   )
 }
 
-#ifdef JENA
-ExprReduce Aggregate() : { Token t; Expr expr; List<Var> groupByVars = null;  boolean distinct = false; String iri = null; }
+// ---- GROUP aggregates
+
+void Aggregate()  : { List<Var> groupVars = null; SynAggregationAssignment aggAssign; }
 {
-    ( t = <COUNT>
-      { startAggregate(t.beginLine, t.beginColumn); }
-      (<DISTINCT> { distinct = true; })?
-      (groupByVars = groupBy())?
-      AggregateBody()
-      { finishAggregate(t.beginLine, t.beginColumn);
-        return exprReduceCount(distinct, groupByVars);
-      }
-    | t = <SUM>
-      { startAggregate(t.beginLine, t.beginColumn); }
-      // Explicit group-by?
-      <LPAREN> expr = Expression() <RPAREN>
-      AggregateBody()
-      { finishAggregate(t.beginLine, t.beginColumn);
-        return exprReduceSum(expr, groupByVars);
-      }
-    | t = <MIN>
-      { startAggregate(t.beginLine, t.beginColumn); }
-      // Explicit group-by?
-      (groupByVars = groupBy())?
-      <LPAREN> expr = Expression() <RPAREN>
-      AggregateBody()
-      { finishAggregate(t.beginLine, t.beginColumn);
-        return exprReduceMin(expr, groupByVars);
-      }
-    | t = <MAX>
-      { startAggregate(t.beginLine, t.beginColumn); }
-      (groupByVars = groupBy())?
-      <LPAREN> expr = Expression() <RPAREN>
-      AggregateBody()
-      { finishAggregate(t.beginLine, t.beginColumn);
-        return exprReduceMax(expr, groupByVars);
-      }
-//       
-//     | t = <AGG>
-//       { startAggregate(t.beginLine, t.beginColumn); }
-//       iri = iri()
-//       // No need for DISTINCT - part of the IRI
-//       // ( <COMMA> <DISTINCT>  { distinct = true; })?
-//       (groupByVars = groupBy())?
-//       // Expression?
-//       <LPAREN> expr = Expression() <RPAREN>
-//       AggregateBody()
-//       { finishAggregate(t.beginLine, t.beginColumn);
-//         return exprReduceAgg(iri, expr, groupByVars);
-//       } 
+    <GROUP>
+    { startAggregate(token.beginLine, token.beginColumn); }    
+    ( <BY> groupVars = ListVars() { emitGroupVars(groupVars, token.beginLine, token.beginColumn); } )?
+    AggregatePattern()
+    // Accumulates in RulesParserBase
+    // "[ ]" is <ANON>
+    (
+      <ANON>
+    |
+      <LBRACKET>
+      ( AggregationAssignment() )+
+      <RBRACKET>
     )
-    { return null; }
+    // Picks up the components, pattern, group keys, and list of assignments
+    // which have accumulated in RulesParserBase.
+    { emitAggregate(token.beginLine, token.beginColumn); }
+    { finishAggregate(token.beginLine, token.beginColumn); }
 }
 
-List<Var> groupBy() : { Var v; List<Var> vars = new ArrayList<>(); }
+List<Var> ListVars() : { Var v; List<Var> vars = new ArrayList<>(); }
 {
-    <LBRACKET>
-      v = Var() { vars.add(v); }
-      ( <COMMA> v = Var() { vars.add(v); } )*
-    <RBRACKET>
+//     v = Var() { vars.add(v); }
+//     ( v = Var() { vars.add(v); } )*
+    ( v = Var() { vars.add(v); } )+
     { return vars; }
 }
 
-void AggregateBody() : { Token t1; Token t2;}
+void AggregationAssignment() : { Var aggVar; SynAggregationFunction aggFunction; Token location ; }
 {
-   t1 = <LBRACE>
-   { startAggregateBody(t1.beginLine, t1.beginColumn); }
-   BodyBasic()
-   t2 = <RBRACE>
-   { finishAggregateBody(t2.beginLine, t2.beginColumn); }
+//    location = <LPAREN>
+    aggVar = Var()
+    { location = token; }
+    <ASSIGN>
+    aggFunction = AggregationFunction()
+//    <RPAREN>
+    { emitAggregationAssignment(aggVar, aggFunction, location.beginLine, location.beginColumn); }
 }
 
+SynAggregationFunction AggregationFunction() : { Token t; Var var; boolean distinct = false ;}
+{
+    ( t = <COUNT>
+      <LPAREN>
+      (<DISTINCT> { distinct = true; })?
+      var = VarOrStar()
+      <RPAREN>
+      { return createAggregationFunctionCount(var, distinct, t.beginLine, t.beginColumn); }
+    | t = <MIN>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionMin(var, t.beginLine, t.beginColumn); }
+    | t = <MAX>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionMax(var, t.beginLine, t.beginColumn); }
+    | t = <SUM>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionSum(var, t.beginLine, t.beginColumn); }
+    )
+}
 
-#endif
+// return null for "*"
+Var VarOrStar() : { Var v = null; }
+{
+    ( v = Var() | <STAR> )
+    { return v; }
+}
+
+void AggregatePattern() : { Token t1; Token t2;}
+{
+   t1 = <LBRACE>
+   { startAggregatePattern(t1.beginLine, t1.beginColumn); }
+   BodyBasic()
+   t2 = <RBRACE>
+   { finishAggregatePattern(t2.beginLine, t2.beginColumn); }
+}
+
+// --------
 
 // See also FunctionCall.
 
@@ -2042,14 +2046,15 @@ TOKEN [IGNORE_CASE] :
 |  < UUID:        "UUID" >
 |  < STRUUID:     "STRUUID" >
 
-#ifdef JENA
 |  < COUNT:       "COUNT" >
 |  < DISTINCT:    "DISTINCT" >
+//|  < COUNT_DISTINCT:       <COUNT> (<WS>)* <DISTINCT> >
 |  < SUM:         "SUM" >
 |  < MIN:         "MIN" >
 |  < MAX:         "MAX" >
 |  < AGG:         "AGG" >
-#endif
+|  < GROUP:       "GROUP" >
+|  < BY:          "BY" >
 
 // | < MD5:          "MD5" >
 // | < SHA1:         "SHA1" >
@@ -2060,8 +2065,6 @@ TOKEN [IGNORE_CASE] :
 
 |  < TRUE:        "true" >
 |  < FALSE:       "false" >
-
-
 
 }
 

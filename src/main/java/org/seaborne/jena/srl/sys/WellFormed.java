@@ -32,9 +32,9 @@ import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
-import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 /**
@@ -116,11 +116,18 @@ public class WellFormed {
                     throw new NotWellFormedException("Assignment variable already defined: "+var);
                 tracker.bodyDefined.add(var);
             }
-            case EltAggregate(Var var, ExprReduce reducer) -> {
-                processWellFormedGroupBy(tracker, reducer);
-                if ( tracker.bodyDefined.contains(var) )
-                    throw new NotWellFormedException("Aggregation variable already defined: "+var);
-                tracker.bodyDefined.add(var);
+            case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                VarTracker negTracker = tracker.copyOf();
+                checkRuleElements(negTracker, aggPattern);
+                if ( groupKeys != null )
+                    // Because the body may not set a group key.
+                    tracker.bodyDefined.addAll(groupKeys);
+                aggAssignments.forEach(agg->{
+                    Var var = agg.aggVariable();
+                    if ( tracker.bodyDefined.contains(var) )
+                        throw new NotWellFormedException("Aggregation variable already defined: "+var);
+                    tracker.bodyDefined.add(var);
+                });
             }
             case null -> { throw new RulesException("Null in rule body"); }
         }
@@ -144,14 +151,14 @@ public class WellFormed {
         }
     }
 
-    private static void processWellFormedGroupBy(VarTracker tracker, ExprReduce reducer) {
-        if ( reducer.hasGroupBy() ) {
-            for ( Var var : reducer.groupBy() ) {
-                if ( ! tracker.bodyDefined.contains(var) )
-                    throw new NotWellFormedException("Group variable not defined: "+var);
-            }
-        }
-    }
+//    private static void processWellFormedGroupBy(VarTracker tracker, GropProcessor groupProc) {
+//        if ( groupProc.hasGroupBy() ) {
+//            for ( Var var : groupProc.groupBy() ) {
+//                if ( ! tracker.bodyDefined.contains(var) )
+//                    throw new NotWellFormedException("Group variable not defined: "+var);
+//            }
+//        }
+//    }
 
     private static void addVar(Set<Var> bodyDefined, Node node) {
         if ( Var.isVar(node) )

@@ -150,12 +150,6 @@ public class Stratification {
             stratumMap.put(rule, initValue);
         }
 
-//        // The data layer may be empty.
-//        if ( ! seenDataLayer ) {
-//            minStratum = minDependentStratum;
-//            // And reduce maxStratum.
-//        }
-
         // We do need the strata to start at zero because of storing in a Java list.
         // We could move everything down!
         // For now, have a potential empty 0-stratum.

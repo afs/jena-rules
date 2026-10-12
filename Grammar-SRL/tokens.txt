@@ -68,11 +68,14 @@
 [<FOR>]        ::= 'FOR'
 
 [<COUNT>]      ::= 'COUNT'
-[<DISTINCT>]   ::= 'DISTINCT' 
+[<COUNT_DISTINCT>]  ::= 'COUNT DISTINCT'
+// [<DISTINCT>]   ::= 'DISTINCT' 
 [<SUM>]        ::= 'SUM'
 [<MIN>]        ::= 'MIN'
 [<MAX>]        ::= 'MAX'
-[<AGG>]        ::= 'AGG'
+// [<AGG>]        ::= 'AGG'
+[<GROUP>]      ::= 'GROUP'
+[<BY>]         ::= 'BY'
 
 // [<LIMIT>]      ::= 'LIMIT'
 // [<OFFSET>]     ::= 'OFFSET'

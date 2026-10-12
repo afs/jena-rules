@@ -35,12 +35,12 @@ import org.apache.jena.irix.IRIs;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
-import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltAggregate;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.srl.sys.P;
 import org.seaborne.jena.srl.tuples.Tuple;
@@ -207,7 +207,7 @@ public class Rule {
                     case RuleBodyElement.EltNegation(List<RuleBodyElement> inner, boolean grounded) -> { _hasNegation = true; }
                     // case RuleBodyElement.EltFilter(Expr condition) -> {}
                     case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
-                    case EltAggregate(Var var, ExprReduce reducer) -> { _hasAggregation = true; }
+                    case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> { _hasAggregation = true; }
                     case null -> {}
                     default -> {}
                 };

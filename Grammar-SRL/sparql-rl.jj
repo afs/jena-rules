@@ -50,11 +50,13 @@ PARSER_BEGIN(SrlJavacc)
  *   SPDX-License-Identifier: Apache-2.0
  */
 package org.seaborne.jena.srl.lang.parser.srl.javacc;
+import org.seaborne.jena.srl.lang.parser.* ;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.sparql.path.* ;
 import static org.apache.jena.riot.lang.LangParserLib.*;
+import java.util.*;
 import org.seaborne.jena.srl.lang.parser.srl.SrlParserBase;
 public class SrlJavacc extends SrlParserBase
 {}
@@ -190,6 +192,7 @@ void BodyNotTriples() : {}
    ( Filter()
    | Negation()
    | Assignment()
+   | Aggregate()
    )
 }
 void Filter() : { Expr c ; }
@@ -1119,12 +1122,12 @@ Expr AdditiveExpression() : { Expr expr1, expr2, expr3 ; boolean addition ; Node
       }
     |
       n = NumericLiteralNegative()
-     {
+      {
          n = stripSign(n) ;
          expr2 = asExpr(n) ;
          addition = false ;
-     }
-     )
+      }
+    )
     (
       ( <STAR> expr3 = UnaryExpression() { expr2 = new E_Multiply(expr2, expr3) ; } )
     |
@@ -1180,6 +1183,84 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm() { return asExpr(n) ; }
   )
 }
+// ---- GROUP aggregates
+void Aggregate() : { List<Var> groupVars = null; SynAggregationAssignment aggAssign; }
+{
+    <GROUP>
+    { startAggregate(token.beginLine, token.beginColumn); }
+    ( <BY> groupVars = ListVars() { emitGroupVars(groupVars, token.beginLine, token.beginColumn); } )?
+    AggregatePattern()
+    // Accumulates in RulesParserBase
+    // "[ ]" is <ANON>
+    (
+      <ANON>
+    |
+      <LBRACKET>
+      ( AggregationAssignment() )+
+      <RBRACKET>
+    )
+    // Picks up the components, pattern, group keys, and list of assignments
+    // which have accumulated in RulesParserBase.
+    { emitAggregate(token.beginLine, token.beginColumn); }
+    { finishAggregate(token.beginLine, token.beginColumn); }
+}
+List<Var> ListVars() : { Var v; List<Var> vars = new ArrayList<>(); }
+{
+//     v = Var() { vars.add(v); }
+//     ( v = Var() { vars.add(v); } )*
+    ( v = Var() { vars.add(v); } )+
+    { return vars; }
+}
+void AggregationAssignment() : { Var aggVar; SynAggregationFunction aggFunction; Token location ; }
+{
+//    location = <LPAREN>
+    aggVar = Var()
+    { location = token; }
+    <ASSIGN>
+    aggFunction = AggregationFunction()
+//    <RPAREN>
+    { emitAggregationAssignment(aggVar, aggFunction, location.beginLine, location.beginColumn); }
+}
+SynAggregationFunction AggregationFunction() : { Token t; Var var; boolean distinct = false ;}
+{
+    ( t = <COUNT>
+      <LPAREN>
+      (<DISTINCT> { distinct = true; })?
+      var = VarOrStar()
+      <RPAREN>
+      { return createAggregationFunctionCount(var, distinct, t.beginLine, t.beginColumn); }
+    | t = <MIN>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionMin(var, t.beginLine, t.beginColumn); }
+    | t = <MAX>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionMax(var, t.beginLine, t.beginColumn); }
+    | t = <SUM>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionSum(var, t.beginLine, t.beginColumn); }
+    )
+}
+// return null for "*"
+Var VarOrStar() : { Var v = null; }
+{
+    ( v = Var() | <STAR> )
+    { return v; }
+}
+void AggregatePattern() : { Token t1; Token t2;}
+{
+   t1 = <LBRACE>
+   { startAggregatePattern(t1.beginLine, t1.beginColumn); }
+   BodyBasic()
+   t2 = <RBRACE>
+   { finishAggregatePattern(t2.beginLine, t2.beginColumn); }
+}
+// --------
 // See also FunctionCall.
 Expr iriOrFunction() : { String iri ; ExprList a = null ; }
 {
@@ -1544,6 +1625,15 @@ TOKEN [IGNORE_CASE] :
 | < NOW: "NOW" >
 | < UUID: "UUID" >
 | < STRUUID: "STRUUID" >
+| < COUNT: "COUNT" >
+| < DISTINCT: "DISTINCT" >
+//|  < COUNT_DISTINCT:       <COUNT> (<WS>)* <DISTINCT> >
+| < SUM: "SUM" >
+| < MIN: "MIN" >
+| < MAX: "MAX" >
+| < AGG: "AGG" >
+| < GROUP: "GROUP" >
+| < BY: "BY" >
 // | < MD5:          "MD5" >
 // | < SHA1:         "SHA1" >
 // | < SHA224:       "SHA224" >

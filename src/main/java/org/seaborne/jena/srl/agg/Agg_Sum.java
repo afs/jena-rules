@@ -21,64 +21,84 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.Collection;
-
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.expr.nodevalue.XSDFuncOp;
 import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 
 
-public class AggSum implements Aggregator {
+public class Agg_Sum implements AggregatorFactory {
 
     private final Var aggVar;
     private final Expr expr;
-    private final Collection<Var> groupBy;
     private final RulesExecCxt rCxt;
 
-    public AggSum(Var outputVar, Collection<Var> groupBy, Expr expr, RulesExecCxt rCxt) {
-        this.aggVar = outputVar;
+    public Agg_Sum(Var assignVar, Expr expr, RulesExecCxt rCxt) {
+        this.aggVar = assignVar;
         this.expr = expr;
-        this.groupBy = groupBy;
         this.rCxt = rCxt;
     }
 
     @Override
-    public GroupReducer reducer() {
-        GroupSplitter groupSplitter = (groupBy.isEmpty()) ? GroupSplitters.splitterStar() : GroupSplitters.splitterVars(groupBy);
-        return new GroupReducer("SUM", aggVar,
-                                ()->NodeConst.nodeZero,
-                                groupSplitter,
-                                k->new AggregateSum(expr, rCxt)
-                               );
+    public Aggregator newAggregator(GroupKey groupKey) {
+        return new AggregateSum(aggVar, expr, rCxt);
     }
 
-    private static class AggregateSum extends AggregateFunction {
+    @Override
+    public Expr getArgument() {
+        return expr;
+    }
 
+    @Override
+    public Var assignVar() {
+        return aggVar;
+    }
+
+    @Override
+    public Node onEmpty() {
+        // XXX ?
+        //throw new ExprEvalException("sum of empty");
+        return NodeConst.nodeZero;
+    }
+
+    private static class AggregateSum implements Aggregator {
         private final Expr expr;
         private final RulesExecCxt rCxt;
+        private final Var assignVar;
+        private NodeValue sum = null;
 
-        AggregateSum(Expr expr, RulesExecCxt rCxt) {
+        AggregateSum(Var assignVar, Expr expr, RulesExecCxt rCxt) {
+            this.assignVar = assignVar;
             this.expr = expr;
             this.rCxt = rCxt;
         }
 
-        private NodeValue sum = NodeValue.makeInteger(0L);
-
         @Override
         public void receive(Binding binding) {
             NodeValue nv = expr.eval(binding, rCxt);
-            sum = XSDFuncOp.numAdd(sum, nv);
+            if ( sum == null )
+                sum = nv;
+            else
+                sum = XSDFuncOp.numAdd(sum, nv);
         }
 
         @Override
-        public NodeValue aggValue() { return sum; }
+        public NodeValue aggValue() {
+            if ( sum == null )
+                throw new ExprEvalException("sum of empty");
+            return sum;
+        }
 
         @Override
         public Node aggNode() { return sum.asNode(); }
+
+        @Override
+        public Var assignVar() { return assignVar; }
     }
+
 }

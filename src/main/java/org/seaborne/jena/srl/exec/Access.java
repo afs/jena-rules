@@ -31,8 +31,8 @@ import org.apache.jena.sparql.engine.main.solver.SolverRX3;
 
 class Access {
 
-    public static Iterator<Binding> accessGraph(Iterator<Binding> input, Graph graph, Triple tPattern) {
-        ExecutionContext execCxt = ExecutionContext.createForGraph(graph);
+    public static Iterator<Binding> accessGraph(Iterator<Binding> input, Graph graph, Triple tPattern, RulesExecCxt rCxt) {
+        ExecutionContext execCxt = ExecutionContext.createForGraph(graph, rCxt.getContext());
         // SolverRX3.rdfStarTripleSub is the flat map operation but not visible.
         Iterator<Binding> stage = SolverRX3.rdfStarTriple(input, tPattern, execCxt);
         return stage;

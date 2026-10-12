@@ -35,7 +35,9 @@ function grammar
     mkdir -p $DIR
 
     echo "---- Process grammar -- $1"
-    javacc -OUTPUT_DIRECTORY=$DIR  -JDK_VERSION=1.17 "${FILE}"
+    ## LALR check:   -FORCE_LA_CHECK=true
+    ## This wil generate warnign forteh use of LOOKAHEAD(2)
+    javacc -OUTPUT_DIRECTORY=$DIR -JDK_VERSION=1.21 "${FILE}"
     RC=$?
 
     [ "$RC" = 0 ] || return

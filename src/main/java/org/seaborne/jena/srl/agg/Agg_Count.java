@@ -21,56 +21,96 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 
 
-// XXX Roll into ExprReduceCount
-public class AggCount implements Aggregator {
-
-    // Abstract super class?
-
+/**
+ * COUNT, COUNT DISTINCT
+ */
+public class Agg_Count implements AggregatorFactory {
     private final boolean distinct;
-    private final Var aggVar;
-    private final Collection<Var> groupBy;
     private final RulesExecCxt rCxt;
+    private final Var assignVar;
+    private final Expr expr;
 
-    public AggCount(Var outputVar, boolean distinct, Collection<Var> groupBy, RulesExecCxt rCxt) {
-        this.aggVar = outputVar;
+    public Agg_Count(boolean distinct, Var assignVar, Expr expr, RulesExecCxt rCxt) {
         this.distinct = distinct;
-        this.groupBy = groupBy;
+        this.assignVar = assignVar;
+        this.expr = expr;
         this.rCxt = rCxt;
     }
 
+
     @Override
-    public GroupReducer reducer() {
-        GroupSplitter groupSplitter = (groupBy.isEmpty()) ? GroupSplitters.splitterStar() : GroupSplitters.splitterVars(groupBy);
-        return new GroupReducer("COUNT", aggVar,
-                                ()->NodeConst.nodeZero,
-                                groupSplitter,
-                                factory
-                               );
+    public Expr getArgument() {
+        return expr;
     }
 
-    static AggregateFunction.Factory factory = k->new AggregateCount();
+    @Override
+    public Node onEmpty() {
+        return NodeConst.nodeZero;
+    }
 
-    private static class AggregateCount extends AggregateFunction {
+    @Override
+    public Var assignVar() {
+        return assignVar;
+    }
+
+    @Override
+    public Aggregator newAggregator(GroupKey groupKey) {
+        return new AggregateCount(distinct, assignVar, expr);
+        }
+
+    private static class AggregateCount implements Aggregator {
+
+        private final boolean distinct;
+        private final Var assignVar;
+        private final Expr expr;
+        private final Set<NodeValue> seen;
+
+        AggregateCount(boolean distinct, Var assignVar, Expr expr) {
+            this.distinct = distinct;
+            this.assignVar = assignVar;
+            this.expr = expr;
+            this.seen = (expr!=null) ? new HashSet<>() : null;
+        }
+
         private long counter = 0 ;
         @Override
-        public void receive(Binding binding) { counter++; }
+        public void receive(Binding binding) {
+            if ( expr == null ) {
+                counter++;
+                return;
+            }
+
+            // XXX
+            NodeValue z = expr.eval(binding, null);
+            if ( seen.contains(z) )
+                return;
+            seen.add(z);
+            counter++;
+        }
 
         @Override
         public NodeValue aggValue() { return NodeValue.makeInteger(counter); }
 
         @Override
         public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
+
+        @Override
+        public Var assignVar() {
+            return assignVar;
+        }
     }
 }

@@ -244,8 +244,7 @@ sub fixupRule {
          $head eq "UnaryExpression" ||
          $head eq "<PN_CHARS_BASE>" ||
          $head eq "PatternElement" ||
-         $head eq "BuiltInCall" ||
-         $head eq "Aggregate" )
+         $head eq "BuiltInCall" )
     {
         ## Except BNODE, STRLEN etc
         ## [138]        RegexExpression   ::=   'REGEX' '(' Expression ',' Expression ( ',' Expression )? ')'

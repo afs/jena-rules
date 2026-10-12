@@ -23,7 +23,6 @@ package org.seaborne.jena.srl.lang.writer;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -40,9 +39,10 @@ import org.apache.jena.sparql.serializer.SerializationContext;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.SRLWriter.Style;
-import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
+import org.seaborne.jena.srl.lang.parser.SynAggregationFunction;
 import org.seaborne.jena.srl.sys.SysSRL;
 import org.seaborne.jena.srl.tuples.Tuple;
 
@@ -275,6 +275,7 @@ public class RuleSetWriter {
     }
 
     private void writeBody(Rule rule, Style styleBody) {
+
         switch(styleBody) {
             case Flat->{
                 writeBodyBlock(rule, styleBody);
@@ -293,9 +294,18 @@ public class RuleSetWriter {
     }
 
     private void writeBodyBlock(Rule rule, Style styleBody) {
-        int indent = 2;
+        writeRuleElementsBraces(rule.getBodyElements(), styleBody);
+        out.ensureStartOfLine();
+        out.flush();
+    }
 
-        switch(styleBody) {
+    private void writeRuleElementsBraces(List<RuleBodyElement> bodyElements, Style styleBody) {
+        Style styleHere = styleBody;
+//        if ( bodyElements.size() < 2 )
+//            styleHere = Style.Flat;
+
+        int indent = 4 ;
+        switch(styleHere) {
             case Flat -> {
                 out.setFlatMode(true);
                 out.print("{ ");
@@ -307,9 +317,9 @@ public class RuleSetWriter {
             }
         }
 
-        writeRuleElements(rule.getBodyElements(), styleBody);
+        writeRuleElements(bodyElements, styleHere);
 
-        switch(styleBody) {
+        switch(styleHere) {
             case Flat -> {
                 out.print(" }");
                 out.setFlatMode(false);
@@ -320,10 +330,6 @@ public class RuleSetWriter {
                 out.print("}");
             }
         }
-
-        out.ensureStartOfLine();
-
-        out.flush();
     }
 
     private void writeRuleElements(List<RuleBodyElement> bodyElements, Style styleBody) {
@@ -347,7 +353,7 @@ public class RuleSetWriter {
                 }
 
                 case EltFilter(Expr condition) -> {
-                    out.write("FILTER");
+                    out.write("FILTER ");
                     writeExpr(condition);
                 }
                 case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
@@ -370,17 +376,73 @@ public class RuleSetWriter {
                     writeExpr(expression);
                     out.write(" )");
                 }
-                case EltAggregate(Var aggVar, ExprReduce exprReduce) -> {
-                    out.write("SET( ");
-                    nodeFormatter.format(out, aggVar);
-                    out.write(" := ");
-                    out.write(exprReduce.printName());
-                    if ( exprReduce.hasGroupBy() ) {
-                        StringJoiner sj = new StringJoiner(", ", "[", "]");
-                        exprReduce.groupBy().forEach(v->sj.add("?"+v.getVarName()));
+                case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                    out.write("GROUP");
+                    if ( groupKeys != null && ! groupKeys.isEmpty()) {
+                        out.write(" BY");
+                        groupKeys.forEach(gk -> {
+                            out.print(" ");
+                            nodeFormatter.format(out, gk);
+                        });
+                        out.println();
                     }
-                    writeInnerBody(exprReduce.innerBody(), styleBody);
-                    out.write(" )");
+
+                    writeRuleElementsBraces(aggPattern, styleBody);
+                    out.println();
+
+//                    out.incIndent();
+//                    out.write("{");
+//                    out.incIndent();
+//                    writeRuleElements(aggPattern, styleBody);
+//                    out.decIndent();
+//                    out.write("}");
+//                    out.println();
+
+                    out.write("[");
+
+                    boolean oneLine = aggAssignments.size() < 2 ;
+                    if ( oneLine )
+                        out.write(" ");
+                    else {
+                        out.println();
+                        out.incIndent();
+                    }
+
+                    aggAssignments.forEach(a->{
+                        nodeFormatter.format(out, a.aggVariable());
+                        out.print(" := ");
+                        // XXX COUNT_DISTINCT
+                        String functionName = a.aggFunction().name();
+                        boolean isDistinct = a.aggFunction() == SynAggregationFunction.COUNT_DISTINCT;
+                        if ( isDistinct )
+                            functionName = SynAggregationFunction.COUNT.name();
+
+                        out.print(functionName);
+                        out.print("(");
+                        if ( isDistinct )
+                            out.print("DISTINCT ");
+                        if ( a.expr() == null ) {
+                            out.print("*");
+                        } else {
+                            if ( a.expr().isVariable() ) {
+                                Var v = a.expr().getExprVar().asVar();
+                                nodeFormatter.format(out, v);
+                            }
+                            else
+                                writeExpr(a.expr());
+                        }
+                        out.print(")");
+                        if ( ! oneLine )
+                            out.println();
+                    });
+
+                    if ( oneLine )
+                        out.write(" ");
+                    else
+                        out.decIndent();
+                    out.write("]");
+                    // End GROUP BY
+                    //out.println();
                 }
                 case null -> {
                     throw new InternalErrorException();

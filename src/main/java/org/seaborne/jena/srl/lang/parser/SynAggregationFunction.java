@@ -19,29 +19,8 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.agg;
+package org.seaborne.jena.srl.lang.parser;
 
-import java.util.List;
-
-import org.apache.jena.sparql.core.Var;
-import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
-import org.seaborne.jena.srl.sys.Scope;
-
-/**
- * An expression that marks consuming its input
- * That is, it is a syntax element for a "reduce".
- */
-public class ExprReduceCount extends ExprReduce {
-
-    private boolean distinct;
-
-    public ExprReduceCount(boolean distinct, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
-        super("COUNT", hasGroupByVars, innerBody, scope.inScope());
-        this.distinct = distinct;
-    }
-
-    @Override
-    public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggCount(resultVar, distinct, super.groupBy, rCxt); }
+public enum SynAggregationFunction {
+    COUNT, COUNT_DISTINCT, MIN, MAX, SUM
 }
