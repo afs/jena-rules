@@ -33,6 +33,7 @@ import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public class RuleTransformer {
@@ -143,11 +144,13 @@ public class RuleTransformer {
 
         public static RuleBodyElement transform(EltTuplePattern eltTuplePattern, Tuple tuplePattern) { return null; }
 
-        public static RuleBodyElement transform(EltNegation eltNegation, List<RuleBodyElement> inner, boolean grounded) { return null; }
+        public static RuleBodyElement transform(EltNegation eltNegation, List<RuleBodyElement> pattern, boolean grounded) { return null; }
 
         public static RuleBodyElement transform(EltFilter eltFilter, Expr expr) { return null; }
 
         public static RuleBodyElement transform(EltAssignment eltAssignment, Var var, Expr value) { return null; }
+
+        public static RuleBodyElement transform(EltGroup eltGroup, List<Var> groupKeys, List<RuleBodyElement> oattern, List<SynAggregationAssignment> aggAssignments) { return null; }
     }
 
     private static RuleHeadElement transformHeadElt(RuleHeadElement headElt, RuleTransform transform) {
@@ -179,7 +182,7 @@ public class RuleTransformer {
             }
             case RuleBodyElement.EltNegation x -> {
                 // Transform inner body.
-                List<RuleBodyElement> newInner = transformBodyEltList(x.inner(), transform);
+                List<RuleBodyElement> newInner = transformBodyEltList(x.notPattern(), transform);
                 return transform.transform(x, newInner, x.grounded());
             }
             case RuleBodyElement.EltFilter x -> {
@@ -188,7 +191,7 @@ public class RuleTransformer {
             case RuleBodyElement.EltAssignment x -> {
                 return transform.transform(x, x.var(), x.expression());
             }
-            case RuleBodyElement.EltAggregate x -> {
+            case RuleBodyElement.EltGroup x -> {
                 throw new NotImplemented();
                 //return transform.transform(x, x.var(), x.expression());
             }

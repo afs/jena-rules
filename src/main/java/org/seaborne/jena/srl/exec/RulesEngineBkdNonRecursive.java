@@ -292,7 +292,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 case EltAssignment(Var var, Expr expression) -> {
                     throw new NotImplemented();
                 }
-                case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
                     throw new NotImplemented();
                 }
 //                case null -> {}

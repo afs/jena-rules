@@ -204,7 +204,7 @@ void BodyNotTriples() : {}
    ( Filter()
    | Negation()
    | Assignment()
-   | Aggregate()
+   | GroupAggregate()
    | TuplePattern()
    )
 }
@@ -251,7 +251,7 @@ void Negation() : { Token t; Token t2;}
 {
     t = <NOT>
     { startNegation(token.beginLine, token.beginColumn) ; }
-   ( <DATA> { setGroundedNegation(token.beginLine, token.beginColumn); } )?
+    ( <DATA> { setGroundedNegation(token.beginLine, token.beginColumn); } )?
     t = <LBRACE>
     BodyBasic()
     <RBRACE>
@@ -1273,12 +1273,14 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   )
 }
 // ---- GROUP aggregates
-void Aggregate() : { List<Var> groupVars = null; SynAggregationAssignment aggAssign; }
+void GroupAggregate() : { List<Var> groupVars = null; SynAggregationAssignment aggAssign; }
 {
     <GROUP>
     { startAggregate(token.beginLine, token.beginColumn); }
     ( <BY> groupVars = ListVars() { emitGroupVars(groupVars, token.beginLine, token.beginColumn); } )?
-    AggregatePattern()
+    <LBRACE>
+    GroupPattern()
+    <RBRACE>
     // Accumulates in RulesParserBase
     // "[ ]" is <ANON>
     (
@@ -1293,21 +1295,31 @@ void Aggregate() : { List<Var> groupVars = null; SynAggregationAssignment aggAss
     { emitAggregate(token.beginLine, token.beginColumn); }
     { finishAggregate(token.beginLine, token.beginColumn); }
 }
+void GroupPattern() : {}
+{
+    { startGroupPattern(token.beginLine, token.beginColumn) ; }
+    (BodyTriplesBlock())?
+    ( GroupPatternNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
+    { finishGroupPattern(token.beginLine, token.beginColumn) ; }
+}
+void GroupPatternNotTriples() : {}
+{
+   ( Filter()
+   | Assignment()
+   | TuplePattern()
+   )
+}
 List<Var> ListVars() : { Var v; List<Var> vars = new ArrayList<>(); }
 {
-//     v = Var() { vars.add(v); }
-//     ( v = Var() { vars.add(v); } )*
     ( v = Var() { vars.add(v); } )+
     { return vars; }
 }
 void AggregationAssignment() : { Var aggVar; SynAggregationFunction aggFunction; Token location ; }
 {
-//    location = <LPAREN>
     aggVar = Var()
     { location = token; }
     <ASSIGN>
     aggFunction = AggregationFunction()
-//    <RPAREN>
     { emitAggregationAssignment(aggVar, aggFunction, location.beginLine, location.beginColumn); }
 }
 SynAggregationFunction AggregationFunction() : { Token t; Var var; boolean distinct = false ;}
@@ -1340,26 +1352,6 @@ Var VarOrStar() : { Var v = null; }
 {
     ( v = Var() | <STAR> )
     { return v; }
-}
-void AggregatePattern() : { Token t1; Token t2;}
-{
-   t1 = <LBRACE>
-   { startAggregatePattern(t1.beginLine, t1.beginColumn); }
-   GroupPattern()
-   t2 = <RBRACE>
-   { finishAggregatePattern(t2.beginLine, t2.beginColumn); }
-}
-// Group pattern
-void GroupPattern() : {}
-{
-    { startGroupPattern(token.beginLine, token.beginColumn) ; }
-    (BodyTriplesBlock())?
-    ( GroupPatternNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
-    { finishGroupPattern(token.beginLine, token.beginColumn) ; }
-}
-void GroupPatternNotTriples() : {}
-{
-   ( Filter() | TuplePattern() )
 }
 // --------
 // See also FunctionCall.

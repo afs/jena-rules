@@ -356,7 +356,7 @@ public class RuleSetWriter {
                     out.write("FILTER ");
                     writeExpr(condition);
                 }
-                case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                case EltNegation(List<RuleBodyElement> pattern, boolean grounded) -> {
                     out.write("NOT ");
                     if ( grounded )
                         out.write("DATA ");
@@ -364,7 +364,7 @@ public class RuleSetWriter {
                     out.println();
                     final int indentLevelNegation = 4 ;
                     out.incIndent(indentLevelNegation);
-                    writeRuleElements(inner, styleBody);
+                    writeRuleElements(pattern, styleBody);
                     out.decIndent(indentLevelNegation);
                     out.println();
                     out.write(" }");
@@ -376,7 +376,7 @@ public class RuleSetWriter {
                     writeExpr(expression);
                     out.write(" )");
                 }
-                case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> {
                     out.write("GROUP");
                     if ( groupKeys != null && ! groupKeys.isEmpty()) {
                         out.write(" BY");
@@ -387,7 +387,7 @@ public class RuleSetWriter {
                         out.println();
                     }
 
-                    writeRuleElementsBraces(aggPattern, styleBody);
+                    writeRuleElementsBraces(pattern, styleBody);
                     out.println();
 
 //                    out.incIndent();

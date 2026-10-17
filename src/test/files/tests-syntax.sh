@@ -324,6 +324,11 @@ PREFIX :    <http://example/>
 RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o } [ ?N := COUNT(*) ] }
 EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o SET ( ?z := ?o +1 ) } [ ?N := SUM(?z) ] }
+EOF
+
 ## Aggregate functions
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF

@@ -257,7 +257,7 @@ NON-TERMINALS
 	Data	:=	<DATA> <LBRACE> ( DataTriplesBlock )? <RBRACE>
 	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? <RBRACE>
 	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
-	BodyNotTriples	:=	( Filter | Negation | Assignment | Aggregate )
+	BodyNotTriples	:=	( Filter | Negation | Assignment | GroupAggregate )
 	Filter	:=	<FILTER> Constraint
 	Constraint	:=	( BrackettedExpression | BuiltInCall | FunctionCall )
 	FunctionCall	:=	iri ArgList
@@ -440,16 +440,14 @@ NON-TERMINALS
 		|	PrimaryExpression
 	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
 // ---- GROUP aggregates
-	Aggregate	:=	<GROUP> ( <BY> ListVars )? AggregatePattern ( <ANON> | <LBRACKET> ( AggregationAssignment )+ <RBRACKET> )
+	GroupAggregate	:=	<GROUP> ( <BY> ListVars )? <LBRACE> GroupPattern <RBRACE> ( <ANON> | <LBRACKET> ( AggregationAssignment )+ <RBRACKET> )
+	GroupPattern	:=	( BodyTriplesBlock )? ( GroupPatternNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
+	GroupPatternNotTriples	:=	( Filter | Assignment )
 	ListVars	:=	( Var )+
 	AggregationAssignment	:=	Var <ASSIGN> AggregationFunction
 	AggregationFunction	:=	( <COUNT> <LPAREN> ( <DISTINCT> )? VarOrStar <RPAREN> | <MIN> <LPAREN> Var <RPAREN> | <MAX> <LPAREN> Var <RPAREN> | <SUM> <LPAREN> Var <RPAREN> )
 // return null for "*"
 	VarOrStar	:=	( Var | <STAR> )
-	AggregatePattern	:=	<LBRACE> GroupPattern <RBRACE>
-// Group pattern
-	GroupPattern	:=	( BodyTriplesBlock )? ( GroupPatternNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
-	GroupPatternNotTriples	:=	Filter
 // --------
 // See also FunctionCall.
 	iriOrFunction	:=	iri ( ArgList )?

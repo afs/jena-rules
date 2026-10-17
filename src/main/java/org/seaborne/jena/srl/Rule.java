@@ -37,7 +37,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
-import org.seaborne.jena.srl.lang.RuleBodyElement.EltAggregate;
+import org.seaborne.jena.srl.lang.RuleBodyElement.EltGroup;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltAssignment;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
@@ -204,10 +204,10 @@ public class Rule {
                 switch (elt) {
                     // case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {}
                     // case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {}
-                    case RuleBodyElement.EltNegation(List<RuleBodyElement> inner, boolean grounded) -> { _hasNegation = true; }
+                    case RuleBodyElement.EltNegation(List<RuleBodyElement> pattern, boolean grounded) -> { _hasNegation = true; }
                     // case RuleBodyElement.EltFilter(Expr condition) -> {}
                     case EltAssignment(Var var, Expr expression) -> { _hasAssignment = true; }
-                    case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> { _hasAggregation = true; }
+                    case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> { _hasAggregation = true; }
                     case null -> {}
                     default -> {}
                 };

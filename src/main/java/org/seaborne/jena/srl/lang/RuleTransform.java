@@ -31,6 +31,7 @@ import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public interface RuleTransform {
@@ -51,9 +52,11 @@ public interface RuleTransform {
 
     public default RuleBodyElement transform(EltTuplePattern eltTuplePattern, Tuple tuplePattern) { return null; }
 
-    public default RuleBodyElement transform(EltNegation eltNegation, List<RuleBodyElement> inner, boolean grounded) { return null; }
+    public default RuleBodyElement transform(EltNegation eltNegation, List<RuleBodyElement> pattern, boolean grounded) { return null; }
 
     public default RuleBodyElement transform(EltFilter eltFilter, Expr expr) { return null; }
 
     public default RuleBodyElement transform(EltAssignment eltAssignment, Var var, Expr value) { return null; }
+
+    public default RuleBodyElement transform(EltGroup eltGroup, List<Var> groupKeys, List<RuleBodyElement> oattern, List<SynAggregationAssignment> aggAssignments) { return null; }
 }

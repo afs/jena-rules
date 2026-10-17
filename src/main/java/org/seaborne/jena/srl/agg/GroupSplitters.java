@@ -54,7 +54,7 @@ public class GroupSplitters {
         GroupSplitterStar() {}
 
         @Override
-        public GroupKey groupKey(Binding binding) { return GroupKeyFixed.instance; }
+        public GroupKey groupKey(Binding binding) { return GroupKeyNoVars.instance; }
 
         @Override
         public Set<Var> groupKeys() { return Set.of(); }

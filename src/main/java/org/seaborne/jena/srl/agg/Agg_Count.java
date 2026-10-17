@@ -77,28 +77,41 @@ public class Agg_Count implements AggregatorFactory {
         private final boolean distinct;
         private final Var assignVar;
         private final Expr expr;
-        private final Set<NodeValue> seen;
+        private final Set<NodeValue> seenExpr;
+        private final Set<Binding> seenRows;
 
         AggregateCount(boolean distinct, Var assignVar, Expr expr) {
             this.distinct = distinct;
             this.assignVar = assignVar;
             this.expr = expr;
-            this.seen = (expr!=null) ? new HashSet<>() : null;
+            if ( distinct ) {
+                this.seenExpr = (expr != null ) ? new HashSet<>() : null;
+                this.seenRows = (expr == null ) ? new HashSet<>() : null;
+            } else {
+                this.seenExpr = null;
+                this.seenRows = null;
+            }
         }
 
         private long counter = 0 ;
         @Override
         public void receive(Binding binding) {
+//            System.out.println("Receive: "+binding);
             if ( expr == null ) {
+                if ( distinct ) {
+                    if ( seenRows.contains(binding) )
+                        return;
+                    seenRows.add(binding);
+                }
                 counter++;
                 return;
             }
-
-            // XXX
             NodeValue z = expr.eval(binding, null);
-            if ( seen.contains(z) )
-                return;
-            seen.add(z);
+            if ( distinct ) {
+                if ( seenExpr.contains(z) )
+                    return;
+                seenExpr.add(z);
+            }
             counter++;
         }
 
@@ -111,6 +124,11 @@ public class Agg_Count implements AggregatorFactory {
         @Override
         public Var assignVar() {
             return assignVar;
+        }
+
+        @Override
+        public String toString() {
+            return "AggCount: "+counter;
         }
     }
 }

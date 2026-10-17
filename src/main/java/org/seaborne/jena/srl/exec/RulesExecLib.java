@@ -35,6 +35,7 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.engine.binding.BindingProject;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
@@ -216,7 +217,7 @@ class RulesExecLib {
                 };
                 return Iter.iter(chainIn).map(mapper).removeNulls();
             }
-            case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+            case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
                 return aggregateAssignment(evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
             }
 
@@ -310,34 +311,27 @@ class RulesExecLib {
             groupProc.startReceive();
 
             groupProc.nextRow(row);
-            //System.out.println(row);
+            //groupProc.nextRow(BindingFactory.binding());
 
             // Cache same row restricted by group keys.
-            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row, aggPattern, rCxt);
-            chainInner.forEachRemaining(binding->{
-//                System.out.println(binding);
-//                // XXX Improve.
-//                // Safe binding copy.
-//                // Add BindingBuilder.addNotPresent()
-//                BindingBuilder b = BindingBuilder.create(row);
-//                row.forEach((var, val) ->{
-//                    if ( ! b.contains(var) ) {
-//                        System.out.println("ADD "+var);
-//                        b.add(var, val);
-//                    }
-//                });
-//                Binding binding2 = b.build();
-//                groupProc.receive(binding2);
-                groupProc.receive(binding);
-            });
+
+//          // XXX ONLY GROUP KEYS
+
+            //BindingFactory.project()
+            Binding row2 = new BindingProject(groupKeys, row);
+//            // XXX Wrap in a projection row to group keys.
+            // XXX ONLY GROUP KEYS
+            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row2, aggPattern, rCxt);
+//            var x = Iter.toList(chainInner);
+//            x.forEach(System.out::println);
+//            chainInner = x.iterator();
+            chainInner.forEachRemaining(binding->groupProc.receive(binding));
             groupProc.finishReceive();
             Iterator<Binding> out1 = groupProc.eval();
             results = IteratorConcat.concat(results, out1);
-            //});
         }
         return results;
     }
-
 
     private static void accInstantiateHead(List<Triple> accTriples, List<Tuple> accTuples, RuleHead ruleHead, Binding solution) {
         // Unbound variables shouldn't happen.

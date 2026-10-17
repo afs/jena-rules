@@ -119,9 +119,9 @@ public class RulesParserBase extends LangParserBase {
     private List<RuleHeadElement> headAcc = null;
     // Used while parsing the body.
     private List<RuleBodyElement> bodyAcc = null;
-    // Used while parsing a negation inner body.
+    // Used while parsing a negation pattern
     private List<RuleBodyElement> innerNegationAcc = null;
-    // Used while parsing a groups pattern
+    // Used while parsing a group pattern
     private List<RuleBodyElement> innerGroupAcc = null;
 
     // Used to accumulate nodes for a tuple.
@@ -355,11 +355,13 @@ public class RulesParserBase extends LangParserBase {
         state = BuildState.BODY;
     }
 
-    // ---- Aggrgates
+    // ---- Aggregates
 
     protected void startAggregate(int line, int column) {
         debug("startAggregate", line, column);
         aggAssignments = new ArrayList<>();
+        hasAggregation = true;
+        innerGroupAcc = new ArrayList<>();
     }
 
     // The components of a group/aggregate
@@ -370,18 +372,6 @@ public class RulesParserBase extends LangParserBase {
 
     protected void emitGroupVars(List<Var> listGroupVars, int beginLine, int beginColumn) {
         groupVars = listGroupVars;
-    }
-
-    protected void startAggregatePattern(int line, int column) {
-        debug("startAggregatePattern", line, column);
-        state = BuildState.GROUP_INNER;
-        hasAggregation = true;
-        innerGroupAcc = new ArrayList<>();
-    }
-
-    protected void finishAggregatePattern(int line, int column) {
-        debug("finishAggregatePaattern", line, column);
-        state = BuildState.BODY;
     }
 
     // Map to the symbol, for the aggregation function
@@ -487,7 +477,7 @@ public class RulesParserBase extends LangParserBase {
     // Group keys can be null
         requireNonNull(aggPattern);
         requireNonNull(aggAssignments);
-        addToBody(new RuleBodyElement.EltAggregate(groupVars, innerGroupAcc, aggAssignments));
+        addToBody(new RuleBodyElement.EltGroup(groupVars, innerGroupAcc, aggAssignments));
         hasAggregation = true;
     }
 

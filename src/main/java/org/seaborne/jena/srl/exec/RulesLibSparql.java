@@ -83,7 +83,7 @@ public class RulesLibSparql {
                     Expr bound = new E_Bound(v);
                     group.addElement(new ElementFilter(bound));
                 }
-                case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> {
                     throw new NotImplemented("ruleBodyToElementGroup EltAggregate");
                 }
             }

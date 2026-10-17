@@ -66,6 +66,7 @@ public class GroupProcessor {
     public void receive(Binding binding) {
         GroupKey groupKey = splitter.groupKey(binding);
 
+
         if ( groupKey == null ) {
             System.err.println("Null group key");
             throw new RuleExprEvalException("Null group key: "+binding);
@@ -102,16 +103,20 @@ public class GroupProcessor {
         rows = evalAgg(groups, currentRow);
     }
 
+    // "parent" is the binding coming in from before the GROUP
     private static List<Binding> evalAgg(ListValuedMap<GroupKey, Aggregator> groups, Binding parent) {
         // For each group, for each aggregator, calculate the result
         List<Binding> rows = new ArrayList<>();
+
+        // System.out.println("Group keys: "+groups.keySet().size());
+
         groups.keySet().forEach(gk->{
             BindingBuilder builder = (parent != null)
                     ? BindingBuilder.create(parent)
                     : BindingBuilder.create(BindingBuilder.noParent);
-            // Augment - no needed - rows have input as parent.
-//            gk.addToBinding(builder);
-            // Project group keys.
+            // May or may not be present in the parent.
+            gk.addToBinding(builder);
+
             for ( Aggregator agg : groups.get(gk) ) {
                 agg.finish();
                 Node n = agg.aggNode();

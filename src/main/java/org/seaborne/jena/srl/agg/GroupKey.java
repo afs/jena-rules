@@ -21,6 +21,10 @@
 
 package org.seaborne.jena.srl.agg;
 
+import java.util.Iterator;
+
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 
 /**
@@ -29,10 +33,7 @@ import org.apache.jena.sparql.engine.binding.BindingBuilder;
  */
 public interface GroupKey {
     void addToBinding(BindingBuilder builder);
-//    @Override
-//    public abstract int hashCode();
-//    @Override
-//    public boolean equals(Object other) { return equalGroupKey((GroupKey)other); }
-//
-//    public abstract boolean equalGroupKey(GroupKey other);
+    boolean contains(Var var);
+    Node get(Var var);
+    Iterator<Var> vars();
 }

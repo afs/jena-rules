@@ -21,6 +21,7 @@
 
 package org.seaborne.jena.srl.agg;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,12 +42,35 @@ class GroupKeyList implements GroupKey {
         this.N = vars.size();
         if ( N != values.size() )
             throw new InternalErrorException("vars length = "+vars.size()+" but values length = "+values.size());
+        //System.out.println("New GroupKeyList: "+this);
+
+    }
+
+    @Override
+    public Node get(Var var) {
+        int idx = vars.indexOf(var);
+        if ( idx < 0 )
+            return null;
+        return values.get(idx);
+    }
+
+    @Override
+    public boolean contains(Var var) {
+        return vars.contains(var);
+    }
+
+
+    @Override
+    public Iterator<Var> vars() {
+        return vars.iterator();
     }
 
     @Override
     public void addToBinding(BindingBuilder builder) {
         for(int i = 0; i < N ; i++ ) {
             Var var = vars.get(i);
+            if ( builder.contains(var) )
+                continue;
             Node val = values.get(i);
             builder.add(var, val);
         }

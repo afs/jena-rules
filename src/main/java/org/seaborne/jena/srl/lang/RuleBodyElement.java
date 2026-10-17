@@ -40,7 +40,7 @@ public sealed interface RuleBodyElement  {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 
-    public record EltNegation(List<RuleBodyElement> inner, boolean grounded) implements RuleBodyElement {
+    public record EltNegation(List<RuleBodyElement> notPattern, boolean grounded) implements RuleBodyElement {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 
@@ -52,7 +52,7 @@ public sealed interface RuleBodyElement  {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 
-    public record EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) implements RuleBodyElement {
+    public record EltGroup(List<Var> groupKeys, List<RuleBodyElement> groupPattern, List<SynAggregationAssignment> aggAssignments) implements RuleBodyElement {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 }

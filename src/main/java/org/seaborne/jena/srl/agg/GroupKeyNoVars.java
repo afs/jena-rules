@@ -21,24 +21,43 @@
 
 package org.seaborne.jena.srl.agg;
 
+import java.util.Iterator;
+
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 
 /**
  * Group key for "no group variables"
  */
 
-public class GroupKeyFixed implements GroupKey {
+public class GroupKeyNoVars implements GroupKey {
 
-    public static final GroupKey instance = new GroupKeyFixed();
+    public static final GroupKey instance = new GroupKeyNoVars();
 
-    private GroupKeyFixed() {}
+    private GroupKeyNoVars() {}
+
+    @Override
+    public Node get(Var var) {
+        return null;
+    }
+
+    @Override
+    public boolean contains(Var var) {
+        return false;
+    }
+
+    @Override
+    public Iterator<Var> vars() {
+        return Iter.nullIterator();
+    }
 
     @Override
     public void addToBinding(BindingBuilder builder) {}
 
     @Override
     public String toString() {
-        return "GroupKeyFixed";
+        return "GroupKey(*)";
     }
-
 }

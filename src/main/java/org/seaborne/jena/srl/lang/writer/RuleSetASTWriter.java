@@ -233,7 +233,7 @@ public class RuleSetASTWriter {
 //                        out.decIndent();
 //                        out.print(")");
                     }
-                    case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                    case EltNegation(List<RuleBodyElement> pattern, boolean grounded) -> {
                         final int indentLevelNegation = 2 ;
                         out.print("(");
                         out.print(tagNot);
@@ -243,7 +243,7 @@ public class RuleSetASTWriter {
                         }
                         out.println();
                         out.incIndent(indentLevelNegation);
-                        writeRuleElements(inner);
+                        writeRuleElements(pattern);
                         out.decIndent(indentLevelNegation);
                         out.print(")");
                     }
@@ -256,7 +256,7 @@ public class RuleSetASTWriter {
                         writeExpr(expression);
                         out.print(")");
                     }
-                    case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                    case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> {
                         out.print("(");
                         out.print(tagSet);
                         out.incIndent();
@@ -266,7 +266,7 @@ public class RuleSetASTWriter {
                             printList(groupKeys, v->nodeFormatter.format(out, v));
                         out.println();
                         // XXX Wrong!
-                        writeRuleElements(aggPattern);
+                        writeRuleElements(pattern);
                         printList(aggAssignments, a->{
                             out.print("(");
                             nodeFormatter.format(out, a.aggVariable());

@@ -116,7 +116,7 @@ public class WellFormed {
                     throw new NotWellFormedException("Assignment variable already defined: "+var);
                 tracker.bodyDefined.add(var);
             }
-            case EltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+            case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
                 VarTracker negTracker = tracker.copyOf();
                 checkRuleElements(negTracker, aggPattern);
                 if ( groupKeys != null )

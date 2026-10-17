@@ -35,5 +35,5 @@ public interface RuleVisitor {
     public default void visit(EltNegation eltNegation) {}
     public default void visit(EltFilter eltFilter) {}
     public default void visit(EltAssignment eltAssignment) {}
-    public default void visit(EltAggregate eltAggregate) {}
+    public default void visit(EltGroup eltAggregate) {}
 }
