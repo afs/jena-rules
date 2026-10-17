@@ -1256,9 +1256,21 @@ void AggregatePattern() : { Token t1; Token t2;}
 {
    t1 = <LBRACE>
    { startAggregatePattern(t1.beginLine, t1.beginColumn); }
-   BodyBasic()
+   GroupPattern()
    t2 = <RBRACE>
    { finishAggregatePattern(t2.beginLine, t2.beginColumn); }
+}
+// Group pattern
+void GroupPattern() : {}
+{
+    { startGroupPattern(token.beginLine, token.beginColumn) ; }
+    (BodyTriplesBlock())?
+    ( GroupPatternNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
+    { finishGroupPattern(token.beginLine, token.beginColumn) ; }
+}
+void GroupPatternNotTriples() : {}
+{
+   Filter()
 }
 // --------
 // See also FunctionCall.

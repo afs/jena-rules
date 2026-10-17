@@ -446,7 +446,10 @@ NON-TERMINALS
 	AggregationFunction	:=	( <COUNT> <LPAREN> ( <DISTINCT> )? VarOrStar <RPAREN> | <MIN> <LPAREN> Var <RPAREN> | <MAX> <LPAREN> Var <RPAREN> | <SUM> <LPAREN> Var <RPAREN> )
 // return null for "*"
 	VarOrStar	:=	( Var | <STAR> )
-	AggregatePattern	:=	<LBRACE> BodyBasic <RBRACE>
+	AggregatePattern	:=	<LBRACE> GroupPattern <RBRACE>
+// Group pattern
+	GroupPattern	:=	( BodyTriplesBlock )? ( GroupPatternNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
+	GroupPatternNotTriples	:=	Filter
 // --------
 // See also FunctionCall.
 	iriOrFunction	:=	iri ( ArgList )?

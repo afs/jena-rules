@@ -109,8 +109,7 @@ public class RulesParserBase extends LangParserBase {
 
     // ---- Parser state.
 
-    // INNER is the restricted body pattern for NOT.
-    enum BuildState { NONE, OUTER, DATA, TUPLE_DATA, RULE, HEAD, BODY, INNER };
+    enum BuildState { NONE, OUTER, DATA, TUPLE_DATA, RULE, HEAD, BODY, NOT_INNER, GROUP_INNER };
     protected BuildState state = BuildState.OUTER;
 
     // URI for the current rule.
@@ -120,8 +119,10 @@ public class RulesParserBase extends LangParserBase {
     private List<RuleHeadElement> headAcc = null;
     // Used while parsing the body.
     private List<RuleBodyElement> bodyAcc = null;
-    // Used while parsing a negation or aggregation inner body.
-    private List<RuleBodyElement> innerBodyAcc = null;
+    // Used while parsing a negation inner body.
+    private List<RuleBodyElement> innerNegationAcc = null;
+    // Used while parsing a groups pattern
+    private List<RuleBodyElement> innerGroupAcc = null;
 
     // Used to accumulate nodes for a tuple.
     private final List<Node> tupleArgs = new ArrayList<>();
@@ -243,11 +244,21 @@ public class RulesParserBase extends LangParserBase {
 
     protected void startBodyBasic(int line, int column) {
         debug("startBodyBasic", line, column);
-        state = BuildState.INNER;
+        state = BuildState.NOT_INNER;
     }
 
     protected void finishBodyBasic(int line, int column) {
         debug("finishBodyBasic", line, column);
+        state = BuildState.BODY;
+    }
+
+    protected void startGroupPattern(int line, int column) {
+        debug("startGroupPattern", line, column);
+        state = BuildState.GROUP_INNER;
+    }
+
+    protected void finishGroupPattern(int line, int column) {
+        debug("finishGroupPattern", line, column);
         state = BuildState.BODY;
     }
 
@@ -329,9 +340,9 @@ public class RulesParserBase extends LangParserBase {
 
     protected void startNegation(int line, int column) {
         debug("startNegation", line, column);
-        state = BuildState.INNER;
+        state = BuildState.NOT_INNER;
         hasNegation = true;
-        innerBodyAcc = new ArrayList<>();
+        innerNegationAcc = new ArrayList<>();
     }
 
     protected void setGroundedNegation(int line, int column) {
@@ -348,6 +359,7 @@ public class RulesParserBase extends LangParserBase {
 
     protected void startAggregate(int line, int column) {
         debug("startAggregate", line, column);
+        aggAssignments = new ArrayList<>();
     }
 
     // The components of a group/aggregate
@@ -362,11 +374,9 @@ public class RulesParserBase extends LangParserBase {
 
     protected void startAggregatePattern(int line, int column) {
         debug("startAggregatePattern", line, column);
-        // XXX New state?
-        state = BuildState.INNER;
+        state = BuildState.GROUP_INNER;
         hasAggregation = true;
-        aggAssignments = new ArrayList<>();
-        innerBodyAcc = new ArrayList<>();
+        innerGroupAcc = new ArrayList<>();
     }
 
     protected void finishAggregatePattern(int line, int column) {
@@ -404,7 +414,7 @@ public class RulesParserBase extends LangParserBase {
         // groupVars
         // innerBodyAcc
         // aggregate assignments
-        addBodyEltAggregate(groupVars, innerBodyAcc, aggAssignments);
+        addBodyEltAggregate(groupVars, innerGroupAcc, aggAssignments);
     }
 
     protected void finishAggregate(int line, int column) {
@@ -430,9 +440,10 @@ public class RulesParserBase extends LangParserBase {
     private void addToBody(RuleBodyElement ruleElt) {
         requireNonNull(ruleElt);
         switch(state) {
-            case BODY   -> bodyAcc.add(ruleElt);
-            case INNER  -> innerBodyAcc.add(ruleElt);
-            default     ->
+            case BODY        -> bodyAcc.add(ruleElt);
+            case NOT_INNER   -> innerNegationAcc.add(ruleElt);
+            case GROUP_INNER -> innerGroupAcc.add(ruleElt);
+            default ->
                 throwInternalStateException("Rule element emitted when in state "+state);
         }
     }
@@ -476,7 +487,7 @@ public class RulesParserBase extends LangParserBase {
     // Group keys can be null
         requireNonNull(aggPattern);
         requireNonNull(aggAssignments);
-        addToBody(new RuleBodyElement.EltAggregate(groupVars, innerBodyAcc, aggAssignments));
+        addToBody(new RuleBodyElement.EltAggregate(groupVars, innerGroupAcc, aggAssignments));
         hasAggregation = true;
     }
 
@@ -521,11 +532,10 @@ public class RulesParserBase extends LangParserBase {
     protected void emitTuple(Tuple tuple, int line, int column) {
         debug("emitTuple", line, column);
         switch(state) {
-            case HEAD -> { addHeadEltTuple(tuple); }
-            case BODY -> { addBodyEltTuple(tuple); }
-            case INNER -> {
-                innerBodyAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
-            }
+            case HEAD -> addHeadEltTuple(tuple);
+            case BODY -> addBodyEltTuple(tuple);
+            case NOT_INNER -> innerNegationAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
+            case GROUP_INNER -> innerGroupAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
             default -> throw new IllegalArgumentException("Unexpected value: " + state);
         }
     }
@@ -536,8 +546,8 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void emitNegation(int line, int column) {
-        addBodyEltNegation(innerBodyAcc);
-        innerBodyAcc = null;
+        addBodyEltNegation(innerNegationAcc);
+        innerNegationAcc = null;
     }
 
     protected void emitFilterExpr(Expr expr, int line, int column) {
@@ -610,11 +620,15 @@ public class RulesParserBase extends LangParserBase {
     private void accTriple(Node s, Node p , Node o, int line, int column) {
         Triple triple = Triple.create(s, p, o);
         switch(state) {
-            case HEAD -> { addHeadEltTriple(triple); }
-            case BODY -> { addBodyEltTiple(Triple.create(s,p,o)); }
-            case INNER -> {
+            case HEAD -> addHeadEltTriple(triple);
+            case BODY -> addBodyEltTiple(Triple.create(s,p,o));
+            case NOT_INNER -> {
                 Triple triplePattern = Triple.create(s,p,o);
-                innerBodyAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
+                innerNegationAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
+            }
+            case GROUP_INNER -> {
+                Triple triplePattern = Triple.create(s,p,o);
+                innerGroupAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
             }
             case DATA -> {
                 if ( ! triple.isConcrete() ) {
