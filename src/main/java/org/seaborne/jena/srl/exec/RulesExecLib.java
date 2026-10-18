@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
-import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.atlas.iterator.IteratorConcat;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
@@ -35,6 +35,7 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.engine.binding.BindingProject;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
@@ -44,12 +45,11 @@ import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleBody;
 import org.seaborne.jena.srl.RuleHead;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.agg.Aggregator;
-import org.seaborne.jena.srl.agg.ExprReduce;
-import org.seaborne.jena.srl.agg.GroupReducer;
+import org.seaborne.jena.srl.agg.*;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.sys.DependencyGraph;
 import org.seaborne.jena.srl.sys.RecursionChecker;
 import org.seaborne.jena.srl.sys.Stratification;
@@ -185,7 +185,7 @@ class RulesExecLib {
         // evalGraph will be the inputGraph if this is a grounded evaluation.
         switch (elt) {
             case EltTriplePattern(Triple triplePattern) -> {
-                return Access.accessGraph(chainIn, evalGraph, triplePattern);
+                return Access.accessGraph(chainIn, evalGraph, triplePattern, rCxt);
             }
             case EltTuplePattern(Tuple tuplePattern) -> {
                 if ( tupleStore == null )
@@ -202,11 +202,6 @@ class RulesExecLib {
                 return chain2;
             }
             case EltAssignment(Var var, Expr expression) -> {
-                // EltAggregate would be better.
-                if ( expression instanceof ExprReduce exprReducer)
-                    throw new InternalErrorException("ExprReduce for EltAssignment");
-
-                // Otherwise it's a function expression on the current row.
                 Function<Binding, Binding> mapper = row -> {
                     FunctionEnv funcEnv = rCxt;
                     try {
@@ -222,8 +217,8 @@ class RulesExecLib {
                 };
                 return Iter.iter(chainIn).map(mapper).removeNulls();
             }
-            case EltAggregate(Var aggVar, ExprReduce exprReducer) -> {
-                return aggregateAssignment(evalGraph, tupleStore, chainIn, aggVar, exprReducer, rCxt);
+            case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                return aggregateAssignment(evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
             }
 
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
@@ -239,21 +234,103 @@ class RulesExecLib {
         }
     }
 
-    private static Iterator<Binding> aggregateAssignment(Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn, Var var, ExprReduce exprReducer, RulesExecCxt rCxt) {
-        Aggregator aggregator = exprReducer.aggregator(var, rCxt);
-        GroupReducer reducer = aggregator.reducer();
-        reducer.startReceive();
+    public static boolean AUGMENT = true;
 
-        chainIn.forEachRemaining(row->{
-            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row, exprReducer.innerBody(), rCxt);
-            chainInner.forEachRemaining(binding->{
-                reducer.receive(binding);
-            });
+    private static Iterator<Binding> aggregateAssignment(Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn,
+                                                         List<Var> groupKeys, List<RuleBodyElement> aggPattern,
+                                                         List<SynAggregationAssignment> aggAssignments, RulesExecCxt rCxt) {
+        GroupSplitter groupSplitter = GroupSplitters.splitter(groupKeys);
+        List<AggregatorFactory> factories = new ArrayList<>();
+        aggAssignments.forEach(aggAssign->{
+            AggregatorFactory f =
+                    switch (aggAssign.aggFunction()) {
+                        case COUNT -> new Agg_Count(false, aggAssign.aggVariable(), aggAssign.expr(), rCxt);
+                        case COUNT_DISTINCT -> new Agg_Count(true, aggAssign.aggVariable(), aggAssign.expr(),rCxt);
+                        case MAX  -> new Agg_Max(aggAssign.aggVariable(), aggAssign.expr(), rCxt);
+                        case MIN  -> new Agg_Min(aggAssign.aggVariable(), aggAssign.expr(), rCxt);
+                        case SUM  -> new Agg_Sum(aggAssign.aggVariable(), aggAssign.expr(), rCxt);
+                    };
+            factories.add(f);
         });
 
-        reducer.finishReceive();
-        // Not adding to input.
-        return reducer.eval();
+
+        if ( AUGMENT ) {
+            return aggregateAugment(groupSplitter, factories,
+                                    evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
+        } else {
+            return aggregateSummarise(groupSplitter, factories,
+                                  evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
+        }
+    }
+
+    private static Iterator<Binding> aggregateSummarise(GroupSplitter groupSplitter, List<AggregatorFactory> factories,
+                                                        // All args of aggregateAssignment
+                                                        Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn,
+                                                        List<Var> groupKeys, List<RuleBodyElement> aggPattern,
+                                                        List<SynAggregationAssignment> aggAssignments, RulesExecCxt rCxt
+            ) {
+        // Summarise - do not pass on the full input binding, only group keys and aggregated values.
+        // SRL is "augment"
+        System.out.println("** Summarise");
+        // Summarise
+        GroupProcessor groupProc = new GroupProcessor(groupSplitter, factories);
+        groupProc.startReceive();
+        // Account for "row"
+        chainIn.forEachRemaining(row->{
+            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row, aggPattern, rCxt);
+            chainInner.forEachRemaining(binding->{
+                // The return from evalBodyBinding has the input binding as parent.
+                // No need to merge.
+//                BindingBuilder b = BindingBuilder.create(row);
+//                row.forEach((var, val) ->{
+//                    if ( ! b.contains(var) ) {
+//                        System.out.println("ADD "+var);
+//                        b.add(var, val);
+//                    }
+//                });
+//                Binding binding2 = b.build();
+                groupProc.receive(binding);
+            });
+        });
+        groupProc.finishReceive();
+        return groupProc.eval();
+    }
+
+    private static Iterator<Binding> aggregateAugment(GroupSplitter groupSplitter, List<AggregatorFactory> factories,
+                                                      // All args of aggregateAssignment
+                                                      Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn,
+                                                      List<Var> groupKeys, List<RuleBodyElement> aggPattern,
+                                                      List<SynAggregationAssignment> aggAssignments, RulesExecCxt rCxt
+            ) {
+        GroupProcessor groupProc = new GroupProcessor(groupSplitter, factories);
+        Iterator<Binding> results = null;
+
+        while(chainIn.hasNext() ) {
+            Binding row = chainIn.next();
+            // reset
+            groupProc.startReceive();
+
+            groupProc.nextRow(row);
+            //groupProc.nextRow(BindingFactory.binding());
+
+            // Cache same row restricted by group keys.
+
+//          // XXX ONLY GROUP KEYS
+
+            //BindingFactory.project()
+            Binding row2 = new BindingProject(groupKeys, row);
+//            // XXX Wrap in a projection row to group keys.
+            // XXX ONLY GROUP KEYS
+            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row2, aggPattern, rCxt);
+//            var x = Iter.toList(chainInner);
+//            x.forEach(System.out::println);
+//            chainInner = x.iterator();
+            chainInner.forEachRemaining(binding->groupProc.receive(binding));
+            groupProc.finishReceive();
+            Iterator<Binding> out1 = groupProc.eval();
+            results = IteratorConcat.concat(results, out1);
+        }
+        return results;
     }
 
     private static void accInstantiateHead(List<Triple> accTriples, List<Tuple> accTuples, RuleHead ruleHead, Binding solution) {

@@ -38,16 +38,12 @@ public class GroupSplitters {
 
     private GroupSplitters() {}
 
-    // COUNT(*) for the whole group.
     private static final GroupSplitter instanceStar = new GroupSplitterStar();
-
-
 
     static GroupSplitter splitterStar() { return instanceStar; }
     static GroupSplitter splitterVars(Collection<Var> groupVars) { return new GroupSplitterByVars(groupVars); }
 
-    /* * or vars */
-    static GroupSplitter splitter(Collection<Var> groupVars) {
+    public static GroupSplitter splitter(Collection<Var> groupVars) {
         if ( groupVars == null || groupVars.isEmpty() )
             return instanceStar;
         return splitterVars(groupVars);
@@ -58,7 +54,7 @@ public class GroupSplitters {
         GroupSplitterStar() {}
 
         @Override
-        public GroupKey groupKey(Binding binding) { return GroupKeyFixed.instance; }
+        public GroupKey groupKey(Binding binding) { return GroupKeyNoVars.instance; }
 
         @Override
         public Set<Var> groupKeys() { return Set.of(); }

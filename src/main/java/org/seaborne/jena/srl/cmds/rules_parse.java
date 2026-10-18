@@ -59,7 +59,6 @@ public class rules_parse extends CmdRules {
 
     private static boolean debug = false;
 
-
     private String baseIRI             = null;
     private Lang lang                  = null;
 

@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
-import org.seaborne.jena.srl.agg.ExprReduce;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 public sealed interface RuleBodyElement  {
@@ -40,7 +40,7 @@ public sealed interface RuleBodyElement  {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 
-    public record EltNegation(List<RuleBodyElement> inner, boolean grounded) implements RuleBodyElement {
+    public record EltNegation(List<RuleBodyElement> notPattern, boolean grounded) implements RuleBodyElement {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 
@@ -52,13 +52,7 @@ public sealed interface RuleBodyElement  {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
 
-    public record EltAggregate(Var var, ExprReduce reducer) implements RuleBodyElement {
+    public record EltGroup(List<Var> groupKeys, List<RuleBodyElement> groupPattern, List<SynAggregationAssignment> aggAssignments) implements RuleBodyElement {
         @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
     }
-
-
-//    public record EltAggregation(Var var, Expr expression) implements RuleElement {
-//        @Override public void visit(RuleVisitor ruleVisitor) { ruleVisitor.visit(this); }
-//        public RuleBodyElement transform(EltAggregation eltAssignment, Var var, Expr expression) { return null; }
-//    }
 }

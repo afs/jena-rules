@@ -21,24 +21,21 @@
 
 package org.seaborne.jena.srl.agg;
 
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
 
 /**
- * Group key for "no group variables"
+ * Make {@link Aggregator} - each group has an {@link Aggregator} for each
+ * assignment.
  */
+public interface AggregatorFactory {
+    public Aggregator newAggregator(GroupKey groupKey);
 
-public class GroupKeyFixed implements GroupKey {
+    /** Outcome if the pattern matching returns no rows. */
+    public Node onEmpty();
 
-    public static final GroupKey instance = new GroupKeyFixed();
+    public Expr getArgument();
 
-    private GroupKeyFixed() {}
-
-    @Override
-    public void addToBinding(BindingBuilder builder) {}
-
-    @Override
-    public String toString() {
-        return "GroupKeyFixed";
-    }
-
+    public Var assignVar();
 }

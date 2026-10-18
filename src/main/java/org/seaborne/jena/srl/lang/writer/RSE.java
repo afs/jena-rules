@@ -34,6 +34,7 @@ public class RSE {
     public static final String tagFilter    = "filter";
     public static final String tagSet       = "set";
     public static final String tagNot       = "not";
+    public static final String tagGroup     = "group";
 
     public static final String tagTriple    = Tags.tagTriple;
     public static final String tagSubject   = Tags.tagSubject;

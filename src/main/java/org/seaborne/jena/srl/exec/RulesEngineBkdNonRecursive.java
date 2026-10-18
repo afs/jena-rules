@@ -45,10 +45,10 @@ import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.*;
-import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.jena.AppendGraph;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.sys.DependencyGraph;
 import org.seaborne.jena.srl.sys.RuleDependencies;
 import org.seaborne.jena.srl.sys.SysSRL;
@@ -80,17 +80,19 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
             throw new RuleEvalException("Tuples in rule set : not supported for "+RulesEngineBkdNonRecursive.class.getSimpleName());
         RulesExecCxt rCxt = RulesExecCxt.create(SysSRL.getContext());
         RulesExecLib.prepare(ruleSet, rCxt);
-        return new RulesEngineBkdNonRecursive(graph, ruleSet);
+        return new RulesEngineBkdNonRecursive(graph, ruleSet, rCxt);
     }
 
     private final RuleSet ruleSet;
     private final DependencyGraph dependencyGraph;
     private final Graph baseGraph;
+    private final RulesExecCxt rCxt;
 
-    private RulesEngineBkdNonRecursive(Graph baseGraph, RuleSet ruleSet) {
+    private RulesEngineBkdNonRecursive(Graph baseGraph, RuleSet ruleSet, RulesExecCxt rCxt) {
         this.baseGraph = baseGraph;
         this.ruleSet = ruleSet;
         this.dependencyGraph = DependencyGraph.create(ruleSet);
+        this.rCxt = rCxt;
     }
 
     @Override
@@ -270,7 +272,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                         Stream<Triple> sub = solveRule(subRule, workingGraph, visited);
                         sub.forEach(workingGraph::add);
                     }
-                    chain = Access.accessGraph(chain, workingGraph, triplePattern);
+                    chain = Access.accessGraph(chain, workingGraph, triplePattern, rCxt);
                 }
                 case EltTuplePattern(Tuple tuplePattern) -> {
                     throw new NotImplemented();
@@ -290,7 +292,7 @@ public class RulesEngineBkdNonRecursive implements RulesEngine {
                 case EltAssignment(Var var, Expr expression) -> {
                     throw new NotImplemented();
                 }
-                case EltAggregate(Var aggVar, ExprReduce reducer) -> {
+                case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
                     throw new NotImplemented();
                 }
 //                case null -> {}

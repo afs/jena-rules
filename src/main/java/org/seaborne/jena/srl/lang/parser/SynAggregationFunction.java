@@ -19,27 +19,8 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.agg;
+package org.seaborne.jena.srl.lang.parser;
 
-import java.util.List;
-
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.expr.Expr;
-import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
-import org.seaborne.jena.srl.sys.Scope;
-
-public class ExprReduceSum extends ExprReduce {
-
-    private final Expr expr;
-
-    public ExprReduceSum(Expr expr, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
-        super("SUM", hasGroupByVars, innerBody, scope.inScope());
-        this.expr = expr;
-    }
-
-    @Override
-    public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggSum(resultVar, super.groupBy(), expr, rCxt);
-    }
+public enum SynAggregationFunction {
+    COUNT, COUNT_DISTINCT, MIN, MAX, SUM
 }

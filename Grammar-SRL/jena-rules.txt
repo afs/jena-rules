@@ -132,6 +132,8 @@ TOKENS
 | <MIN: "MIN">
 | <MAX: "MAX">
 | <AGG: "AGG">
+| <GROUP: "GROUP">
+| <BY: "BY">
 | <TRUE: "true">
 | <FALSE: "false">
 }
@@ -262,7 +264,7 @@ NON-TERMINALS
 	Data	:=	<DATA> <LBRACE> ( DataTriplesBlock )? <RBRACE>
 	HeadTemplate	:=	<LBRACE> ( HeadTemplateBlock )? ( HeadNotTriples ( <DOT> )? ( HeadTemplateBlock )? )* <RBRACE>
 	BodyPattern	:=	<LBRACE> ( BodyTriplesBlock )? ( BodyNotTriples ( <DOT> )? ( BodyTriplesBlock )? )* <RBRACE>
-	BodyNotTriples	:=	( Filter | Negation | Assignment | TuplePattern )
+	BodyNotTriples	:=	( Filter | Negation | Assignment | GroupAggregate | TuplePattern )
 	Filter	:=	<FILTER> Constraint
 	Constraint	:=	( BrackettedExpression | BuiltInCall | FunctionCall )
 	FunctionCall	:=	iri ArgList
@@ -272,7 +274,7 @@ NON-TERMINALS
 // Body-like pattern for NOT
 	BodyBasic	:=	( BodyTriplesBlock )? ( BodyBasicNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	BodyBasicNotTriples	:=	( Filter | TuplePattern )
-	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> ( Expression | Aggregate ) <RPAREN>
+	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
 // In effect these are special rules
 	Declaration	:=	( <TRANSITIVE> <LPAREN> iri <RPAREN> | <SYMMETRIC> <LPAREN> iri <RPAREN> | <INVERSE> <LPAREN> iri <COMMA> iri <RPAREN> )
 // -----------------------
@@ -455,9 +457,16 @@ NON-TERMINALS
 		|	<MINUS> PrimaryExpression
 		|	PrimaryExpression
 	PrimaryExpression	:=	( BrackettedExpression | BuiltInCall | iriOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | ExprTripleTerm )
-	Aggregate	:=	( <COUNT> ( <DISTINCT> )? ( groupBy )? AggregateBody | <SUM> <LPAREN> Expression <RPAREN> AggregateBody | <MIN> ( groupBy )? <LPAREN> Expression <RPAREN> AggregateBody | <MAX> ( groupBy )? <LPAREN> Expression <RPAREN> AggregateBody )
-	groupBy	:=	<LBRACKET> Var ( <COMMA> Var )* <RBRACKET>
-	AggregateBody	:=	<LBRACE> BodyBasic <RBRACE>
+// ---- GROUP aggregates
+	GroupAggregate	:=	<GROUP> ( <BY> ListVars )? <LBRACE> GroupPattern <RBRACE> ( <ANON> | <LBRACKET> ( AggregationAssignment )+ <RBRACKET> )
+	GroupPattern	:=	( BodyTriplesBlock )? ( GroupPatternNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
+	GroupPatternNotTriples	:=	( Filter | Assignment | TuplePattern )
+	ListVars	:=	( Var )+
+	AggregationAssignment	:=	Var <ASSIGN> AggregationFunction
+	AggregationFunction	:=	( <COUNT> <LPAREN> ( <DISTINCT> )? VarOrStar <RPAREN> | <MIN> <LPAREN> Var <RPAREN> | <MAX> <LPAREN> Var <RPAREN> | <SUM> <LPAREN> Var <RPAREN> )
+// return null for "*"
+	VarOrStar	:=	( Var | <STAR> )
+// --------
 // See also FunctionCall.
 	iriOrFunction	:=	iri ( ArgList )?
 	ExprTripleTerm	:=	<L_TRIPLE> ExprTripleTermSubject Verb ExprTripleTermObject <R_TRIPLE>

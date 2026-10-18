@@ -51,10 +51,8 @@ import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RulesException;
 import org.seaborne.jena.srl.SRLParser;
-import org.seaborne.jena.srl.agg.*;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
-import org.seaborne.jena.srl.sys.Scope;
 import org.seaborne.jena.srl.tuples.Tuple;
 import org.slf4j.Logger;
 
@@ -111,8 +109,7 @@ public class RulesParserBase extends LangParserBase {
 
     // ---- Parser state.
 
-    // INNER is the restricted body pattern for NOT.
-    enum BuildState { NONE, OUTER, DATA, TUPLE_DATA, RULE, HEAD, BODY, INNER };
+    enum BuildState { NONE, OUTER, DATA, TUPLE_DATA, RULE, HEAD, BODY, NOT_INNER, GROUP_INNER };
     protected BuildState state = BuildState.OUTER;
 
     // URI for the current rule.
@@ -122,8 +119,10 @@ public class RulesParserBase extends LangParserBase {
     private List<RuleHeadElement> headAcc = null;
     // Used while parsing the body.
     private List<RuleBodyElement> bodyAcc = null;
-    // Used while parsing a negation or aggregation inner body.
-    private List<RuleBodyElement> innerBodyAcc = null;
+    // Used while parsing a negation pattern
+    private List<RuleBodyElement> innerNegationAcc = null;
+    // Used while parsing a group pattern
+    private List<RuleBodyElement> innerGroupAcc = null;
 
     // Used to accumulate nodes for a tuple.
     private final List<Node> tupleArgs = new ArrayList<>();
@@ -245,11 +244,21 @@ public class RulesParserBase extends LangParserBase {
 
     protected void startBodyBasic(int line, int column) {
         debug("startBodyBasic", line, column);
-        state = BuildState.INNER;
+        state = BuildState.NOT_INNER;
     }
 
     protected void finishBodyBasic(int line, int column) {
         debug("finishBodyBasic", line, column);
+        state = BuildState.BODY;
+    }
+
+    protected void startGroupPattern(int line, int column) {
+        debug("startGroupPattern", line, column);
+        state = BuildState.GROUP_INNER;
+    }
+
+    protected void finishGroupPattern(int line, int column) {
+        debug("finishGroupPattern", line, column);
         state = BuildState.BODY;
     }
 
@@ -331,9 +340,9 @@ public class RulesParserBase extends LangParserBase {
 
     protected void startNegation(int line, int column) {
         debug("startNegation", line, column);
-        state = BuildState.INNER;
+        state = BuildState.NOT_INNER;
         hasNegation = true;
-        innerBodyAcc = new ArrayList<>();
+        innerNegationAcc = new ArrayList<>();
     }
 
     protected void setGroundedNegation(int line, int column) {
@@ -346,60 +355,63 @@ public class RulesParserBase extends LangParserBase {
         state = BuildState.BODY;
     }
 
-    // ---- Aggrgates
+    // ---- Aggregates
 
     protected void startAggregate(int line, int column) {
         debug("startAggregate", line, column);
+        aggAssignments = new ArrayList<>();
+        hasAggregation = true;
+        innerGroupAcc = new ArrayList<>();
     }
 
-    protected void startAggregateBody(int line, int column) {
-        debug("startAggregateBody", line, column);
-        state = BuildState.INNER;
-        // Aggregates require close dependencies
-        hasNegation = true;
-        innerBodyAcc = new ArrayList<>();
+    // The components of a group/aggregate
+    private List<Var> groupVars = null;
+    //private List<RuleBodyElement> aggBodyAcc = null;
+    private List<SynAggregationAssignment> aggAssignments = null;
+    private Expr aggExpr = null;
+
+    protected void emitGroupVars(List<Var> listGroupVars, int beginLine, int beginColumn) {
+        groupVars = listGroupVars;
     }
 
-    protected void finishAggregateBody(int line, int column) {
-        debug("finishAggregateBody", line, column);
-        state = BuildState.BODY;
+    // Map to the symbol, for the aggregation function
+    protected SynAggregationFunction createAggregationFunctionCount(Var var, boolean distinct, int line, int column) {
+        aggExpr = (var == null) ? null : new ExprVar(var);
+        return distinct ? SynAggregationFunction.COUNT_DISTINCT : SynAggregationFunction.COUNT;
     }
 
-    // XXX Not good - setting the group-by scope only works for parsed rules.
-
-    protected ExprReduce exprReduceCount(boolean distinct, List<Var> groupByVars) {
-        Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceCount(distinct, scope, groupByVars!=null, innerBodyAcc);
+    protected SynAggregationFunction createAggregationFunctionMin(Var var, int line, int column) {
+        aggExpr = new ExprVar(var);
+        return SynAggregationFunction.MIN;
     }
 
-    protected ExprReduce exprReduceSum(Expr expr, List<Var> groupByVars) {
-        Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceSum(expr, scope, groupByVars!=null, innerBodyAcc);
+    protected SynAggregationFunction createAggregationFunctionMax(Var var, int line, int column) {
+        aggExpr = new ExprVar(var);
+        return SynAggregationFunction.MAX;
     }
 
-    protected ExprReduce exprReduceMin(Expr expr, List<Var> groupByVars) {
-        Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceMin(expr, scope, groupByVars!=null, innerBodyAcc);
+    protected SynAggregationFunction createAggregationFunctionSum(Var var, int line, int column) {
+        aggExpr = new ExprVar(var);
+        return SynAggregationFunction.SUM;
     }
 
-    protected ExprReduce exprReduceMax(Expr expr, List<Var> groupByVars) {
-        Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceMax(expr, scope, groupByVars!=null, innerBodyAcc);
+    // Combine the output variable with the aggregation function to get a aggregation assignment.
+    protected void emitAggregationAssignment(Var aggVar, SynAggregationFunction aggFunction, int line, int column) {
+        aggAssignments.add(new SynAggregationAssignment(aggVar, aggExpr, aggFunction));
     }
 
-    protected ExprReduce exprReduceAgg(String iri, Expr expr, List<Var> groupByVars) {
-        Scope scope = determineGroupBy(bodyAcc, groupByVars);
-        return new ExprReduceAgg(iri, expr, scope, groupByVars!=null, innerBodyAcc);
-    }
-
-    private static Scope determineGroupBy(List<RuleBodyElement> bodyAcc, List<Var> groupByVars) {
-        if ( groupByVars != null) {
-            return Scope.scope(Set.copyOf(groupByVars));
-        } else
-            return Scope.scope(bodyAcc);
+    protected void emitAggregate(int line, int column) {
+        // groupVars
+        // innerBodyAcc
+        // aggregate assignments
+        addBodyEltAggregate(groupVars, innerGroupAcc, aggAssignments);
     }
 
     protected void finishAggregate(int line, int column) {
+        // Clear /reset state
+        groupVars = null;
+        aggAssignments = null;
+        aggExpr = null;
         debug("startAggregate", line, column);
     }
 
@@ -418,9 +430,10 @@ public class RulesParserBase extends LangParserBase {
     private void addToBody(RuleBodyElement ruleElt) {
         requireNonNull(ruleElt);
         switch(state) {
-            case BODY   -> bodyAcc.add(ruleElt);
-            case INNER  -> innerBodyAcc.add(ruleElt);
-            default     ->
+            case BODY        -> bodyAcc.add(ruleElt);
+            case NOT_INNER   -> innerNegationAcc.add(ruleElt);
+            case GROUP_INNER -> innerGroupAcc.add(ruleElt);
+            default ->
                 throwInternalStateException("Rule element emitted when in state "+state);
         }
     }
@@ -460,10 +473,11 @@ public class RulesParserBase extends LangParserBase {
     }
 
     // Aggregate
-    private void addBodyEltAggregate(Var var, ExprReduce reducer) {
-        requireNonNull(var);
-        requireNonNull(reducer);
-        addToBody(new RuleBodyElement.EltAggregate(var, reducer));
+    private void addBodyEltAggregate(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) {
+    // Group keys can be null
+        requireNonNull(aggPattern);
+        requireNonNull(aggAssignments);
+        addToBody(new RuleBodyElement.EltGroup(groupVars, innerGroupAcc, aggAssignments));
         hasAggregation = true;
     }
 
@@ -508,11 +522,10 @@ public class RulesParserBase extends LangParserBase {
     protected void emitTuple(Tuple tuple, int line, int column) {
         debug("emitTuple", line, column);
         switch(state) {
-            case HEAD -> { addHeadEltTuple(tuple); }
-            case BODY -> { addBodyEltTuple(tuple); }
-            case INNER -> {
-                innerBodyAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
-            }
+            case HEAD -> addHeadEltTuple(tuple);
+            case BODY -> addBodyEltTuple(tuple);
+            case NOT_INNER -> innerNegationAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
+            case GROUP_INNER -> innerGroupAcc.addLast(new RuleBodyElement.EltTuplePattern(tuple));
             default -> throw new IllegalArgumentException("Unexpected value: " + state);
         }
     }
@@ -523,8 +536,8 @@ public class RulesParserBase extends LangParserBase {
     }
 
     protected void emitNegation(int line, int column) {
-        addBodyEltNegation(innerBodyAcc);
-        innerBodyAcc = null;
+        addBodyEltNegation(innerNegationAcc);
+        innerNegationAcc = null;
     }
 
     protected void emitFilterExpr(Expr expr, int line, int column) {
@@ -535,11 +548,6 @@ public class RulesParserBase extends LangParserBase {
     protected void emitAssignment(Var var, Expr expr, int line, int column) {
         debug("emitAssignment", line, column);
         addBodyEltAssignment(var, expr);
-    }
-
-    protected void emitAggregate(Var var, ExprReduce reducer, int line, int column) {
-        debug("emitAssignment", line, column);
-        addBodyEltAggregate(var, reducer);
     }
 
     // << x y z >>
@@ -602,11 +610,15 @@ public class RulesParserBase extends LangParserBase {
     private void accTriple(Node s, Node p , Node o, int line, int column) {
         Triple triple = Triple.create(s, p, o);
         switch(state) {
-            case HEAD -> { addHeadEltTriple(triple); }
-            case BODY -> { addBodyEltTiple(Triple.create(s,p,o)); }
-            case INNER -> {
+            case HEAD -> addHeadEltTriple(triple);
+            case BODY -> addBodyEltTiple(Triple.create(s,p,o));
+            case NOT_INNER -> {
                 Triple triplePattern = Triple.create(s,p,o);
-                innerBodyAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
+                innerNegationAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
+            }
+            case GROUP_INNER -> {
+                Triple triplePattern = Triple.create(s,p,o);
+                innerGroupAcc.addLast(new RuleBodyElement.EltTriplePattern(triplePattern));
             }
             case DATA -> {
                 if ( ! triple.isConcrete() ) {

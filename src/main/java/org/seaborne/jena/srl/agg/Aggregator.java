@@ -21,16 +21,24 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.Iterator;
-
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.expr.NodeValue;
 
 /**
- * Interface to the aggregation process.
+ * An {@link Aggregator} is a processor that receives a stream of bindings for a
+ * given group key and, on request.
  */
+
 public interface Aggregator {
-    GroupReducer reducer();
-    default Iterator<Binding> eval(GroupReducer reducer) {
-        return reducer.eval();
-    }
+
+    default void start() {}
+    default void finish() {}
+
+    void receive(Binding binding);
+
+    public Node aggNode();
+    public default NodeValue aggValue() { return NodeValue.makeNode(aggNode()); }
+    public Var assignVar();
 }

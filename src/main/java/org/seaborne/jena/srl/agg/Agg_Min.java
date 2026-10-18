@@ -21,49 +21,59 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.Collection;
-
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
-import org.seaborne.jena.srl.exec.RulesEvalException;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 
-public class AggMax implements Aggregator {
+public class Agg_Min implements AggregatorFactory {
 
-    private final Collection<Var> groupBy;
     private final Var aggVar;
     private final Expr expr;
     private final RulesExecCxt rCxt;
 
-    public AggMax(Var aggVar,  Collection<Var> groupBy, Expr expr, RulesExecCxt rCxt) {
-        this.groupBy = groupBy;
+    public Agg_Min(Var aggVar, Expr expr, RulesExecCxt rCxt) {
         this.aggVar = aggVar;
         this.expr = expr;
         this.rCxt = rCxt;
     }
 
     @Override
-    public GroupReducer reducer() {
-        GroupSplitter splitter = GroupSplitters.splitter(groupBy);
-        return new GroupReducer("MAX", aggVar,
-                                ()->{ throw new RulesEvalException("Empty group for MAX"); },
-                                splitter,
-                                k->new AggregateMax(expr, rCxt)
-                );
+    public Aggregator newAggregator(GroupKey groupKey) {
+        return new AggregateMin(aggVar, expr, rCxt);
+
     }
 
-    private static class AggregateMax extends AggregateFunction {
+    @Override
+    public Expr getArgument() {
+        return expr;
+    }
+
+    @Override
+    public Var assignVar() {
+        return aggVar;
+    }
+
+    @Override
+    public Node onEmpty() {
+        throw new ExprEvalException("MAX: no value");
+    }
+
+    private static class AggregateMin implements Aggregator {
         private final Expr expr;
         private final RulesExecCxt rCxt;
+        private final Var assignVar;
         private NodeValue max = null;
 
-        AggregateMax(Expr expr, RulesExecCxt rCxt) {
+        AggregateMin(Var assignVar, Expr expr, RulesExecCxt rCxt) {
+            this.assignVar = assignVar;
             this.expr = expr;
             this.rCxt = rCxt;
         }
+
         @Override
         public void receive(Binding binding) {
             NodeValue nv = expr.eval(binding, rCxt);
@@ -71,7 +81,7 @@ public class AggMax implements Aggregator {
                 max = nv;
             else {
                 int cmp = NodeValue.compare(nv, max);
-                if ( cmp == Expr.CMP_GREATER )
+                if ( cmp == Expr.CMP_LESS )
                     max = nv;
             }
         }
@@ -81,5 +91,8 @@ public class AggMax implements Aggregator {
 
         @Override
         public Node aggNode() { return max.asNode(); }
+
+        @Override
+        public Var assignVar() { return assignVar; }
     }
 }

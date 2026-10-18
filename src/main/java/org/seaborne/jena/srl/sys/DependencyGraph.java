@@ -252,10 +252,10 @@ public class DependencyGraph {
                     });
                 }
 
-                case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
+                case EltNegation(List<RuleBodyElement> notPattern, boolean grounded) -> {
                     // If grounded, no dependency edges (all dependencies are to the starting inference graph: base graph + DATA
                     if ( ! grounded )
-                        accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, inner, providers, providers2);
+                        accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, notPattern, providers, providers2);
                 }
 
                 // These do not cause a dependency relationship.

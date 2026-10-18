@@ -19,25 +19,10 @@
  *   SPDX-License-Identifier: Apache-2.0
  */
 
-package org.seaborne.jena.srl.agg;
+package org.seaborne.jena.srl.lang.parser;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.expr.Expr;
 
-/**
- * An {@link AggregateFunction} is a processor that receives a stream of bindings for a
- * given group key and, on request, return the value of the aggregation.
- */
-public abstract class AggregateFunction {
-
-    public interface Factory {
-        public AggregateFunction newAggregateFunction(GroupKey groupKey);
-    }
-
-    AggregateFunction() {}
-
-    abstract public void receive(Binding binding);
-    public NodeValue aggValue() { return NodeValue.makeNode(aggNode()); }
-    abstract public Node aggNode();
+public record SynAggregationAssignment(Var aggVariable, Expr expr, SynAggregationFunction aggFunction) {
 }

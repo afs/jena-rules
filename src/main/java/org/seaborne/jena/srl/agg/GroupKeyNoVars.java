@@ -21,27 +21,43 @@
 
 package org.seaborne.jena.srl.agg;
 
-import java.util.List;
+import java.util.Iterator;
 
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
-import org.seaborne.jena.srl.exec.RulesExecCxt;
-import org.seaborne.jena.srl.lang.RuleBodyElement;
-import org.seaborne.jena.srl.sys.Scope;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 
 /**
- * An expression that marks consuming its input
- * That is, it is a syntax element for a "reduce".
+ * Group key for "no group variables"
  */
-public class ExprReduceCount extends ExprReduce {
 
-    private boolean distinct;
+public class GroupKeyNoVars implements GroupKey {
 
-    public ExprReduceCount(boolean distinct, Scope scope, boolean hasGroupByVars, List<RuleBodyElement> innerBody) {
-        super("COUNT", hasGroupByVars, innerBody, scope.inScope());
-        this.distinct = distinct;
+    public static final GroupKey instance = new GroupKeyNoVars();
+
+    private GroupKeyNoVars() {}
+
+    @Override
+    public Node get(Var var) {
+        return null;
     }
 
     @Override
-    public Aggregator aggregator(Var resultVar, RulesExecCxt rCxt) {
-        return new AggCount(resultVar, distinct, super.groupBy, rCxt); }
+    public boolean contains(Var var) {
+        return false;
+    }
+
+    @Override
+    public Iterator<Var> vars() {
+        return Iter.nullIterator();
+    }
+
+    @Override
+    public void addToBinding(BindingBuilder builder) {}
+
+    @Override
+    public String toString() {
+        return "GroupKey(*)";
+    }
 }

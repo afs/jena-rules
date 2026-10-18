@@ -41,11 +41,11 @@ import org.apache.jena.sparql.serializer.SerializationContext;
 import org.apache.jena.sparql.sse.writers.WriterExpr;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
-import org.seaborne.jena.srl.agg.ExprReduce;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTripleTemplate;
 import org.seaborne.jena.srl.lang.RuleHeadElement.EltTupleTemplate;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 /**
@@ -203,68 +203,103 @@ public class RuleSetASTWriter {
         }
 
         private void writeRuleElements(List<RuleBodyElement> bodyElements) {
-                // Without braces.
-                boolean first = true;
-                for ( RuleBodyElement elt : bodyElements ) {
-                    //if ( ! first ) {}
-                    first = false;
+            // Without braces.
+            boolean first = true;
+            for ( RuleBodyElement elt : bodyElements ) {
+                //if ( ! first ) {}
+                first = false;
 
-                    switch (elt) {
-                        case EltTriplePattern(Triple triplePattern) -> {
-                            writeTriple(triplePattern);
-                        }
-                        case EltTuplePattern(Tuple tuplePattern) -> {
-                            writeTuple(tuplePattern);
-                        }
-
-                        case EltFilter(Expr condition) -> {
-                            out.print("(");
-                            out.print(tagFilter);
-                            out.print(" ");
-                            writeExpr(condition);
-                            out.print(")");
-
-                            // Multi-line
-    //                        out.println("(");
-    //                        out.println(tagFilter);
-    //                        out.incIndent();
-    //                        writeExpr(condition);
-    //                        out.println();
-    //                        out.decIndent();
-    //                        out.print(")");
-                        }
-                        case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {
-                            final int indentLevelNegation = 2 ;
-                            out.print("(");
-                            out.print(tagNot);
-                            if ( grounded ) {
-                                out.print(" ");
-                                out.print(tagData);
-                            }
-                            out.println();
-                            out.incIndent(indentLevelNegation);
-                            writeRuleElements(inner);
-                            out.decIndent(indentLevelNegation);
-                            out.print(")");
-                        }
-                        case EltAssignment(Var var, Expr expression) -> {
-                            out.print("(");
-                            out.print(tagSet);
-                            nodeFormatter.format(out, var);
-                            out.print(" := ");
-                            writeExpr(expression);
-                            out.print(")");
-                        }
-                        case EltAggregate(Var aggVar, ExprReduce exprReduce) -> {
-                            System.err.println("ASTWriter EltAggregate : Not implemented");
-                        }
-                        case null -> {
-                            throw new InternalErrorException();
-                        }
+                switch (elt) {
+                    case EltTriplePattern(Triple triplePattern) -> {
+                        writeTriple(triplePattern);
                     }
-                    out.println();
+                    case EltTuplePattern(Tuple tuplePattern) -> {
+                        writeTuple(tuplePattern);
+                    }
+
+                    case EltFilter(Expr condition) -> {
+                        out.print("(");
+                        out.print(tagFilter);
+                        out.print(" ");
+                        writeExpr(condition);
+                        out.print(")");
+
+// Multi-line
+//                        out.println("(");
+//                        out.println(tagFilter);
+//                        out.incIndent();
+//                        writeExpr(condition);
+//                        out.println();
+//                        out.decIndent();
+//                        out.print(")");
+                    }
+                    case EltNegation(List<RuleBodyElement> pattern, boolean grounded) -> {
+                        final int indentLevelNegation = 2 ;
+                        out.print("(");
+                        out.print(tagNot);
+                        if ( grounded ) {
+                            out.print(" ");
+                            out.print(tagData);
+                        }
+                        out.println();
+                        out.incIndent(indentLevelNegation);
+                        writeRuleElements(pattern);
+                        out.decIndent(indentLevelNegation);
+                        out.print(")");
+                    }
+                    case EltAssignment(Var var, Expr expression) -> {
+                        // XXX Wrong!
+                        out.print("(");
+                        out.print(tagSet);
+                        nodeFormatter.format(out, var);
+                        out.print(" := ");
+                        writeExpr(expression);
+                        out.print(")");
+                    }
+                    case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> {
+                        out.print("(");
+                        out.print(tagSet);
+                        out.incIndent();
+                        out.println();
+                        // Tag as "BY"
+                        if ( groupKeys != null )
+                            printList(groupKeys, v->nodeFormatter.format(out, v));
+                        out.println();
+                        // XXX Wrong!
+                        writeRuleElements(pattern);
+                        printList(aggAssignments, a->{
+                            out.print("(");
+                            nodeFormatter.format(out, a.aggVariable());
+                            out.print(" := ");
+                            out.print(a.aggFunction().name());
+                            writeExpr(a.expr());
+                            out.print(")");
+                            out.println();
+                            });
+                        out.decIndent();
+                        out.print(")");
+                    }
+                    case null -> {
+                        throw new InternalErrorException();
+                    }
                 }
+                out.println();
             }
+        }
+
+        interface Print<X> { void print(X item); }
+
+        private <X> void printList(List<X> things, Print<X> printer) {
+            boolean first = true;
+            out.print("(");
+            for ( X x : things ) {
+                if ( ! first )
+                    out.print(" ");
+                first = false;
+                printer.print(x);
+            }
+            out.print(")");
+        }
 
         private void printURI(String uriStr) {
             out.print("<");

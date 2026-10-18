@@ -30,7 +30,7 @@ import org.apache.jena.riot.system.streammgr.StreamManager;
 import org.apache.jena.sparql.util.Context;
 import org.seaborne.jena.srl.lang.RulesSyntax;
 
-/*package*/ class SRLParserBuilder {
+public class SRLParserBuilder {
 
     private String              filenameOrURI = null;
     private Path                filePath  = null;

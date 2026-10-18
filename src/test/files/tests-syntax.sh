@@ -4,7 +4,7 @@
 ## Source this file.
 ## Assumes create-functions.sh
 
-## RDF rule structure
+## ---- Ruleset structure
 
 N=0
 N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
@@ -74,6 +74,14 @@ WHERE
 { }
 EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-ruleset-structure-" $N) <<EOF
+PREFIX : <http://example/>
+RULE {} WHERE { }
+
+PREFIX ns: <http://example/ns#>
+RULE {} WHERE DATA { :s :p ?o }
+EOF
+
 ## Bad syntax - structure
 
 N=0
@@ -106,11 +114,11 @@ PREFIX : <http://example/>
 RULE {} WHERE {?s ?p ?o NOT { ?a ?b ?c { NOT ?d ?e ?f } } }
 EOF
 
-## Make this all concrete rdf terms
-## Remove from *data and *template
+## ---- RDF terms
 
-## Covered in-context below.
-## RDF terms
+N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
+RULE {} WHERE { <http://example/s> <http://example/p> <http://example/o> }
+EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
 PREFIX : <http://example/>
@@ -149,7 +157,14 @@ EOF
 N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
 PREFIX :    <http://example/>
 
-RULE { } WHERE { ?s :p <<( :a :b :c )>> }
+RULE { } WHERE { ?s :p 1.0 }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
+PREFIX :    <http://example/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+RULE { } WHERE { ?s rdf:reifies <<( :a :b :c )>> }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-terms-" $N) <<EOF
@@ -169,10 +184,6 @@ PREFIX :    <http://example/>
 
 RULE { } WHERE { :s :p "abc"@en--ltr }
 EOF
-
-## Decimals.
-## IRIs
-
 
 ## Bad RDF terms
 
@@ -230,10 +241,17 @@ PREFIX :    <http://example/>
 RULE { } WHERE { FILTER( true ) ?s ?p ?o NOT { ?x ?y ?o FILTER ( isURI(?s) ) } }
 EOF
 
+## -- Negation
+
 N=0
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-not-" $N) <<EOF
 PREFIX :    <http://example/>
 RULE { } WHERE { :sx :p1 :o NOT { ?a ?b ?c } }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-not-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE { } WHERE { :sx :p1 :o NOT DATA { ?a ?b ?c } }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-not-" $N) <<EOF
@@ -249,6 +267,156 @@ EOF
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-not-" $N) <<EOF
 PREFIX :    <http://example/>
 RULE { } WHERE { NOT { :a :b :c {| :saidBy :person |} } }
+EOF
+
+## Assignment
+N=0
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-set-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE { } WHERE { :s :p ?o SET ( ?N := 0 ) }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-set-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE { } WHERE { SET ( ?N := 1+2+3 * (4/5 + FLOOR(13.5)) ) }
+EOF
+
+## ---- Group-aggrgeation
+
+N=0
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { } [] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { ?a ?b ?c GROUP { ?s ?p ?o } [] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { ?a ?b ?c GROUP { ?s ?p ?o } [] FILTER(?c) }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s { ?s ?p ?o } [ ?N := COUNT(*) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o } [ ?N := COUNT(*) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s { ?s ?p ?o FILTER (?o < 42) } [ ?N := COUNT(*) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o } [ ?N := COUNT(*) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o SET ( ?z := ?o +1 ) } [ ?N := SUM(?z) ] }
+EOF
+
+## Aggregate functions
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(DISTINCT *) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := MIN(?o) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := MAX(?o) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := SUM(?o) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ?S := SUM(?o) ] }
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ] GROUP { ?s ?p ?o } [ ?S := SUM(?o) ]  }
+EOF
+
+## Group-aggregate misc
+
+N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { ?s :p :z GROUP BY ?s { ?s ?p ?o FILTER (?o < 42) } [ ?N := MIN(?o) ] }
+EOF
+
+## Bad group-aggregate
+
+N=0
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s [ ?N := COUNT(*) ] }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?x { } }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY  { ?s ?p ?o } [ ?N := COUNT(*) ] }
+EOF
+
+## Bad aggregate functions
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := COUNT(?s+?o) ] 
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY { ?s :p ?o } [ ?N := SUM(?s+?o) ] 
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := MIN(DISTINCT ?o) ] 
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := MAX(DISTINCT ?o) ] 
+EOF
+
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := SUM(DISTINCT ?o) ] 
 EOF
 
 ## Reification macros

@@ -23,17 +23,22 @@ package org.seaborne.jena.srl.sys;
 
 import java.util.*;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
+import org.seaborne.jena.srl.lang.RuleBodyElement.*;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 /**
  *
  */
-public class Scope {
+// public
+// Not used currently.
+class Scope {
     // XXX Combine with code well-formedness checking.
     // Move to parser (but rules may not be just from parsing)
 
@@ -59,7 +64,7 @@ public class Scope {
 
         for ( RuleBodyElement elt : elts ) {
             switch(elt) {
-                case RuleBodyElement.EltTriplePattern(Triple triplePattern) -> {
+                case EltTriplePattern(Triple triplePattern) -> {
                     inScope(inScopeVars, triplePattern);
                 }
                 case RuleBodyElement.EltTuplePattern(Tuple tuplePattern) -> {
@@ -67,13 +72,18 @@ public class Scope {
                 }
 
                 // Only when inside
-                case RuleBodyElement.EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {}
+                case EltNegation(List<RuleBodyElement> inner, boolean grounded) -> {}
 
-                case RuleBodyElement.EltFilter(Expr condition) -> {}
+                case EltFilter(Expr condition) -> {}
 
-                case RuleBodyElement.EltAssignment(Var var, Expr expression) -> {
+                case EltAssignment(Var var, Expr expression) -> {
                     inScopeVars.add(var);
                 }
+
+                case EltGroup(List<Var> groupKeys, List<RuleBodyElement> groupPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                    throw new NotImplemented("EltGroup");
+                }
+
                 case null -> {}
                 default -> {}
             }
