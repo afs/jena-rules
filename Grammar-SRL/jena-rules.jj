@@ -92,7 +92,6 @@ void RuleOrData() : {}
     ( Rule()
     | Data()
     | TupleData()
-    | Declaration()
     )
 }
 // ---- Prologue
@@ -208,6 +207,7 @@ void BodyNotTriples() : {}
    | TuplePattern()
    )
 }
+// ---- Filter
 void Filter() : { Expr c ; }
 {
     <FILTER> c = Constraint()
@@ -221,55 +221,31 @@ Expr Constraint() : { Expr c ; }
   )
   { return c ; }
 }
-Expr FunctionCall() : { String fname ; ExprList a ; }
-{
-  fname = iri()
-  a = ArgList()
-  { return new E_Function(fname, a) ; }
-}
-ExprList ArgList() : { Expr expr ; ExprList args = new ExprList() ; Token t ; }
-{
-  ( <NIL>
-  | <LPAREN>
-      expr = Expression() { args.add(expr) ; }
-      (<COMMA> expr = Expression() { args.add(expr) ; } )*
-    <RPAREN>
-  )
-  { return args ; }
-}
-ExprList ExpressionList() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
-{
-  ( <NIL>
-  | <LPAREN>
-    expr = Expression() { exprList.add(expr) ; }
-      (<COMMA> expr = Expression() { exprList.add(expr) ; } )*
-    <RPAREN>
-  )
-  { return exprList ; }
-}
+// ---- Negation (NOT)
 void Negation() : { Token t; Token t2;}
 {
     t = <NOT>
     { startNegation(token.beginLine, token.beginColumn) ; }
     ( <DATA> { setGroundedNegation(token.beginLine, token.beginColumn); } )?
     t = <LBRACE>
-    BodyBasic()
+    NegationPattern()
     <RBRACE>
     { emitNegation(token.beginLine, token.beginColumn); }
     { finishNegation(t.beginLine, t.beginColumn) ; }
 }
 // Body-like pattern for NOT
-void BodyBasic() : {}
+void NegationPattern() : {}
 {
     { startBodyBasic(token.beginLine, token.beginColumn) ; }
     (BodyTriplesBlock())?
-    ( BodyBasicNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
+    ( NegationPatternNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
     { finishBodyBasic(token.beginLine, token.beginColumn) ; }
 }
-void BodyBasicNotTriples() : {}
+void NegationPatternNotTriples() : {}
 {
    ( Filter() | TuplePattern() )
 }
+// ---- Assignment (SET)
 void Assignment() : { Var v; Expr expr = null; }
 {
     <SET>
@@ -280,24 +256,89 @@ void Assignment() : { Var v; Expr expr = null; }
     { emitAssignment(v, expr, token.beginLine, token.beginColumn); }
     <RPAREN>
 }
-// In effect these are special rules
-void Declaration() : { Token t; String iriStr ; }
+// ---- GROUP aggregates
+void GroupAggregate() : { List<Var> groupVars = null; SynAggregationAssignment aggAssign; }
 {
-  (
-    t = <TRANSITIVE>
-    <LPAREN> iriStr = iri() <RPAREN>
-    { transitiveProperty(iriStr); }
-  |
-    t = <SYMMETRIC>
-    <LPAREN> iriStr = iri() <RPAREN>
-    { symmetricProperty(iriStr); }
-  |
-    t = <INVERSE>
-    { String iriStr1 ; String iriStr2 ; }
-    <LPAREN> iriStr1 = iri() <COMMA> iriStr2 = iri() <RPAREN>
-    { inverseProperties(iriStr1, iriStr2); }
-  )
+    <GROUP>
+    { startAggregate(token.beginLine, token.beginColumn); }
+    ( <BY> groupVars = ListVars() { emitGroupVars(groupVars, token.beginLine, token.beginColumn); } )?
+    <LBRACE>
+    GroupPattern()
+    <RBRACE>
+    // Accumulates in RulesParserBase
+    // "[ ]" is <ANON>
+    (
+      <ANON>
+    |
+      <LBRACKET>
+      ( AggregationAssignment() )+
+      <RBRACKET>
+    )
+    // Picks up the components, pattern, group keys, and list of assignments
+    // which have accumulated in RulesParserBase.
+    { emitAggregate(token.beginLine, token.beginColumn); }
+    { finishAggregate(token.beginLine, token.beginColumn); }
 }
+void GroupPattern() : {}
+{
+    { startGroupPattern(token.beginLine, token.beginColumn) ; }
+    (BodyTriplesBlock())?
+    ( GroupPatternNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
+    { finishGroupPattern(token.beginLine, token.beginColumn) ; }
+}
+void GroupPatternNotTriples() : {}
+{
+   ( Filter()
+   | Assignment()
+   | TuplePattern()
+   )
+}
+List<Var> ListVars() : { Var v; List<Var> vars = new ArrayList<>(); }
+{
+    ( v = Var() { vars.add(v); } )+
+    { return vars; }
+}
+void AggregationAssignment() : { Var aggVar; SynAggregationFunction aggFunction; Token location ; }
+{
+    aggVar = Var()
+    { location = token; }
+    <ASSIGN>
+    aggFunction = AggregationFunction()
+    { emitAggregationAssignment(aggVar, aggFunction, location.beginLine, location.beginColumn); }
+}
+SynAggregationFunction AggregationFunction() : { Token t; Var var; boolean distinct = false ;}
+{
+    ( t = <COUNT>
+      <LPAREN>
+      (<DISTINCT> { distinct = true; })?
+      var = VarOrStar()
+      <RPAREN>
+      { return createAggregationFunctionCount(var, distinct, t.beginLine, t.beginColumn); }
+    | t = <MIN>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionMin(var, t.beginLine, t.beginColumn); }
+    | t = <MAX>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionMax(var, t.beginLine, t.beginColumn); }
+    | t = <SUM>
+      <LPAREN>
+      var = Var()
+      <RPAREN>
+      { return createAggregationFunctionSum(var, t.beginLine, t.beginColumn); }
+    )
+}
+// return null for "*"
+Var VarOrStar() : { Var v = null; }
+{
+    ( v = Var() | <STAR> )
+    { return v; }
+}
+// -----------------------
+// #if JENA
 // -----------------------
 // Production organisation.
 // DataTriplesBlock  - rules of the form *Data - no variables
@@ -663,7 +704,7 @@ Node ReifiedTripleBlockTemplate() : {Node reifId ; }
    { return reifId; }
 }
 // ---- End: Template
-// ---- Start: BodyPattern
+// ---- Start: BodyTriplesBlock
 // Variables, paths.
 // Rules of the form *Pattern
 void BodyTriplesBlock() : { }
@@ -794,7 +835,7 @@ Node GraphNodePattern() : { Node n ; }
 |
   n = ReifiedTriple() { return n ; }
 }
-// ---- End: Body Pattern
+// ---- End: BodyTriplesBlock
 // ---- Start: Reifiers and triple terms.
 // The rules with variables and without paths share between
 // templates and patterns.
@@ -1272,88 +1313,33 @@ Expr PrimaryExpression() : { Expr expr ; Node n ; }
   | n = ExprTripleTerm() { return asExpr(n) ; }
   )
 }
-// ---- GROUP aggregates
-void GroupAggregate() : { List<Var> groupVars = null; SynAggregationAssignment aggAssign; }
-{
-    <GROUP>
-    { startAggregate(token.beginLine, token.beginColumn); }
-    ( <BY> groupVars = ListVars() { emitGroupVars(groupVars, token.beginLine, token.beginColumn); } )?
-    <LBRACE>
-    GroupPattern()
-    <RBRACE>
-    // Accumulates in RulesParserBase
-    // "[ ]" is <ANON>
-    (
-      <ANON>
-    |
-      <LBRACKET>
-      ( AggregationAssignment() )+
-      <RBRACKET>
-    )
-    // Picks up the components, pattern, group keys, and list of assignments
-    // which have accumulated in RulesParserBase.
-    { emitAggregate(token.beginLine, token.beginColumn); }
-    { finishAggregate(token.beginLine, token.beginColumn); }
-}
-void GroupPattern() : {}
-{
-    { startGroupPattern(token.beginLine, token.beginColumn) ; }
-    (BodyTriplesBlock())?
-    ( GroupPatternNotTriples() (<DOT>)? (BodyTriplesBlock())? )*
-    { finishGroupPattern(token.beginLine, token.beginColumn) ; }
-}
-void GroupPatternNotTriples() : {}
-{
-   ( Filter()
-   | Assignment()
-   | TuplePattern()
-   )
-}
-List<Var> ListVars() : { Var v; List<Var> vars = new ArrayList<>(); }
-{
-    ( v = Var() { vars.add(v); } )+
-    { return vars; }
-}
-void AggregationAssignment() : { Var aggVar; SynAggregationFunction aggFunction; Token location ; }
-{
-    aggVar = Var()
-    { location = token; }
-    <ASSIGN>
-    aggFunction = AggregationFunction()
-    { emitAggregationAssignment(aggVar, aggFunction, location.beginLine, location.beginColumn); }
-}
-SynAggregationFunction AggregationFunction() : { Token t; Var var; boolean distinct = false ;}
-{
-    ( t = <COUNT>
-      <LPAREN>
-      (<DISTINCT> { distinct = true; })?
-      var = VarOrStar()
-      <RPAREN>
-      { return createAggregationFunctionCount(var, distinct, t.beginLine, t.beginColumn); }
-    | t = <MIN>
-      <LPAREN>
-      var = Var()
-      <RPAREN>
-      { return createAggregationFunctionMin(var, t.beginLine, t.beginColumn); }
-    | t = <MAX>
-      <LPAREN>
-      var = Var()
-      <RPAREN>
-      { return createAggregationFunctionMax(var, t.beginLine, t.beginColumn); }
-    | t = <SUM>
-      <LPAREN>
-      var = Var()
-      <RPAREN>
-      { return createAggregationFunctionSum(var, t.beginLine, t.beginColumn); }
-    )
-}
-// return null for "*"
-Var VarOrStar() : { Var v = null; }
-{
-    ( v = Var() | <STAR> )
-    { return v; }
-}
 // --------
+Expr FunctionCall() : { String fname ; ExprList a ; }
+{
+  fname = iri()
+  a = ArgList()
+  { return new E_Function(fname, a) ; }
+}
+ExprList ArgList() : { Expr expr ; ExprList args = new ExprList() ; Token t ; }
+{
+  ( <NIL>
+  | <LPAREN>
+      expr = Expression() { args.add(expr) ; }
+      (<COMMA> expr = Expression() { args.add(expr) ; } )*
+    <RPAREN>
+  )
+  { return args ; }
+}
+ExprList ExpressionList() : { Expr expr = null ; ExprList exprList = new ExprList() ;}
+{
+  ( <NIL>
+  | <LPAREN>
+    expr = Expression() { exprList.add(expr) ; }
+      (<COMMA> expr = Expression() { exprList.add(expr) ; } )*
+    <RPAREN>
+  )
+  { return exprList ; }
+}
 // See also FunctionCall.
 Expr iriOrFunction() : { String iri ; ExprList a = null ; }
 {
