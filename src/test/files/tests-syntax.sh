@@ -321,11 +321,6 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o } [ ?N := COUNT(*) ] }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
-PREFIX :    <http://example/>
 RULE {} WHERE { GROUP BY ?s ?p { ?s ?p ?o SET ( ?z := ?o +1 ) } [ ?N := SUM(?z) ] }
 EOF
 
@@ -358,7 +353,7 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ?S := SUM(?o) ] }
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) , ?S := SUM(?o) ] }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-group-" $N) <<EOF
@@ -396,27 +391,39 @@ EOF
 
 N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := COUNT(?s+?o) ] 
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := COUNT(?s+?o) ] }
 EOF
 
 N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP BY { ?s :p ?o } [ ?N := SUM(?s+?o) ] 
+RULE {} WHERE { GROUP BY { ?s :p ?o } [ ?N := SUM(?s+?o) ] }
 EOF
 
 N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := MIN(DISTINCT ?o) ] 
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := MIN(DISTINCT ?o) ] }
 EOF
 
 N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := MAX(DISTINCT ?o) ] 
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := MAX(DISTINCT ?o) ] }
 EOF
 
 N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := SUM(DISTINCT ?o) ] 
+RULE {} WHERE { GROUP BY ?s { ?s :p ?o } [ ?N := SUM(DISTINCT ?o) ] }
+EOF
+
+# No comma
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ?S := SUM(?o) ] }
+EOF
+
+# Trailing comma
+N=$((N+1)) ; testBad $(fname "syntax-rule-elements-group-bad-" $N) <<EOF
+PREFIX :    <http://example/>
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) , ?S := SUM(?o) , ] }
 EOF
 
 ## Reification macros

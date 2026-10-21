@@ -347,7 +347,7 @@ void GroupAggregate()  : { List<Var> groupVars = null; SynAggregationAssignment 
       <ANON>
     |
       <LBRACKET>
-      ( AggregationAssignment() )+
+      AggregationAssignments()
       <RBRACKET>
     )
     // Picks up the components, pattern, group keys, and list of assignments
@@ -383,6 +383,13 @@ List<Var> ListVars() : { Var v; List<Var> vars = new ArrayList<>(); }
 {
     ( v = Var() { vars.add(v); } )+
     { return vars; }
+}
+
+void AggregationAssignments() : { }
+{
+    ( AggregationAssignment()
+      (<COMMA> AggregationAssignment() )*
+    )?
 }
 
 void AggregationAssignment() : { Var aggVar; SynAggregationFunction aggFunction; Token location ; }

@@ -1,2 +1,2 @@
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ] GROUP { ?s ?p ?o } [ ?S := SUM(?o) ]  }
+RULE {} WHERE { ?s :p :z GROUP BY ?s { ?s ?p ?o FILTER (?o < 42) } [ ?N := MIN(?o) ] }

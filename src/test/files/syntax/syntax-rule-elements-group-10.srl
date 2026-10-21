@@ -1,2 +1,2 @@
 PREFIX :    <http://example/>
-RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ] }
+RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(DISTINCT *) ] }

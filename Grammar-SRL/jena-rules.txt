@@ -276,10 +276,11 @@ NON-TERMINALS
 // ---- Assignment (SET)
 	Assignment	:=	<SET> <LPAREN> Var <ASSIGN> Expression <RPAREN>
 // ---- GROUP aggregates
-	GroupAggregate	:=	<GROUP> ( <BY> ListVars )? <LBRACE> GroupPattern <RBRACE> ( <ANON> | <LBRACKET> ( AggregationAssignment )+ <RBRACKET> )
+	GroupAggregate	:=	<GROUP> ( <BY> ListVars )? <LBRACE> GroupPattern <RBRACE> ( <ANON> | <LBRACKET> AggregationAssignments <RBRACKET> )
 	GroupPattern	:=	( BodyTriplesBlock )? ( GroupPatternNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	GroupPatternNotTriples	:=	( Filter | Assignment | TuplePattern )
 	ListVars	:=	( Var )+
+	AggregationAssignments	:=	( AggregationAssignment ( <COMMA> AggregationAssignment )* )?
 	AggregationAssignment	:=	Var <ASSIGN> AggregationFunction
 	AggregationFunction	:=	( <COUNT> <LPAREN> ( <DISTINCT> )? VarOrStar <RPAREN> | <MIN> <LPAREN> Var <RPAREN> | <MAX> <LPAREN> Var <RPAREN> | <SUM> <LPAREN> Var <RPAREN> )
 // return null for "*"

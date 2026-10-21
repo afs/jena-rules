@@ -377,9 +377,9 @@ public class RuleSetWriter {
                     out.write(" )");
                 }
                 case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> {
-                    out.write("GROUP");
+                    out.write("GROUP ");
                     if ( groupKeys != null && ! groupKeys.isEmpty()) {
-                        out.write(" BY");
+                        out.write("BY");
                         groupKeys.forEach(gk -> {
                             out.print(" ");
                             nodeFormatter.format(out, gk);
