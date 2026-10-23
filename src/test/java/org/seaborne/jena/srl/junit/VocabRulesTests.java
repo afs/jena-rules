@@ -43,6 +43,12 @@ public class VocabRulesTests {
     public static final Node TestPositiveEvalRules        = uri("RulesEvalTest");
     public static final Node TestNegativeEvalRules        = uri("RulesNegativeEvalTest");
 
+    public static final Node TestPositiveTranslationRules = uri("RulesPositiveTranslationTest");
+    public static final Node TestNegativeTranslationRules = uri("RulesNegativeTranslationTest");
+
+    public static final Node TestPositiveTranslationJenaRules = uri("RulesPositiveTranslationJenaTest");
+    public static final Node TestNegativeTranslationJenaRules = uri("RulesNegativeTranslationJenaTest");
+
     public static final Node TestSurpressed               = uri("Test");
 
     // The evaluation action has a ruleSet and (optionally) a data graph.

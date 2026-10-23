@@ -331,7 +331,7 @@ public class rules_eval extends CmdRules {
         if ( printInfGraph ) {
             if ( havePrinted )
                 System.out.println();
-            System.out.println("## Inferrence graph");
+            System.out.println("## Inference graph");
             print(System.out, e.inferredTriples());
             havePrinted = true;
         }
