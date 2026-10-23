@@ -58,6 +58,14 @@ public class RulesLibSparql {
         for ( RuleBodyElement rElt : ruleElts ) {
             switch (rElt) {
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
+
+//                // The Parser generates ElementPathBlock
+//                case EltTriplePattern(var triple) -> {
+//                    ElementPathBlock epb = new ElementPathBlock();
+//                    epb.addTriple(triple);
+//                    group.addElement(epb);
+//                }
+
                 case EltTuplePattern(var tuple) -> { throw new NotImplemented("Tuples in SPARQL translation"); }
                 case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody, boolean grounded ) -> {

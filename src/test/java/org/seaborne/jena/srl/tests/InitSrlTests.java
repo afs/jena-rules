@@ -23,7 +23,7 @@ package org.seaborne.jena.srl.tests;
 
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 
-public class InitSelTests implements JenaSubsystemLifecycle {
+public class InitSrlTests implements JenaSubsystemLifecycle {
 
         @Override
         public void start() {

@@ -30,10 +30,7 @@ import org.apache.jena.util.SplitIRI;
 import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.lang.RulesSyntax;
 import org.seaborne.jena.srl.sys.SysJenaRules;
-import org.seaborne.jena.srl.tests.RulesEvalTest;
-import org.seaborne.jena.srl.tests.RulesStratificationTest;
-import org.seaborne.jena.srl.tests.RulesSyntaxTest;
-import org.seaborne.jena.srl.tests.RulesWellFormednessTest;
+import org.seaborne.jena.srl.tests.*;
 
 public class RuleTests {
 
@@ -95,6 +92,16 @@ public class RuleTests {
                 return new RulesEvalTest(entry, testURI, engineType, true);
             if ( testType.equals(VocabRulesTests.TestNegativeEvalRules) )
                 return new RulesEvalTest(entry, testURI, engineType, false);
+
+            // == Translation
+            if ( testType.equals(VocabRulesTests.TestPositiveTranslationRules) )
+                return new RulesTranslationTest(entry, testURI, RulesSyntax.SPARQL_RL, true);
+            if ( testType.equals(VocabRulesTests.TestNegativeEvalRules) )
+                return new RulesTranslationTest(entry, testURI, RulesSyntax.SPARQL_RL, false);
+            if ( testType.equals(VocabRulesTests.TestPositiveTranslationRules) )
+                return new RulesTranslationTest(entry, testURI, RulesSyntax.JENA, true);
+            if ( testType.equals(VocabRulesTests.TestNegativeEvalRules) )
+                return new RulesTranslationTest(entry, testURI, RulesSyntax.JENA, false);
 
             Log.warn(RuleTests.class, "Test not classified - "+entry.getName()+" <"+entry.getURI()+"> Type:"+NodeFmtLib.displayStr(testType));
 

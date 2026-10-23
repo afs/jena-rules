@@ -28,6 +28,6 @@ class EvalConst {
     // SysSRL?
 
     // The input graph in the evaluation dataset.
-    static Node srlBaseDataGraph = NodeFactory.createURI("srl:baseGraph");
+    static Node srlBaseDataGraph = NodeFactory.createURI("srl:base-graph");
 
 }

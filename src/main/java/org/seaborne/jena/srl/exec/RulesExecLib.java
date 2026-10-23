@@ -318,7 +318,7 @@ class RulesExecLib {
 //          // XXX ONLY GROUP KEYS
 
             //BindingFactory.project()
-            Binding row2 = new BindingProject(groupKeys, row);
+            Binding row2 = (groupKeys != null) ? new BindingProject(groupKeys, row) : BindingFactory.binding();
 //            // XXX Wrap in a projection row to group keys.
             // XXX ONLY GROUP KEYS
             Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row2, aggPattern, rCxt);
