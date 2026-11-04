@@ -68,8 +68,8 @@
 [<FOR>]        ::= 'FOR'
 
 [<COUNT>]      ::= 'COUNT'
-[<COUNT_DISTINCT>]  ::= 'COUNT DISTINCT'
-// [<DISTINCT>]   ::= 'DISTINCT' 
+//[<COUNT_DISTINCT>]  ::= 'COUNT DISTINCT'
+[<DISTINCT>]   ::= 'DISTINCT' 
 [<SUM>]        ::= 'SUM'
 [<MIN>]        ::= 'MIN'
 [<MAX>]        ::= 'MAX'

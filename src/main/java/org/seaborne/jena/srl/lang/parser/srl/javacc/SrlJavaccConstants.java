@@ -255,11 +255,11 @@ public interface SrlJavaccConstants {
   /** RegularExpression Id. */
   int ECHAR = 117;
   /** RegularExpression Id. */
-  int UCHAR = 118;
+  int UCHAR4 = 118;
   /** RegularExpression Id. */
-  int UCHAR4 = 119;
+  int UCHAR8 = 119;
   /** RegularExpression Id. */
-  int UCHAR8 = 120;
+  int UCHAR = 120;
   /** RegularExpression Id. */
   int STRING_LITERAL1 = 121;
   /** RegularExpression Id. */
@@ -484,9 +484,9 @@ public interface SrlJavaccConstants {
     "\"\\\"\\\"\\\"\"",
     "\"\\\'\\\'\\\'\"",
     "<ECHAR>",
-    "<UCHAR>",
     "<UCHAR4>",
     "<UCHAR8>",
+    "<UCHAR>",
     "<STRING_LITERAL1>",
     "<STRING_LITERAL2>",
     "<STRING_LITERAL_LONG1>",

@@ -2129,10 +2129,20 @@ TOKEN :
 | < #QUOTE_3D: "\"\"\"">
 | < #QUOTE_3S: "'''">
 | < #ECHAR:      "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
-| < #UCHAR:      <UCHAR4> | <UCHAR8> >
 | < #UCHAR4:     "\\" "u" <HEX> <HEX> <HEX> <HEX> >
 | < #UCHAR8:     "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> >
-
+#ifdef STD
+| < #UCHAR:    <UCHAR4> | <UCHAR8> >
+#endif
+#ifdef JENA
+| < #UCHAR_DELIM: "\\" "u" <LBRACE>
+                          // W3C EBNF does not have a "{1,6}" syntax.
+                          // <HEX> (<HEX> (<HEX> (<HEX> (<HEX> (<HEX>)? )? )? )? )?
+                          // Or be lax here and check the length in escape processing.
+                          (<HEX>)+
+                          <RBRACE> >
+| < #UCHAR:      <UCHAR4> | <UCHAR8> | <UCHAR_DELIM> >
+#endif
 | < STRING_LITERAL1: 
       // Single quoted string
       "'" ( (~["'","\\","\n","\r"]) | <ECHAR> | <UCHAR> )* "'" > 

@@ -154,9 +154,10 @@ TOKENS
 | <#QUOTE_3D: "\"\"\"">
 | <#QUOTE_3S: "\'\'\'">
 | <#ECHAR: "\\" ("t" | "b" | "n" | "r" | "f" | "\\" | "\"" | "\'")>
-| <#UCHAR: <UCHAR4> | <UCHAR8>>
 | <#UCHAR4: "\\" "u" <HEX> <HEX> <HEX> <HEX>>
 | <#UCHAR8: "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX>>
+| <#UCHAR_DELIM: "\\" "u" <LBRACE> (<HEX>)+ <RBRACE>>
+| <#UCHAR: <UCHAR4> | <UCHAR8> | <UCHAR_DELIM>>
 | <STRING_LITERAL1: "\'" (~["\'","\\","\n","\r"] | <ECHAR> | <UCHAR>)* "\'">
 | <STRING_LITERAL2: "\"" (~["\"","\\","\n","\r"] | <ECHAR> | <UCHAR>)* "\"">
 | <STRING_LITERAL_LONG1: <QUOTE_3S> (("\'" | "\'\'")? (~["\'","\\"] | <ECHAR> | <UCHAR>))* <QUOTE_3S>>

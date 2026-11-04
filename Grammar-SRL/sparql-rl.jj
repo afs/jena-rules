@@ -1681,9 +1681,9 @@ TOKEN :
 | < #QUOTE_3D: "\"\"\"">
 | < #QUOTE_3S: "'''">
 | < #ECHAR: "\\" ( "t"|"b"|"n"|"r"|"f"|"\\"|"\""|"'") >
-| < #UCHAR: <UCHAR4> | <UCHAR8> >
 | < #UCHAR4: "\\" "u" <HEX> <HEX> <HEX> <HEX> >
 | < #UCHAR8: "\\" "U" <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> <HEX> >
+| < #UCHAR: <UCHAR4> | <UCHAR8> >
 | < STRING_LITERAL1:
       // Single quoted string
       "'" ( (~["'","\\","\n","\r"]) | <ECHAR> | <UCHAR> )* "'" >
