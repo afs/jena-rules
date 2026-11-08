@@ -44,8 +44,7 @@ import org.seaborne.jena.srl.tuples.TupleStore;
 
 public class SRL {
 
-    // XXX Check name.
-    public static String mtShapeRuleLanguage = "application/shape-rules";
+    public static String mtShapeRuleLanguage = "application/sparql-rl";
 
     public static String symbolNS = P.JenaRulesSymbolsNS;;
     public static Symbol symStrict = SystemARQ.allocSymbol(symbolNS, "strict");
