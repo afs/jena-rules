@@ -269,10 +269,10 @@ public class RuleSetASTWriter {
                         writeRuleElements(pattern);
                         printList(aggAssignments, a->{
                             out.print("(");
-                            nodeFormatter.format(out, a.aggVariable());
+                            nodeFormatter.format(out, a.aggAssignVar());
                             out.print(" := ");
                             out.print(a.aggFunction().name());
-                            writeExpr(a.expr());
+                            writeExpr(a.aggExpr());
                             out.print(")");
                             out.println();
                             });

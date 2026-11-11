@@ -84,13 +84,23 @@ public class WellFormed {
         }
     }
 
+    enum ElementLevel { TOP, INNER }
+
+    // XXX better alignment the spec algorithm.
+    // This is "inScope"
+    // Refactor to have an "initial set" which ATM happens by careful (unclear) setup of the tracker.
+
     private static void checkRuleElements(VarTracker tracker, List<RuleBodyElement> elts) {
+        checkRuleElementsLevel(tracker, elts, ElementLevel.TOP);
+    }
+
+    private static void checkRuleElementsLevel(VarTracker tracker, List<RuleBodyElement> elts, ElementLevel eltLevel) {
         for ( RuleBodyElement elt : elts ) {
-            checkRuleElement(tracker, elt);
+            checkRuleElement(tracker, elt, eltLevel);
         }
     }
 
-    public static void checkRuleElement(VarTracker tracker, RuleBodyElement elt) {
+    public static void checkRuleElement(VarTracker tracker, RuleBodyElement elt, ElementLevel eltLevel) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 addVar(tracker.bodyDefined, triplePattern.getSubject());
@@ -107,8 +117,8 @@ public class WellFormed {
             }
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
                 // Isolated tracker.
-                VarTracker negTracker = tracker.copyOf();
-                checkRuleElements(negTracker, innerBody);
+                VarTracker innerTracker = tracker.copyOf();
+                checkRuleElementsLevel(innerTracker, innerBody, ElementLevel.INNER);
             }
             case EltAssignment(Var var, Expr expression) -> {
                 processWellFormedExpr(tracker, expression);
@@ -117,20 +127,61 @@ public class WellFormed {
                 tracker.bodyDefined.add(var);
             }
             case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
-                VarTracker negTracker = tracker.copyOf();
-                checkRuleElements(negTracker, aggPattern);
-                if ( groupKeys != null )
-                    // Because the body may not set a group key.
-                    tracker.bodyDefined.addAll(groupKeys);
+
+                if ( groupKeys == null )
+                    groupKeys = List.of();
+
+                // V0 : Initial set of variables.
+                // XXX Improve
+                // XXX Need to keep this?
+                Set<Var> x1 = new HashSet<Var>();
+                groupKeys.forEach(gk->{
+                    if ( tracker.bodyDefined.contains(gk) )
+                        x1.add(gk);
+                });
+                // ----
+                // XXX Inner if group keys only.
+                VarTracker innerTracker = new VarTracker();
+                innerTracker.bodyDefined.addAll(x1);
+
+                // Check inner
+                checkRuleElementsLevel(innerTracker, aggPattern, ElementLevel.INNER);
+
+                // And now groupKeys must all be defined.
+                if ( ! innerTracker.bodyDefined.containsAll(groupKeys) ) {
+                    // XXX Better message.
+                    throw new NotWellFormedException("A group key may be undefined");
+                }
+
                 aggAssignments.forEach(agg->{
-                    Var var = agg.aggVariable();
+                    Var var = agg.aggAssignVar();
+                    // var must not conflict with the grouping.
+                    if ( innerTracker.bodyDefined.contains(var) )
+                        throw new NotWellFormedException("Aggregation variable already defined in pattern: "+var);
+                    // var must be fresh at the top level.
                     if ( tracker.bodyDefined.contains(var) )
-                        throw new NotWellFormedException("Aggregation variable already defined: "+var);
+                        throw new NotWellFormedException("Aggregation variable already defined in input: "+var);
+                    if ( agg.aggExpr() != null )
+                        processWellFormedExpr(innerTracker, agg.aggExpr());
+                    innerTracker.bodyDefined.add(var);
                     tracker.bodyDefined.add(var);
                 });
+                // Update top level tracker. Input, group keys and aggregate assignments.
+                if ( groupKeys != null )
+                    tracker.bodyDefined.addAll(groupKeys);
+                aggAssignments.forEach(agg->{
+                    Var var = agg.aggAssignVar();
+                    tracker.bodyDefined.add(var);
+                });
+
             }
             case null -> { throw new RulesException("Null in rule body"); }
         }
+//
+//        switch(eltLevel) {
+//            case TOP -> System.out.println(tracker);
+//            case INNER -> System.out.println("Inner: "+tracker);
+//        }
     }
 
     private static void checkDefined(VarTracker tracker, Node term) {
@@ -190,6 +241,11 @@ public class WellFormed {
 
         VarTracker copyOf() {
             return new VarTracker(this);
+        }
+
+        @Override
+        public String toString() {
+            return "Vartracker: "+bodyDefined;
         }
     }
 }

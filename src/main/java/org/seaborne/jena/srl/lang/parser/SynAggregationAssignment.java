@@ -24,5 +24,5 @@ package org.seaborne.jena.srl.lang.parser;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 
-public record SynAggregationAssignment(Var aggVariable, Expr expr, SynAggregationFunction aggFunction) {
+public record SynAggregationAssignment(Var aggAssignVar, Expr aggExpr, SynAggregationFunction aggFunction) {
 }

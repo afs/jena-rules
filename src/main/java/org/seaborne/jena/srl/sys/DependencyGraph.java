@@ -32,6 +32,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.sparql.core.Var;
 import org.seaborne.jena.srl.Rule;
 import org.seaborne.jena.srl.RuleSet;
 import org.seaborne.jena.srl.RulesException;
@@ -40,9 +41,11 @@ import org.seaborne.jena.srl.examine.Examine;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
 import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleHeadElement;
+import org.seaborne.jena.srl.lang.RuleBodyElement.EltGroup;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltNegation;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltTriplePattern;
 import org.seaborne.jena.srl.lang.RuleBodyElement.EltTuplePattern;
+import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 import org.seaborne.jena.srl.tuples.Tuple;
 
 /**
@@ -258,9 +261,13 @@ public class DependencyGraph {
                         accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, notPattern, providers, providers2);
                 }
 
+                case EltGroup(List<Var> groupKeys, List<RuleBodyElement> groupPattern, List<SynAggregationAssignment> aggAssignments) -> {
+                    accumulateEdges(accumulator, rule, DepEdgeType.CLOSED, groupPattern, providers, providers2);
+                }
+
                 // These do not cause a dependency relationship.
-//                case EltCondition(Expr condition) -> {}
 //                case EltAssignment(Var var, Expr expression) -> {}
+//                case EltCondition(Expr condition) -> {}
 
                 case null -> throw new RulesException("Encountered a null rule element");
 

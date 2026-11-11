@@ -390,14 +390,6 @@ public class RuleSetWriter {
                     writeRuleElementsBraces(pattern, styleBody);
                     out.println();
 
-//                    out.incIndent();
-//                    out.write("{");
-//                    out.incIndent();
-//                    writeRuleElements(aggPattern, styleBody);
-//                    out.decIndent();
-//                    out.write("}");
-//                    out.println();
-
                     out.write("[");
 
                     boolean oneLine = aggAssignments.size() < 2 ;
@@ -409,7 +401,7 @@ public class RuleSetWriter {
                     }
 
                     aggAssignments.forEach(a->{
-                        nodeFormatter.format(out, a.aggVariable());
+                        nodeFormatter.format(out, a.aggAssignVar());
                         out.print(" := ");
                         // XXX COUNT_DISTINCT
                         String functionName = a.aggFunction().name();
@@ -421,15 +413,15 @@ public class RuleSetWriter {
                         out.print("(");
                         if ( isDistinct )
                             out.print("DISTINCT ");
-                        if ( a.expr() == null ) {
+                        if ( a.aggExpr() == null ) {
                             out.print("*");
                         } else {
-                            if ( a.expr().isVariable() ) {
-                                Var v = a.expr().getExprVar().asVar();
+                            if ( a.aggExpr().isVariable() ) {
+                                Var v = a.aggExpr().getExprVar().asVar();
                                 nodeFormatter.format(out, v);
                             }
                             else
-                                writeExpr(a.expr());
+                                writeExpr(a.aggExpr());
                         }
                         out.print(")");
                         if ( ! oneLine )

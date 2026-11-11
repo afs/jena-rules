@@ -244,11 +244,11 @@ class RulesExecLib {
         aggAssignments.forEach(aggAssign->{
             AggregatorFactory f =
                     switch (aggAssign.aggFunction()) {
-                        case COUNT -> new Agg_Count(false, aggAssign.aggVariable(), aggAssign.expr(), rCxt);
-                        case COUNT_DISTINCT -> new Agg_Count(true, aggAssign.aggVariable(), aggAssign.expr(),rCxt);
-                        case MAX  -> new Agg_Max(aggAssign.aggVariable(), aggAssign.expr(), rCxt);
-                        case MIN  -> new Agg_Min(aggAssign.aggVariable(), aggAssign.expr(), rCxt);
-                        case SUM  -> new Agg_Sum(aggAssign.aggVariable(), aggAssign.expr(), rCxt);
+                        case COUNT -> new Agg_Count(false, aggAssign.aggAssignVar(), aggAssign.aggExpr(), rCxt);
+                        case COUNT_DISTINCT -> new Agg_Count(true, aggAssign.aggAssignVar(), aggAssign.aggExpr(),rCxt);
+                        case MAX  -> new Agg_Max(aggAssign.aggAssignVar(), aggAssign.aggExpr(), rCxt);
+                        case MIN  -> new Agg_Min(aggAssign.aggAssignVar(), aggAssign.aggExpr(), rCxt);
+                        case SUM  -> new Agg_Sum(aggAssign.aggAssignVar(), aggAssign.aggExpr(), rCxt);
                     };
             factories.add(f);
         });

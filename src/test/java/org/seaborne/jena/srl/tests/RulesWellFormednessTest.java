@@ -68,16 +68,17 @@ public class RulesWellFormednessTest extends AbstractManifestTest {
         RuleSet ruleSet = parseForTest(filename, base, allowWarnings);
 
         try {
-
             WellFormed.checkWellFormed(ruleSet);
             if (! expectLegalSyntax ) {
                 printFile(filename);
                 fail("WellFormed check succeeded in a negative test");
             }
         } catch(WellFormed.NotWellFormedException ex) {
+
+
             if ( expectLegalSyntax ) {
                 printFile(filename);
-                //ex.printStackTrace();
+                System.err.println(ex.getMessage());
                 fail("WellFormed check failed: "+ex.getMessage());
             }
         }
