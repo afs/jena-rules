@@ -74,8 +74,6 @@ public class RulesWellFormednessTest extends AbstractManifestTest {
                 fail("WellFormed check succeeded in a negative test");
             }
         } catch(WellFormed.NotWellFormedException ex) {
-
-
             if ( expectLegalSyntax ) {
                 printFile(filename);
                 System.err.println(ex.getMessage());
@@ -85,7 +83,7 @@ public class RulesWellFormednessTest extends AbstractManifestTest {
     }
 
     // XXX De-duplicate
-    private static void printFile(String filename) {
+    private static void  printFile(String filename) {
         String fn = IRILib.IRIToFilename(filename);
         String s = IO.readWholeFileAsUTF8(fn);
         System.err.println("== "+filename);

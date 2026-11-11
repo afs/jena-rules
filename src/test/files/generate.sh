@@ -2,6 +2,11 @@
 ## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 ##
 
+echo "BEWARE"
+echo "Overwrites file which may loose tests"
+echo ""
+exit 1
+
 source create-functions.sh
 HERE="$PWD"
 

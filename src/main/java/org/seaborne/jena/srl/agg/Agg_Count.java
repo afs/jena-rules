@@ -30,6 +30,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.graph.NodeConst;
 import org.seaborne.jena.srl.exec.RulesExecCxt;
@@ -79,6 +80,8 @@ public class Agg_Count implements AggregatorFactory {
         private final Expr expr;
         private final Set<NodeValue> seenExpr;
         private final Set<Binding> seenRows;
+        private long counter = 0 ;
+        private boolean valid = true;
 
         AggregateCount(boolean distinct, Var assignVar, Expr expr) {
             this.distinct = distinct;
@@ -93,33 +96,48 @@ public class Agg_Count implements AggregatorFactory {
             }
         }
 
-        private long counter = 0 ;
+        @Override public void start() {}
+        @Override public void finish() {}
+
         @Override
         public void receive(Binding binding) {
-//            System.out.println("Receive: "+binding);
-            if ( expr == null ) {
+            try {
+                if ( expr == null ) {
+                    if ( distinct ) {
+                        if ( seenRows.contains(binding) )
+                            return;
+                        seenRows.add(binding);
+                    }
+                    counter++;
+                    return;
+                }
+                // ExprEvalException (given the syntax and well-formedness, this should not happen).
+                NodeValue z = expr.eval(binding, null);
                 if ( distinct ) {
-                    if ( seenRows.contains(binding) )
+                    if ( seenExpr.contains(z) )
                         return;
-                    seenRows.add(binding);
+                    seenExpr.add(z);
                 }
                 counter++;
-                return;
+            } catch (ExprEvalException ex) {
+                // Invalid.
+                valid = false;
             }
-            NodeValue z = expr.eval(binding, null);
-            if ( distinct ) {
-                if ( seenExpr.contains(z) )
-                    return;
-                seenExpr.add(z);
-            }
-            counter++;
         }
 
         @Override
-        public NodeValue aggValue() { return NodeValue.makeInteger(counter); }
+        public NodeValue aggValue() {
+            if ( !valid )
+                return null;
+            return NodeValue.makeInteger(counter);
+        }
 
         @Override
-        public Node aggNode() { return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger); }
+        public Node aggNode() {
+            if ( !valid )
+                return null;
+            return NodeFactory.createLiteralDT(Long.toString(counter), XSDDatatype.XSDinteger);
+        }
 
         @Override
         public Var assignVar() {

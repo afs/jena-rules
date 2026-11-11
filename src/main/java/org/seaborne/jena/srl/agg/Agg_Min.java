@@ -59,14 +59,16 @@ public class Agg_Min implements AggregatorFactory {
 
     @Override
     public Node onEmpty() {
-        throw new ExprEvalException("MAX: no value");
+        return null;
     }
 
     private static class AggregateMin implements Aggregator {
         private final Expr expr;
         private final RulesExecCxt rCxt;
         private final Var assignVar;
-        private NodeValue max = null;
+        private NodeValue min = null;
+
+        private boolean valid = true;
 
         AggregateMin(Var assignVar, Expr expr, RulesExecCxt rCxt) {
             this.assignVar = assignVar;
@@ -74,23 +76,43 @@ public class Agg_Min implements AggregatorFactory {
             this.rCxt = rCxt;
         }
 
+        @Override public void start() {}
+        @Override public void finish() {}
+
         @Override
         public void receive(Binding binding) {
-            NodeValue nv = expr.eval(binding, rCxt);
-            if ( max == null )
-                max = nv;
-            else {
-                int cmp = NodeValue.compare(nv, max);
-                if ( cmp == Expr.CMP_LESS )
-                    max = nv;
+            try {
+                // ExprEvalException (given the syntax and well-formedness, this
+                // should not happen).
+                NodeValue nv = expr.eval(binding, rCxt);
+                if ( min == null )
+                    min = nv;
+                else {
+                    // ExprEvalException
+                    int cmp = NodeValue.compare(nv, min);
+                    if ( cmp == Expr.CMP_LESS )
+                        min = nv;
+                }
+            } catch (ExprEvalException ex) {
+                // Invalid.
+                valid = false;
+                min = null;
             }
         }
 
         @Override
-        public NodeValue aggValue() { return max; }
+        public NodeValue aggValue() {
+            if ( !valid )
+                return null;
+            return min;
+        }
 
         @Override
-        public Node aggNode() { return max.asNode(); }
+        public Node aggNode() {
+            if ( !valid )
+                return null;
+            return min.asNode();
+        }
 
         @Override
         public Var assignVar() { return assignVar; }

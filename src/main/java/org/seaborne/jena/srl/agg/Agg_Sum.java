@@ -61,8 +61,6 @@ public class Agg_Sum implements AggregatorFactory {
 
     @Override
     public Node onEmpty() {
-        // XXX ?
-        //throw new ExprEvalException("sum of empty");
         return NodeConst.nodeZero;
     }
 
@@ -70,6 +68,7 @@ public class Agg_Sum implements AggregatorFactory {
         private final Expr expr;
         private final RulesExecCxt rCxt;
         private final Var assignVar;
+        private boolean valid = true;
         private NodeValue sum = null;
 
         AggregateSum(Var assignVar, Expr expr, RulesExecCxt rCxt) {
@@ -78,13 +77,33 @@ public class Agg_Sum implements AggregatorFactory {
             this.rCxt = rCxt;
         }
 
+        @Override public void start() {}
+        @Override public void finish() {}
+
         @Override
         public void receive(Binding binding) {
-            NodeValue nv = expr.eval(binding, rCxt);
+            if ( ! valid )
+                return;
+            receiveInner(binding);
             if ( sum == null )
-                sum = nv;
-            else
-                sum = XSDFuncOp.numAdd(sum, nv);
+                valid = false;
+        }
+
+        private void receiveInner(Binding binding) {
+            try {
+                // ExprEvalException (given the syntax and well-formedness, this should not happen).
+                NodeValue nv = expr.eval(binding, rCxt);
+                if ( sum == null )
+                    sum = nv;
+                else {
+                    // ExprEvalException.
+                    sum = XSDFuncOp.numAdd(sum, nv);
+                }
+            } catch (ExprEvalException ex) {
+                // Invalid.
+                valid = false;
+                sum = null;
+            }
         }
 
         @Override
@@ -95,7 +114,11 @@ public class Agg_Sum implements AggregatorFactory {
         }
 
         @Override
-        public Node aggNode() { return sum.asNode(); }
+        public Node aggNode() {
+            if ( sum == null )
+                return null;
+            return sum.asNode();
+        }
 
         @Override
         public Var assignVar() { return assignVar; }

@@ -403,7 +403,6 @@ public class RuleSetWriter {
                     aggAssignments.forEach(a->{
                         nodeFormatter.format(out, a.aggAssignVar());
                         out.print(" := ");
-                        // XXX COUNT_DISTINCT
                         String functionName = a.aggFunction().name();
                         boolean isDistinct = a.aggFunction() == SynAggregationFunction.COUNT_DISTINCT;
                         if ( isDistinct )

@@ -21,6 +21,7 @@
 
 package org.seaborne.jena.srl.lang.parser;
 
+/** {@code SynAggregationFunction} covers existing the possible aggregation functions of thr SPARQL-RL syntax. */
 public enum SynAggregationFunction {
     COUNT, COUNT_DISTINCT, MIN, MAX, SUM
 }

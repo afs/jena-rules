@@ -58,14 +58,16 @@ public class Agg_Max implements AggregatorFactory {
 
     @Override
     public Node onEmpty() {
-        throw new ExprEvalException("MAX: no value");
+        return null;
     }
 
     private static class AggregateMax implements Aggregator {
         private final Expr expr;
         private final RulesExecCxt rCxt;
         private final Var assignVar;
+
         private NodeValue max = null;
+        private boolean valid = true;
 
         AggregateMax(Var assignVar, Expr expr, RulesExecCxt rCxt) {
             this.assignVar = assignVar;
@@ -74,23 +76,43 @@ public class Agg_Max implements AggregatorFactory {
 
         }
 
+        @Override public void start() {}
+        @Override public void finish() {}
+
         @Override
         public void receive(Binding binding) {
-            NodeValue nv = expr.eval(binding, rCxt);
-            if ( max == null )
-                max = nv;
-            else {
-                int cmp = NodeValue.compare(nv, max);
-                if ( cmp == Expr.CMP_GREATER )
+            try {
+                // ExprEvalException (given the syntax and well-formedness, this
+                // should not happen).
+                NodeValue nv = expr.eval(binding, rCxt);
+                if ( max == null )
                     max = nv;
+                else {
+                    // ExprEvalException
+                    int cmp = NodeValue.compare(nv, max);
+                    if ( cmp == Expr.CMP_GREATER )
+                        max = nv;
+                }
+            } catch (ExprEvalException ex) {
+                // Invalid.
+                valid = false;
+                max = null;
             }
         }
 
         @Override
-        public NodeValue aggValue() { return max; }
+        public NodeValue aggValue() {
+            if ( !valid )
+                return null;
+            return max;
+        }
 
         @Override
-        public Node aggNode() { return max.asNode(); }
+        public Node aggNode() {
+            if ( !valid )
+                return null;
+            return max.asNode();
+        }
 
         @Override
         public Var assignVar() { return assignVar; }

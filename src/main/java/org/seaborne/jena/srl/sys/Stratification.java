@@ -195,7 +195,7 @@ public class Stratification {
                         if ( stratumMap.get(pRule) <= stratumMap.get(qRule) ) {
                             int xStratum = 1 + stratumMap.get(qRule);
                             if ( xStratum > limit )
-                                throw new StratificationException("Stratification error");
+                                throw new StratificationException("Stratification error: "+pRule);
                             stratumMap.put(pRule, xStratum);
                             changed = true;
                         }

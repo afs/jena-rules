@@ -33,12 +33,26 @@ import org.apache.jena.sparql.expr.NodeValue;
 
 public interface Aggregator {
 
-    default void start() {}
-    default void finish() {}
+    void start();
+    void finish();
 
     void receive(Binding binding);
 
+    // XXX Some sort of builder pattern?
+    /**
+     * Result as a {@link Node} - valid after {@link #finish()}.
+     * A return of null indicates an error
+     */
     public Node aggNode();
-    public default NodeValue aggValue() { return NodeValue.makeNode(aggNode()); }
+    /**
+     * Result as a NodeValue - valid after {@link #finish()}.
+     * A return of null indicates an error
+     */
+    public default NodeValue aggValue() {
+        Node n = aggNode();
+        if ( n == null )
+            return null;
+        return NodeValue.makeNode(aggNode());
+    }
     public Var assignVar();
 }

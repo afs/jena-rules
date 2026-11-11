@@ -234,8 +234,6 @@ class RulesExecLib {
         }
     }
 
-    public static boolean AUGMENT = true;
-
     private static Iterator<Binding> aggregateAssignment(Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn,
                                                          List<Var> groupKeys, List<RuleBodyElement> aggPattern,
                                                          List<SynAggregationAssignment> aggAssignments, RulesExecCxt rCxt) {
@@ -254,46 +252,8 @@ class RulesExecLib {
         });
 
 
-        if ( AUGMENT ) {
-            return aggregateAugment(groupSplitter, factories,
-                                    evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
-        } else {
-            return aggregateSummarise(groupSplitter, factories,
-                                  evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
-        }
-    }
-
-    private static Iterator<Binding> aggregateSummarise(GroupSplitter groupSplitter, List<AggregatorFactory> factories,
-                                                        // All args of aggregateAssignment
-                                                        Graph evalGraph, TupleStore tupleStore, Iterator<Binding> chainIn,
-                                                        List<Var> groupKeys, List<RuleBodyElement> aggPattern,
-                                                        List<SynAggregationAssignment> aggAssignments, RulesExecCxt rCxt
-            ) {
-        // Summarise - do not pass on the full input binding, only group keys and aggregated values.
-        // SRL is "augment"
-        System.out.println("** Summarise");
-        // Summarise
-        GroupProcessor groupProc = new GroupProcessor(groupSplitter, factories);
-        groupProc.startReceive();
-        // Account for "row"
-        chainIn.forEachRemaining(row->{
-            Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row, aggPattern, rCxt);
-            chainInner.forEachRemaining(binding->{
-                // The return from evalBodyBinding has the input binding as parent.
-                // No need to merge.
-//                BindingBuilder b = BindingBuilder.create(row);
-//                row.forEach((var, val) ->{
-//                    if ( ! b.contains(var) ) {
-//                        System.out.println("ADD "+var);
-//                        b.add(var, val);
-//                    }
-//                });
-//                Binding binding2 = b.build();
-                groupProc.receive(binding);
-            });
-        });
-        groupProc.finishReceive();
-        return groupProc.eval();
+        return aggregateAugment(groupSplitter, factories,
+                                evalGraph, tupleStore, chainIn, groupKeys, aggPattern, aggAssignments, rCxt);
     }
 
     private static Iterator<Binding> aggregateAugment(GroupSplitter groupSplitter, List<AggregatorFactory> factories,
@@ -302,30 +262,30 @@ class RulesExecLib {
                                                       List<Var> groupKeys, List<RuleBodyElement> aggPattern,
                                                       List<SynAggregationAssignment> aggAssignments, RulesExecCxt rCxt
             ) {
-        GroupProcessor groupProc = new GroupProcessor(groupSplitter, factories);
+        GroupProcessor groupProc = new GroupProcessor(groupKeys, groupSplitter, factories);
         Iterator<Binding> results = null;
 
         while(chainIn.hasNext() ) {
             Binding row = chainIn.next();
+            // System.out.println("Row = "+row);
             // reset
             groupProc.startReceive();
 
             groupProc.nextRow(row);
-            //groupProc.nextRow(BindingFactory.binding());
-
-            // Cache same row restricted by group keys.
-
-//          // XXX ONLY GROUP KEYS
-
-            //BindingFactory.project()
             Binding row2 = (groupKeys != null) ? new BindingProject(groupKeys, row) : BindingFactory.binding();
-//            // XXX Wrap in a projection row to group keys.
-            // XXX ONLY GROUP KEYS
             Iterator<Binding> chainInner = evalBodyBinding(evalGraph, tupleStore, evalGraph, row2, aggPattern, rCxt);
-//            var x = Iter.toList(chainInner);
-//            x.forEach(System.out::println);
-//            chainInner = x.iterator();
-            chainInner.forEachRemaining(binding->groupProc.receive(binding));
+            if ( false ) {
+                var x = Iter.toList(chainInner);
+                if ( x.isEmpty() )
+                    System.out.println("Empty");
+                x.forEach(System.out::println);
+                chainInner = x.iterator();
+                System.out.flush();
+            }
+
+            chainInner.forEachRemaining(binding-> {
+                groupProc.receive(binding);
+            });
             groupProc.finishReceive();
             Iterator<Binding> out1 = groupProc.eval();
             results = IteratorConcat.concat(results, out1);

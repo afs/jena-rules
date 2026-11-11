@@ -28,6 +28,7 @@ import java.io.PrintStream;
 
 import org.apache.jena.arq.junit.manifest.AbstractManifestTest;
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.graph.Graph;
@@ -35,6 +36,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.shared.JenaException;
+import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.apache.jena.system.G;
@@ -44,6 +47,8 @@ import org.seaborne.jena.srl.exec.EngineType;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 import org.seaborne.jena.srl.junit.VocabRulesTests;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
+import org.seaborne.jena.srl.sys.Stratification.StratificationException;
+import org.seaborne.jena.srl.sys.WellFormed.NotWellFormedException;
 
 public class RulesEvalTest extends AbstractManifestTest {
 
@@ -89,7 +94,26 @@ public class RulesEvalTest extends AbstractManifestTest {
         Examine.EXAMINE = false;
         RulesEngine rulesEngine = SRLExec.create(engineType, input, ruleSet);
 
-        RuleSetEvaluation evaluation = rulesEngine.eval();
+        RuleSetEvaluation evaluation;
+        try {
+            evaluation = rulesEngine.eval();
+        } catch ( StratificationException ex) {
+            System.out.println("Stratification error");
+            fail("StratificationException");
+            evaluation = null;
+        } catch ( NotWellFormedException ex) {
+            System.out.println("Not well-formed: "+ex.getMessage());
+            fail("NotWellFormedException");
+            evaluation = null;
+        } catch (ExprEvalException ex) {
+            System.out.println("ExprEvalException out of rule execution");
+            System.out.println(ex.getMessage());
+            evaluation = null;
+        } catch (JenaException ex) {
+            ex.printStackTrace();
+            fail("Execution threw an exception");
+            evaluation = null;
+        }
 
         Graph outcome = evaluation.inferredTriples();
         Node nResult = testItem.getResult();
@@ -97,6 +121,7 @@ public class RulesEvalTest extends AbstractManifestTest {
 
         boolean pass = IsoMatcher.isomorphic(resultsExpected, outcome);
         if (! pass ) {
+            System.out.println("== "+testFilename);
             printFailedEvalTest(testItem, ruleSet, evaluation, resultsExpected, outcome);
             fail("Results do not match: " + testItem.getName());
         }
@@ -105,7 +130,7 @@ public class RulesEvalTest extends AbstractManifestTest {
     private void printFailedEvalTest(ManifestEntry entry, RuleSet ruleSet, RuleSetEvaluation e, Graph expected, Graph actual) {
         PrintStream out = System.out;
 
-        out.println("=======================================");
+        //out.println("=======================================");
         SRLWriter.print(ruleSet);
 
         if ( true ) {
@@ -125,6 +150,17 @@ public class RulesEvalTest extends AbstractManifestTest {
         out.println("---- Expected:");
         write(System.out, expected);
         out.println("---------------------------------------");
+        out.flush();
+    }
+
+    // XXX De-duplicate
+    private static void  printFile(String filename) {
+        String fn = IRILib.IRIToFilename(filename);
+        String s = IO.readWholeFileAsUTF8(fn);
+        System.err.println("== "+filename);
+        System.err.print(s);
+        if ( ! s.endsWith("\n") )
+            System.err.print("\n");
     }
 
     private static void write(OutputStream out, Graph graph) {
