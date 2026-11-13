@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+rm -rf std-tests
+cp -R ~/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/sparql-rl std-tests

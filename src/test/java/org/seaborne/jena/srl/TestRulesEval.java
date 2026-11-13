@@ -110,7 +110,7 @@ public class TestRulesEval {
             """;
 
     private static final String PREFIXES_RULES = """
-            PREFIX srl:     <http://www.w3.org/ns/shacl-rules#>
+            PREFIX srl:     <http://www.w3.org/ns/sparql-rl#>
             """;
 
     private RuleSet rules(String string) {

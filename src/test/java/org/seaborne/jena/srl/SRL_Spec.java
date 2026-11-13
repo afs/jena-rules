@@ -28,7 +28,7 @@ import org.junit.jupiter.api.*;
 import org.apache.jena.arq.junit.Scripts;
 import org.seaborne.jena.srl.junit.RuleTests;
 
-public class Scripts_SRL {
+public class SRL_Spec {
 
     // The WG test suite as it in the WG tests/ area.
 
@@ -39,9 +39,9 @@ public class Scripts_SRL {
     public static void afterClass() {}
 
     @TestFactory
-    @DisplayName("SRL")
+    @DisplayName("SRL - Spec")
     public Stream<DynamicNode> execution() {
         // All SRL tests, using the system default query engine for eval tests.
-        return Scripts.manifestTestFactory("src/test/files/manifest-sparql-rl.ttl", RuleTests::makeRuleTest);
+        return Scripts.manifestTestFactory("src/test/files/std-tests/manifest-sparql-rl.ttl", RuleTests::makeRuleTest);
     }
 }

@@ -52,7 +52,7 @@ public class rules {
             case "--version":
             case "-version": {
                 Optional<String> ver = Version.versionForClass(rules.class);
-                Version.printVersion(System.err, "SHACL Rules",  ver);
+                Version.printVersion(System.err, "SPARQL-RL",  ver);
                 System.exit(0);
             }
         }

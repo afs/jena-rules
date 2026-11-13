@@ -33,20 +33,17 @@ import org.apache.jena.vocabulary.RDF;
 import org.seaborne.jena.srl.exec.RuleSetEvaluation;
 
 /**
- * SHACL Rules prefixes
+ * Prefixes - SHACL and SPARQL-RL.
  *
  * See <a href="https://github.com/w3c/data-shapes/issues/496">SHACL namespaces</a>
  */
 public class P {
-
-    // XXX Simplify.
-
     public static final String SH     = "http://www.w3.org/ns/shacl#";
-    public static final String SRL    = "http://www.w3.org/ns/shacl-rules#";
+    public static final String SRL    = "http://www.w3.org/ns/sparql-rl#";
     public static final String SHNEX  = "http://www.w3.org/ns/shacl-node-expr#";
     public static final String SPARQL = "http://www.w3.org/ns/sparql#";
 
-    public static final String JenaRulesNS = "http://jena.apache.org/shacl-rules#";
+    public static final String JenaRulesNS = "http://jena.apache.org/sparql-rl#";
     public static final String JenaRulesSymbolsNS = "http://jena.apache.org/symbols-rules#";
 
     //@formatter:off

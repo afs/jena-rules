@@ -54,7 +54,7 @@ import org.seaborne.jena.srl.sys.TestAppendGraph;
     Scripts_RuleEval.class,
     Scripts_RuleEvalByEngine.class,
 
-    Scripts_SRL.class,
+    SRL_Spec.class,
 })
 public class TS_JenaRules {}
 

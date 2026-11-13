@@ -38,7 +38,7 @@ import org.seaborne.jena.srl.sys.SysSRL;
  */
 public class RulesExecCxt implements FunctionEnv {
     // FunctionEnv is necessary for function evaluation but
-    // SHACL Rules does not include SPARQL functions that
+    // SPARQL-RL does not include SPARQL functions that
     // need the graph or dataset (e.g. EXISTS).
 
     //public static RuleExecCxt global = new RuleExecCxt();

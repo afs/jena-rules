@@ -1,0 +1,694 @@
+## [1] https://www.w3.org/Consortium/Legal/2008/04-testsuite-license
+## [2] https://www.w3.org/Consortium/Legal/2008/03-bsd-license
+
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> 
+PREFIX rdft:   <http://www.w3.org/ns/rdftest#> 
+
+PREFIX :       <https://w3c.github.io/rdf-tests/shacl/shacl12/>
+
+PREFIX srlt:   <http://www.w3.org/ns/sparql-rl-tests#>
+
+PREFIX dct:    <http://purl.org/dc/terms/> 
+PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#> 
+PREFIX foaf:   <http://xmlns.com/foaf/0.1/> 
+PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
+
+
+<#>  rdf:type mf:Manifest ;
+   rdfs:label "SPARQL-RL Evaluation Tests"@en ;
+   mf:assumedTestBase <https://w3c.github.io/rdf-tests/shacl/shacl12/> ;
+#   dct:issued "2023-07-20"^^xsd:date ; 
+#   dct:modified "2023-07-20"^^xsd:date ; 
+#   dct:licence 
+#   dct:creator [ foaf:homepage <https://w3c.github.io/rdf-star-wg/> ; foaf:name "W3C Data Shapes Working Group" ] ;
+
+    mf:entries
+    (
+        :eval-basic-01
+        :eval-basic-02
+
+        :eval-basic-bnodes-pattern-1
+        :eval-basic-bnodes-pattern-2
+        :eval-basic-bnodes-pattern-3
+        :eval-basic-bnodes-pattern-4
+        
+        :eval-data-01
+        :eval-data-02
+
+        :eval-bnodes-01
+        :eval-bnodes-02
+        :eval-bnodes-03
+
+        :eval-neg-01
+
+        :eval-rdfs-subclass-1
+        :eval-rdfs-subproperty-1
+        :eval-rdfs-domain-1
+        :eval-rdfs-domain-2
+        :eval-rdfs-range-1
+        :eval-rdfs-range-2
+
+        :eval-filter-01
+        :eval-filter-error-1
+
+        :eval-neg-02a
+        :eval-neg-02b
+
+        :eval-assign-01
+        :eval-assign-02
+        :eval-assign-03
+        :eval-assign-error-1
+
+        :eval-neg-data-01
+        :eval-neg-data-02
+        :eval-neg-data-03
+
+        :eval-neg-data-04
+        :eval-neg-data-05
+        :eval-neg-data-06
+
+        :eval-where-data-01
+        :eval-where-data-02
+        :eval-where-data-03
+
+        :eval-group-01
+        :eval-group-02
+        :eval-group-03
+        :eval-group-04
+        :eval-group-05
+        :eval-group-06
+        :eval-group-07
+        :eval-group-08
+        :eval-group-09
+        :eval-group-10
+        :eval-group-11
+        :eval-group-12
+        :eval-group-13
+        :eval-group-14
+        :eval-group-15
+        :eval-group-16
+        :eval-group-17
+        :eval-group-18
+        :eval-group-19
+        :eval-group-20
+        :eval-group-21
+        :eval-group-22
+        :eval-group-23
+        :eval-group-24
+        :eval-group-25
+        :eval-group-26
+        :eval-group-27
+        :eval-group-28
+        :eval-group-29
+        :eval-group-30
+) .
+
+
+## Basic (positive datalog)
+
+:eval-basic-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-basic-01";
+    mf:action
+         [ srlt:ruleset  <eval-basic-01.srl> ;
+           srlt:data     <data-01.ttl> ] ;
+    mf:result  <eval-basic-01-results.ttl> ;
+    .
+    
+:eval-basic-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-basic-02";
+    mf:action
+         [ srlt:ruleset  <eval-basic-02.srl> ;
+           srlt:data     <data-02.ttl> ] ;
+    mf:result  <eval-basic-02-results.ttl> ;
+    .
+
+## Blank nodes in the body
+:eval-basic-bnodes-pattern-1 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-basic-bnodes-pattern-1" ;
+    mf:action
+         [ srlt:ruleset  <eval-basic-bnodes-pattern-1.srl> ;
+           srlt:data     <eval-basic-bnodes-pattern-1-data.ttl> ] ;
+    mf:result  <eval-basic-bnodes-pattern-1-results.ttl> ;
+    .
+
+:eval-basic-bnodes-pattern-2 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-basic-bnodes-pattern-2" ;
+    mf:action
+         [ srlt:ruleset  <eval-basic-bnodes-pattern-2.srl> ;
+           srlt:data     <eval-basic-bnodes-pattern-2-data.ttl> ] ;
+    mf:result  <eval-basic-bnodes-pattern-2-results.ttl> ;
+    .
+
+:eval-basic-bnodes-pattern-3 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-basic-bnodes-pattern-3" ;
+    mf:action
+         [ srlt:ruleset  <eval-basic-bnodes-pattern-3.srl> ;
+           srlt:data     <eval-basic-bnodes-pattern-3-data.ttl> ] ;
+    mf:result  <eval-basic-bnodes-pattern-3-results.ttl> ;
+    .
+
+:eval-basic-bnodes-pattern-4 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-basic-bnodes-pattern-4" ;
+    mf:action
+         [ srlt:ruleset  <eval-basic-bnodes-pattern-4.srl> ;
+           srlt:data     <eval-basic-bnodes-pattern-4-data.ttl> ] ;
+    mf:result  <eval-basic-bnodes-pattern-4-results.ttl> ;
+    .
+
+
+
+## Data
+
+:eval-data-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-data-01";
+    mf:action
+         [ srlt:ruleset  <eval-data-01.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-data-01-results.ttl> ;
+    .
+
+:eval-data-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-data-02";
+    mf:action
+         [ srlt:ruleset  <eval-data-02.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-data-02-results.ttl> ;
+    .
+
+## Blank nodes.
+
+:eval-bnodes-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-bnodes-01";
+    mf:action
+         [ srlt:ruleset  <eval-bnodes-01.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-bnodes-01-results.ttl> ;
+    .
+
+:eval-bnodes-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-bnodes-02";
+    mf:action
+         [ srlt:ruleset  <eval-bnodes-02.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-bnodes-02-results.ttl> ;
+    .
+
+:eval-bnodes-03 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-bnodes-03";
+    mf:action
+         [ srlt:ruleset  <eval-bnodes-03.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-bnodes-03-results.ttl> ;
+    .
+
+## :eval-bnodes-04 rdf:type srlt:RulesEvalTest ;
+##     mf:name "eval-bnodes-04";
+##     mf:action
+##          [ srlt:ruleset  <eval-bnodes-04.srl> ;
+##            srlt:data     <data-empty.ttl> ] ;
+##     mf:result  <eval-bnodes-04-results.ttl> ;
+##     .
+
+## Negation
+
+# Simple.
+
+:eval-neg-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-negation-01";
+    mf:action
+         [ srlt:ruleset  <eval-negation-01.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-negation-01-results.ttl>
+    .
+
+## RDFS
+
+:eval-rdfs-subclass-1 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-rdfs-subclassof-1";
+    mf:action
+         [ srlt:ruleset  <rdfs.srl> ;
+           srlt:data     <data-rdfs-subclass-1.ttl> ] ;
+    mf:result  <rdfs-subclass-1-results.ttl> ;
+    .
+
+:eval-rdfs-subproperty-1 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-rdfs-subproperty-1";
+    mf:action
+         [ srlt:ruleset  <rdfs.srl> ;
+           srlt:data     <data-rdfs-subproperty-1.ttl> ] ;
+    mf:result  <rdfs-subproperty-1-results.ttl> ;
+    .
+
+:eval-rdfs-domain-1 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-rdfs-domain-1";
+    mf:action
+         [ srlt:ruleset  <rdfs.srl> ;
+           srlt:data     <data-rdfs-domain-1.ttl> ] ;
+    mf:result  <rdfs-domain-1-results.ttl> ;
+    .
+
+:eval-rdfs-domain-2 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-rdfs-domain-2";
+    mf:action
+         [ srlt:ruleset  <rdfs.srl> ;
+           srlt:data     <data-rdfs-domain-2.ttl> ] ;
+    mf:result  <rdfs-domain-2-results.ttl> ;
+    .
+
+:eval-rdfs-range-1 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-rdfs-range-1";
+    mf:action
+         [ srlt:ruleset  <rdfs.srl> ;
+           srlt:data     <data-rdfs-range-1.ttl> ] ;
+    mf:result  <rdfs-range-1-results.ttl> ;
+    .
+
+:eval-rdfs-range-2 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-rdfs-range-2";
+    mf:action
+         [ srlt:ruleset  <rdfs.srl> ;
+           srlt:data     <data-rdfs-range-2.ttl> ] ;
+    mf:result  <rdfs-range-2-results.ttl> ;
+    .
+
+# stratification
+
+:eval-neg-02a rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-negation-02a";
+    mf:action
+         [ srlt:ruleset  <eval-negation-02a.srl> ;
+           srlt:data     <data-negation-02.ttl> ;
+         ] ;
+    mf:result  <eval-negation-02-results.ttl>
+    .
+
+:eval-neg-02b rdf:type srlt:RulesEvalTest ;
+    ## Reverse order of rules.
+    mf:name "eval-negation-02b";
+    mf:action
+         [ srlt:ruleset  <eval-negation-02b.srl> ;
+           srlt:data     <data-negation-02.ttl> ;
+         ] ;
+    mf:result  <eval-negation-02-results.ttl>
+    .
+
+:eval-filter-01  rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-filter-1";
+    mf:action
+         [ srlt:ruleset  <eval-filter-01.srl> ;
+           srlt:data     <eval-filter-01-data.ttl> ;
+         ] ;
+    mf:result  <eval-filter-01-results.ttl>
+    .
+
+:eval-filter-error-1  rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-filter-error-1";
+    mf:action
+         [ srlt:ruleset  <eval-filter-error-1.srl> ;
+           srlt:data     <data-error-1.ttl> ;
+         ] ;
+    mf:result  <eval-filter-error-1-results.ttl>
+    .
+
+:eval-assign-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-assign-01";
+    mf:action
+         [ srlt:ruleset  <eval-assign-01.srl> ;
+           srlt:data     <eval-assign-01-data.ttl> ] ;
+    mf:result  <eval-assign-01-results.ttl> ;
+    .
+    
+:eval-assign-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-assign-02";
+    mf:action
+         [ srlt:ruleset  <eval-assign-02.srl> ;
+           srlt:data     <eval-assign-02-data.ttl> ] ;
+    mf:result  <eval-assign-02-results.ttl> ;
+    .
+
+:eval-assign-03 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-assign-03";
+    mf:action
+         [ srlt:ruleset  <eval-assign-03.srl> ;
+           srlt:data     <eval-assign-03-data.ttl> ] ;
+    mf:result  <eval-assign-03-results.ttl> ;
+    .
+
+:eval-assign-error-1  rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-assign-error-1";
+    mf:action
+         [ srlt:ruleset  <eval-assign-error-1.srl> ;
+           srlt:data     <data-error-1.ttl> ;
+         ] ;
+    mf:result  <eval-assign-error-1-results.ttl>
+    .
+
+## NOT DATA
+
+:eval-neg-data-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-neg-data-01" ;
+    mf:action
+         [ srlt:ruleset  <eval-neg-data-01.srl> ;
+           srlt:data     <eval-neg-data-01-data.ttl> ] ;
+    mf:result  <eval-neg-data-01-results.ttl> ;
+    .
+
+:eval-neg-data-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-neg-data-02" ;
+    mf:action
+         [ srlt:ruleset  <eval-neg-data-02.srl> ;
+           srlt:data     <eval-neg-data-02-data.ttl> ] ;
+    mf:result  <eval-neg-data-02-results.ttl> ;
+    .
+
+:eval-neg-data-03 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-neg-data-03" ;
+    mf:action
+         [ srlt:ruleset  <eval-neg-data-03.srl> ;
+           srlt:data     <eval-neg-data-03-data.ttl> ] ;
+    mf:result  <eval-neg-data-03-results.ttl> ;
+    .
+
+:eval-neg-data-04 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-neg-data-04" ;
+    mf:action
+         [ srlt:ruleset  <eval-neg-data-04.srl> ;
+           srlt:data     <eval-neg-data-04-data.ttl> ] ;
+    mf:result  <eval-neg-data-04-results.ttl> ;
+    .
+
+:eval-neg-data-05 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-neg-data-05" ;
+    mf:action
+         [ srlt:ruleset  <eval-neg-data-05.srl> ;
+           srlt:data     <eval-neg-data-05-data.ttl> ] ;
+    mf:result  <eval-neg-data-05-results.ttl> ;
+    .
+
+:eval-neg-data-06 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-neg-data-06" ;
+    mf:action
+         [ srlt:ruleset  <eval-neg-data-06.srl> ;
+           srlt:data     <eval-neg-data-06-data.ttl> ] ;
+    mf:result  <eval-neg-data-06-results.ttl> ;
+    .
+
+## WHERE DATA
+
+:eval-where-data-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-where-data-01" ;
+    mf:action
+         [ srlt:ruleset  <eval-where-data-01.srl> ;
+           srlt:data     <eval-where-data-01-data.ttl> ] ;
+    mf:result  <eval-where-data-01-results.ttl> ;
+    .
+
+:eval-where-data-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-where-data-02" ;
+    mf:action
+         [ srlt:ruleset  <eval-where-data-02.srl> ;
+           srlt:data     <eval-where-data-02-data.ttl> ] ;
+    mf:result  <eval-where-data-02-results.ttl> ;
+    .
+
+:eval-where-data-03 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-where-data-03" ;
+    mf:action
+         [ srlt:ruleset  <eval-where-data-03.srl> ;
+           srlt:data     <eval-where-data-03-data.ttl> ] ;
+    mf:result  <eval-where-data-03-results.ttl> ;
+    .
+
+## GROUP and aggregation
+
+:eval-group-01 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-01" ;
+    rdfs:comment "The example in the overview section, Grouping and Aggregation." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-01.srl> ;
+           srlt:data     <eval-group-01-data.ttl> ] ;
+    mf:result  <eval-group-01-results.ttl> ;
+    .
+
+:eval-group-02 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-02" ;
+    rdfs:comment "A GROUP with no BY whose pattern has no solutions forms one empty group, so COUNT(*) is 0." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-02.srl> ;
+           srlt:data     <eval-group-02-data.ttl> ] ;
+    mf:result  <eval-group-02-results.ttl> ;
+    .
+
+:eval-group-03 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-03" ;
+    rdfs:comment "SUM keeps equal values, and DISTINCT removes them." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-03.srl> ;
+           srlt:data     <eval-group-03-data.ttl> ] ;
+    mf:result  <eval-group-03-results.ttl> ;
+    .
+
+:eval-group-04 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-04" ;
+    rdfs:comment "COUNT(?x) counts solutions, and COUNT(DISTINCT ?x) counts values." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-04.srl> ;
+           srlt:data     <eval-group-04-data.ttl> ] ;
+    mf:result  <eval-group-04-results.ttl> ;
+    .
+
+:eval-group-05 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-05" ;
+    rdfs:comment "COUNT(DISTINCT *) equals COUNT(*)." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-05.srl> ;
+           srlt:data     <eval-group-05-data.ttl> ] ;
+    mf:result  <eval-group-05-results.ttl> ;
+    .
+
+:eval-group-06 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-06" ;
+    rdfs:comment "MIN and MAX compare numbers by value." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-06.srl> ;
+           srlt:data     <eval-group-06-data.ttl> ] ;
+    mf:result  <eval-group-06-results.ttl> ;
+    .
+
+:eval-group-07 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-07" ;
+    rdfs:comment "SUM over an integer and a decimal gives a decimal." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-07.srl> ;
+           srlt:data     <eval-group-07-data.ttl> ] ;
+    mf:result  <eval-group-07-results.ttl> ;
+    .
+
+:eval-group-08 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-08" ;
+    rdfs:comment "An error in one aggregation drops the whole group, including assignments that did not fail." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-08.srl> ;
+           srlt:data     <eval-group-08-data.ttl> ] ;
+    mf:result  <eval-group-08-results.ttl> ;
+    .
+
+:eval-group-09 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-09" ;
+    rdfs:comment "A pattern variable with the same name as an earlier variable that is not a key is a separate variable, and both earlier bindings sharing the same key reach the head." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-09.srl> ;
+           srlt:data     <eval-group-09-data.ttl> ] ;
+    mf:result  <eval-group-09-results.ttl> ;
+    .
+
+:eval-group-10 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-10" ;
+    rdfs:comment "A key bound before the GROUP and not used in the pattern." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-10.srl> ;
+           srlt:data     <eval-group-10-data.ttl> ] ;
+    mf:result  <eval-group-10-results.ttl> ;
+    .
+
+:eval-group-11 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-11" ;
+    rdfs:comment "A key bound before the GROUP is used only in a FILTER inside the pattern." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-11.srl> ;
+           srlt:data     <eval-group-11-data.ttl> ] ;
+    mf:result  <eval-group-11-results.ttl> ;
+    .
+
+:eval-group-12 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-12" ;
+    rdfs:comment "An aggregation argument that is a key bound before the GROUP." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-12.srl> ;
+           srlt:data     <eval-group-12-data.ttl> ] ;
+    mf:result  <eval-group-12-results.ttl> ;
+    .
+
+:eval-group-13 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-13" ;
+    rdfs:comment "One earlier solution yields several groups when the pattern binds a further key." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-13.srl> ;
+           srlt:data     <eval-group-13-data.ttl> ] ;
+    mf:result  <eval-group-13-results.ttl> ;
+    .
+
+:eval-group-14 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-14" ;
+    rdfs:comment "A SET in the pattern computes the value that is summed." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-14.srl> ;
+           srlt:data     <eval-group-14-data.ttl> ] ;
+    mf:result  <eval-group-14-results.ttl> ;
+    .
+
+:eval-group-15 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-15" ;
+    rdfs:comment "A FILTER after the GROUP does the work of SPARQL's HAVING." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-15.srl> ;
+           srlt:data     <eval-group-15-data.ttl> ] ;
+    mf:result  <eval-group-15-results.ttl> ;
+    .
+
+:eval-group-16 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-16" ;
+    rdfs:comment "A triple pattern after the GROUP joins on the result." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-16.srl> ;
+           srlt:data     <eval-group-16-data.ttl> ] ;
+    mf:result  <eval-group-16-results.ttl> ;
+    .
+
+:eval-group-17 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-17" ;
+    rdfs:comment "Grouping on a computed key." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-17.srl> ;
+           srlt:data     <eval-group-17-data.ttl> ] ;
+    mf:result  <eval-group-17-results.ttl> ;
+    .
+
+:eval-group-18 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-18" ;
+    rdfs:comment "Two GROUPs in sequence: the first one's result survives the second, and a key with no group in the second is dropped." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-18.srl> ;
+           srlt:data     <eval-group-18-data.ttl> ] ;
+    mf:result  <eval-group-18-results.ttl> ;
+    .
+
+:eval-group-19 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-19" ;
+    rdfs:comment "An empty pattern forms one group of one solution." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-19.srl> ;
+           srlt:data     <data-empty.ttl> ] ;
+    mf:result  <eval-group-19-results.ttl> ;
+    .
+
+:eval-group-20 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-20" ;
+    rdfs:comment "Counting runs after the recursion it depends on has finished." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-20.srl> ;
+           srlt:data     <eval-group-20-data.ttl> ] ;
+    mf:result  <eval-group-20-results.ttl> ;
+    .
+
+:eval-group-21 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-21" ;
+    rdfs:comment "A GROUP in a WHERE DATA rule counts base data only." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-21.srl> ;
+           srlt:data     <eval-group-21-data.ttl> ] ;
+    mf:result  <eval-group-21-results.ttl> ;
+    .
+
+:eval-group-22 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-22" ;
+    rdfs:comment "A blank node in the pattern acts as a variable." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-22.srl> ;
+           srlt:data     <eval-group-22-data.ttl> ] ;
+    mf:result  <eval-group-22-results.ttl> ;
+    .
+
+:eval-group-23 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-23" ;
+    rdfs:comment "A general rule uses the output of a GROUP rule." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-23.srl> ;
+           srlt:data     <eval-group-23-data.ttl> ] ;
+    mf:result  <eval-group-23-results.ttl> ;
+    .
+
+:eval-group-24 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-24" ;
+    rdfs:comment "An empty assignment block returns group keys and drops an outer solution with no matches." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-24.srl> ;
+           srlt:data     <eval-group-24-data.ttl> ] ;
+    mf:result <eval-group-24-results.ttl> ;
+    .
+
+:eval-group-25 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-25" ;
+    rdfs:comment "With a BY, a key bound before the GROUP with no match forms no group, so it gets no row from COUNT(*) or MAX." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-25.srl> ;
+           srlt:data     <eval-group-25-data.ttl> ] ;
+    mf:result <eval-group-25-results.ttl> ;
+    .
+
+:eval-group-26 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-26" ;
+    rdfs:comment "With a BY, a key bound before the GROUP with no match forms no group, so COUNT(?var) gives no row rather than 0." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-26.srl> ;
+           srlt:data     <eval-group-26-data.ttl> ] ;
+    mf:result <eval-group-26-results.ttl> ;
+    .
+
+:eval-group-27 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-27" ;
+    rdfs:comment "With no BY and no match, the one empty group gives 0 for COUNT(*), COUNT(?var) and SUM." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-27.srl> ;
+           srlt:data     <eval-group-27-data.ttl> ] ;
+    mf:result <eval-group-27-results.ttl> ;
+    .
+
+:eval-group-28 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-28" ;
+    rdfs:comment "With no BY and no match, MIN of the empty group is an error, so the group is dropped and COUNT(*) gives no row either." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-28.srl> ;
+           srlt:data     <eval-group-28-data.ttl> ] ;
+    mf:result <eval-group-28-results.ttl> ;
+    .
+
+:eval-group-29 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-29" ;
+    rdfs:comment "With no BY and no match, an empty assignment block still keeps the one empty group's row." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-29.srl> ;
+           srlt:data     <eval-group-29-data.ttl> ] ;
+    mf:result <eval-group-29-results.ttl> ;
+    .
+
+:eval-group-30 rdf:type srlt:RulesEvalTest ;
+    mf:name "eval-group-30" ;
+    rdfs:comment "All four aggregates per key, where one key bound before the GROUP has no match and gets no row." ;
+    mf:action
+         [ srlt:ruleset  <eval-group-30.srl> ;
+           srlt:data     <eval-group-30-data.ttl> ] ;
+    mf:result <eval-group-30-results.ttl> ;
+    .
