@@ -103,13 +103,13 @@ public class WellFormed {
     public static void checkRuleElement(VarTracker tracker, RuleBodyElement elt, ElementLevel eltLevel) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
-                addVar(tracker.bodyDefined, triplePattern.getSubject());
-                addVar(tracker.bodyDefined, triplePattern.getPredicate());
-                addVar(tracker.bodyDefined, triplePattern.getObject());
+                addVar(tracker.inScope, triplePattern.getSubject());
+                addVar(tracker.inScope, triplePattern.getPredicate());
+                addVar(tracker.inScope, triplePattern.getObject());
             }
             case EltTuplePattern(Tuple tuplePattern) -> {
                 for ( int i = 0 ; i < tuplePattern.size(); i++ ) {
-                    addVar(tracker.bodyDefined, tuplePattern.get(i));
+                    addVar(tracker.inScope, tuplePattern.get(i));
                 }
             }
             case EltFilter(Expr condition) -> {
@@ -122,33 +122,32 @@ public class WellFormed {
             }
             case EltAssignment(Var var, Expr expression) -> {
                 processWellFormedExpr(tracker, expression);
-                if ( tracker.bodyDefined.contains(var) )
+                if ( tracker.inScope.contains(var) )
                     throw new NotWellFormedException("Assignment variable already defined: "+var);
-                tracker.bodyDefined.add(var);
+                tracker.inScope.add(var);
             }
             case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
-
                 if ( groupKeys == null )
                     groupKeys = List.of();
 
                 // V0 : Initial set of variables.
-                // XXX Improve
-                // XXX Need to keep this?
                 Set<Var> x1 = new HashSet<Var>();
                 groupKeys.forEach(gk->{
-                    if ( tracker.bodyDefined.contains(gk) )
+                    // If and only if a group key is in the input,
+                    // add it to the initial variables for looking at the pattern.
+                    if ( tracker.inScope.contains(gk) )
                         x1.add(gk);
                 });
                 // ----
                 // XXX Inner if group keys only.
                 VarTracker innerTracker = new VarTracker();
-                innerTracker.bodyDefined.addAll(x1);
+                innerTracker.inScope.addAll(x1);
 
                 // Check inner
                 checkRuleElementsLevel(innerTracker, aggPattern, ElementLevel.INNER);
 
                 // And now groupKeys must all be defined.
-                if ( ! innerTracker.bodyDefined.containsAll(groupKeys) ) {
+                if ( ! innerTracker.inScope.containsAll(groupKeys) ) {
                     // XXX Better message.
                     throw new NotWellFormedException("A group key may be undefined");
                 }
@@ -156,22 +155,22 @@ public class WellFormed {
                 aggAssignments.forEach(agg->{
                     Var var = agg.aggAssignVar();
                     // var must not conflict with the grouping.
-                    if ( innerTracker.bodyDefined.contains(var) )
+                    if ( innerTracker.inScope.contains(var) )
                         throw new NotWellFormedException("Aggregation variable already defined in pattern: "+var);
                     // var must be fresh at the top level.
-                    if ( tracker.bodyDefined.contains(var) )
+                    if ( tracker.inScope.contains(var) )
                         throw new NotWellFormedException("Aggregation variable already defined in input: "+var);
                     if ( agg.aggExpr() != null )
                         processWellFormedExpr(innerTracker, agg.aggExpr());
-                    innerTracker.bodyDefined.add(var);
-                    tracker.bodyDefined.add(var);
+                    innerTracker.inScope.add(var);
+                    tracker.inScope.add(var);
                 });
                 // Update top level tracker. Input, group keys and aggregate assignments.
                 if ( groupKeys != null )
-                    tracker.bodyDefined.addAll(groupKeys);
+                    tracker.inScope.addAll(groupKeys);
                 aggAssignments.forEach(agg->{
                     Var var = agg.aggAssignVar();
-                    tracker.bodyDefined.add(var);
+                    tracker.inScope.add(var);
                 });
 
             }
@@ -187,7 +186,7 @@ public class WellFormed {
     private static void checkDefined(VarTracker tracker, Node term) {
         if ( Var.isVar(term) ) {
             Var var = Var.alloc(term);
-            if ( ! tracker.bodyDefined.contains(term) ) {
+            if ( ! tracker.inScope.contains(term) ) {
                 throw new NotWellFormedException("Variable in rule head not defined: "+var);
             }
         }
@@ -197,7 +196,7 @@ public class WellFormed {
         Set<Var> vars = condition.getVarsMentioned();
         for ( Var var : vars ) {
             //tracker.bodyMentioned.add(var);
-            if ( ! tracker.bodyDefined.contains(var) )
+            if ( ! tracker.inScope.contains(var) )
                 throw new NotWellFormedException("Expression variable not defined: "+var);
         }
     }
@@ -222,21 +221,19 @@ public class WellFormed {
      * defined (set by a pattern match or an assignment).
      */
     private static class VarTracker {
-        // Patterns and assigned
-        final Set<Var> bodyDefined;
-        //final Set<Var> bodyMentioned;
-        //final Set<Var> headConsumed;
+        // These are mutable.
+        final Set<Var> inScope;
+        final Set<Var> inUse;
 
         VarTracker() {
-            bodyDefined = new HashSet<>();
-            //bodyMentioned = new HashSet<>();
-            //headConsumed = new HashSet<>();
+            inScope = new HashSet<>();
+            inUse = new HashSet<>();
+
         }
 
         private VarTracker(VarTracker other) {
-            bodyDefined = new HashSet<>(other.bodyDefined);
-            //bodyMentioned = new HashSet<>(other.bodyMentioned);
-            //headConsumed = new HashSet<>(other.headConsumed);
+            inScope = new HashSet<>(other.inScope);
+            inUse = new HashSet<>(other.inUse);
         }
 
         VarTracker copyOf() {
@@ -245,8 +242,7 @@ public class WellFormed {
 
         @Override
         public String toString() {
-            return "Vartracker: "+bodyDefined;
+            return "VarTracker: inScope="+inScope+", inUse="+inUse;
         }
     }
 }
-

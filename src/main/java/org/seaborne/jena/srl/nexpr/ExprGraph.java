@@ -68,6 +68,7 @@ public class ExprGraph {
         Node x = buildRDF(graph, expr);
         if ( !insertSRLExpr )
             return x;
+        // Optionally, put in []
         Node x2 = NodeFactory.createBlankNode();
         graph.add(x2, V.expr, x);
         return x2;

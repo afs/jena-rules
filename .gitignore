@@ -1,5 +1,6 @@
 # Local
 local/
+Reviews*/
 
 # Intermediate files.
 Grammar-SRL/sparql-rl-grammar.*
