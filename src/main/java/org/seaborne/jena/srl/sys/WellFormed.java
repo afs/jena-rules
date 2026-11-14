@@ -103,28 +103,35 @@ public class WellFormed {
     private static void checkRuleElement(VarTracker tracker, RuleBodyElement elt, ElementLevel eltLevel) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
-                addVar(tracker.inScope, triplePattern.getSubject());
-                addVar(tracker.inScope, triplePattern.getPredicate());
-                addVar(tracker.inScope, triplePattern.getObject());
+                checkNotInUse(tracker, triplePattern.getSubject());
+                checkNotInUse(tracker, triplePattern.getPredicate());
+                checkNotInUse(tracker, triplePattern.getObject());
+                addVarInScope(tracker, triplePattern.getSubject());
+                addVarInScope(tracker, triplePattern.getPredicate());
+                addVarInScope(tracker, triplePattern.getObject());
             }
             case EltTuplePattern(Tuple tuplePattern) -> {
                 for ( int i = 0 ; i < tuplePattern.size(); i++ ) {
-                    addVar(tracker.inScope, tuplePattern.get(i));
+                    checkNotInUse(tracker, tuplePattern.get(i));
+                    addVarInScope(tracker, tuplePattern.get(i));
                 }
             }
             case EltFilter(Expr condition) -> {
                 processWellFormedExpr(tracker, condition);
             }
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
-                // Isolated tracker.
+                // Isolated tracker: initial variables Vin, initial in-use Uin.
                 VarTracker innerTracker = tracker.copyOf();
                 checkRuleElementsLevel(innerTracker, innerBody, ElementLevel.INNER);
-                // XXX inUse
+                // A negation contributes nothing to inScope, so inScope(S,i) is Vin.
+                accumulateInUse(tracker, innerTracker);
             }
             case EltAssignment(Var var, Expr expression) -> {
                 processWellFormedExpr(tracker, expression);
                 if ( tracker.inScope.contains(var) )
                     throw new NotWellFormedException("Assignment variable already defined: "+var);
+                if ( tracker.inUse.contains(var) )
+                    throw new NotWellFormedException("Assignment variable already used: "+var);
                 tracker.inScope.add(var);
             }
             case EltGroup(List<Var> groupKeys, List<RuleBodyElement> aggPattern, List<SynAggregationAssignment> aggAssignments) -> {
@@ -133,21 +140,25 @@ public class WellFormed {
 
                 // V0 : Initial set of variables.
                 // Defined group keys.
-
-                Set<Var> x1 = new HashSet<Var>();
+                Set<Var> v0 = new HashSet<Var>();
                 groupKeys.forEach(gk->{
                     // If and only if a group key is in the input,
                     // add it to the initial variables for looking at the pattern.
                     if ( tracker.inScope.contains(gk) )
-                        x1.add(gk);
+                        v0.add(gk);
                 });
 
-                VarTracker innerTracker = new VarTracker();
-                innerTracker.inScope.addAll(x1);
+                // U0 : Initial in-use variables for the pattern.
+                Set<Var> u0 = new HashSet<Var>(tracker.inScope);
+                u0.removeAll(groupKeys);
+                u0.addAll(tracker.inUse);
 
-                // Check inner
+                VarTracker innerTracker = new VarTracker();
+                innerTracker.inScope.addAll(v0);
+                innerTracker.inUse.addAll(u0);
+
+                // Check inner pattern based on the innerTracker
                 checkRuleElementsLevel(innerTracker, aggPattern, ElementLevel.INNER);
-                // XXX inUse
 
                 // And now groupKeys must all be defined.
                 if ( ! innerTracker.inScope.containsAll(groupKeys) ) {
@@ -162,21 +173,36 @@ public class WellFormed {
                 Set<Var> aggAssignVars = new HashSet<Var>();
                 aggAssignments.forEach(agg->{
                     Var var = agg.aggAssignVar();
-                    if ( innerTracker.inScope.contains(var) )
-                        throw new NotWellFormedException("Aggregation variable already defined in pattern: "+var);
+
+                    // Technically redundant for catching violations of
+                    // well-formedness because innerTracker.inScope includes V0 but
+                    // it gives a more focused error message.
                     if ( tracker.inScope.contains(var) )
                         throw new NotWellFormedException("Aggregation variable already defined in input: "+var);
-                    // add if new, error if it already exists
-                    if ( ! aggAssignVars.add(var) )
-                        throw new NotWellFormedException("Aggregation variable assigned twice: "+var);
-                    // Checked against innerTracker
+                    // Technically redundant for catching violations of
+                    // well-formedness because innerTracker.inUse includes U0 but
+                    // it gives a more focused error message.
+                    if ( tracker.inUse.contains(var) )
+                        throw new NotWellFormedException("Aggregation variable already used in input: "+var);
+
+                    if ( innerTracker.inScope.contains(var) )
+                        throw new NotWellFormedException("Aggregation variable already defined in pattern: "+var);
+                    if ( innerTracker.inUse.contains(var) )
+                        throw new NotWellFormedException("Aggregation variable already used in pattern: "+var);
+
+                    // Check expression against innerTracker
                     if ( agg.aggExpr() != null )
                         processWellFormedExpr(innerTracker, agg.aggExpr());
+                    // Add if new; error if it already exists
+                    if ( ! aggAssignVars.add(var) )
+                        throw new NotWellFormedException("Aggregation variable assigned twice: "+var);
                 });
 
                 // Update top level tracker. Input, group keys and aggregate assignments.
                 tracker.inScope.addAll(groupKeys);
                 tracker.inScope.addAll(aggAssignVars);
+                // Pattern variables that did not escape the group are marked as inUse.
+                accumulateInUse(tracker, innerTracker);
             }
             case null -> { throw new RulesException("Null in rule body"); }
         }
@@ -193,6 +219,34 @@ public class WellFormed {
             if ( ! tracker.inScope.contains(var) ) {
                 throw new NotWellFormedException("Variable in rule head not defined: "+var);
             }
+        }
+    }
+
+    /**
+     * Variables of an inner pattern (a negation body, or a group pattern) that are
+     * not in scope after the element are "in use": the name is no longer available.
+     * {@code inUse(S,i) = Uin + ( (inScope(inner) + inUse(inner)) - inScope(S,i) )}
+     * <p>
+     * Call once {@code tracker.inScope} is complete for the element.
+     */
+    private static void accumulateInUse(VarTracker tracker, VarTracker innerTracker) {
+        Set<Var> used = new HashSet<>(innerTracker.inScope);
+        used.addAll(innerTracker.inUse);
+        used.removeAll(tracker.inScope);
+        tracker.inUse.addAll(used);
+    }
+
+    private static void addVarInScope(VarTracker tracker, Node node) {
+        if ( Var.isVar(node) )
+            tracker.inScope.add(Var.alloc(node));
+    }
+
+    /** A variable that is in use can not be reused by a pattern. */
+    private static void checkNotInUse(VarTracker tracker, Node term) {
+        if ( Var.isVar(term) ) {
+            Var var = Var.alloc(term);
+            if ( tracker.inUse.contains(var) )
+                throw new NotWellFormedException("Variable already in use: "+var);
         }
     }
 
@@ -214,15 +268,10 @@ public class WellFormed {
 //        }
 //    }
 
-    private static void addVar(Set<Var> varSet, Node node) {
-        if ( Var.isVar(node) )
-            varSet.add(Var.alloc(node));
-    }
-
     /**
-     * State for tracking variables.
-     * Currently, we only need to know what has been
-     * defined (set by a pattern match or an assignment).
+     * State for tracking variables: the variables in scope (set by a pattern match
+     * or an assignment), and the variables in use (mentioned in an inner pattern
+     * but not in scope outside it, so the name is not available for reuse).
      */
     private static class VarTracker {
         // These are mutable.
