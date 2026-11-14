@@ -36,7 +36,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFWriter;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.graph.GraphZero;
 import org.apache.jena.sparql.util.IsoMatcher;
@@ -109,7 +108,7 @@ public class RulesEvalTest extends AbstractManifestTest {
             System.out.println("ExprEvalException out of rule execution");
             System.out.println(ex.getMessage());
             evaluation = null;
-        } catch (JenaException ex) {
+        } catch (RuntimeException ex) {
             ex.printStackTrace();
             fail("Execution threw an exception");
             evaluation = null;

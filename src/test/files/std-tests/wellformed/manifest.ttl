@@ -43,6 +43,7 @@ PREFIX srlt:   <http://www.w3.org/ns/sparql-rl-tests#>
         :test_31
         :test_32
         :test_33
+        :test_34
     ) .
 
 :test_1 rdf:type   srlt:RulesPositiveWellFormednessTest ;
@@ -233,4 +234,10 @@ PREFIX srlt:   <http://www.w3.org/ns/sparql-rl-tests#>
    mf:name    "wellformed-group-bad-15.srl" ;
    rdfs:comment "A FILTER in the pattern uses the block's own aggregation variable." ;
    mf:action  <wellformed-group-bad-15.srl> ;
+   .
+
+:test_34 rdf:type   srlt:RulesNegativeWellFormednessTest ;
+   mf:name    "wellformed-group-bad-extra-16.srl" ;
+   rdfs:comment "An aggregate uses another aggregate's assignment variable." ;
+   mf:action  <wellformed-group-bad-extra-16.srl> ;
    .

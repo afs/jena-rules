@@ -147,7 +147,6 @@ public class GroupProcessor {
 
         // System.out.println("Group keys: "+groups.keySet().size());
 
-        // XXX Recode.
         for ( GroupKey gk : groups.keySet()) {
             BindingBuilder builder = (parent != null)
                     ? BindingBuilder.create(parent)

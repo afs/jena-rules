@@ -51,6 +51,7 @@ public class RulesWellFormednessTest extends AbstractManifestTest {
 
     @Override
     public void runTest() {
+
         // Check so the parse step does not confuse missing with bad syntax.
         String fn = IRILib.IRIToFilename(filename);
         if ( ! FileOps.exists(fn) ) {
@@ -67,6 +68,7 @@ public class RulesWellFormednessTest extends AbstractManifestTest {
         // Must pass as valid syntax
         RuleSet ruleSet = parseForTest(filename, base, allowWarnings);
 
+
         try {
             WellFormed.checkWellFormed(ruleSet);
             if (! expectLegalSyntax ) {
@@ -79,6 +81,9 @@ public class RulesWellFormednessTest extends AbstractManifestTest {
                 System.err.println(ex.getMessage());
                 fail("WellFormed check failed: "+ex.getMessage());
             }
+        } catch(RuntimeException ex) {
+            ex.printStackTrace();
+            throw ex;
         }
     }
 

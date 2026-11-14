@@ -45,8 +45,8 @@ public class WellFormed {
 
     public static class NotWellFormedException extends RulesException {
         public NotWellFormedException(String message)                    { super(message); }
-//        public NotWellFormed(Throwable cause)                   { super(cause) ; }
-//        public NotWellFormed(String message, Throwable cause)   { super(message, cause) ; }
+//        public NotWellFormedException(Throwable cause)                   { super(cause) ; }
+//        public NotWellFormedException(String message, Throwable cause)   { super(message, cause) ; }
     }
 
     /**
@@ -100,7 +100,7 @@ public class WellFormed {
         }
     }
 
-    public static void checkRuleElement(VarTracker tracker, RuleBodyElement elt, ElementLevel eltLevel) {
+    private static void checkRuleElement(VarTracker tracker, RuleBodyElement elt, ElementLevel eltLevel) {
         switch(elt) {
             case EltTriplePattern(Triple triplePattern) -> {
                 addVar(tracker.inScope, triplePattern.getSubject());
@@ -119,6 +119,7 @@ public class WellFormed {
                 // Isolated tracker.
                 VarTracker innerTracker = tracker.copyOf();
                 checkRuleElementsLevel(innerTracker, innerBody, ElementLevel.INNER);
+                // XXX inUse
             }
             case EltAssignment(Var var, Expr expression) -> {
                 processWellFormedExpr(tracker, expression);
@@ -131,6 +132,8 @@ public class WellFormed {
                     groupKeys = List.of();
 
                 // V0 : Initial set of variables.
+                // Defined group keys.
+
                 Set<Var> x1 = new HashSet<Var>();
                 groupKeys.forEach(gk->{
                     // If and only if a group key is in the input,
@@ -138,41 +141,42 @@ public class WellFormed {
                     if ( tracker.inScope.contains(gk) )
                         x1.add(gk);
                 });
-                // ----
-                // XXX Inner if group keys only.
+
                 VarTracker innerTracker = new VarTracker();
                 innerTracker.inScope.addAll(x1);
 
                 // Check inner
                 checkRuleElementsLevel(innerTracker, aggPattern, ElementLevel.INNER);
+                // XXX inUse
 
                 // And now groupKeys must all be defined.
                 if ( ! innerTracker.inScope.containsAll(groupKeys) ) {
-                    // XXX Better message.
-                    throw new NotWellFormedException("A group key may be undefined");
+                    // Calculate missing.
+                    Set<Var> scopeMissing = new HashSet<>(groupKeys);
+                    scopeMissing.removeAll(innerTracker.inScope);
+                    throw new NotWellFormedException("Undefined group keys: "+scopeMissing);
                 }
 
+                // The aggregate assignment variables.
+                // One aggregate can not use another aggregate's assignment variable.
+                Set<Var> aggAssignVars = new HashSet<Var>();
                 aggAssignments.forEach(agg->{
                     Var var = agg.aggAssignVar();
-                    // var must not conflict with the grouping.
                     if ( innerTracker.inScope.contains(var) )
                         throw new NotWellFormedException("Aggregation variable already defined in pattern: "+var);
-                    // var must be fresh at the top level.
                     if ( tracker.inScope.contains(var) )
                         throw new NotWellFormedException("Aggregation variable already defined in input: "+var);
+                    // add if new, error if it already exists
+                    if ( ! aggAssignVars.add(var) )
+                        throw new NotWellFormedException("Aggregation variable assigned twice: "+var);
+                    // Checked against innerTracker
                     if ( agg.aggExpr() != null )
                         processWellFormedExpr(innerTracker, agg.aggExpr());
-                    innerTracker.inScope.add(var);
-                    tracker.inScope.add(var);
-                });
-                // Update top level tracker. Input, group keys and aggregate assignments.
-                if ( groupKeys != null )
-                    tracker.inScope.addAll(groupKeys);
-                aggAssignments.forEach(agg->{
-                    Var var = agg.aggAssignVar();
-                    tracker.inScope.add(var);
                 });
 
+                // Update top level tracker. Input, group keys and aggregate assignments.
+                tracker.inScope.addAll(groupKeys);
+                tracker.inScope.addAll(aggAssignVars);
             }
             case null -> { throw new RulesException("Null in rule body"); }
         }
@@ -186,7 +190,7 @@ public class WellFormed {
     private static void checkDefined(VarTracker tracker, Node term) {
         if ( Var.isVar(term) ) {
             Var var = Var.alloc(term);
-            if ( ! tracker.inScope.contains(term) ) {
+            if ( ! tracker.inScope.contains(var) ) {
                 throw new NotWellFormedException("Variable in rule head not defined: "+var);
             }
         }
@@ -210,9 +214,9 @@ public class WellFormed {
 //        }
 //    }
 
-    private static void addVar(Set<Var> bodyDefined, Node node) {
+    private static void addVar(Set<Var> varSet, Node node) {
         if ( Var.isVar(node) )
-            bodyDefined.add(Var.alloc(node));
+            varSet.add(Var.alloc(node));
     }
 
     /**

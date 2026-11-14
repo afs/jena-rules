@@ -387,10 +387,8 @@ public class RuleSetWriter {
                         out.println();
                     }
 
-                    writeRuleElementsBraces(pattern, styleBody);
-                    out.println();
-
-                    out.write("[");
+                    writeRuleElementsBraces(pattern, Style.Flat);
+                    out.write(" [");
 
                     boolean oneLine = aggAssignments.size() < 2 ;
                     if ( oneLine )

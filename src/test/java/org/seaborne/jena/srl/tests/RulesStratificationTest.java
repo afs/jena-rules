@@ -82,6 +82,9 @@ public class RulesStratificationTest extends AbstractManifestTest {
                 //ex.printStackTrace();
                 fail("Stratification step failed: "+ex.getMessage());
             }
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
+            fail("Stratification threw an exception");
         }
     }
 
