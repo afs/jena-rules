@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-
-RULE {} WHERE { :x :q ("a" :x true) }

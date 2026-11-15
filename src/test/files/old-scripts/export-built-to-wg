@@ -1,0 +1,28 @@
+#!/usr/bin/bash
+
+DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/sparql-rl/"
+## DIR="$HOME/W3C/SHACL/shacl-wg/shacl12-test-suite/tests/sparql-rl/"
+
+function exportDir {
+    local SRC="$1"
+    rm -rf "$DIR/$1"
+    cp -r $SRC $DIR
+}
+
+function exportArea {
+    local AREA="$1"
+    rm -rf "$DIR/$AREA"
+    exportDir "$AREA"
+}
+
+exportArea syntax
+exportArea wellformed
+exportArea stratification
+exportArea eval
+exportArea eval2
+exportArea examples
+
+## rm -f $DIR/README.md
+## rm -f $DIR/manifest*
+##cp manifest-rules.ttl $DIR
+##cp README.md $DIR

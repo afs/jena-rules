@@ -1,3 +1,0 @@
-## Template triple term,no variables.
-PREFIX :        <http://example/>
-RULE { ?x :p <<( :x :p 1 )>> } WHERE { ?x :p 1 }

@@ -1,2 +1,0 @@
-PREFIX :    <http://example/>
-RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) ] GROUP { ?s ?p ?o } [ ?S := SUM(?o) ]  }

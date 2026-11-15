@@ -1,4 +1,5 @@
 #!/usr/bin/bash
 
+DIR="$HOME/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/sparql-rl/"
 rm -rf std-tests
-cp -R ~/W3C/SHACL/rules-shacl-wg/shacl12-test-suite/tests/sparql-rl std-tests
+cp -R "$DIR" std-tests

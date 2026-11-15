@@ -48,13 +48,13 @@ import org.seaborne.jena.srl.sys.TestAppendGraph;
 
     TestImports.class,
 
-    Scripts_RuleSyntax.class,
-    Scripts_Wellformed.class,
-    Scripts_Stratification.class,
-    Scripts_RuleEval.class,
-    Scripts_RuleEvalByEngine.class,
+    // Working group
+    Scripts_SRL_Spec.class,
 
-    SRL_Spec.class,
+    // Jena extensions
+    Scripts_JenaRules.class,
+    Scripts_RuleEvalByEngine.class // eval by engine.
+
 })
 public class TS_JenaRules {}
 

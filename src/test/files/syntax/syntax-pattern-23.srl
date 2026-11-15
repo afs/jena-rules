@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-
-RULE {} WHERE { (1 2 3) :p :z }

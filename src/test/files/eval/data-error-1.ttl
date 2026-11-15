@@ -1,4 +1,0 @@
-PREFIX : <http://example/>
-
-:x2 :data 2 .
-:x0 :data 0 .

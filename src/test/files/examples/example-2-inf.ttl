@@ -1,5 +1,0 @@
-PREFIX : <http://example/>
-
-:app      :exposedTo :vuln1 .
-:frontend :dependsOn :app .
-:app      :dependsOn :db .

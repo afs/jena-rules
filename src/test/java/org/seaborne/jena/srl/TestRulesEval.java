@@ -39,7 +39,6 @@ import org.seaborne.jena.srl.lang.parser.SRLParseException;
 /**
  * Java-written evaluation tests.
  * Most testing is in scripts.
- * @see Scripts_RuleEval
  */
 public class TestRulesEval {
 

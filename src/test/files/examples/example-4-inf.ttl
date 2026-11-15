@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-
-:app1 :status :criticallyExposed .

@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-
-RULE { () :q :x } WHERE { ?a ?b ?c }

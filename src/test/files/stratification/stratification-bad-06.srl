@@ -1,3 +1,0 @@
-## Template triple term in cycle.
-PREFIX :        <http://example/>
-RULE { ?x :p <<( ?x :p ?y )>> } WHERE { ?x :p ?y }

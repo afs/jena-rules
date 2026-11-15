@@ -1,3 +1,0 @@
-PREFIX :        <http://example/>
-
-:x2 :distanceKm 16 .

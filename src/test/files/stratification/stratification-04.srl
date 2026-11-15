@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-RULE { ?s :p "abc" } WHERE { NOT { ?s :p "XYZ" } SET ( ?s := :sz ) }
-RULE { :s :p "ABC" } WHERE { ?s :q :z }
