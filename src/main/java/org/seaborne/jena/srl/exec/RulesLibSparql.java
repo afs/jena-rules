@@ -26,14 +26,10 @@ import java.util.List;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
-import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.expr.E_Bound;
-import org.apache.jena.sparql.expr.E_NotExists;
-import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.expr.ExprVar;
+import org.apache.jena.sparql.core.*;
+import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.expr.aggregate.Aggregator;
+import org.apache.jena.sparql.expr.aggregate.AggregatorFactory;
 import org.apache.jena.sparql.modify.request.QuadAcc;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.syntax.*;
@@ -92,7 +88,90 @@ public class RulesLibSparql {
                     group.addElement(new ElementFilter(bound));
                 }
                 case EltGroup(List<Var> groupKeys, List<RuleBodyElement> pattern, List<SynAggregationAssignment> aggAssignments) -> {
-                    throw new NotImplemented("ruleBodyToElementGroup EltAggregate");
+                    // GROUP, no keys : make a special case?
+
+                    boolean emptyGroupKeys = (groupKeys == null || groupKeys.isEmpty() );
+
+                    Query inputQuery = null;
+                    if ( group.size() > 0 ) {
+                        Query inputQueryX = new Query();
+                        inputQueryX.setQuerySelectType();
+                        // COPY!
+                        ElementGroup eg = new ElementGroup();
+                        eg.getElements().addAll(group.getElements());
+                        inputQueryX.setQueryPattern(eg);
+                        if ( groupKeys != null ) {
+                            groupKeys.forEach(var -> {
+                                inputQueryX.addResultVar(var);
+                            });
+                        }
+                        inputQueryX.ensureResultVars();
+                        inputQueryX.setDistinct(true);
+                        inputQuery = inputQueryX;
+                    }
+                    // ----
+
+                    ElementGroup inner = ruleBodyToElementGroup(pattern, false);
+
+                    if ( inputQuery != null )
+                        inner.getElements().add(0, new ElementSubQuery(inputQuery));
+
+//                    // Copy in preceeding
+//                    inner.getElements().addAll(group.getElements());
+
+                    Query innerQuery = new Query();
+                    innerQuery.setQuerySelectType();
+                    //innerQuery.ad
+                    innerQuery.setQueryPattern(inner);
+                    if ( ! emptyGroupKeys ) {
+                        groupKeys.forEach(var -> {
+                            innerQuery.addGroupBy(var);     // GROUP BY ?var
+                            innerQuery.addResultVar(var);   // SELECT ?var
+                            });
+                    }
+
+                    // No aggregate? Put in a dummy.
+                    if ( aggAssignments.isEmpty() && emptyGroupKeys ) {
+                        // Dummy aggregate
+                        Var v = Var.alloc("__dummy");
+                        Aggregator agg = AggregatorFactory.createCount(false);
+                        // SAMPLE better?
+                        // Different query?
+                        Expr exprAgg = innerQuery.allocAggregate(agg) ;
+                        innerQuery.addResultVar(v, exprAgg);
+                    }
+                    // else
+                    aggAssignments.forEach(synAgg ->{
+                        Var v = synAgg.aggAssignVar();
+                        Expr e = synAgg.aggExpr();
+                        Aggregator agg = switch(synAgg.aggFunction()) {
+                            case COUNT -> { yield (e == null) ? AggregatorFactory.createCount(false) : AggregatorFactory.createCountExpr(false,  e); }
+                            case COUNT_DISTINCT -> { yield (e == null) ? AggregatorFactory.createCount(true) : AggregatorFactory.createCountExpr(true,  e); }
+                            case MAX -> AggregatorFactory.createMax(false, e);
+                            case MIN -> AggregatorFactory.createMin(false, e);
+                            case SUM -> AggregatorFactory.createSum(false, e);
+                        };
+                        Expr exprAgg = innerQuery.allocAggregate(agg) ;
+                        innerQuery.addResultVar(v, exprAgg);
+                    });
+                    innerQuery.ensureResultVars();
+                    ElementSubQuery eltSubQuery = new ElementSubQuery(innerQuery);
+                    group.addElement(eltSubQuery);
+
+                    // By well-formedness, Group keys can't be unbound after the sub-query is joined to the input.
+//                    // Check no errors.
+//                    if ( groupKeys != null ) {
+//                        for ( Var var : groupKeys ) {
+//                            Expr v = new ExprVar(var);
+//                            Expr bound = new E_Bound(v);
+//                            group.addElement(new ElementFilter(bound));
+//                        }
+//                    }
+                    for ( var synAgg : aggAssignments ) {
+                        Expr v = new ExprVar(synAgg.aggAssignVar());
+                        Expr bound = new E_Bound(v);
+                        group.addElement(new ElementFilter(bound));
+                    }
                 }
             }
         }

@@ -84,6 +84,13 @@ public class WellFormed {
         }
     }
 
+    // XXX Move to "Scope"?
+    public static VarTracker analysis(Rule rule) {
+        VarTracker tracker = new VarTracker();
+        checkRuleElements(tracker, rule.getBodyElements());
+        return tracker;
+    }
+
     enum ElementLevel { TOP, INNER }
 
     // XXX better alignment the spec algorithm.
