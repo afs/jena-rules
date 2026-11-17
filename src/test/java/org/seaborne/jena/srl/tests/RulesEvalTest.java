@@ -132,7 +132,7 @@ public class RulesEvalTest extends AbstractManifestTest {
         //out.println("=======================================");
         SRLWriter.print(ruleSet);
 
-        if ( true ) {
+        if ( false ) {
             out.println("---------------------------------------");
             System.out.println("-- Base graph");
             write(System.out, e.baseGraph());
@@ -140,6 +140,9 @@ public class RulesEvalTest extends AbstractManifestTest {
             write(System.out, e.inferredTriples());
             System.out.println("-- Output graph");
             write(System.out, e.outputGraph());
+        } else {
+            System.out.println("-- Base graph");
+            writePretty(System.out, e.baseGraph());
         }
         out.println("---------------------------------------");
         out.println("---- Failure: " + entry.getName());
@@ -165,6 +168,11 @@ public class RulesEvalTest extends AbstractManifestTest {
     private static void write(OutputStream out, Graph graph) {
         RDFWriter.source(graph).format(RDFFormat.TURTLE_FLAT).output(out);
     }
+
+    private static void writePretty(OutputStream out, Graph graph) {
+        RDFWriter.source(graph).format(RDFFormat.TURTLE).output(out);
+    }
+
 
     private static String checkForFile(Node file) {
         String URI = file.getURI();

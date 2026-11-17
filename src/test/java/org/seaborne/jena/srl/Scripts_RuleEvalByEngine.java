@@ -34,6 +34,8 @@ import org.seaborne.jena.srl.junit.RuleTests;
 @TestMethodOrder(OrderAnnotation.class)
 public class Scripts_RuleEvalByEngine {
 
+    private final static String MANIFEST = "src/test/files/std-tests/manifest-sparql-rl.ttl";
+
     @BeforeAll
     public static void beforeClass() {}
 
@@ -49,27 +51,27 @@ public class Scripts_RuleEvalByEngine {
     @TestFactory
     @DisplayName("Jena Rules (Execution - engine type : Simple)")
     public Stream<DynamicNode> execution_simple() {
-        return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", testMakerEngineType(EngineType.SIMPLE));
+        return Scripts.manifestTestFactory(MANIFEST, testMakerEngineType(EngineType.SIMPLE));
     }
 
     @Order(2)
     @TestFactory
     @DisplayName("Jena Rules (Execution - engine type : Simple SPARQL Body)")
     public Stream<DynamicNode> execution_simpleSparqlBody() {
-        return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", testMakerEngineType(EngineType.SIMPLE_SPARQL));
+        return Scripts.manifestTestFactory(MANIFEST, testMakerEngineType(EngineType.SIMPLE_SPARQL));
     }
 
     @Order(3)
     @TestFactory
     @DisplayName("Jena Rules (Execution - engine type : Simple SPARQL CONSTRUCT)")
     public Stream<DynamicNode> execution_simpleSparqlConstruct() {
-        return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", testMakerEngineType(EngineType.SIMPLE_SPARQL_CONSTRUCT));
+        return Scripts.manifestTestFactory(MANIFEST, testMakerEngineType(EngineType.SIMPLE_SPARQL_CONSTRUCT));
     }
 
     @Order(4)
     @TestFactory
     @DisplayName("Jena Rules (Execution - engine type : Simple SPARQL INSERT)")
     public Stream<DynamicNode> execution_simpleSparqlInsert() {
-        return Scripts.manifestTestFactory("src/test/files/eval/manifest.ttl", testMakerEngineType(EngineType.SIMPLE_SPARQL_INSERT));
+        return Scripts.manifestTestFactory(MANIFEST, testMakerEngineType(EngineType.SIMPLE_SPARQL_INSERT));
     }
 }

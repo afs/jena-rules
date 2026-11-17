@@ -1,0 +1,9 @@
+PREFIX : <http://example/>
+
+TUPLES {
+   $("data", 1)
+   $("data", 2)
+}
+
+RULE { :x :p ?n }
+WHERE { $("data", ?n) }
