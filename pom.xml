@@ -266,12 +266,12 @@
           <windowtitle>${project.name} ${project.version}</windowtitle>
           <doctitle>${project.name} ${project.version}</doctitle>
           <bottom>Licensed under the Apache License, Version 2.0</bottom>
+          <!--
           <links>
             <link>https://jena.apache.org/documentation/javadoc/jena/</link>
             <link>https://jena.apache.org/documentation/javadoc/arq/</link>
-            <link>https://jena.apache.org/documentation/javadoc/rdfconnection/</link>
-            <link>https://jena.apache.org/documentation/javadoc/fuseki2/</link>
           </links>
+          -->
           <!-- Settings for @apiNote, @implSpec and @implNote -->
           <tags>
             <tag>
