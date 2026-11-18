@@ -27,7 +27,10 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.*;
-import org.apache.jena.sparql.expr.*;
+import org.apache.jena.sparql.expr.E_Bound;
+import org.apache.jena.sparql.expr.E_NotExists;
+import org.apache.jena.sparql.expr.Expr;
+import org.apache.jena.sparql.expr.ExprVar;
 import org.apache.jena.sparql.expr.aggregate.Aggregator;
 import org.apache.jena.sparql.expr.aggregate.AggregatorFactory;
 import org.apache.jena.sparql.modify.request.QuadAcc;
@@ -45,30 +48,31 @@ public class RulesLibSparql {
 
     /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */
     public static ElementGroup ruleBodyToElementGroup(RuleBody ruleBody) {
-        return ruleBodyToElementGroup(ruleBody.getBodyElements(), ruleBody.isGrounded());
+        // Used for translating GROUP with no aggregates.
+        VarAlloc varAlloc = new VarAlloc(varAllocBase);
+        return ruleBodyToElementGroup(ruleBody.getBodyElements(), ruleBody.isGrounded(), varAlloc);
     }
 
-    private static ElementGroup ruleBodyToElementGroup(List<RuleBodyElement> ruleElts, boolean groundedPattern) {
+    private static String varAllocBase = "__genvar_";
+    // Or we don't need portable SPARQL:
+    // private static String varAllocBase = ARQConstants.allocQueryVariables+"srlVar";
+
+    private static ElementGroup ruleBodyToElementGroup(List<RuleBodyElement> ruleElts, boolean groundedPattern, VarAlloc varAlloc) {
+        // Only EltTriplePattern with ElementGroup.addTriplePattern changes
+        // a element of added to "group", other operations use addElement to append
+        // new elements.
+        // An EltGroup shallow copies this list into its input sub-query,
         ElementGroup group = new ElementGroup();
-        ElementTriplesBlock tBlk = null;
+
         for ( RuleBodyElement rElt : ruleElts ) {
             switch (rElt) {
+                // The SPARQL Parser generates ElementPathBlock but ElementTriplesBlock works fine.
                 case EltTriplePattern(var triple) -> group.addTriplePattern(triple);
-
-//                // The Parser generates ElementPathBlock
-//                case EltTriplePattern(var triple) -> {
-//                    ElementPathBlock epb = new ElementPathBlock();
-//                    epb.addTriple(triple);
-//                    group.addElement(epb);
-//                }
-
                 case EltTuplePattern(var tuple) -> { throw new NotImplemented("Tuples in SPARQL translation"); }
                 case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody, boolean grounded ) -> {
-
-                    // NOT DATA handled by ruleBodyToElementGroup which will wrap the innerBody in a GRAPH <
-
-                    ElementGroup inner = ruleBodyToElementGroup(innerBody, grounded);
+                    // NOT DATA handled by ruleBodyToElementGroup which will wrap the innerBody in a GRAPH <baseURI>
+                    ElementGroup inner = ruleBodyToElementGroup(innerBody, grounded, varAlloc);
                     Element negationElt = new ElementFilter(new E_NotExists(inner));
                     group.addElement(negationElt);
 
@@ -92,36 +96,32 @@ public class RulesLibSparql {
 
                     boolean emptyGroupKeys = (groupKeys == null || groupKeys.isEmpty() );
 
+                    // Only when there are group keys. A keyless input sub-query has nothing to
+                    // project; the projection-less sub-SELECT loses its project in the algebra and
+                    // the input pattern's variables leak into the group pattern, multiplying the
+                    // aggregate by the number of input rows. The outer join already restricts.
                     Query inputQuery = null;
-                    if ( group.size() > 0 ) {
+                    if ( group.size() > 0 && ! emptyGroupKeys ) {
                         Query inputQueryX = new Query();
                         inputQueryX.setQuerySelectType();
-                        // COPY!
+                        // Shallow copy
                         ElementGroup eg = new ElementGroup();
                         eg.getElements().addAll(group.getElements());
                         inputQueryX.setQueryPattern(eg);
-                        if ( groupKeys != null ) {
-                            groupKeys.forEach(var -> {
-                                inputQueryX.addResultVar(var);
-                            });
-                        }
+                        groupKeys.forEach(var -> {
+                            inputQueryX.addResultVar(var);
+                        });
                         inputQueryX.ensureResultVars();
                         inputQueryX.setDistinct(true);
                         inputQuery = inputQueryX;
                     }
-                    // ----
 
-                    ElementGroup inner = ruleBodyToElementGroup(pattern, false);
-
+                    ElementGroup inner = ruleBodyToElementGroup(pattern, false, varAlloc);
                     if ( inputQuery != null )
                         inner.getElements().add(0, new ElementSubQuery(inputQuery));
 
-//                    // Copy in preceeding
-//                    inner.getElements().addAll(group.getElements());
-
                     Query innerQuery = new Query();
                     innerQuery.setQuerySelectType();
-                    //innerQuery.ad
                     innerQuery.setQueryPattern(inner);
                     if ( ! emptyGroupKeys ) {
                         groupKeys.forEach(var -> {
@@ -133,33 +133,33 @@ public class RulesLibSparql {
                     // No aggregate? Put in a dummy.
                     if ( aggAssignments.isEmpty() && emptyGroupKeys ) {
                         // Dummy aggregate
-                        Var v = Var.alloc("__dummy");
+                        Var v = varAlloc.allocVar();
                         Aggregator agg = AggregatorFactory.createCount(false);
                         // SAMPLE better?
                         // Different query?
                         Expr exprAgg = innerQuery.allocAggregate(agg) ;
                         innerQuery.addResultVar(v, exprAgg);
+                    } else {
+                        aggAssignments.forEach(synAgg ->{
+                            Var v = synAgg.aggAssignVar();
+                            Expr e = synAgg.aggExpr();
+                            Aggregator agg = switch(synAgg.aggFunction()) {
+                                case COUNT -> { yield (e == null) ? AggregatorFactory.createCount(false) : AggregatorFactory.createCountExpr(false,  e); }
+                                case COUNT_DISTINCT -> { yield (e == null) ? AggregatorFactory.createCount(true) : AggregatorFactory.createCountExpr(true,  e); }
+                                case MAX -> AggregatorFactory.createMax(false, e);
+                                case MIN -> AggregatorFactory.createMin(false, e);
+                                case SUM -> AggregatorFactory.createSum(false, e);
+                            };
+                            Expr exprAgg = innerQuery.allocAggregate(agg) ;
+                            innerQuery.addResultVar(v, exprAgg);
+                        });
                     }
-                    // else
-                    aggAssignments.forEach(synAgg ->{
-                        Var v = synAgg.aggAssignVar();
-                        Expr e = synAgg.aggExpr();
-                        Aggregator agg = switch(synAgg.aggFunction()) {
-                            case COUNT -> { yield (e == null) ? AggregatorFactory.createCount(false) : AggregatorFactory.createCountExpr(false,  e); }
-                            case COUNT_DISTINCT -> { yield (e == null) ? AggregatorFactory.createCount(true) : AggregatorFactory.createCountExpr(true,  e); }
-                            case MAX -> AggregatorFactory.createMax(false, e);
-                            case MIN -> AggregatorFactory.createMin(false, e);
-                            case SUM -> AggregatorFactory.createSum(false, e);
-                        };
-                        Expr exprAgg = innerQuery.allocAggregate(agg) ;
-                        innerQuery.addResultVar(v, exprAgg);
-                    });
                     innerQuery.ensureResultVars();
                     ElementSubQuery eltSubQuery = new ElementSubQuery(innerQuery);
                     group.addElement(eltSubQuery);
 
                     // By well-formedness, Group keys can't be unbound after the sub-query is joined to the input.
-//                    // Check no errors.
+//                    // This is not necessary:
 //                    if ( groupKeys != null ) {
 //                        for ( Var var : groupKeys ) {
 //                            Expr v = new ExprVar(var);
@@ -217,7 +217,6 @@ public class RulesLibSparql {
         rule.getHead().getHeadTriples().forEach(quadAcc::addTriple);
         return insert;
     }
-
 
     /*package*/ static DatasetGraph buildDataset(Graph evalGraph, Graph inputGraph) {
         DatasetGraph dsg = DatasetGraphFactory.createGeneral(evalGraph);
