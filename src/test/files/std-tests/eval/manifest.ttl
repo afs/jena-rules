@@ -696,7 +696,7 @@ PREFIX skos:   <http://www.w3.org/2004/02/skos/core#>
 
 :eval-group-31 rdf:type srlt:RulesEvalTest ;
     mf:name "eval-group-31" ;
-    rdfs:comment "With no BY, the aggregates are over the GROUP pattern alone; a preceding pattern with several matches does not multiply them." ;
+    rdfs:comment "With no BY, the aggregate is over the GROUP pattern alone: a preceding pattern with several matches keeps one row each and does not multiply the aggregate." ;
     mf:action
          [ srlt:ruleset  <eval-group-31.srl> ;
            srlt:data     <eval-group-31-data.ttl> ] ;
