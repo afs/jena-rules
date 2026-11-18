@@ -1,0 +1,4 @@
+PREFIX : <http://example/>
+
+RULE { :all :count ?n ; :countVar ?c ; :sum ?t }
+WHERE { ?u :p ?w . GROUP { ?s :q ?o } [ ?n := COUNT(*) , ?c := COUNT(?o) , ?t := SUM(?o) ] }

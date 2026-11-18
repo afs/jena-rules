@@ -1,0 +1,7 @@
+PREFIX :    <http://example/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+:a :p "A" .
+:b :p "B" .
+:c :p "C" .
+:x :q 10 .
+:y :q 20 .

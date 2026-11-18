@@ -1,0 +1,2 @@
+PREFIX :    <http://example/>
+:all :count 2 ; :countVar 2 ; :sum 30 .
