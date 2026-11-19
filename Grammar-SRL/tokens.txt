@@ -4,13 +4,17 @@
 [<RULE>]        ::= 'RULE'
 [<THEN>]        ::= 'THEN'
 [<RULE_INFER>]  ::= ':-'
+
 [<DATA>]        ::= 'DATA'
+[<GROUND>]      ::= 'GROUND'
 [<TUPLE>]       ::= 'TUPLE'
 [<TUPLES>]      ::= 'TUPLES'
 [<INFER>]       ::= 'INFER'
+
 [<TRANSITIVE>]  ::= 'TRANSITIVE'
 [<SYMMETRIC>]   ::= 'SYMMETRIC'
 [<INVERSE>]     ::= 'INVERSE'
+
 [<IMPORTS>]     ::= 'IMPORTS'
 
 // Tokens in BNF

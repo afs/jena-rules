@@ -70,7 +70,7 @@ RULE { ?s :q "Rule" } WHERE { ?s :q ?o }
 EOF
 
 N=$((N+1)) ; testBad $(fname "stratification-bad-" $N) <<EOF
-## The base data test with no WHERE DATA or NOT DATA
+## The base data test with no WHERE GROUND or NOT GROUND
 PREFIX :        <http://example/>
 PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 

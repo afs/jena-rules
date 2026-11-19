@@ -185,13 +185,12 @@ void ImportsDecl() : { String iri ; }
 
 void Rule() : {  Token t; String uriStr = null; }
 {
-   // RULE <iri>? {} WHERE DATA? { }
    t = <RULE>
    ( uriStr = iri() )?
    { startRule(uriStr, t.beginLine, t.beginColumn); }
    HeadTemplate()
    <WHERE>
-   ( <DATA> { setGroundedRule(token.beginLine, token.beginColumn); } )?
+   ( <GROUND> { setGroundedRule(token.beginLine, token.beginColumn); } )?
    BodyPattern()
    { finishRule(t.beginLine, t.beginColumn); }
 }
@@ -289,7 +288,7 @@ void Negation() : { Token t; Token t2;}
 {
     t = <NOT>
     { startNegation(token.beginLine, token.beginColumn) ; }
-    ( <DATA> { setGroundedNegation(token.beginLine, token.beginColumn); } )?
+    ( <GROUND> { setGroundedNegation(token.beginLine, token.beginColumn); } )?
     t = <LBRACE>
     NegationPattern()
     <RBRACE>
@@ -1974,6 +1973,7 @@ TOKEN [IGNORE_CASE] :
 |  < TUPLES:       "tuples" >
 #endif
 |  < DATA:         "data" >
+|  < GROUND:       "ground" >
 |  < INFER:        "infer" >
 |  < IMPORTS:      "imports" >
 |  < ASSIGN:      ":=" >

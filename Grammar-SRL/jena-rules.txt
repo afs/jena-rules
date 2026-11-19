@@ -50,6 +50,7 @@ TOKENS
 | <TUPLE: "tuple">
 | <TUPLES: "tuples">
 | <DATA: "data">
+| <GROUND: "ground">
 | <INFER: "infer">
 | <IMPORTS: "imports">
 | <ASSIGN: ":=">
@@ -238,7 +239,7 @@ NON-TERMINALS
 	VersionSpecifier	:=	( <STRING_LITERAL1> | <STRING_LITERAL2> )
 	ImportsDecl	:=	<IMPORTS> iri
 // ---- Rules
-	Rule	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <DATA> )? BodyPattern
+	Rule	:=	<RULE> ( iri )? HeadTemplate <WHERE> ( <GROUND> )? BodyPattern
 // Withdrawn
 // void Rule2() : { Token t;  String uriStr = null; }
 // {
@@ -270,7 +271,7 @@ NON-TERMINALS
 	Filter	:=	<FILTER> Constraint
 	Constraint	:=	( BrackettedExpression | BuiltInCall | FunctionCall )
 // ---- Negation (NOT)
-	Negation	:=	<NOT> ( <DATA> )? <LBRACE> NegationPattern <RBRACE>
+	Negation	:=	<NOT> ( <GROUND> )? <LBRACE> NegationPattern <RBRACE>
 // Body-like pattern for NOT
 	NegationPattern	:=	( BodyTriplesBlock )? ( NegationPatternNotTriples ( <DOT> )? ( BodyTriplesBlock )? )*
 	NegationPatternNotTriples	:=	( Filter | TuplePattern )

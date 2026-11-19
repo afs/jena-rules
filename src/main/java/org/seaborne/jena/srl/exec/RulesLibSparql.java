@@ -108,7 +108,7 @@ public class RulesLibSparql {
                 case EltTuplePattern(var tuple) -> { throw new NotImplemented("Tuples in SPARQL translation"); }
                 case EltFilter(var expr) -> group.addElement(new ElementFilter(expr));
                 case EltNegation(var innerBody, boolean grounded ) -> {
-                    // NOT DATA handled by ruleBodyToElementGroup which will wrap the innerBody in a GRAPH <baseURI>
+                    // NOT GROUND handled by ruleBodyToElementGroup which will wrap the innerBody in a GRAPH <baseURI>
                     ElementGroup inner = ruleBodyToElementGroup(innerBody, grounded, varAlloc);
                     Element negationElt = new ElementFilter(new E_NotExists(inner));
                     group.addElement(negationElt);

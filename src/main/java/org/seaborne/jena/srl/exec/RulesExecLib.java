@@ -222,7 +222,7 @@ class RulesExecLib {
             }
 
             case EltNegation(List<RuleBodyElement> innerBody, boolean grounded) -> {
-                // If NOT DATA, then match on the inputGraph baseGraph.
+                // If NOT GROUND, then match on the inputGraph baseGraph.
                 Graph matchGraph = (grounded) ? inputGraph : evalGraph;
                 Iterator<Binding> chain2 = Iter.filter(chainIn, solution -> {
                     Iterator<Binding> chainInner = evalBodyBinding(matchGraph, tupleStore, inputGraph, solution, innerBody, rCxt);
