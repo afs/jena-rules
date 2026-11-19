@@ -242,7 +242,7 @@ public class RuleSetWriter {
             out.print(" ");
         out.print("WHERE ");
         if ( rule.isGrounded() )
-            out.print("DATA ");
+            out.print("GROUND ");
         writeBody(rule, styleBody);
     }
 
@@ -359,7 +359,7 @@ public class RuleSetWriter {
                 case EltNegation(List<RuleBodyElement> pattern, boolean grounded) -> {
                     out.write("NOT ");
                     if ( grounded )
-                        out.write("DATA ");
+                        out.write("GROUND ");
                     out.write("{");
                     out.println();
                     final int indentLevelNegation = 4 ;

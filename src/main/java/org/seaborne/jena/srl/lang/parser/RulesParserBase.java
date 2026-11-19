@@ -127,10 +127,10 @@ public class RulesParserBase extends LangParserBase {
     // Used to accumulate nodes for a tuple.
     private final List<Node> tupleArgs = new ArrayList<>();
 
-    // The whole body is "WHERE DATA"
+    // The whole body is "WHERE GROUND"
     private boolean isGroundedRule;
 
-    // The current rule element is NOT DATA
+    // The current rule element is "NOT GROUND"
     private boolean isGroundedNegation;
 
 

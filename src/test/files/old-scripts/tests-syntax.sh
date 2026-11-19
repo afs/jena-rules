@@ -79,7 +79,7 @@ PREFIX : <http://example/>
 RULE {} WHERE { }
 
 PREFIX ns: <http://example/ns#>
-RULE {} WHERE DATA { :s :p ?o }
+RULE {} WHERE GROUND { :s :p ?o }
 EOF
 
 ## Bad syntax - structure
@@ -251,7 +251,7 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-not-" $N) <<EOF
 PREFIX :    <http://example/>
-RULE { } WHERE { :sx :p1 :o NOT DATA { ?a ?b ?c } }
+RULE { } WHERE { :sx :p1 :o NOT GROUND { ?a ?b ?c } }
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-rule-elements-not-" $N) <<EOF
@@ -427,8 +427,8 @@ RULE {} WHERE { GROUP { ?s ?p ?o } [ ?N := COUNT(*) , ?S := SUM(?o) , ] }
 EOF
 
 ## Reification macros
-## There is also copverage in -data-, -template- and -pattern-
-## As this synatx is new, provide some focused test as terms.
+## There is also coverage in -data-, -template- and -pattern-
+## As this syntax is new, provide some focused test as terms.
 
 N=0
 N=$((N+1)) ; testGood $(fname "syntax-reification-" $N) <<EOF
