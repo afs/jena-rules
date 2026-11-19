@@ -79,7 +79,7 @@ public class RulesEngineFwdSimpleSparqlBody extends AbstractRulesEngineFwdSimple
      */
     private static void execAccRuleSPARQL(Graph evalGraph, TupleStore evalTupleStore, Graph baseGraph, Rule rule, RulesExecCxt rCxt) {
         // Can cache the query!
-        Query query = RulesLibSparql.ruleBodyToQuery(rule.getBody());
+        Query query = RulesLibSparql.ruleBodyToSelectQuery(rule.getBody());
         DatasetGraph dsg = RulesLibSparql.buildDataset(evalGraph, baseGraph);
 
         // Prefixes.adapt(query.getPrefixMapping()).putAll(P.prefixMap());

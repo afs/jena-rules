@@ -43,14 +43,51 @@ import org.seaborne.jena.srl.lang.RuleBodyElement;
 import org.seaborne.jena.srl.lang.RuleBodyElement.*;
 import org.seaborne.jena.srl.lang.parser.SynAggregationAssignment;
 
-/** This class is not API */
+/**
+ * Support for translation of SPARQL-RL Rules into executable SPARQL query or update.
+ * The objective is functional correctness.
+ */
 public class RulesLibSparql {
 
-    /** RuleElements (i.e. a rule body) to a (SPARQL syntax) {@link ElementGroup}. */
+    /** Return a translation of a {@link RuleBody} as a {@link ElementGroup} syntax element. */
     public static ElementGroup ruleBodyToElementGroup(RuleBody ruleBody) {
         // Used for translating GROUP with no aggregates.
         VarAlloc varAlloc = new VarAlloc(varAllocBase);
         return ruleBodyToElementGroup(ruleBody.getBodyElements(), ruleBody.isGrounded(), varAlloc);
+    }
+
+    /** Return a translation of a {@link RuleBody} as a SPARQL SELECT * Query. */
+    public static Query ruleBodyToSelectQuery(RuleBody ruleBody) {
+        var eltGroup = ruleBodyToElementGroup(ruleBody);
+        Query query = new Query();
+        query.setQuerySelectType();
+        query.setQueryResultStar(true);
+        query.setQueryPattern(eltGroup);
+        return query;
+    }
+
+    /** Return a translation of a {@link Rule} (rule head and rule body) as a SPARQL CONSTRUCT Query. */
+    public static Query ruleToConstruct(Rule rule) {
+        if ( ! rule.getHeadTuples().isEmpty() )
+            throw new NotImplemented("Tuples in SPARQL translation");
+        Element elt = RulesLibSparql.ruleBodyToElementGroup(rule.getBody());
+        Query query = new Query();
+        query.setQueryPattern(elt);
+        BasicPattern bgp = new BasicPattern(rule.getHeadTriples());
+        Template template = new Template(bgp);
+        query.setConstructTemplate(template);
+        query.setQueryConstructType();
+        return query;
+    }
+
+    /** Return a translation of a {@link Rule} (rule head and rule body) as a SPARQL INSERT Update */
+    public static Update ruleToInsert(Rule rule) {
+        Element eltGroup = RulesLibSparql.ruleBodyToElementGroup(rule.getBody());
+        UpdateModify insert = new UpdateModify();
+        insert.setElement(eltGroup);
+        QuadAcc quadAcc = insert.getInsertAcc();
+        rule.getHead().getHeadTriples().forEach(quadAcc::addTriple);
+        return insert;
     }
 
     private static String varAllocBase = "__genvar_";
@@ -182,40 +219,6 @@ public class RulesLibSparql {
             group = eltGroup;
         }
         return group;
-    }
-
-    /** RuleElements (i.e. a rule body) to a SPARQL SELECT Query. */
-    public static Query ruleBodyToQuery(RuleBody ruleBody) {
-        var eltGroup = ruleBodyToElementGroup(ruleBody);
-        Query query = new Query();
-        query.setQuerySelectType();
-        query.setQueryResultStar(true);
-        query.setQueryPattern(eltGroup);
-        return query;
-    }
-
-    /** Rule(rule head and rule body) to a SPARQL CONSTRUCT Query. */
-    public static Query ruleToConstruct(Rule rule) {
-        if ( ! rule.getHeadTuples().isEmpty() )
-            throw new NotImplemented("Tuples in SPARQL translation");
-        Element elt = RulesLibSparql.ruleBodyToElementGroup(rule.getBody());
-        Query query = new Query();
-        query.setQueryPattern(elt);
-        BasicPattern bgp = new BasicPattern(rule.getHeadTriples());
-        Template template = new Template(bgp);
-        query.setConstructTemplate(template);
-        query.setQueryConstructType();
-        return query;
-    }
-
-    /** Rule(rule head and rule body) to a SPARQL INSERT Update */
-    public static Update ruleToInsert(Rule rule) {
-        Element eltGroup = RulesLibSparql.ruleBodyToElementGroup(rule.getBody());
-        UpdateModify insert = new UpdateModify();
-        insert.setElement(eltGroup);
-        QuadAcc quadAcc = insert.getInsertAcc();
-        rule.getHead().getHeadTriples().forEach(quadAcc::addTriple);
-        return insert;
     }
 
     /*package*/ static DatasetGraph buildDataset(Graph evalGraph, Graph inputGraph) {

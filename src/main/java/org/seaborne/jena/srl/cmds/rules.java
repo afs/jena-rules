@@ -28,6 +28,9 @@ import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.Version;
 
 public class rules {
+
+    enum CMD { PARSE, EXECUTE , TRANSLATE }
+
     public static void main(String...args) {
         if ( args.length == 0 ) {
             System.err.println("Usage: rules SUB ARGS...");
@@ -37,16 +40,16 @@ public class rules {
 
         String cmd = args[0];
         String[] argsSub = Arrays.copyOfRange(args, 1, args.length);
-        String cmdExec = cmd;
-        String cmdExecUC = Lib.lowercase(cmdExec);
+        CMD cmdExec = null;
+        String cmdUC = Lib.lowercase(cmd);
 
         // Help
-        switch (cmdExecUC) {
+        switch (cmdUC) {
             case "help" :
             case "-h" :
             case "-help" :
             case "--help" :
-                System.err.println("Commands: execute (x), parse (p)");
+                System.err.println("Commands: execute (x), parse (p), translate(t)");
                 return;
             case "version":
             case "--version":
@@ -58,23 +61,26 @@ public class rules {
         }
 
         // Map to full name.
-        switch (cmdExec) {
-            case "exec", "execute", "x", "eval":
-                cmdExec = "execute";
-                break;
-            case "parse", "p", "print":
-                cmdExec = "parse";
-                break;
-
-        }
+        cmdExec = switch (cmd) {
+            case "exec", "execute", "x", "eval" -> CMD.EXECUTE;
+            case "parse", "p", "print" -> CMD.PARSE;
+            case "translate", "t", "sparql" -> CMD.TRANSLATE;
+            default-> {
+                System.err.println("Unknown: '"+cmd+"'");
+                System.exit(1);
+                yield null;
+            }
+        } ;
 
         // Execute sub-command
         switch (cmdExec) {
-            case "execute":         rules_eval.main(argsSub); break;
-            case "parse":           rules_parse.main(argsSub); break;
-            default:
+            case EXECUTE:         rules_eval.main(argsSub); break;
+            case PARSE:           rules_parse.main(argsSub); break;
+            case TRANSLATE:       rules_translate.main(argsSub); break;
+            default: {
                 System.err.println("Failed to find a command match for '"+cmd+"'");
+                System.exit(1);
+            }
         }
     }
-
 }
