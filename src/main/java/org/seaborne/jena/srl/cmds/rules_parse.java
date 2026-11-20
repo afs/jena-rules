@@ -46,6 +46,10 @@ import org.seaborne.jena.srl.lang.parser.RulesParserBase;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.rdf_syntax.GraphToRuleSet;
 import org.seaborne.jena.srl.rdf_syntax.RuleSetToGraph;
+import org.seaborne.jena.srl.sys.Stratification;
+import org.seaborne.jena.srl.sys.Stratification.StratificationException;
+import org.seaborne.jena.srl.sys.WellFormed;
+import org.seaborne.jena.srl.sys.WellFormed.NotWellFormedException;
 
 public class rules_parse extends CmdRules {
 
@@ -213,6 +217,23 @@ public class rules_parse extends CmdRules {
                 }
             }
         }
+
+        // Wellformed
+        try {
+            WellFormed.checkWellFormed(ruleSet);
+        } catch (NotWellFormedException ex) {
+            System.out.println("Not well-formed: "+ex.getMessage());
+            return;
+        }
+
+        // Stratification
+        try {
+            Stratification stratRecord = Stratification.create(ruleSet);
+        } catch (StratificationException ex) {
+            System.out.println("Stratification error: "+ex.getMessage());
+            return;
+        }
+
     }
 
     @Override
