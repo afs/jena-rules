@@ -117,9 +117,6 @@ public class RuleSetWriter {
         this.prefixMap = prefixMap;
         this.base = baseIRI;
         String baseStr = (baseIRI == null) ? null : baseIRI.str();
-
-        //this.nodeFormatter = new NodeFormatterTTL_MultiLine(baseStr, prefixMap);
-        // Quick fix: Every bnode is short but a different label across rules.
         this.nodeFormatter = TurtleShell.createNodeFormatter(prefixMap, baseStr, SysSRL.getContext());
         this.styleRuleSet = Objects.requireNonNull(style);
     }

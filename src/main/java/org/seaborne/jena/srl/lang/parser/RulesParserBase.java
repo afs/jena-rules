@@ -133,20 +133,23 @@ public class RulesParserBase extends LangParserBase {
     // The current rule element is "NOT GROUND"
     private boolean isGroundedNegation;
 
-
     // Internal. The rule builder will calculate these.
     // We could give them to the builder if there is a way to also have them not set (API built, RDF Graph).
     private boolean hasNegation;
     private boolean hasAssignment;
     private boolean hasAggregation;
 
-    // Blank nodes/variables.
-    // label => bNode for construct templates patterns
-    private final LabelToNodeMap bNodeLabels = LabelToNodeMap.createBNodeMap();
+    // Blank nodes: allocation uses activeLabelMap.
+    // There are 3 cases.
+    // Data block: blank nodes are concrete terms that go in the inference data.
+    // Rule head template: blank nodes are generated for every template instantiation.
+    // Rule body: blank nodes are variables.
 
-    // label => bNode (as variable) for graph patterns
-    //private LabelToNodeMap anonVarLabels = null;
-    protected LabelToNodeMap activeLabelMap = bNodeLabels;
+    //
+    private final LabelToNodeMap bNodeLabelsData = LabelToNodeMap.createBNodeMap();
+
+    // set and restored in start/finish for data, head and body.
+    protected LabelToNodeMap activeLabelMap = null;
 
     private void clearState() {
         headAcc = null;
@@ -221,11 +224,13 @@ public class RulesParserBase extends LangParserBase {
     protected void startHead(int line, int column) {
         debug("startHead", line, column);
         state = BuildState.HEAD;
+        activeLabelMap = LabelToNodeMap.createBNodeMap();
     }
 
     protected void finishHead(int line, int column) {
         debug("finishHead", line, column);
         state = BuildState.NONE;
+        activeLabelMap = null;
     }
 
     protected void startBody(int line, int column) {
@@ -239,7 +244,7 @@ public class RulesParserBase extends LangParserBase {
     protected void finishBody(int line, int column) {
         debug("finishBody", line, column);
         state = BuildState.RULE;
-        activeLabelMap = bNodeLabels;
+        activeLabelMap = null;
     }
 
     protected void startBodyBasic(int line, int column) {
@@ -308,21 +313,25 @@ public class RulesParserBase extends LangParserBase {
     protected void startData(int line, int column) {
         debug("startData", line, column);
         state = BuildState.DATA;
+        activeLabelMap = bNodeLabelsData;
     }
 
     protected void finishData(int line, int column) {
         debug("finishData", line, column);
         state = BuildState.OUTER;
+        activeLabelMap = null;
     }
 
     protected void startTupleDataBlock(int line, int column) {
         debug("startTupleData", line, column);
         state = BuildState.TUPLE_DATA;
+        activeLabelMap = bNodeLabelsData;
     }
 
     protected void finishTupleDataBlock(int line, int column) {
         debug("finishTupleData", line, column);
         state = BuildState.OUTER;
+        activeLabelMap = null;
     }
 
     protected void startDataTuple(int line, int column) {
@@ -480,6 +489,27 @@ public class RulesParserBase extends LangParserBase {
         addToBody(new RuleBodyElement.EltGroup(groupVars, innerGroupAcc, aggAssignments));
         hasAggregation = true;
     }
+
+    // Skolem blank nodes : <_:LABEL>
+//    private static boolean skolomizedBNodes = ARQ.isTrue(ARQ.constantBNodeLabels);
+//
+//    @Override
+//    protected String resolveQuotedIRI(String iriStr, int line, int column) {
+//        // Has <> at this point.
+//        if ( RiotLib.isBNodeIRI(iriStr) )
+//            return iriStr;
+//        return super.resolveQuotedIRI(iriStr, line, column);
+//    }
+//
+//    @Override
+//    protected Node createURI(String iriStr, int line, int column) {
+//        if ( state == BuildState.DATA || state == BuildState.TUPLE_DATA ) {
+//            // In DATA{} and TUPLES{}, allow "_:B" IRIs for explicit blank node labels.
+//            if ( skolomizedBNodes && RiotLib.isBNodeIRI(iriStr) )
+//                return RiotLib.createIRIorBNode(iriStr);
+//        }
+//        return super.createURI(iriStr, line, column);
+//    }
 
     // ---- Blank nodes
 

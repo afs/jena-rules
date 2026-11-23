@@ -82,7 +82,7 @@ public class RulesSyntaxTest extends AbstractManifestTest {
             }
         } catch(RuntimeException ex) {
             ex.printStackTrace();
-            fail("Unexpected exception");
+            fail("Unexpected exception: "+ex.getClass().getSimpleName()+" :: "+ex.getMessage());
             throw ex;
         }
     }
