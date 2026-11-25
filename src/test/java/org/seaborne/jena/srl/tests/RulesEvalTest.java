@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import org.apache.jena.arq.junit.manifest.AbstractManifestTest;
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
@@ -49,7 +48,7 @@ import org.seaborne.jena.srl.lang.parser.SRLParseException;
 import org.seaborne.jena.srl.sys.Stratification.StratificationException;
 import org.seaborne.jena.srl.sys.WellFormed.NotWellFormedException;
 
-public class RulesEvalTest extends AbstractManifestTest {
+public class RulesEvalTest extends AbstractRulesManifestTest {
 
     private final EngineType engineType;
     private final boolean positiveTest;

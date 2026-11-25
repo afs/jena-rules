@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import org.apache.jena.arq.junit.manifest.AbstractManifestTest;
 import org.apache.jena.arq.junit.manifest.ManifestEntry;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
@@ -51,7 +50,7 @@ import org.seaborne.jena.srl.exec.RulesLibSparql;
 import org.seaborne.jena.srl.lang.RulesSyntax;
 import org.seaborne.jena.srl.lang.parser.SRLParseException;
 
-public class RulesTranslationTest extends AbstractManifestTest {
+public class RulesTranslationTest extends AbstractRulesManifestTest {
 
     final private boolean expectLegalSyntax;
     final private String testBase;
